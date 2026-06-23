@@ -22,6 +22,7 @@ import {
   ProductCard,
   ProductCardSkeleton,
 } from "@/components/marketplace/ProductCard";
+import { ProductCover } from "@/components/marketplace/ProductCover";
 import {
   getFeaturedProducts,
   getFeaturedCreators,
@@ -158,24 +159,9 @@ function Hero() {
 
 function HeroStack() {
   const cards = [
-    {
-      title: "The Stewardship Codex",
-      cat: "eBook",
-      price: 49,
-      img: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&q=80",
-    },
-    {
-      title: "Sovereign Leadership",
-      cat: "Course",
-      price: 199,
-      img: "https://images.unsplash.com/photo-1532153975070-2e9ab71f1b14?w=600&q=80",
-    },
-    {
-      title: "Boardroom Liturgy",
-      cat: "Audio",
-      price: 29,
-      img: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&q=80",
-    },
+    { title: "The Stewardship Codex", cat: "eBook", price: 49 },
+    { title: "Sovereign Leadership", cat: "Course", price: 199 },
+    { title: "Boardroom Liturgy", cat: "Audio", price: 29 },
   ];
   return (
     <motion.div
@@ -197,7 +183,7 @@ function HeroStack() {
           className="absolute right-0 top-0 w-72 overflow-hidden rounded-xl bg-white shadow-card-hover"
         >
           <div className="h-44 bg-[#f5f4ef]">
-            <img src={c.img} alt="" className="h-full w-full object-cover" />
+            <ProductCover title={c.title} category={c.cat} className="h-full w-full object-cover" />
           </div>
           <div className="p-4">
             <div className="text-[10px] font-semibold tracking-caps text-gold">
@@ -250,14 +236,13 @@ function CategoriesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.3, delay: i * 0.04 }}
-              whileHover={{ y: -4 }}
             >
               <Link
                 to="/products"
                 search={{ category: c.slug } as never}
-                className="av-card flex h-[120px] flex-col items-center justify-center gap-2 hover:border-gold"
+                className="av-card group flex h-[120px] flex-col items-center justify-center gap-2 border border-transparent transition-all duration-200 ease-out hover:-translate-y-1 hover:border-gold hover:shadow-card-hover"
               >
-                <c.icon className="text-gold" size={32} strokeWidth={1.6} />
+                <c.icon className="text-gold transition-transform duration-200 group-hover:scale-110" size={32} strokeWidth={1.6} />
                 <span className="text-sm font-bold text-navy">{c.label}</span>
               </Link>
             </motion.div>

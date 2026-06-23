@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { BadgeCheck, Heart, Star } from "lucide-react";
 import { useWishlist } from "@/hooks/use-av-store";
+import { ProductCover } from "@/components/marketplace/ProductCover";
 import type { Product } from "@/lib/marketplace.functions";
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
@@ -23,10 +24,9 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         className="relative block"
       >
         <div className="relative h-[200px] w-full overflow-hidden bg-[#f5f4ef]">
-          <img
-            src={product.image}
-            alt={product.title}
-            loading="lazy"
+          <ProductCover
+            title={product.title}
+            category={product.category}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
           />
           {product.bestseller && (
