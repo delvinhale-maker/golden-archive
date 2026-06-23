@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import heroImg from "@/assets/vault-hero.jpg";
 import barImg from "@/assets/vault-bar.jpg";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/vault")({
   head: () => ({
     meta: [
       { title: "Aurum Vault — Allocated Gold Custody for Private Wealth" },
