@@ -42,12 +42,7 @@ const CATEGORIES = [
 ];
 
 const CREATOR_NAMES = [
-  ["Selah Marchand", "Strategist · Author"],
-  ["Ezra Whitlock", "Capital Architect"],
-  ["Maya Okonkwo", "Brand Theologian"],
-  ["Daniel Reyes", "Operator & Investor"],
-  ["Imani Caldwell", "Leadership Coach"],
-  ["August Lin", "Product Mentor"],
+  ["Delvin Hale", "Founder · AurumVault"],
 ];
 
 // Category-specific title pools — every category has ≥ 14 unique titles
