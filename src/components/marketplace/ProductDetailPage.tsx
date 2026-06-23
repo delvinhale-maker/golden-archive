@@ -299,7 +299,7 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
 
       {/* Main */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-12">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-100 lg:[grid-template-columns:45fr_55fr]">
+        <div className="grid grid-cols-1 gap-10 lg:[grid-template-columns:45fr_55fr]">
           {/* Cover */}
           <div className="min-w-0">
             <LargeCover title={title} category={category} productId={productId} />
