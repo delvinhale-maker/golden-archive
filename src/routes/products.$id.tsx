@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
+import { ProductCover } from "@/components/marketplace/ProductCover";
 import { useWishlist } from "@/hooks/use-av-store";
 import { getProduct, type Product } from "@/lib/marketplace.functions";
 
@@ -48,8 +49,8 @@ function ProductPage() {
   const { data: product } = useSuspenseQuery(productQ(id)) as { data: Product };
   const wishlist = useWishlist();
   const liked = wishlist.has(product.id);
-  const images = product.images?.length ? product.images : [product.image];
   const [active, setActive] = useState(0);
+  void active;
 
   return (
     <MarketShell>
@@ -72,15 +73,15 @@ function ProductPage() {
           {/* Gallery */}
           <div>
             <motion.div
-              key={active}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
               className="relative flex h-[360px] w-full items-center justify-center overflow-hidden rounded-xl bg-[#f5f4ef] md:h-[460px]"
             >
-              <img
-                src={images[active]}
-                alt={product.title}
+              <ProductCover
+                title={product.title}
+                category={product.category}
+                productId={product.id}
                 className="h-full w-full object-cover"
               />
               {product.bestseller && (
@@ -89,21 +90,24 @@ function ProductPage() {
                 </span>
               )}
             </motion.div>
-            {images.length > 1 && (
-              <div className="mt-3 flex gap-2">
-                {images.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActive(i)}
-                    className={`h-16 w-16 overflow-hidden rounded-md border-2 ${
-                      active === i ? "border-gold" : "border-line"
-                    }`}
-                  >
-                    <img src={img} alt="" className="h-full w-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="mt-3 flex gap-2">
+              {[0, 1, 2].map((i) => (
+                <button
+                  key={i}
+                  onClick={() => setActive(i)}
+                  className={`h-16 w-16 overflow-hidden rounded-md border-2 ${
+                    active === i ? "border-gold" : "border-line"
+                  }`}
+                >
+                  <ProductCover
+                    title={product.title + (i ? ` · ${i}` : "")}
+                    category={product.category}
+                    productId={product.id + ":" + i}
+                    className="h-full w-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Details */}
