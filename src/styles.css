@@ -5,6 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
   --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -33,24 +34,76 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* AurumVault marketplace tokens */
+  --color-navy: var(--navy);
+  --color-navy-2: var(--navy-2);
   --color-gold: var(--gold);
   --color-gold-soft: var(--gold-soft);
   --color-gold-deep: var(--gold-deep);
+  --color-emerald: var(--emerald);
+  --color-ink: var(--ink);
+  --color-mute: var(--mute);
+  --color-line: var(--line);
   --color-onyx: var(--onyx);
 }
 
+/* MARKETPLACE (default / light) */
 :root {
-  --radius: 0.25rem;
+  --radius: 0.5rem;
 
-  /* Onyx + gold luxury palette */
+  --background: #ffffff;
+  --foreground: #1a1a2e;
+
+  --navy: #0f1629;
+  --navy-2: #1a2744;
+  --gold: #c9a227;
+  --gold-soft: #e3c25b;
+  --gold-deep: #9a7a14;
+  --emerald: #10b981;
+  --ink: #1a1a2e;
+  --mute: #6b7280;
+  --line: #e5e7eb;
+  --onyx: #0f1629;
+
+  --card: #ffffff;
+  --card-foreground: #1a1a2e;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a2e;
+
+  --primary: #c9a227;
+  --primary-foreground: #0f1629;
+
+  --secondary: #0f1629;
+  --secondary-foreground: #ffffff;
+
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+
+  --accent: #fbf4d8;
+  --accent-foreground: #0f1629;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #c9a227;
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 12px 28px rgba(15, 22, 41, 0.12);
+  --shadow-gold-glow: 0 10px 30px -10px rgba(201, 162, 39, 0.55);
+}
+
+/* VAULT (legacy luxury custody landing) — scoped */
+.theme-vault {
   --background: oklch(0.14 0.012 70);
   --foreground: oklch(0.94 0.018 80);
-
-  --onyx: oklch(0.10 0.008 70);
 
   --gold: oklch(0.80 0.135 80);
   --gold-soft: oklch(0.88 0.085 85);
   --gold-deep: oklch(0.58 0.12 60);
+  --onyx: oklch(0.10 0.008 70);
 
   --card: oklch(0.18 0.012 70);
   --card-foreground: oklch(0.94 0.018 80);
@@ -69,71 +122,83 @@
   --accent: oklch(0.24 0.030 75);
   --accent-foreground: oklch(0.94 0.018 80);
 
-  --destructive: oklch(0.55 0.20 25);
-  --destructive-foreground: oklch(0.98 0 0);
-
   --border: oklch(0.30 0.025 75 / 50%);
   --input: oklch(0.30 0.025 75 / 60%);
   --ring: var(--gold);
+
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
-
   html {
     font-family: var(--font-sans);
     background-color: var(--color-background);
+    color: var(--color-foreground);
   }
-
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-feature-settings: "ss01", "cv11";
+    font-size: 16px;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-
   h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .theme-vault h1,
+  .theme-vault h2,
+  .theme-vault h3,
+  .theme-vault h4 {
     font-family: var(--font-serif);
     font-weight: 400;
-    letter-spacing: -0.01em;
+    color: var(--foreground);
   }
-
-  .font-serif { font-family: var(--font-serif); }
-  .font-mono { font-family: var(--font-mono); }
 }
 
 @layer utilities {
-  .text-gold {
-    color: var(--gold);
-  }
-  .text-gold-soft {
-    color: var(--gold-soft);
-  }
-  .bg-onyx {
-    background-color: var(--onyx);
-  }
+  .font-display { font-family: var(--font-display); }
+  .font-serif { font-family: var(--font-serif); }
+  .font-mono { font-family: var(--font-mono); }
+
+  .text-navy { color: var(--navy); }
+  .bg-navy { background-color: var(--navy); }
+  .bg-navy-2 { background-color: var(--navy-2); }
+  .text-gold { color: var(--gold); }
+  .bg-gold { background-color: var(--gold); }
+  .text-gold-soft { color: var(--gold-soft); }
+  .text-emerald { color: var(--emerald); }
+  .border-gold { border-color: var(--gold); }
+  .bg-ink { background-color: var(--ink); }
+  .text-ink { color: var(--ink); }
+  .text-mute { color: var(--mute); }
+  .border-line { border-color: var(--line); }
+  .bg-onyx { background-color: var(--onyx); }
+
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-card-hover { box-shadow: var(--shadow-card-hover); }
+  .shadow-gold-glow { box-shadow: var(--shadow-gold-glow); }
+
   .gold-gradient {
     background: linear-gradient(
       135deg,
-      oklch(0.92 0.07 90) 0%,
-      oklch(0.82 0.14 80) 35%,
-      oklch(0.55 0.13 55) 65%,
-      oklch(0.85 0.10 85) 100%
+      #f1d77a 0%,
+      #c9a227 40%,
+      #8a6b14 70%,
+      #e3c25b 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .gold-rule {
-    background: linear-gradient(
-      90deg,
-      transparent,
-      var(--gold) 20%,
-      var(--gold) 80%,
-      transparent
-    );
+    background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
     height: 1px;
   }
   .gold-border {
@@ -141,27 +206,14 @@
   }
   .vault-grain {
     background-image:
-      radial-gradient(
-        ellipse at top,
-        oklch(0.25 0.05 75 / 0.4),
-        transparent 60%
-      ),
-      radial-gradient(
-        ellipse at bottom right,
-        oklch(0.22 0.08 65 / 0.3),
-        transparent 50%
-      );
+      radial-gradient(ellipse at top, oklch(0.25 0.05 75 / 0.4), transparent 60%),
+      radial-gradient(ellipse at bottom right, oklch(0.22 0.08 65 / 0.3), transparent 50%);
   }
-  .tracking-luxe {
-    letter-spacing: 0.32em;
-  }
+  .tracking-luxe { letter-spacing: 0.32em; }
+  .tracking-caps { letter-spacing: 0.18em; }
+
   .shine {
-    background: linear-gradient(
-      110deg,
-      transparent 30%,
-      oklch(1 0 0 / 0.18) 50%,
-      transparent 70%
-    );
+    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
     background-size: 250% 100%;
     animation: shine 6s ease-in-out infinite;
   }
@@ -169,11 +221,37 @@
     0%, 100% { background-position: 250% 0; }
     50% { background-position: -50% 0; }
   }
-  .float-slow {
-    animation: float-slow 8s ease-in-out infinite;
-  }
+  .float-slow { animation: float-slow 8s ease-in-out infinite; }
   @keyframes float-slow {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-12px); }
+  }
+
+  .av-skeleton {
+    background: linear-gradient(90deg, #f3f4f6 0%, #ececec 50%, #f3f4f6 100%);
+    background-size: 200% 100%;
+    animation: av-skel 1.4s ease-in-out infinite;
+  }
+  @keyframes av-skel {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .av-hero-bg {
+    background:
+      radial-gradient(80% 60% at 20% 20%, rgba(201,162,39,0.20), transparent 60%),
+      radial-gradient(60% 50% at 90% 80%, rgba(201,162,39,0.10), transparent 60%),
+      linear-gradient(180deg, #0f1629 0%, #0b1020 100%);
+  }
+
+  .av-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+  }
+  .av-card:hover {
+    box-shadow: var(--shadow-card-hover);
   }
 }

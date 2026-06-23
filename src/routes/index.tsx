@@ -1,331 +1,395 @@
-import { createFileRoute } from "@tanstack/react-router";
-import heroImg from "@/assets/vault-hero.jpg";
-import barImg from "@/assets/vault-bar.jpg";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { motion } from "framer-motion";
+import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { Suspense } from "react";
+import {
+  BadgeCheck,
+  BookOpen,
+  Briefcase,
+  Crown,
+  Download,
+  GraduationCap,
+  Headphones,
+  LayoutTemplate,
+  Lock,
+  ShieldCheck,
+  Star,
+  Swords,
+  Wallet,
+} from "lucide-react";
+import { MarketShell } from "@/components/marketplace/MarketShell";
+import {
+  ProductCard,
+  ProductCardSkeleton,
+} from "@/components/marketplace/ProductCard";
+import {
+  getFeaturedProducts,
+  getFeaturedCreators,
+  type Product,
+  type Creator,
+} from "@/lib/marketplace.functions";
+
+const featuredQ = queryOptions({
+  queryKey: ["mp", "featured"],
+  queryFn: () => getFeaturedProducts(),
+});
+const creatorsQ = queryOptions({
+  queryKey: ["mp", "creators"],
+  queryFn: () => getFeaturedCreators(),
+});
 
 export const Route = createFileRoute("/")({
+  loader: ({ context }) => {
+    context.queryClient.ensureQueryData(featuredQ);
+    context.queryClient.ensureQueryData(creatorsQ);
+  },
   head: () => ({
     meta: [
-      { title: "Aurum Vault — Allocated Gold Custody for Private Wealth" },
+      { title: "AurumVault — Gold Standard Digital Commerce" },
       {
         name: "description",
         content:
-          "Aurum Vault is a private custodian of allocated physical gold. Sovereign-grade storage, fully insured, redeemable on demand.",
+          "Discover premium eBooks, courses, templates, and digital resources from verified purpose-driven creators. Powered by Illustrious Capital™.",
       },
-      { property: "og:title", content: "Aurum Vault" },
+      { property: "og:title", content: "AurumVault — Gold Standard Digital Commerce" },
       {
         property: "og:description",
         content:
-          "Allocated physical gold, vaulted in jurisdictionally-secure facilities. By invitation.",
+          "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
       },
     ],
+    links: [{ rel: "canonical", href: "/" }],
   }),
-  component: Index,
+  component: Home,
 });
 
-const stats = [
-  { label: "Assets under custody", value: "$4.2B" },
-  { label: "Allocated, never lent", value: "100%" },
-  { label: "Insurance coverage", value: "Lloyd's" },
-  { label: "Vault jurisdictions", value: "6" },
+const CATS = [
+  { label: "eBooks", icon: BookOpen, slug: "eBooks" },
+  { label: "Courses", icon: GraduationCap, slug: "Courses" },
+  { label: "Templates", icon: LayoutTemplate, slug: "Templates" },
+  { label: "Audio", icon: Headphones, slug: "Audio" },
+  { label: "Finance", icon: Wallet, slug: "Finance" },
+  { label: "Leadership", icon: Crown, slug: "Leadership" },
+  { label: "Purpose", icon: Swords, slug: "Purpose" },
+  { label: "Business", icon: Briefcase, slug: "Business" },
 ];
 
-const pillars = [
-  {
-    n: "01",
-    title: "Allocated, in your name",
-    body: "Every bar is serialised, assayed, and registered to you alone. We do not lease, hypothecate, or pool client metal.",
-  },
-  {
-    n: "02",
-    title: "Sovereign-grade vaults",
-    body: "Class-III facilities in Zürich, Singapore, and Toronto. Continuous attestation by Bureau Veritas and Inspectorate.",
-  },
-  {
-    n: "03",
-    title: "Redeem in 72 hours",
-    body: "Withdraw as bullion, settle in fiat, or transfer between vaults. No queues, no gates, no surprises.",
-  },
-];
-
-const vaults = [
-  { city: "Zürich", country: "Switzerland", code: "CH-01" },
-  { city: "Singapore", country: "Singapore", code: "SG-04" },
-  { city: "Toronto", country: "Canada", code: "CA-02" },
-  { city: "Dubai", country: "UAE", code: "AE-03" },
-];
-
-function Index() {
+function Home() {
   return (
-    <div className="min-h-screen bg-background text-foreground vault-grain">
-      {/* Nav */}
-      <header className="absolute top-0 left-0 right-0 z-30">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-12">
-          <a href="/" className="flex items-center gap-2">
-            <span className="font-serif text-2xl text-gold-soft">A</span>
-            <span className="tracking-luxe text-[11px] text-gold-soft">
-              AURUM VAULT
-            </span>
-          </a>
-          <div className="hidden items-center gap-10 text-xs tracking-luxe text-muted-foreground md:flex">
-            <a href="#custody" className="hover:text-gold-soft transition">CUSTODY</a>
-            <a href="#vaults" className="hover:text-gold-soft transition">VAULTS</a>
-            <a href="#assurance" className="hover:text-gold-soft transition">ASSURANCE</a>
-            <a href="#contact" className="hover:text-gold-soft transition">CONTACT</a>
-          </div>
-          <a
-            href="#contact"
-            className="gold-border rounded-sm px-4 py-2 text-[11px] tracking-luxe text-gold-soft hover:bg-gold/10 transition"
+    <MarketShell>
+      <Hero />
+      <CategoriesSection />
+      <Suspense fallback={<FeaturedSkeleton />}>
+        <FeaturedProducts />
+      </Suspense>
+      <Suspense fallback={null}>
+        <FeaturedCreators />
+      </Suspense>
+      <TrustBar />
+    </MarketShell>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="av-hero-bg relative overflow-hidden">
+      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-[55%_45%] md:py-24 lg:px-8 lg:py-28">
+        <div>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="text-[11px] font-semibold tracking-caps text-gold"
           >
-            CLIENT LOGIN
-          </a>
-        </nav>
-      </header>
-
-      {/* Hero */}
-      <section className="relative isolate min-h-screen overflow-hidden">
-        <img
-          src={heroImg}
-          alt=""
-          width={1536}
-          height={1024}
-          className="absolute inset-0 h-full w-full object-cover opacity-70"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/30 to-transparent" />
-
-        <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-6 pt-32 pb-24 lg:px-12">
-          <div className="max-w-2xl">
-            <div className="mb-8 flex items-center gap-4">
-              <span className="h-px w-12 bg-gold" />
-              <span className="font-mono text-[10px] tracking-luxe text-gold">
-                EST. MMVII · BY INVITATION
-              </span>
-            </div>
-
-            <h1 className="font-serif text-5xl leading-[1.05] text-foreground sm:text-6xl md:text-7xl lg:text-8xl">
-              The quiet weight of <span className="gold-gradient italic">certainty</span>.
-            </h1>
-
-            <p className="mt-8 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-              Aurum Vault is a private custodian of allocated physical gold for
-              families, foundations, and institutions who measure wealth in
-              generations — not quarters.
-            </p>
-
-            <div className="mt-12 flex flex-wrap items-center gap-4">
-              <a
-                href="#contact"
-                className="group relative overflow-hidden rounded-sm bg-gold px-7 py-3.5 text-[11px] tracking-luxe text-primary-foreground"
-              >
-                <span className="relative z-10">REQUEST INTRODUCTION</span>
-                <span className="shine absolute inset-0" />
-              </a>
-              <a
-                href="#custody"
-                className="px-2 py-3.5 text-[11px] tracking-luxe text-gold-soft hover:text-gold transition"
-              >
-                READ THE CUSTODY MODEL →
-              </a>
-            </div>
-          </div>
-
-          {/* Spot price ticker */}
-          <div className="mt-24 grid max-w-3xl grid-cols-2 gap-px gold-border bg-gold/10 sm:grid-cols-4">
-            {stats.map((s) => (
-              <div key={s.label} className="bg-background/80 px-5 py-5 backdrop-blur">
-                <div className="font-serif text-2xl text-gold-soft">{s.value}</div>
-                <div className="mt-1 text-[10px] tracking-luxe text-muted-foreground">
-                  {s.label.toUpperCase()}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-luxe text-muted-foreground">
-          XAU/USD · 2,418.40 ▲ 0.62%
-        </div>
-      </section>
-
-      {/* Custody */}
-      <section id="custody" className="relative py-32 lg:py-40">
-        <div className="mx-auto max-w-7xl px-6 lg:px-12">
-          <div className="mb-20 max-w-3xl">
-            <span className="font-mono text-[10px] tracking-luxe text-gold">
-              — THE CUSTODY MODEL
-            </span>
-            <h2 className="mt-6 font-serif text-4xl leading-tight md:text-5xl lg:text-6xl">
-              Title is yours. Always.
-              <span className="block text-muted-foreground italic">
-                The bar is yours. Always.
-              </span>
-            </h2>
-          </div>
-
-          <div className="grid gap-px gold-border bg-gold/10 md:grid-cols-3">
-            {pillars.map((p) => (
-              <div
-                key={p.n}
-                className="group relative bg-background p-10 transition hover:bg-card"
-              >
-                <div className="font-mono text-[10px] tracking-luxe text-gold">
-                  {p.n}
-                </div>
-                <h3 className="mt-6 font-serif text-2xl text-foreground">
-                  {p.title}
-                </h3>
-                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                  {p.body}
-                </p>
-                <div className="mt-10 h-px w-8 bg-gold transition-all group-hover:w-20" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Bar showcase */}
-      <section id="assurance" className="relative overflow-hidden bg-onyx py-32 lg:py-40">
-        <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 lg:grid-cols-2 lg:gap-24 lg:px-12">
-          <div className="relative">
-            <div className="absolute -inset-6 bg-gradient-to-tr from-gold/20 via-transparent to-transparent blur-3xl" />
-            <div className="relative overflow-hidden rounded-sm gold-border float-slow">
-              <img
-                src={barImg}
-                alt="Aurum Vault 1kg fine gold bar"
-                width={1024}
-                height={1536}
-                loading="lazy"
-                className="h-full w-full object-cover"
-              />
-            </div>
-          </div>
-
-          <div>
-            <span className="font-mono text-[10px] tracking-luxe text-gold">
-              — ASSURANCE & PROVENANCE
-            </span>
-            <h2 className="mt-6 font-serif text-4xl leading-tight md:text-5xl">
-              Every bar tells you exactly where it has been.
-            </h2>
-            <p className="mt-6 text-base leading-relaxed text-muted-foreground">
-              LBMA Good Delivery refiners. Chain-of-custody recorded on a
-              tamper-evident ledger. Quarterly third-party attestation by
-              Bureau Veritas. You can audit your holdings — bar by bar,
-              serial by serial — in any browser, at any hour.
-            </p>
-
-            <dl className="mt-10 grid grid-cols-2 gap-x-8 gap-y-6">
-              {[
-                ["Purity", "999.9 fine"],
-                ["Standard", "LBMA Good Delivery"],
-                ["Audit cadence", "Quarterly"],
-                ["Settlement", "T+0"],
-              ].map(([k, v]) => (
-                <div key={k}>
-                  <dt className="text-[10px] tracking-luxe text-muted-foreground">
-                    {k.toUpperCase()}
-                  </dt>
-                  <dd className="mt-2 font-serif text-xl text-gold-soft">{v}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </div>
-      </section>
-
-      {/* Vaults */}
-      <section id="vaults" className="py-32 lg:py-40">
-        <div className="mx-auto max-w-7xl px-6 lg:px-12">
-          <div className="mb-16 flex flex-wrap items-end justify-between gap-8">
-            <div className="max-w-2xl">
-              <span className="font-mono text-[10px] tracking-luxe text-gold">
-                — THE NETWORK
-              </span>
-              <h2 className="mt-6 font-serif text-4xl leading-tight md:text-5xl">
-                Six jurisdictions. One standard.
-              </h2>
-            </div>
-            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              Diversify by geography, not just by asset. Move metal between
-              vaults at cost, on the same business day.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-px gold-border bg-gold/10 md:grid-cols-4">
-            {vaults.map((v) => (
-              <div
-                key={v.code}
-                className="group flex flex-col justify-between bg-background p-8 transition hover:bg-card min-h-[220px]"
-              >
-                <div className="font-mono text-[10px] tracking-luxe text-gold">
-                  VAULT {v.code}
-                </div>
-                <div>
-                  <div className="font-serif text-3xl text-foreground">
-                    {v.city}
-                  </div>
-                  <div className="mt-1 text-xs tracking-luxe text-muted-foreground">
-                    {v.country.toUpperCase()}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section id="contact" className="relative py-32 lg:py-40">
-        <div className="mx-auto max-w-4xl px-6 text-center lg:px-12">
-          <div className="mx-auto mb-10 h-px w-32 gold-rule" />
-          <span className="font-mono text-[10px] tracking-luxe text-gold">
-            — BY INVITATION
-          </span>
-          <h2 className="mt-6 font-serif text-4xl leading-tight md:text-6xl">
-            A custodian for the
-            <span className="gold-gradient italic"> next hundred years</span>.
-          </h2>
-          <p className="mx-auto mt-8 max-w-xl text-base leading-relaxed text-muted-foreground">
-            New relationships begin with a private conversation. Our principal
-            office responds within one business day.
-          </p>
-
-          <form
-            onSubmit={(e) => e.preventDefault()}
-            className="mx-auto mt-12 flex max-w-md flex-col gap-3 sm:flex-row"
+            AURUMVAULT — GOLD STANDARD COMMERCE
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mt-6 font-display text-4xl leading-[1.05] text-white sm:text-5xl md:text-6xl lg:text-[64px]"
           >
-            <input
-              type="email"
-              placeholder="your@private.email"
-              className="flex-1 rounded-sm gold-border bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold"
-            />
-            <button
-              type="submit"
-              className="relative overflow-hidden rounded-sm bg-gold px-6 py-3 text-[11px] tracking-luxe text-primary-foreground"
+            Discover <span className="gold-gradient">premium</span> digital
+            resources.
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="mt-6 max-w-xl text-base leading-relaxed text-white/70 md:text-lg"
+          >
+            Curated eBooks, courses, templates, and tools from verified
+            purpose-driven creators.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="mt-8 flex flex-wrap items-center gap-3"
+          >
+            <Link
+              to="/products"
+              className="group"
             >
-              <span className="relative z-10">REQUEST INTRODUCTION</span>
-              <span className="shine absolute inset-0" />
-            </button>
-          </form>
-
-          <p className="mt-6 font-mono text-[10px] tracking-luxe text-muted-foreground">
-            ENCRYPTED · NEVER SHARED · DELETED ON REQUEST
-          </p>
+              <motion.span
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                className="inline-flex h-12 items-center rounded-full bg-gold px-7 text-sm font-bold text-navy shadow-gold-glow"
+              >
+                Shop Now →
+              </motion.span>
+            </Link>
+            <motion.a
+              whileHover={{ scale: 1.02, backgroundColor: "#fff", color: "#0f1629" }}
+              whileTap={{ scale: 0.97 }}
+              href="#categories"
+              className="inline-flex h-12 items-center rounded-full border border-white/70 px-7 text-sm font-bold text-white"
+            >
+              Start Selling →
+            </motion.a>
+          </motion.div>
         </div>
-      </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border/50 py-12">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 text-[10px] tracking-luxe text-muted-foreground md:flex-row lg:px-12">
-          <div>© {new Date().getFullYear()} AURUM VAULT SA · ZÜRICH</div>
-          <div className="flex gap-8">
-            <a href="#" className="hover:text-gold-soft">TERMS</a>
-            <a href="#" className="hover:text-gold-soft">PRIVACY</a>
-            <a href="#" className="hover:text-gold-soft">DISCLOSURES</a>
+        <HeroStack />
+      </div>
+    </section>
+  );
+}
+
+function HeroStack() {
+  const cards = [
+    {
+      title: "The Stewardship Codex",
+      cat: "eBook",
+      price: 49,
+      img: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&q=80",
+    },
+    {
+      title: "Sovereign Leadership",
+      cat: "Course",
+      price: 199,
+      img: "https://images.unsplash.com/photo-1532153975070-2e9ab71f1b14?w=600&q=80",
+    },
+    {
+      title: "Boardroom Liturgy",
+      cat: "Audio",
+      price: 29,
+      img: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&q=80",
+    },
+  ];
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 60 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.7, delay: 0.3 }}
+      className="relative mx-auto hidden h-[420px] w-full max-w-md md:block"
+    >
+      {cards.map((c, i) => (
+        <motion.div
+          key={i}
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 + i * 0.12 }}
+          style={{
+            zIndex: 10 - i,
+            transform: `translate(${i * 20}px, ${i * 18}px)`,
+          }}
+          className="absolute right-0 top-0 w-72 overflow-hidden rounded-xl bg-white shadow-card-hover"
+        >
+          <div className="h-44 bg-[#f5f4ef]">
+            <img src={c.img} alt="" className="h-full w-full object-cover" />
           </div>
+          <div className="p-4">
+            <div className="text-[10px] font-semibold tracking-caps text-gold">
+              {c.cat.toUpperCase()}
+            </div>
+            <div className="mt-1 font-display text-base font-bold text-ink">
+              {c.title}
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="font-display text-lg font-bold text-gold">
+                ${c.price}
+              </span>
+              <div className="flex items-center gap-1 text-[11px] text-mute">
+                <Star size={11} fill="var(--gold)" stroke="var(--gold)" /> 4.9
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+}
+
+function SectionHeader({ kicker, title }: { kicker?: string; title: string }) {
+  return (
+    <div className="mb-10 flex flex-col items-center text-center">
+      {kicker && (
+        <div className="text-[11px] font-semibold tracking-caps text-gold">
+          {kicker}
         </div>
-      </footer>
+      )}
+      <h2 className="mt-2 font-display text-3xl font-bold text-ink md:text-4xl">
+        {title}
+      </h2>
+      <span className="mt-3 block h-[2px] w-10 bg-gold" />
     </div>
+  );
+}
+
+function CategoriesSection() {
+  return (
+    <section id="categories" className="bg-white py-16 md:py-24">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <SectionHeader title="Browse Categories" />
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {CATS.map((c, i) => (
+            <motion.div
+              key={c.label}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.3, delay: i * 0.04 }}
+              whileHover={{ y: -4 }}
+            >
+              <Link
+                to="/products"
+                search={{ category: c.slug } as never}
+                className="av-card flex h-[120px] flex-col items-center justify-center gap-2 hover:border-gold"
+              >
+                <c.icon className="text-gold" size={32} strokeWidth={1.6} />
+                <span className="text-sm font-bold text-navy">{c.label}</span>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FeaturedProducts() {
+  const { data } = useSuspenseQuery(featuredQ);
+  return (
+    <section className="bg-white pb-16 pt-4 md:pb-24">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <SectionHeader title="Featured Products" />
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-4">
+          {(data as Product[]).slice(0, 8).map((p, i) => (
+            <ProductCard key={p.id} product={p} index={i} />
+          ))}
+        </div>
+        <div className="mt-10 text-center">
+          <Link
+            to="/products"
+            className="inline-flex h-11 items-center rounded-full border border-navy px-6 text-sm font-bold text-navy hover:bg-navy hover:text-white"
+          >
+            See all products →
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FeaturedSkeleton() {
+  return (
+    <section className="bg-white pb-16 pt-4">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <SectionHeader title="Featured Products" />
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FeaturedCreators() {
+  const { data } = useSuspenseQuery(creatorsQ);
+  return (
+    <section className="bg-[#f9fafb] py-16 md:py-24">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <SectionHeader title="Featured Creators" />
+        <div className="flex gap-5 overflow-x-auto pb-3 md:grid md:grid-cols-3 md:overflow-visible">
+          {(data as Creator[]).slice(0, 6).map((c, i) => (
+            <motion.div
+              key={c.id}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.06 }}
+              whileHover={{ y: -4 }}
+              className="av-card min-w-[280px] overflow-hidden"
+            >
+              <div
+                className="h-[120px]"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #0f1629 0%, #1a2744 50%, #c9a227 130%)",
+                }}
+              />
+              <div className="px-5 pb-5">
+                <img
+                  src={c.avatar}
+                  alt={c.name}
+                  className="-mt-7 h-14 w-14 rounded-full border-[3px] border-white object-cover"
+                />
+                <div className="mt-3 flex items-center gap-1.5">
+                  <div className="font-display text-base font-bold text-ink">
+                    {c.name}
+                  </div>
+                  {c.verified && (
+                    <BadgeCheck size={15} className="text-emerald" />
+                  )}
+                </div>
+                <div className="text-[13px] text-mute">{c.tagline}</div>
+                <div className="mt-4 flex items-center gap-6 text-[13px]">
+                  <div>
+                    <div className="font-bold text-ink">{c.productsCount}</div>
+                    <div className="text-[11px] text-mute">Products</div>
+                  </div>
+                  <div>
+                    <div className="font-bold text-ink">
+                      {c.salesCount.toLocaleString()}
+                    </div>
+                    <div className="text-[11px] text-mute">Sales</div>
+                  </div>
+                </div>
+                <button className="mt-4 inline-flex items-center text-sm font-bold text-gold hover:underline">
+                  View Store →
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TrustBar() {
+  const items = [
+    { icon: Lock, label: "Secure Checkout" },
+    { icon: ShieldCheck, label: "Verified Creators" },
+    { icon: Download, label: "Instant Download" },
+    { icon: Star, label: "5-Star Support" },
+  ];
+  return (
+    <section className="border-y border-line bg-white">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-around gap-4 px-6 py-6 lg:px-8">
+        {items.map((it, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <it.icon size={16} className="text-gold" />
+            <span className="text-[13px] font-medium text-ink">{it.label}</span>
+            {i < items.length - 1 && (
+              <span className="ml-4 hidden h-1 w-1 rounded-full bg-mute md:block" />
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
