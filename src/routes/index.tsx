@@ -79,6 +79,7 @@ function Home() {
   return (
     <MarketShell>
       <Hero />
+      <HeroStatsBar />
       <CategoriesSection />
       <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProducts />
@@ -88,6 +89,48 @@ function Home() {
       </Suspense>
       <TrustBar />
     </MarketShell>
+  );
+}
+
+function HeroStatsBar() {
+  const stats = [
+    { icon: BookOpen, label: "32+ Products" },
+    { icon: LayoutTemplate, label: "18 Categories" },
+    { icon: BadgeCheck, label: "Verified Creators" },
+    { icon: Download, label: "Instant Download" },
+  ];
+  return (
+    <section
+      className="border-t"
+      style={{
+        background: "#22335A",
+        borderTopColor: "rgba(201,168,76,0.55)",
+      }}
+    >
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+        <ul className="grid grid-cols-2 gap-y-5 sm:grid-cols-4 sm:gap-y-0">
+          {stats.map((s) => (
+            <li
+              key={s.label}
+              className="flex flex-col items-center gap-2 text-center"
+            >
+              <span
+                className="grid h-10 w-10 place-items-center rounded-full"
+                style={{
+                  background: "rgba(201,168,76,0.12)",
+                  border: "1px solid rgba(201,168,76,0.45)",
+                }}
+              >
+                <s.icon size={18} className="text-gold" />
+              </span>
+              <span className="text-[12px] font-semibold tracking-wide text-white sm:text-[13px]">
+                {s.label}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }
 
