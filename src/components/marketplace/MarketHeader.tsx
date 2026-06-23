@@ -20,11 +20,10 @@ const CATEGORIES = [
 export function MarketHeader() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const search = useRouterState({ select: (s) => s.location.search }) as Record<
-    string,
-    unknown
-  >;
-  const activeCat = (search?.category as string) ?? "All";
+  const searchState = useRouterState({
+    select: (s) => s.location.search as unknown,
+  }) as Record<string, unknown> | undefined;
+  const activeCat = (searchState?.category as string) ?? "All";
   const [menuOpen, setMenuOpen] = useState(false);
   const [q, setQ] = useState("");
   const wishlist = useWishlist();
