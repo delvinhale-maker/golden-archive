@@ -30,17 +30,6 @@ export type Product = {
   included?: string[];
 };
 
-const STOCK = [
-  "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&q=80",
-  "https://images.unsplash.com/photo-1532153975070-2e9ab71f1b14?w=800&q=80",
-  "https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=800&q=80",
-  "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800&q=80",
-  "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80",
-  "https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&q=80",
-  "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80",
-  "https://images.unsplash.com/photo-1542744095-291d1f67b221?w=800&q=80",
-];
-
 const CATEGORIES = [
   "eBooks",
   "Courses",
@@ -61,20 +50,143 @@ const CREATOR_NAMES = [
   ["August Lin", "Product Mentor"],
 ];
 
-const TITLES = [
-  "The Stewardship Codex",
-  "Sovereign Leadership Playbook",
-  "The Capital Architect's Notebook",
-  "Brand Theology: A Field Manual",
-  "Purposeful Pricing",
-  "Quiet Equity: The 12-Week Course",
-  "Boardroom Liturgy",
-  "Operator's Calendar 2025",
-  "The Patient Capital Series",
-  "Heir Mindset Workshop",
-  "Founder's Daily Office",
-  "Wealth With Reverence",
-];
+// Category-specific title pools — every category has ≥ 14 unique titles
+const TITLES_BY_CAT: Record<string, string[]> = {
+  eBooks: [
+    "The Stewardship Codex",
+    "Quiet Equity",
+    "Letters to a Young Operator",
+    "The Patient Capital Series",
+    "Wealth With Reverence",
+    "The Founder's Daily Office",
+    "Sovereign Mornings",
+    "The Inheritance Manual",
+    "Boardroom Liturgy",
+    "Built to Endure",
+    "The Long Compounding",
+    "Notes on a Quiet Empire",
+    "The Discipline of Restraint",
+    "Heir Mindset Field Guide",
+    "The Architecture of Trust",
+  ],
+  Courses: [
+    "Sovereign Leadership Playbook",
+    "Quiet Equity: The 12-Week Course",
+    "Brand Theology Intensive",
+    "The Capital Architect Program",
+    "Heir Mindset Workshop",
+    "Operator's Bootcamp",
+    "Purposeful Pricing Masterclass",
+    "Boardroom Communication Lab",
+    "Founder OS — Cohort 03",
+    "The Stewardship Sprint",
+    "Patient Capital Fundamentals",
+    "Legacy Brand Studio",
+    "Wealth Liturgy: 30 Days",
+    "Operator-Investor Track",
+  ],
+  Templates: [
+    "Operator's Calendar 2025",
+    "Boardroom Deck Kit",
+    "Founder Wiki — Notion Build",
+    "Cap Table Atlas",
+    "Investor Memo Library",
+    "Quarterly Review Workbook",
+    "Hiring Loop Templates",
+    "Brand Theology Brief Pack",
+    "Pricing Architecture Sheets",
+    "Customer Discovery Canvas",
+    "OKR Liturgy — Notion",
+    "Series A Data Room Kit",
+    "Executive 1:1 System",
+    "Annual Letter Template",
+  ],
+  Audio: [
+    "Boardroom Liturgy — Audio",
+    "Morning Office for Founders",
+    "Quiet Capital Meditations",
+    "The Stewardship Recitations",
+    "Operator's Examen",
+    "Vespers for Builders",
+    "Compline of the Long Game",
+    "Lectio for Leaders",
+    "The Sovereign Hour",
+    "Daily Office: Equity Edition",
+    "Vigils of the Operator",
+    "Patient Capital — Lossless",
+    "Heir Mindset Audio Course",
+    "The Architect's Recordings",
+  ],
+  Finance: [
+    "The Patient Capital Series",
+    "Quiet Equity Playbook",
+    "Cap Table Atlas",
+    "Long Compounding Notebook",
+    "Steward Portfolio Models",
+    "Family Office Field Guide",
+    "Endowment Discipline",
+    "The Reverent Investor",
+    "Private Markets Liturgy",
+    "Treasury Architecture",
+    "Allocator's Daily Office",
+    "Diligence Sheets — Pro",
+    "Capital Architecture 101",
+    "The Sovereign Allocator",
+  ],
+  Leadership: [
+    "Sovereign Leadership Playbook",
+    "Boardroom Liturgy",
+    "The Stewardship Codex",
+    "Quiet Authority",
+    "Letters to a Young Operator",
+    "Heir Mindset Workshop",
+    "The Long Conversation",
+    "Founder's Examen",
+    "Leadership With Reverence",
+    "The Architect's Council",
+    "Operator Theology",
+    "The Patient Leader",
+    "Sovereign Mornings",
+    "Council of Three",
+  ],
+  Purpose: [
+    "Built to Endure",
+    "The Inheritance Manual",
+    "Wealth With Reverence",
+    "Notes on a Quiet Empire",
+    "Brand Theology",
+    "Purposeful Pricing",
+    "The Long Game Manifesto",
+    "Vocation of the Operator",
+    "Capital as Liturgy",
+    "Quiet Empire Field Guide",
+    "The Sacred Spreadsheet",
+    "Steward Manifesto",
+    "Slow Growth Doctrine",
+    "Reverent Ambition",
+  ],
+  Business: [
+    "Operator's Calendar 2025",
+    "Founder OS",
+    "Quiet Equity Playbook",
+    "Brand Theology: A Field Manual",
+    "Purposeful Pricing",
+    "Hiring Loop Manual",
+    "Annual Letter Workshop",
+    "Series A Survival Kit",
+    "The Patient Operator",
+    "Customer Discovery Liturgy",
+    "Margin Architecture",
+    "The Reverent Roadmap",
+    "Quiet Distribution",
+    "Operator-Investor Handbook",
+  ],
+};
+
+function pickTitle(category: string, index: number): string {
+  const pool = TITLES_BY_CAT[category] ?? TITLES_BY_CAT.Business;
+  return pool[index % pool.length];
+}
 
 function mockCreator(i: number): Creator {
   const [name, tagline] = CREATOR_NAMES[i % CREATOR_NAMES.length];
@@ -90,26 +202,37 @@ function mockCreator(i: number): Creator {
   };
 }
 
-function mockProduct(i: number): Product {
-  const cat = CATEGORIES[i % CATEGORIES.length];
-  const price = 19 + ((i * 7) % 180);
-  const compare = i % 3 === 0 ? price + 20 : undefined;
+/**
+ * Build a deterministic product. When `category` is provided we draw the title
+ * from that category's title pool so every card in a filtered list is unique.
+ */
+function mockProduct(absoluteIndex: number, category?: string): Product {
+  const cat = category ?? CATEGORIES[absoluteIndex % CATEGORIES.length];
+  const titleIndex = category ? absoluteIndex : Math.floor(absoluteIndex / CATEGORIES.length);
+  const title = pickTitle(cat, titleIndex);
+  const id = category
+    ? `p_${cat.toLowerCase()}_${absoluteIndex}`
+    : `p_${absoluteIndex}`;
+  const price = 19 + ((absoluteIndex * 17 + cat.length * 11) % 220);
+  const compare = absoluteIndex % 3 === 0 ? price + 20 : undefined;
+  const creatorIdx = absoluteIndex % CREATOR_NAMES.length;
   return {
-    id: `p_${i}`,
-    title: TITLES[i % TITLES.length],
+    id,
+    title,
     category: cat,
     price,
     compareAtPrice: compare,
-    rating: 4 + ((i * 3) % 10) / 10,
-    reviewCount: 18 + ((i * 13) % 480),
-    image: STOCK[i % STOCK.length],
-    images: [STOCK[i % STOCK.length], STOCK[(i + 1) % STOCK.length], STOCK[(i + 2) % STOCK.length]],
-    bestseller: i % 4 === 0,
+    rating: 4 + ((absoluteIndex * 3) % 10) / 10,
+    reviewCount: 18 + ((absoluteIndex * 13) % 480),
+    // image is now rendered via <ProductCover> using title + category; keep a
+    // stable placeholder string so consumers that read product.image still work.
+    image: `av:${cat}:${absoluteIndex}`,
+    bestseller: absoluteIndex % 4 === 0,
     creator: {
-      id: `c_${i % CREATOR_NAMES.length}`,
-      name: CREATOR_NAMES[i % CREATOR_NAMES.length][0],
+      id: `c_${creatorIdx}`,
+      name: CREATOR_NAMES[creatorIdx][0],
       verified: true,
-      avatar: `https://i.pravatar.cc/80?img=${(i % 70) + 1}`,
+      avatar: `https://i.pravatar.cc/80?img=${(creatorIdx * 7) + 1}`,
     },
     description:
       "A premium, purpose-driven resource curated for operators who want to build with intention. Includes worksheets, audio reflections, and a printable companion.",
@@ -122,8 +245,13 @@ function mockProduct(i: number): Product {
   };
 }
 
-const mockProducts = (n: number, offset = 0) =>
-  Array.from({ length: n }, (_, i) => mockProduct(i + offset));
+function mockProductsAcross(n: number, offset = 0) {
+  return Array.from({ length: n }, (_, i) => mockProduct(i + offset));
+}
+
+function mockProductsForCategory(cat: string, n: number, offset = 0) {
+  return Array.from({ length: n }, (_, i) => mockProduct(i + offset, cat));
+}
 
 const mockCreators = (n: number) => Array.from({ length: n }, (_, i) => mockCreator(i));
 
@@ -142,7 +270,7 @@ async function safeFetch<T>(path: string, fallback: T): Promise<T> {
 }
 
 export const getFeaturedProducts = createServerFn({ method: "GET" }).handler(async () => {
-  const fallback = mockProducts(8);
+  const fallback = mockProductsAcross(8);
   const data = await safeFetch<unknown>("/marketplace/featured", fallback as unknown);
   return (Array.isArray(data) && data.length ? (data as Product[]) : fallback) as Product[];
 });
@@ -159,30 +287,57 @@ export const getProducts = createServerFn({ method: "GET" })
       .parse(input ?? {}),
   )
   .handler(async ({ data }) => {
-    const fallback = mockProducts(12, (data.page - 1) * 12);
+    const PAGE = 12;
+    const offset = (data.page - 1) * PAGE;
+
+    // Build a category-aware fallback so filtered views show distinct items.
+    const fallback =
+      data.category && data.category !== "All"
+        ? mockProductsForCategory(data.category, PAGE, offset)
+        : mockProductsAcross(PAGE, offset);
+
     const params = new URLSearchParams();
     if (data.category) params.set("category", data.category);
     if (data.sort) params.set("sort", data.sort);
     if (data.q) params.set("q", data.q);
     params.set("page", String(data.page));
     const result = await safeFetch<unknown>(`/products?${params.toString()}`, fallback as unknown);
-    let list = (Array.isArray(result) ? (result as Product[]) : fallback) as Product[];
+
+    let list = (Array.isArray(result) && result.length
+      ? (result as Product[])
+      : fallback) as Product[];
+
     if (data.category && data.category !== "All") {
-      list = list.filter((p) => p.category?.toLowerCase() === data.category!.toLowerCase());
-      if (list.length === 0) list = fallback.map((p) => ({ ...p, category: data.category! }));
+      const filtered = list.filter(
+        (p) => p.category?.toLowerCase() === data.category!.toLowerCase(),
+      );
+      // If the upstream response had nothing for this category, fall back to
+      // the locally-generated, category-specific set (unique titles + ids).
+      list = filtered.length ? filtered : fallback;
     }
     if (data.q) {
       const q = data.q.toLowerCase();
       list = list.filter((p) => p.title.toLowerCase().includes(q));
     }
+
+    // Deduplicate by id as a final safety net.
+    const seen = new Set<string>();
+    list = list.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
+
     return { items: list, page: data.page, hasMore: data.page < 4 };
   });
 
 export const getProduct = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ id: z.string() }).parse(input))
   .handler(async ({ data }) => {
-    const seed = Number(data.id.replace(/\D/g, "")) || 1;
-    const fallback = mockProduct(seed);
+    const parts = data.id.split("_");
+    // ids look like p_<idx> or p_<category>_<idx>
+    const maybeCat = parts.length === 3 ? parts[1] : undefined;
+    const matchedCat = maybeCat
+      ? CATEGORIES.find((c) => c.toLowerCase() === maybeCat)
+      : undefined;
+    const seed = Number(parts[parts.length - 1]) || 1;
+    const fallback = mockProduct(seed, matchedCat);
     const result = await safeFetch<Product | null>(`/products/${data.id}`, fallback);
     return (result && typeof result === "object" ? (result as Product) : fallback) as Product;
   });

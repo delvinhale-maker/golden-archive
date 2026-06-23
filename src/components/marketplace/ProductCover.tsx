@@ -1,13 +1,17 @@
 type Props = {
   title: string;
   category: string;
+  productId?: string;
   className?: string;
 };
 
 function hashSeed(s: string) {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = (h * 16777619) >>> 0;
+  }
+  return h;
 }
 
 function normalize(cat: string) {
@@ -22,18 +26,53 @@ function normalize(cat: string) {
   return "business";
 }
 
-const NAVY_GRADS: [string, string][] = [
-  ["#0b1226", "#1c2a52"],
-  ["#0f1629", "#2a3a6b"],
-  ["#091022", "#1a234a"],
-  ["#0d1430", "#23306b"],
-];
+// Each category gets a wide palette pool. Pairs are [from, to] hex stops.
+const PALETTES: Record<string, [string, string][]> = {
+  ebook: [
+    ["#0b1226", "#3a1f6b"], // navy → deep purple
+    ["#0f1629", "#8a6a14"], // navy → gold
+    ["#06222a", "#000000"], // dark teal → black
+    ["#1a0b2e", "#0b1226"], // violet → navy
+    ["#0a2540", "#5b2c6f"], // ocean navy → plum
+    ["#101820", "#a17a16"], // ink → gold
+  ],
+  course: [
+    ["#0b1226", "#1f3a6b"], // deep navy
+    ["#04261c", "#1e6f4a"], // dark emerald
+    ["#3a0d18", "#7a1f2e"], // rich burgundy
+    ["#0a1c2e", "#1d4d7a"], // midnight blue
+    ["#0d2218", "#286b3e"], // forest
+    ["#2a0a14", "#681d2c"], // garnet
+  ],
+  audio: [
+    ["#000000", "#0a1124"],
+    ["#02070f", "#0b1c2e"],
+    ["#000000", "#1a0a1a"],
+    ["#050505", "#101820"],
+  ],
+  finance: [
+    ["#0b1226", "#1c2a52"],
+    ["#0a1c2e", "#214b6e"],
+    ["#101820", "#2a3a6b"],
+  ],
+  leadership: [
+    ["#0b1226", "#3a1f6b"],
+    ["#0f1629", "#8a6a14"],
+    ["#06222a", "#101820"],
+  ],
+  purpose: [
+    ["#04261c", "#1e6f4a"],
+    ["#1a0b2e", "#0b1226"],
+    ["#3a0d18", "#7a1f2e"],
+  ],
+  business: [
+    ["#0b1226", "#1c2a52"],
+    ["#0a1c2e", "#214b6e"],
+    ["#101820", "#2a3a6b"],
+  ],
+};
 
-const GOLD_GRADS: [string, string][] = [
-  ["#8a6a14", "#e8c869"],
-  ["#a17a16", "#f0d27a"],
-  ["#7a5d10", "#d4af3d"],
-];
+const GOLD_GRAD: [string, string] = ["#a17a16", "#f0d27a"];
 
 function pickTitleLines(title: string, max = 3) {
   const words = title.split(/\s+/);
@@ -52,13 +91,14 @@ function pickTitleLines(title: string, max = 3) {
   return lines.slice(0, max);
 }
 
-export function ProductCover({ title, category, className }: Props) {
+export function ProductCover({ title, category, productId, className }: Props) {
   const kind = normalize(category);
-  const seed = hashSeed(title + category);
-  const navy = NAVY_GRADS[seed % NAVY_GRADS.length];
-  const gold = GOLD_GRADS[seed % GOLD_GRADS.length];
+  const seed = hashSeed((productId ?? "") + "::" + title + "::" + category);
+  const palette = PALETTES[kind] ?? PALETTES.business;
+  const pair = palette[seed % palette.length];
+  const angle = [0, 45, 90, 135, 180, 225][(seed >> 3) % 6];
   const lines = pickTitleLines(title);
-  const gid = `g${seed}`;
+  const gid = `g${seed.toString(36)}`;
 
   return (
     <svg
@@ -69,29 +109,47 @@ export function ProductCover({ title, category, className }: Props) {
       aria-label={`${category} cover for ${title}`}
     >
       <defs>
-        <linearGradient id={`${gid}-navy`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={navy[0]} />
-          <stop offset="100%" stopColor={navy[1]} />
+        <linearGradient
+          id={`${gid}-bg`}
+          gradientTransform={`rotate(${angle} 0.5 0.5)`}
+          x1="0"
+          y1="0"
+          x2="1"
+          y2="1"
+        >
+          <stop offset="0%" stopColor={pair[0]} />
+          <stop offset="100%" stopColor={pair[1]} />
         </linearGradient>
         <linearGradient id={`${gid}-gold`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={gold[0]} />
-          <stop offset="100%" stopColor={gold[1]} />
+          <stop offset="0%" stopColor={GOLD_GRAD[0]} />
+          <stop offset="100%" stopColor={GOLD_GRAD[1]} />
         </linearGradient>
-        <linearGradient id={`${gid}-mix`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={navy[0]} />
-          <stop offset="60%" stopColor={navy[1]} />
-          <stop offset="100%" stopColor={gold[1]} />
-        </linearGradient>
+        {/* 5% noise texture for eBooks */}
+        <pattern id={`${gid}-noise`} width="3" height="3" patternUnits="userSpaceOnUse">
+          <rect width="3" height="3" fill="#ffffff" fillOpacity="0.04" />
+          <circle cx="1" cy="1" r="0.4" fill="#ffffff" fillOpacity="0.05" />
+        </pattern>
+        {/* 8% diagonal lines for Courses */}
+        <pattern
+          id={`${gid}-diag`}
+          width="10"
+          height="10"
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(45)"
+        >
+          <line x1="0" y1="0" x2="0" y2="10" stroke="#ffffff" strokeOpacity="0.08" strokeWidth="1" />
+        </pattern>
       </defs>
 
       {kind === "ebook" && <EbookCover gid={gid} lines={lines} category={category} />}
-      {kind === "course" && <CourseCover gid={gid} lines={lines} />}
-      {kind === "template" && <TemplateCover gid={gid} title={title} />}
+      {kind === "course" && <CourseCover gid={gid} lines={lines} category={category} />}
+      {kind === "template" && <TemplateCover gid={gid} title={title} seed={seed} />}
       {kind === "audio" && <AudioCover gid={gid} lines={lines} seed={seed} />}
-      {kind === "finance" && <FinanceCover gid={gid} lines={lines} seed={seed} />}
+      {(kind === "finance" || kind === "business") && (
+        <FinanceCover gid={gid} lines={lines} seed={seed} category={category} />
+      )}
       {kind === "leadership" && <EbookCover gid={gid} lines={lines} category={category} />}
-      {kind === "purpose" && <CourseCover gid={gid} lines={lines} />}
-      {kind === "business" && <FinanceCover gid={gid} lines={lines} seed={seed} />}
+      {kind === "purpose" && <CourseCover gid={gid} lines={lines} category={category} />}
     </svg>
   );
 }
@@ -99,31 +157,49 @@ export function ProductCover({ title, category, className }: Props) {
 function EbookCover({ gid, lines, category }: { gid: string; lines: string[]; category: string }) {
   return (
     <g>
-      <rect width="400" height="300" fill={`url(#${gid}-navy)`} />
-      {/* book shape */}
-      <g transform="translate(120 35)">
-        <rect x="0" y="0" width="160" height="230" rx="3" fill="#0a1124" stroke={`url(#${gid}-gold)`} strokeWidth="1.5" />
-        <rect x="6" y="6" width="148" height="218" fill="none" stroke="rgba(232,200,105,0.25)" strokeWidth="0.6" />
-        <line x1="0" y1="0" x2="0" y2="230" stroke="rgba(0,0,0,0.5)" strokeWidth="3" />
-        <text x="80" y="36" textAnchor="middle" fill={`url(#${gid}-gold)`} fontFamily="ui-sans-serif, system-ui" fontSize="9" fontWeight="700" letterSpacing="3">
+      <rect width="400" height="300" fill={`url(#${gid}-bg)`} />
+      <rect width="400" height="300" fill={`url(#${gid}-noise)`} />
+      <g transform="translate(60 22)">
+        <rect
+          x="0"
+          y="0"
+          width="280"
+          height="256"
+          rx="2"
+          fill="rgba(0,0,0,0.32)"
+          stroke={`url(#${gid}-gold)`}
+          strokeWidth="1"
+        />
+        <rect x="10" y="10" width="260" height="236" fill="none" stroke="rgba(232,200,105,0.22)" strokeWidth="0.6" />
+        <line x1="0" y1="0" x2="0" y2="256" stroke="rgba(0,0,0,0.55)" strokeWidth="4" />
+        <text
+          x="140"
+          y="42"
+          textAnchor="middle"
+          fill={`url(#${gid}-gold)`}
+          fontFamily="ui-sans-serif, system-ui"
+          fontSize="10"
+          fontWeight="700"
+          letterSpacing="3.5"
+        >
           {category.toUpperCase()}
         </text>
-        <line x1="30" y1="50" x2="130" y2="50" stroke={`url(#${gid}-gold)`} strokeWidth="0.7" />
+        <line x1="60" y1="56" x2="220" y2="56" stroke={`url(#${gid}-gold)`} strokeWidth="0.8" />
         {lines.map((l, i) => (
           <text
             key={i}
-            x="80"
-            y={110 + i * 22}
+            x="140"
+            y={130 + i * 26}
             textAnchor="middle"
             fill="#ffffff"
             fontFamily="Playfair Display, Georgia, serif"
-            fontSize="17"
+            fontSize="20"
             fontWeight="700"
           >
             {l}
           </text>
         ))}
-        <text x="80" y="210" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="7" letterSpacing="2">
+        <text x="140" y="232" textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="7" letterSpacing="3">
           AURUMVAULT
         </text>
       </g>
@@ -131,16 +207,15 @@ function EbookCover({ gid, lines, category }: { gid: string; lines: string[]; ca
   );
 }
 
-function CourseCover({ gid, lines }: { gid: string; lines: string[] }) {
+function CourseCover({ gid, lines, category }: { gid: string; lines: string[]; category: string }) {
   return (
     <g>
-      <rect width="400" height="300" fill={`url(#${gid}-mix)`} />
-      <circle cx="320" cy="60" r="80" fill="rgba(232,200,105,0.12)" />
-      <circle cx="60" cy="260" r="100" fill="rgba(255,255,255,0.04)" />
+      <rect width="400" height="300" fill={`url(#${gid}-bg)`} />
+      <rect width="400" height="300" fill={`url(#${gid}-diag)`} />
       <g transform="translate(30 30)">
-        <rect x="0" y="0" width="58" height="18" rx="9" fill={`url(#${gid}-gold)`} />
-        <text x="29" y="12" textAnchor="middle" fill="#0a1124" fontSize="9" fontWeight="800" letterSpacing="2">
-          COURSE
+        <rect x="0" y="0" width="86" height="20" rx="10" fill={`url(#${gid}-gold)`} />
+        <text x="43" y="13" textAnchor="middle" fill="#0a1124" fontSize="9" fontWeight="800" letterSpacing="2">
+          {category.toUpperCase().slice(0, 10)}
         </text>
       </g>
       {lines.map((l, i) => (
@@ -156,65 +231,80 @@ function CourseCover({ gid, lines }: { gid: string; lines: string[] }) {
           {l}
         </text>
       ))}
-      {/* play badge */}
-      <g transform="translate(290 200)">
-        <circle r="38" fill="rgba(0,0,0,0.35)" stroke={`url(#${gid}-gold)`} strokeWidth="1.5" />
-        <path d="M-10 -14 L18 0 L-10 14 Z" fill={`url(#${gid}-gold)`} />
+      <g transform="translate(310 210)">
+        <circle r="40" fill="rgba(0,0,0,0.32)" stroke={`url(#${gid}-gold)`} strokeWidth="1.5" />
+        <path d="M-11 -15 L19 0 L-11 15 Z" fill={`url(#${gid}-gold)`} />
       </g>
-      <text x="30" y="270" fill="rgba(255,255,255,0.55)" fontSize="9" letterSpacing="3">
+      <text x="30" y="275" fill="rgba(255,255,255,0.55)" fontSize="9" letterSpacing="3">
         12 LESSONS · HD VIDEO
       </text>
     </g>
   );
 }
 
-function TemplateCover({ gid, title }: { gid: string; title: string }) {
+function TemplateCover({ gid, title, seed }: { gid: string; title: string; seed: number }) {
+  // Light grey background with Navy wireframe at 20% opacity.
+  const variant = seed % 3;
   return (
     <g>
       <rect width="400" height="300" fill="#eef1f6" />
-      <rect x="0" y="0" width="400" height="32" fill="#ffffff" />
-      <circle cx="14" cy="16" r="4" fill="#ff5f57" />
-      <circle cx="28" cy="16" r="4" fill="#febc2e" />
-      <circle cx="42" cy="16" r="4" fill="#28c840" />
-      <rect x="60" y="9" width="200" height="14" rx="3" fill="#f1f3f7" />
-      <text x="68" y="19" fontFamily="ui-monospace, monospace" fontSize="8" fill="#7a8398">
-        aurumvault.app
-      </text>
+      {/* faint navy grid */}
+      <g stroke="#0f1629" strokeOpacity="0.08">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <line key={`v${i}`} x1={i * 20} y1="0" x2={i * 20} y2="300" />
+        ))}
+        {Array.from({ length: 15 }).map((_, i) => (
+          <line key={`h${i}`} x1="0" y1={i * 20} x2="400" y2={i * 20} />
+        ))}
+      </g>
 
-      {/* sidebar */}
-      <rect x="0" y="32" width="80" height="268" fill={`url(#${gid}-navy)`} />
-      <rect x="12" y="48" width="56" height="6" rx="2" fill={`url(#${gid}-gold)`} />
-      {[0, 1, 2, 3, 4].map((i) => (
-        <rect key={i} x="12" y={72 + i * 18} width="56" height="6" rx="2" fill="rgba(255,255,255,0.18)" />
-      ))}
-
-      {/* hero card */}
-      <rect x="96" y="48" width="288" height="80" rx="6" fill="#ffffff" stroke="#e4e7ee" />
-      <rect x="108" y="60" width="120" height="10" rx="2" fill="#0f1629" />
-      <rect x="108" y="78" width="200" height="6" rx="2" fill="#9aa2b4" />
-      <rect x="108" y="92" width="170" height="6" rx="2" fill="#c4cad6" />
-      <rect x="108" y="108" width="64" height="14" rx="7" fill={`url(#${gid}-gold)`} />
-
-      {/* metric cards */}
-      {[0, 1, 2].map((i) => (
-        <g key={i} transform={`translate(${96 + i * 96} 140)`}>
-          <rect width="88" height="70" rx="6" fill="#ffffff" stroke="#e4e7ee" />
-          <rect x="10" y="12" width="38" height="6" rx="2" fill="#9aa2b4" />
-          <rect x="10" y="26" width="48" height="14" rx="2" fill="#0f1629" />
-          <rect x="10" y="50" width="60" height="6" rx="2" fill={`url(#${gid}-gold)`} />
+      {variant === 0 && (
+        <g fill="#0f1629" fillOpacity="0.2" stroke="#0f1629" strokeOpacity="0.2">
+          <rect x="30" y="30" width="120" height="120" rx="4" fill="none" strokeWidth="1.5" />
+          <rect x="170" y="30" width="200" height="56" rx="4" fill="none" strokeWidth="1.5" />
+          <rect x="170" y="96" width="200" height="54" rx="4" fill="none" strokeWidth="1.5" />
+          <rect x="30" y="170" width="340" height="40" rx="4" fill="none" strokeWidth="1.5" />
         </g>
-      ))}
+      )}
+      {variant === 1 && (
+        <g fill="none" stroke="#0f1629" strokeOpacity="0.2" strokeWidth="1.5">
+          {[0, 1, 2].map((c) =>
+            [0, 1].map((r) => (
+              <rect key={`${c}-${r}`} x={30 + c * 120} y={30 + r * 100} width="100" height="80" rx="4" />
+            )),
+          )}
+        </g>
+      )}
+      {variant === 2 && (
+        <g fill="none" stroke="#0f1629" strokeOpacity="0.2" strokeWidth="1.5">
+          <rect x="30" y="30" width="80" height="180" rx="4" />
+          <rect x="125" y="30" width="245" height="60" rx="4" />
+          {[0, 1, 2].map((i) => (
+            <rect key={i} x={125 + i * 85} y="105" width="75" height="105" rx="4" />
+          ))}
+        </g>
+      )}
 
-      {/* chart */}
-      <rect x="96" y="220" width="288" height="68" rx="6" fill="#ffffff" stroke="#e4e7ee" />
-      <polyline
-        points="106,272 140,258 170,264 200,244 230,250 260,232 296,238 330,220 370,228"
-        fill="none"
-        stroke={`url(#${gid}-gold)`}
-        strokeWidth="2"
-      />
-      <text x="200" y="295" textAnchor="middle" fontFamily="ui-sans-serif, system-ui" fontSize="7" fill="#7a8398" letterSpacing="2">
-        {title.slice(0, 36).toUpperCase()}
+      <text
+        x="30"
+        y="265"
+        fill="#0f1629"
+        fontFamily="Playfair Display, Georgia, serif"
+        fontSize="20"
+        fontWeight="700"
+      >
+        {title.length > 28 ? title.slice(0, 26) + "…" : title}
+      </text>
+      <text
+        x="30"
+        y="285"
+        fill="#0f1629"
+        fillOpacity="0.55"
+        fontFamily="ui-sans-serif, system-ui"
+        fontSize="9"
+        letterSpacing="3"
+      >
+        TEMPLATE · AURUMVAULT
       </text>
     </g>
   );
@@ -222,14 +312,15 @@ function TemplateCover({ gid, title }: { gid: string; title: string }) {
 
 function AudioCover({ gid, lines, seed }: { gid: string; lines: string[]; seed: number }) {
   const bars = Array.from({ length: 48 }, (_, i) => {
-    const n = Math.sin(i * 0.6 + seed) * 0.5 + 0.5;
-    const h = 12 + n * 110;
+    const n = Math.sin(i * 0.45 + (seed % 100) * 0.13) * 0.5 + 0.5;
+    const m = Math.cos(i * 0.31 + (seed % 60) * 0.21) * 0.3 + 0.6;
+    const h = 10 + n * m * 130;
     return { i, h };
   });
   return (
     <g>
-      <rect width="400" height="300" fill={`url(#${gid}-navy)`} />
-      <g transform="translate(0 175)">
+      <rect width="400" height="300" fill={`url(#${gid}-bg)`} />
+      <g transform="translate(0 150)">
         {bars.map((b) => (
           <rect
             key={b.i}
@@ -239,56 +330,61 @@ function AudioCover({ gid, lines, seed }: { gid: string; lines: string[]; seed: 
             height={b.h}
             rx="2"
             fill={`url(#${gid}-gold)`}
-            opacity={0.55 + (b.i % 5) * 0.08}
+            opacity={0.55 + ((b.i + seed) % 5) * 0.08}
           />
         ))}
-      </g>
-      <g transform="translate(30 32)">
-        <rect width="64" height="18" rx="9" fill={`url(#${gid}-gold)`} />
-        <text x="32" y="12" textAnchor="middle" fill="#0a1124" fontSize="9" fontWeight="800" letterSpacing="2">
-          AUDIO
-        </text>
       </g>
       {lines.map((l, i) => (
         <text
           key={i}
-          x="30"
-          y={90 + i * 24}
+          x="200"
+          y={240 + i * 22}
+          textAnchor="middle"
           fill="#ffffff"
           fontFamily="Playfair Display, Georgia, serif"
-          fontSize="19"
+          fontSize="18"
           fontWeight="700"
         >
           {l}
         </text>
       ))}
-      <text x="30" y="280" fill="rgba(255,255,255,0.5)" fontSize="9" letterSpacing="3">
-        ◷ 3h 12m · LOSSLESS
+      <text x="200" y="40" textAnchor="middle" fill="rgba(255,255,255,0.55)" fontSize="9" letterSpacing="4">
+        ◷ AUDIO · LOSSLESS
       </text>
     </g>
   );
 }
 
-function FinanceCover({ gid, lines, seed }: { gid: string; lines: string[]; seed: number }) {
+function FinanceCover({
+  gid,
+  lines,
+  seed,
+  category,
+}: {
+  gid: string;
+  lines: string[];
+  seed: number;
+  category: string;
+}) {
   const pts: string[] = [];
   for (let i = 0; i < 12; i++) {
     const x = 30 + i * 32;
-    const y = 220 - ((Math.sin(i * 0.7 + seed) + 1) * 30 + i * 6);
+    const y = 220 - ((Math.sin(i * 0.7 + (seed % 50) * 0.2) + 1) * 30 + i * 6);
     pts.push(`${x},${y}`);
   }
   return (
     <g>
-      <rect width="400" height="300" fill={`url(#${gid}-navy)`} />
-      <g opacity="0.08" stroke="#ffffff">
+      <rect width="400" height="300" fill={`url(#${gid}-bg)`} />
+      <g opacity="0.1" stroke="#ffffff">
         {[0, 1, 2, 3].map((i) => (
           <line key={i} x1="20" y1={80 + i * 50} x2="380" y2={80 + i * 50} />
         ))}
       </g>
       <polyline points={pts.join(" ")} fill="none" stroke={`url(#${gid}-gold)`} strokeWidth="2.5" />
       <g transform="translate(30 30)">
-        <rect width="74" height="18" rx="9" fill={`url(#${gid}-gold)`} />
-        <text x="37" y="12" textAnchor="middle" fill="#0a1124" fontSize="9" fontWeight="800" letterSpacing="2">
-          PREMIUM
+        <rect width="86" height="20" rx="10" fill={`url(#${gid}-gold)`} />
+        <text x="43" y="13" textAnchor="middle" fill="#0a1124" fontSize="9" fontWeight="800" letterSpacing="2">
+          {category.toUpperCase().slice(0, 10)}
         </text>
       </g>
       {lines.map((l, i) => (
