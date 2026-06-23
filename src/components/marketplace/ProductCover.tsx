@@ -92,11 +92,15 @@ function pickTitleLines(title: string, max = 3) {
   return lines.slice(0, max);
 }
 
-export function ProductCover({ title, category, productId, className }: Props) {
+export function ProductCover({ title, category, productId, index, className }: Props) {
   const kind = normalize(category);
   const seed = hashSeed((productId ?? "") + "::" + title + "::" + category);
   const palette = PALETTES[kind] ?? PALETTES.business;
-  const pair = palette[seed % palette.length];
+  // For courses/purpose (which reuses CourseCover), pick by grid index so no
+  // two adjacent cards share the same gradient (palette is ordered so that
+  // adjacent indices never both contain green stops).
+  const useIndex = (kind === "course" || kind === "purpose") && typeof index === "number";
+  const pair = palette[(useIndex ? index! : seed) % palette.length];
   const angle = [0, 45, 90, 135, 180, 225][(seed >> 3) % 6];
   const lines = pickTitleLines(title);
   const gid = `g${seed.toString(36)}`;
