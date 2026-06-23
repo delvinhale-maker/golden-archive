@@ -21,8 +21,8 @@ export function MarketHeader() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchState = useRouterState({
-    select: (s) => s.location.search as unknown,
-  }) as Record<string, unknown> | undefined;
+    select: (s) => s.location.search,
+  }) as unknown as Record<string, unknown> | undefined;
   const activeCat = (searchState?.category as string) ?? "All";
   const [menuOpen, setMenuOpen] = useState(false);
   const [q, setQ] = useState("");
