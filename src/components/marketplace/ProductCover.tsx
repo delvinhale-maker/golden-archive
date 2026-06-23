@@ -2,6 +2,7 @@ type Props = {
   title: string;
   category: string;
   productId?: string;
+  index?: number;
   className?: string;
 };
 
