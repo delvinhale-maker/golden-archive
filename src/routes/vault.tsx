@@ -56,11 +56,11 @@ const vaults = [
 
 function Index() {
   return (
-    <div className="min-h-screen bg-background text-foreground vault-grain">
+    <div className="theme-vault min-h-screen bg-background text-foreground vault-grain">
       {/* Nav */}
       <header className="absolute top-0 left-0 right-0 z-30">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-12">
-          <a href="/" className="flex items-center gap-2">
+          <a href="/vault" className="flex items-center gap-2">
             <span className="font-serif text-2xl text-gold-soft">A</span>
             <span className="tracking-luxe text-[11px] text-gold-soft">
               AURUM VAULT
