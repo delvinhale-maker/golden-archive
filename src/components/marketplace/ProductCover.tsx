@@ -148,7 +148,7 @@ export function ProductCover({ title, category, productId, index, className }: P
 
       {kind === "ebook" && <EbookCover gid={gid} lines={lines} category={category} />}
       {kind === "course" && <CourseCover gid={gid} lines={lines} category={category} />}
-      {kind === "template" && <TemplateCover gid={gid} title={title} seed={seed} />}
+      {kind === "template" && <TemplateCover gid={gid} title={title} seed={seed} index={index} />}
       {kind === "audio" && <AudioCover gid={gid} lines={lines} seed={seed} />}
       {(kind === "finance" || kind === "business") && (
         <FinanceCover gid={gid} lines={lines} seed={seed} category={category} />
