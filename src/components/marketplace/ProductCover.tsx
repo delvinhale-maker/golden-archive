@@ -38,12 +38,12 @@ const PALETTES: Record<string, [string, string][]> = {
     ["#101820", "#a17a16"], // ink → gold
   ],
   course: [
-    ["#0b1226", "#1f3a6b"], // deep navy
-    ["#04261c", "#1e6f4a"], // dark emerald
-    ["#3a0d18", "#7a1f2e"], // rich burgundy
-    ["#0a1c2e", "#1d4d7a"], // midnight blue
-    ["#0d2218", "#286b3e"], // forest
-    ["#2a0a14", "#681d2c"], // garnet
+    ["#0b1226", "#1f3a6b"], // 0 deep navy
+    ["#04261c", "#1e6f4a"], // 1 dark emerald (green)
+    ["#3a0d18", "#7a1f2e"], // 2 rich burgundy
+    ["#0a1c2e", "#1d4d7a"], // 3 midnight blue
+    ["#0d2218", "#286b3e"], // 4 forest (green)
+    ["#2a0a14", "#681d2c"], // 5 garnet
   ],
   audio: [
     ["#000000", "#0a1124"],
