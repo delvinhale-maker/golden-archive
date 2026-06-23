@@ -23,7 +23,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         params={{ id: product.id }}
         className="relative block"
       >
-        <div className="relative h-[200px] w-full overflow-hidden bg-[#f5f4ef]">
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#f5f4ef]">
           <ProductCover
             title={product.title}
             category={product.category}
