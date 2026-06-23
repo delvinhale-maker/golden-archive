@@ -154,7 +154,7 @@ export function ProductCover({ title, category, productId, className }: Props) {
   );
 }
 
-function EbookCover({ gid, lines, category }: { gid: string; lines: string[]; category: string }) {
+function EbookCover({ gid, category }: { gid: string; lines: string[]; category: string }) {
   return (
     <g>
       <rect width="400" height="300" fill={`url(#${gid}-bg)`} />
@@ -174,7 +174,7 @@ function EbookCover({ gid, lines, category }: { gid: string; lines: string[]; ca
         <line x1="0" y1="0" x2="0" y2="256" stroke="rgba(0,0,0,0.55)" strokeWidth="4" />
         <text
           x="140"
-          y="42"
+          y="56"
           textAnchor="middle"
           fill={`url(#${gid}-gold)`}
           fontFamily="ui-sans-serif, system-ui"
@@ -184,21 +184,11 @@ function EbookCover({ gid, lines, category }: { gid: string; lines: string[]; ca
         >
           {category.toUpperCase()}
         </text>
-        <line x1="60" y1="56" x2="220" y2="56" stroke={`url(#${gid}-gold)`} strokeWidth="0.8" />
-        {lines.map((l, i) => (
-          <text
-            key={i}
-            x="140"
-            y={130 + i * 26}
-            textAnchor="middle"
-            fill="#ffffff"
-            fontFamily="Playfair Display, Georgia, serif"
-            fontSize="20"
-            fontWeight="700"
-          >
-            {l}
-          </text>
-        ))}
+        <line x1="60" y1="74" x2="220" y2="74" stroke={`url(#${gid}-gold)`} strokeWidth="0.8" />
+        <g transform="translate(140 150)">
+          <circle r="26" fill="none" stroke={`url(#${gid}-gold)`} strokeWidth="1.2" />
+          <path d="M-10 -4 L0 -14 L10 -4 L10 14 L-10 14 Z" fill={`url(#${gid}-gold)`} fillOpacity="0.7" />
+        </g>
         <text x="140" y="232" textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="7" letterSpacing="3">
           AURUMVAULT
         </text>
@@ -207,7 +197,7 @@ function EbookCover({ gid, lines, category }: { gid: string; lines: string[]; ca
   );
 }
 
-function CourseCover({ gid, lines, category }: { gid: string; lines: string[]; category: string }) {
+function CourseCover({ gid, category }: { gid: string; lines: string[]; category: string }) {
   return (
     <g>
       <rect width="400" height="300" fill={`url(#${gid}-bg)`} />
@@ -218,22 +208,9 @@ function CourseCover({ gid, lines, category }: { gid: string; lines: string[]; c
           {category.toUpperCase().slice(0, 10)}
         </text>
       </g>
-      {lines.map((l, i) => (
-        <text
-          key={i}
-          x="30"
-          y={130 + i * 28}
-          fill="#ffffff"
-          fontFamily="Playfair Display, Georgia, serif"
-          fontSize="22"
-          fontWeight="700"
-        >
-          {l}
-        </text>
-      ))}
-      <g transform="translate(310 210)">
-        <circle r="40" fill="rgba(0,0,0,0.32)" stroke={`url(#${gid}-gold)`} strokeWidth="1.5" />
-        <path d="M-11 -15 L19 0 L-11 15 Z" fill={`url(#${gid}-gold)`} />
+      <g transform="translate(200 160)">
+        <circle r="56" fill="rgba(0,0,0,0.32)" stroke={`url(#${gid}-gold)`} strokeWidth="1.5" />
+        <path d="M-16 -22 L26 0 L-16 22 Z" fill={`url(#${gid}-gold)`} />
       </g>
       <text x="30" y="275" fill="rgba(255,255,255,0.55)" fontSize="9" letterSpacing="3">
         12 LESSONS · HD VIDEO
@@ -242,13 +219,11 @@ function CourseCover({ gid, lines, category }: { gid: string; lines: string[]; c
   );
 }
 
-function TemplateCover({ gid, title, seed }: { gid: string; title: string; seed: number }) {
-  // Light grey background with Navy wireframe at 20% opacity.
+function TemplateCover({ seed }: { gid: string; title: string; seed: number }) {
   const variant = seed % 3;
   return (
     <g>
       <rect width="400" height="300" fill="#eef1f6" />
-      {/* faint navy grid */}
       <g stroke="#0f1629" strokeOpacity="0.08">
         {Array.from({ length: 20 }).map((_, i) => (
           <line key={`v${i}`} x1={i * 20} y1="0" x2={i * 20} y2="300" />
@@ -259,45 +234,35 @@ function TemplateCover({ gid, title, seed }: { gid: string; title: string; seed:
       </g>
 
       {variant === 0 && (
-        <g fill="#0f1629" fillOpacity="0.2" stroke="#0f1629" strokeOpacity="0.2">
-          <rect x="30" y="30" width="120" height="120" rx="4" fill="none" strokeWidth="1.5" />
-          <rect x="170" y="30" width="200" height="56" rx="4" fill="none" strokeWidth="1.5" />
-          <rect x="170" y="96" width="200" height="54" rx="4" fill="none" strokeWidth="1.5" />
-          <rect x="30" y="170" width="340" height="40" rx="4" fill="none" strokeWidth="1.5" />
+        <g fill="none" stroke="#0f1629" strokeOpacity="0.22" strokeWidth="1.5">
+          <rect x="30" y="30" width="120" height="160" rx="4" />
+          <rect x="170" y="30" width="200" height="76" rx="4" />
+          <rect x="170" y="116" width="200" height="74" rx="4" />
+          <rect x="30" y="210" width="340" height="50" rx="4" />
         </g>
       )}
       {variant === 1 && (
-        <g fill="none" stroke="#0f1629" strokeOpacity="0.2" strokeWidth="1.5">
+        <g fill="none" stroke="#0f1629" strokeOpacity="0.22" strokeWidth="1.5">
           {[0, 1, 2].map((c) =>
             [0, 1].map((r) => (
-              <rect key={`${c}-${r}`} x={30 + c * 120} y={30 + r * 100} width="100" height="80" rx="4" />
+              <rect key={`${c}-${r}`} x={30 + c * 120} y={30 + r * 120} width="100" height="100" rx="4" />
             )),
           )}
         </g>
       )}
       {variant === 2 && (
-        <g fill="none" stroke="#0f1629" strokeOpacity="0.2" strokeWidth="1.5">
-          <rect x="30" y="30" width="80" height="180" rx="4" />
+        <g fill="none" stroke="#0f1629" strokeOpacity="0.22" strokeWidth="1.5">
+          <rect x="30" y="30" width="80" height="230" rx="4" />
           <rect x="125" y="30" width="245" height="60" rx="4" />
           {[0, 1, 2].map((i) => (
-            <rect key={i} x={125 + i * 85} y="105" width="75" height="105" rx="4" />
+            <rect key={i} x={125 + i * 85} y="105" width="75" height="155" rx="4" />
           ))}
         </g>
       )}
 
       <text
         x="30"
-        y="265"
-        fill="#0f1629"
-        fontFamily="Playfair Display, Georgia, serif"
-        fontSize="20"
-        fontWeight="700"
-      >
-        {title.length > 28 ? title.slice(0, 26) + "…" : title}
-      </text>
-      <text
-        x="30"
-        y="285"
+        y="290"
         fill="#0f1629"
         fillOpacity="0.55"
         fontFamily="ui-sans-serif, system-ui"
@@ -310,17 +275,17 @@ function TemplateCover({ gid, title, seed }: { gid: string; title: string; seed:
   );
 }
 
-function AudioCover({ gid, lines, seed }: { gid: string; lines: string[]; seed: number }) {
+function AudioCover({ gid, seed }: { gid: string; lines: string[]; seed: number }) {
   const bars = Array.from({ length: 48 }, (_, i) => {
     const n = Math.sin(i * 0.45 + (seed % 100) * 0.13) * 0.5 + 0.5;
     const m = Math.cos(i * 0.31 + (seed % 60) * 0.21) * 0.3 + 0.6;
-    const h = 10 + n * m * 130;
+    const h = 10 + n * m * 170;
     return { i, h };
   });
   return (
     <g>
       <rect width="400" height="300" fill={`url(#${gid}-bg)`} />
-      <g transform="translate(0 150)">
+      <g transform="translate(0 160)">
         {bars.map((b) => (
           <rect
             key={b.i}
@@ -334,20 +299,6 @@ function AudioCover({ gid, lines, seed }: { gid: string; lines: string[]; seed: 
           />
         ))}
       </g>
-      {lines.map((l, i) => (
-        <text
-          key={i}
-          x="200"
-          y={240 + i * 22}
-          textAnchor="middle"
-          fill="#ffffff"
-          fontFamily="Playfair Display, Georgia, serif"
-          fontSize="18"
-          fontWeight="700"
-        >
-          {l}
-        </text>
-      ))}
       <text x="200" y="40" textAnchor="middle" fill="rgba(255,255,255,0.55)" fontSize="9" letterSpacing="4">
         ◷ AUDIO · LOSSLESS
       </text>
@@ -357,7 +308,6 @@ function AudioCover({ gid, lines, seed }: { gid: string; lines: string[]; seed: 
 
 function FinanceCover({
   gid,
-  lines,
   seed,
   category,
 }: {
@@ -375,9 +325,9 @@ function FinanceCover({
   return (
     <g>
       <rect width="400" height="300" fill={`url(#${gid}-bg)`} />
-      <g opacity="0.1" stroke="#ffffff">
-        {[0, 1, 2, 3].map((i) => (
-          <line key={i} x1="20" y1={80 + i * 50} x2="380" y2={80 + i * 50} />
+      <g opacity="0.12" stroke="#ffffff">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <line key={i} x1="20" y1={70 + i * 45} x2="380" y2={70 + i * 45} />
         ))}
       </g>
       <polyline points={pts.join(" ")} fill="none" stroke={`url(#${gid}-gold)`} strokeWidth="2.5" />
@@ -387,19 +337,6 @@ function FinanceCover({
           {category.toUpperCase().slice(0, 10)}
         </text>
       </g>
-      {lines.map((l, i) => (
-        <text
-          key={i}
-          x="30"
-          y={90 + i * 24}
-          fill="#ffffff"
-          fontFamily="Playfair Display, Georgia, serif"
-          fontSize="19"
-          fontWeight="700"
-        >
-          {l}
-        </text>
-      ))}
       <text x="30" y="275" fill="rgba(255,255,255,0.55)" fontSize="9" letterSpacing="3">
         ILLUSTRIOUS CAPITAL™
       </text>
