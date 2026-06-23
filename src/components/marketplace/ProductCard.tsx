@@ -28,6 +28,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             title={product.title}
             category={product.category}
             productId={product.id}
+            index={index}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
           />
           {product.bestseller && (

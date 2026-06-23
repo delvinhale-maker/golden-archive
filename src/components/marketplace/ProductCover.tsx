@@ -2,6 +2,7 @@ type Props = {
   title: string;
   category: string;
   productId?: string;
+  index?: number;
   className?: string;
 };
 
@@ -37,12 +38,12 @@ const PALETTES: Record<string, [string, string][]> = {
     ["#101820", "#a17a16"], // ink → gold
   ],
   course: [
-    ["#0b1226", "#1f3a6b"], // deep navy
-    ["#04261c", "#1e6f4a"], // dark emerald
-    ["#3a0d18", "#7a1f2e"], // rich burgundy
-    ["#0a1c2e", "#1d4d7a"], // midnight blue
-    ["#0d2218", "#286b3e"], // forest
-    ["#2a0a14", "#681d2c"], // garnet
+    ["#0b1226", "#1f3a6b"], // 0 deep navy
+    ["#04261c", "#1e6f4a"], // 1 dark emerald (green)
+    ["#3a0d18", "#7a1f2e"], // 2 rich burgundy
+    ["#0a1c2e", "#1d4d7a"], // 3 midnight blue
+    ["#0d2218", "#286b3e"], // 4 forest (green)
+    ["#2a0a14", "#681d2c"], // 5 garnet
   ],
   audio: [
     ["#000000", "#0a1124"],
@@ -91,11 +92,15 @@ function pickTitleLines(title: string, max = 3) {
   return lines.slice(0, max);
 }
 
-export function ProductCover({ title, category, productId, className }: Props) {
+export function ProductCover({ title, category, productId, index, className }: Props) {
   const kind = normalize(category);
   const seed = hashSeed((productId ?? "") + "::" + title + "::" + category);
   const palette = PALETTES[kind] ?? PALETTES.business;
-  const pair = palette[seed % palette.length];
+  // For courses/purpose (which reuses CourseCover), pick by grid index so no
+  // two adjacent cards share the same gradient (palette is ordered so that
+  // adjacent indices never both contain green stops).
+  const useIndex = (kind === "course" || kind === "purpose") && typeof index === "number";
+  const pair = palette[(useIndex ? index! : seed) % palette.length];
   const angle = [0, 45, 90, 135, 180, 225][(seed >> 3) % 6];
   const lines = pickTitleLines(title);
   const gid = `g${seed.toString(36)}`;
@@ -186,8 +191,23 @@ function EbookCover({ gid, category }: { gid: string; lines: string[]; category:
         </text>
         <line x1="60" y1="74" x2="220" y2="74" stroke={`url(#${gid}-gold)`} strokeWidth="0.8" />
         <g transform="translate(140 150)">
-          <circle r="26" fill="none" stroke={`url(#${gid}-gold)`} strokeWidth="1.2" />
-          <path d="M-10 -4 L0 -14 L10 -4 L10 14 L-10 14 Z" fill={`url(#${gid}-gold)`} fillOpacity="0.7" />
+          <circle r="30" fill="none" stroke={`url(#${gid}-gold)`} strokeWidth="1.2" />
+          {/* Open book icon */}
+          <g stroke={`url(#${gid}-gold)`} strokeWidth="1.2" strokeLinejoin="round" fill="rgba(0,0,0,0.25)">
+            {/* left page */}
+            <path d="M-18 -10 C -14 -12, -6 -12, -1 -8 L -1 12 C -6 8, -14 8, -18 10 Z" />
+            {/* right page */}
+            <path d="M18 -10 C 14 -12, 6 -12, 1 -8 L 1 12 C 6 8, 14 8, 18 10 Z" />
+          </g>
+          {/* page rule lines */}
+          <g stroke={`url(#${gid}-gold)`} strokeOpacity="0.55" strokeWidth="0.6">
+            <line x1="-14" y1="-5" x2="-4" y2="-4" />
+            <line x1="-14" y1="-1" x2="-4" y2="0" />
+            <line x1="-14" y1="3" x2="-4" y2="4" />
+            <line x1="4" y1="-4" x2="14" y2="-5" />
+            <line x1="4" y1="0" x2="14" y2="-1" />
+            <line x1="4" y1="4" x2="14" y2="3" />
+          </g>
         </g>
         <text x="140" y="232" textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="7" letterSpacing="3">
           AURUMVAULT
