@@ -191,8 +191,23 @@ function EbookCover({ gid, category }: { gid: string; lines: string[]; category:
         </text>
         <line x1="60" y1="74" x2="220" y2="74" stroke={`url(#${gid}-gold)`} strokeWidth="0.8" />
         <g transform="translate(140 150)">
-          <circle r="26" fill="none" stroke={`url(#${gid}-gold)`} strokeWidth="1.2" />
-          <path d="M-10 -4 L0 -14 L10 -4 L10 14 L-10 14 Z" fill={`url(#${gid}-gold)`} fillOpacity="0.7" />
+          <circle r="30" fill="none" stroke={`url(#${gid}-gold)`} strokeWidth="1.2" />
+          {/* Open book icon */}
+          <g stroke={`url(#${gid}-gold)`} strokeWidth="1.2" strokeLinejoin="round" fill="rgba(0,0,0,0.25)">
+            {/* left page */}
+            <path d="M-18 -10 C -14 -12, -6 -12, -1 -8 L -1 12 C -6 8, -14 8, -18 10 Z" />
+            {/* right page */}
+            <path d="M18 -10 C 14 -12, 6 -12, 1 -8 L 1 12 C 6 8, 14 8, 18 10 Z" />
+          </g>
+          {/* page rule lines */}
+          <g stroke={`url(#${gid}-gold)`} strokeOpacity="0.55" strokeWidth="0.6">
+            <line x1="-14" y1="-5" x2="-4" y2="-4" />
+            <line x1="-14" y1="-1" x2="-4" y2="0" />
+            <line x1="-14" y1="3" x2="-4" y2="4" />
+            <line x1="4" y1="-4" x2="14" y2="-5" />
+            <line x1="4" y1="0" x2="14" y2="-1" />
+            <line x1="4" y1="4" x2="14" y2="3" />
+          </g>
         </g>
         <text x="140" y="232" textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="7" letterSpacing="3">
           AURUMVAULT
