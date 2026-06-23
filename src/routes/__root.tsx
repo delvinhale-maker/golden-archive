@@ -77,14 +77,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "AurumVault — Gold Standard Digital Commerce" },
+      {
+        name: "description",
+        content:
+          "Discover premium eBooks, courses, templates, and digital resources from verified purpose-driven creators. Powered by Illustrious Capital™.",
+      },
+      { name: "author", content: "Illustrious Capital" },
+      { property: "og:title", content: "AurumVault — Gold Standard Digital Commerce" },
+      {
+        property: "og:description",
+        content:
+          "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { property: "og:site_name", content: "AurumVault" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:site", content: "@AurumVault" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -92,7 +101,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400&display=swap",
+      },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "OnlineStore",
+          name: "AurumVault",
+          alternateName: "Aurum Vault",
+          slogan: "Gold Standard Digital Commerce",
+          parentOrganization: { "@type": "Organization", name: "Illustrious Capital" },
+        }),
       },
     ],
   }),
