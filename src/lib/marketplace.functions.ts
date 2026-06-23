@@ -206,6 +206,23 @@ function mockCreator(i: number): Creator {
  * Build a deterministic product. When `category` is provided we draw the title
  * from that category's title pool so every card in a filtered list is unique.
  */
+function priceFor(cat: string, idx: number): number {
+  // Realistic digital product price bands; never exceeds $97.
+  const bands: Record<string, [number, number]> = {
+    eBooks: [9, 29],
+    Courses: [27, 97],
+    Templates: [17, 47],
+    Audio: [12, 37],
+    Finance: [19, 67],
+    Leadership: [19, 67],
+    Purpose: [12, 47],
+    Business: [17, 57],
+  };
+  const [lo, hi] = bands[cat] ?? [9, 67];
+  const span = hi - lo + 1;
+  return lo + ((idx * 7 + cat.length * 3) % span);
+}
+
 function mockProduct(absoluteIndex: number, category?: string): Product {
   const cat = category ?? CATEGORIES[absoluteIndex % CATEGORIES.length];
   const titleIndex = category ? absoluteIndex : Math.floor(absoluteIndex / CATEGORIES.length);
@@ -213,8 +230,9 @@ function mockProduct(absoluteIndex: number, category?: string): Product {
   const id = category
     ? `p_${cat.toLowerCase()}_${absoluteIndex}`
     : `p_${absoluteIndex}`;
-  const price = 19 + ((absoluteIndex * 17 + cat.length * 11) % 220);
-  const compare = absoluteIndex % 3 === 0 ? price + 20 : undefined;
+  const price = priceFor(cat, absoluteIndex);
+  const compareRaw = absoluteIndex % 3 === 0 ? price + 20 : undefined;
+  const compare = compareRaw && compareRaw <= 97 ? compareRaw : undefined;
   const creatorIdx = absoluteIndex % CREATOR_NAMES.length;
   return {
     id,

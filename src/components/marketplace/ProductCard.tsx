@@ -16,14 +16,14 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.4, delay: (index % 8) * 0.04 }}
       whileHover={{ y: -4 }}
-      className="av-card group flex flex-col overflow-hidden"
+      className="av-card group flex min-w-0 flex-col overflow-hidden"
     >
       <Link
         to="/products/$id"
         params={{ id: product.id }}
         className="relative block"
       >
-        <div className="relative h-[200px] w-full overflow-hidden bg-[#f5f4ef]">
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#f5f4ef]">
           <ProductCover
             title={product.title}
             category={product.category}
