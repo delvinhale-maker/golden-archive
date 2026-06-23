@@ -148,7 +148,7 @@ export function ProductCover({ title, category, productId, index, className }: P
 
       {kind === "ebook" && <EbookCover gid={gid} lines={lines} category={category} />}
       {kind === "course" && <CourseCover gid={gid} lines={lines} category={category} />}
-      {kind === "template" && <TemplateCover gid={gid} title={title} seed={seed} />}
+      {kind === "template" && <TemplateCover gid={gid} title={title} seed={seed} index={index} />}
       {kind === "audio" && <AudioCover gid={gid} lines={lines} seed={seed} />}
       {(kind === "finance" || kind === "business") && (
         <FinanceCover gid={gid} lines={lines} seed={seed} category={category} />
@@ -239,8 +239,20 @@ function CourseCover({ gid, category }: { gid: string; lines: string[]; category
   );
 }
 
-function TemplateCover({ seed }: { gid: string; title: string; seed: number }) {
-  const variant = seed % 3;
+function TemplateCover({
+  seed,
+  index,
+}: {
+  gid: string;
+  title: string;
+  seed: number;
+  index?: number;
+}) {
+  // 4 distinct wireframe layouts. Use grid index when available so adjacent
+  // cards never share a layout; fall back to seed for deterministic uniqueness.
+  const variant = (typeof index === "number" ? index : seed) % 4;
+  const stroke = { fill: "none", stroke: "#0f1629", strokeOpacity: 0.28, strokeWidth: 1.5 } as const;
+  const fillSoft = "rgba(15,22,41,0.06)";
   return (
     <g>
       <rect width="400" height="300" fill="#eef1f6" />
@@ -253,32 +265,74 @@ function TemplateCover({ seed }: { gid: string; title: string; seed: number }) {
         ))}
       </g>
 
+      {/* (1) 2-column grid with a wide header bar */}
       {variant === 0 && (
-        <g fill="none" stroke="#0f1629" strokeOpacity="0.22" strokeWidth="1.5">
-          <rect x="30" y="30" width="120" height="160" rx="4" />
-          <rect x="170" y="30" width="200" height="76" rx="4" />
-          <rect x="170" y="116" width="200" height="74" rx="4" />
-          <rect x="30" y="210" width="340" height="50" rx="4" />
+        <g {...stroke}>
+          <rect x="30" y="30" width="340" height="44" rx="4" fill={fillSoft} />
+          <rect x="30" y="90" width="160" height="170" rx="4" />
+          <rect x="210" y="90" width="160" height="170" rx="4" />
+          <line x1="46" y1="48" x2="180" y2="48" />
+          <line x1="46" y1="58" x2="140" y2="58" />
         </g>
       )}
+
+      {/* (2) 3-column equal grid */}
       {variant === 1 && (
-        <g fill="none" stroke="#0f1629" strokeOpacity="0.22" strokeWidth="1.5">
+        <g {...stroke}>
           {[0, 1, 2].map((c) =>
             [0, 1].map((r) => (
-              <rect key={`${c}-${r}`} x={30 + c * 120} y={30 + r * 120} width="100" height="100" rx="4" />
+              <rect
+                key={`${c}-${r}`}
+                x={30 + c * 116}
+                y={30 + r * 116}
+                width="100"
+                height="100"
+                rx="4"
+              />
             )),
           )}
         </g>
       )}
+
+      {/* (3) dashboard: large left panel + 2 stacked right boxes */}
       {variant === 2 && (
-        <g fill="none" stroke="#0f1629" strokeOpacity="0.22" strokeWidth="1.5">
-          <rect x="30" y="30" width="80" height="230" rx="4" />
-          <rect x="125" y="30" width="245" height="60" rx="4" />
-          {[0, 1, 2].map((i) => (
-            <rect key={i} x={125 + i * 85} y="105" width="75" height="155" rx="4" />
-          ))}
+        <g {...stroke}>
+          <rect x="30" y="30" width="220" height="230" rx="4" fill={fillSoft} />
+          <rect x="270" y="30" width="100" height="108" rx="4" />
+          <rect x="270" y="152" width="100" height="108" rx="4" />
+          {/* fake chart bars in left panel */}
+          <g strokeOpacity="0.45">
+            <line x1="50" y1="220" x2="50" y2="170" />
+            <line x1="74" y1="220" x2="74" y2="140" />
+            <line x1="98" y1="220" x2="98" y2="190" />
+            <line x1="122" y1="220" x2="122" y2="120" />
+            <line x1="146" y1="220" x2="146" y2="160" />
+            <line x1="170" y1="220" x2="170" y2="100" />
+            <line x1="194" y1="220" x2="194" y2="150" />
+            <line x1="218" y1="220" x2="218" y2="180" />
+          </g>
         </g>
       )}
+
+      {/* (4) kanban: 3 vertical columns with cards */}
+      {variant === 3 && (
+        <g {...stroke}>
+          {[0, 1, 2].map((c) => {
+            const x = 30 + c * 116;
+            return (
+              <g key={c}>
+                <rect x={x} y="30" width="100" height="230" rx="4" fill={fillSoft} />
+                <rect x={x + 10} y={44} width="80" height="14" rx="2" />
+                <rect x={x + 10} y={70} width="80" height="44" rx="3" />
+                <rect x={x + 10} y={122} width="80" height="44" rx="3" />
+                <rect x={x + 10} y={174} width="80" height="44" rx="3" />
+              </g>
+            );
+          })}
+        </g>
+      )}
+
+
 
       <text
         x="30"
