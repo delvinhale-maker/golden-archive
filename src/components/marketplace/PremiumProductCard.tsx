@@ -320,7 +320,7 @@ export function PremiumProductCard({
         </div>
 
         <h3
-          className="mt-1.5 line-clamp-2 text-[15px] font-bold leading-snug"
+          className="mt-1.5 line-clamp-2 min-h-[2.6em] break-words text-[15px] font-bold leading-snug"
           style={{ color: NAVY }}
         >
           {title}

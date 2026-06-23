@@ -64,7 +64,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         <Link
           to="/products/$id"
           params={{ id: product.id }}
-          className="mt-1 line-clamp-2 font-display text-[15px] font-bold leading-snug text-ink hover:text-navy"
+          className="mt-1 line-clamp-2 min-h-[2.6em] break-words font-display text-[15px] font-bold leading-snug text-ink hover:text-navy"
         >
           {product.title}
         </Link>
