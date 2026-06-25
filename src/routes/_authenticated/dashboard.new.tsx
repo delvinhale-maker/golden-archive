@@ -68,7 +68,7 @@ function NewProduct() {
         seller_id: user.id,
         title,
         description,
-        category,
+        category: category as "ebooks" | "courses" | "templates" | "audio" | "leadership",
         price_cents: priceCents,
         cover_url: signed?.signedUrl ?? null,
         file_path: filePath,
