@@ -1,9 +1,10 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
+import { Heart, Menu, Search, ShoppingBag, User, X, LayoutDashboard, Store } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { AVLogo } from "./AVLogo";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
+import { useAuth } from "@/hooks/use-auth";
 
 const CATEGORIES = [
   "All",
@@ -28,6 +29,7 @@ export function MarketHeader() {
   const [q, setQ] = useState("");
   const wishlist = useWishlist();
   const cart = useCart();
+  const { user } = useAuth();
 
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -76,7 +78,29 @@ export function MarketHeader() {
           </form>
 
           <div className="ml-auto flex items-center gap-1 md:ml-0 md:gap-2">
-            <HeaderIcon label="Sign In" icon={<User size={20} />} />
+            <Link
+              to="/sell"
+              className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-gold/40 px-3 py-1.5 text-[12px] font-medium text-gold hover:bg-gold hover:text-navy transition"
+            >
+              <Store size={14} /> Sell on AurumVault
+            </Link>
+            {user ? (
+              <Link
+                to="/dashboard"
+                aria-label="Dashboard"
+                className="relative flex h-11 w-11 items-center justify-center rounded-full text-white hover:bg-white/10"
+              >
+                <LayoutDashboard size={20} />
+              </Link>
+            ) : (
+              <Link
+                to="/auth"
+                aria-label="Sign in"
+                className="relative flex h-11 w-11 items-center justify-center rounded-full text-white hover:bg-white/10"
+              >
+                <User size={20} />
+              </Link>
+            )}
             <HeaderIcon
               label="Wishlist"
               icon={<Heart size={20} />}
@@ -194,7 +218,21 @@ export function MarketHeader() {
                 </button>
               ))}
             </nav>
-            <div className="p-6">
+            <div className="space-y-3 p-6 pt-0">
+              <Link
+                to="/sell"
+                onClick={() => setMenuOpen(false)}
+                className="block w-full rounded-full border border-gold/40 py-3 text-center text-sm font-semibold text-gold"
+              >
+                Sell on AurumVault
+              </Link>
+              <Link
+                to={user ? "/dashboard" : "/auth"}
+                onClick={() => setMenuOpen(false)}
+                className="block w-full rounded-full bg-white/10 py-3 text-center text-sm font-semibold text-white"
+              >
+                {user ? "My dashboard" : "Sign in"}
+              </Link>
               <Link
                 to="/products"
                 onClick={() => setMenuOpen(false)}
