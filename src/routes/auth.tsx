@@ -1,0 +1,169 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
+import { AVLogo } from "@/components/marketplace/AVLogo";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/auth")({
+  component: AuthPage,
+  head: () => ({
+    meta: [
+      { title: "Sign in — AurumVault" },
+      { name: "description", content: "Sign in or create your AurumVault account." },
+    ],
+  }),
+});
+
+function AuthPage() {
+  const navigate = useNavigate();
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) navigate({ to: "/dashboard" });
+    });
+  }, [navigate]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: name },
+            emailRedirectTo: `${window.location.origin}/dashboard`,
+          },
+        });
+        if (error) throw error;
+        toast.success("Account created — welcome to AurumVault");
+        navigate({ to: "/dashboard" });
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        toast.success("Welcome back");
+        navigate({ to: "/dashboard" });
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function google() {
+    setBusy(true);
+    const res = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (res.error) {
+      toast.error("Google sign-in failed");
+      setBusy(false);
+    } else if (!res.redirected) {
+      navigate({ to: "/dashboard" });
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0F1A33] text-white flex flex-col">
+      <div className="px-4 py-5 md:px-8">
+        <Link to="/"><AVLogo /></Link>
+      </div>
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md rounded-2xl bg-white text-ink p-7 md:p-9 shadow-2xl"
+        >
+          <h1 className="font-display text-3xl md:text-4xl text-navy">
+            {mode === "signin" ? "Welcome back" : "Join AurumVault"}
+          </h1>
+          <p className="mt-1 text-sm text-mute">
+            {mode === "signin"
+              ? "Sign in to access your library and seller tools."
+              : "Create your account to buy, sell, and curate Kingdom resources."}
+          </p>
+
+          <button
+            type="button"
+            onClick={google}
+            disabled={busy}
+            className="mt-6 w-full h-11 rounded-full border border-ink/15 bg-white text-sm font-medium hover:bg-ink/5 flex items-center justify-center gap-2"
+          >
+            <GoogleGlyph /> Continue with Google
+          </button>
+
+          <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-mute">
+            <div className="flex-1 h-px bg-ink/10" /> or <div className="flex-1 h-px bg-ink/10" />
+          </div>
+
+          <form onSubmit={submit} className="space-y-3">
+            {mode === "signup" && (
+              <Field label="Full name">
+                <input
+                  required value={name} onChange={(e) => setName(e.target.value)}
+                  className="auth-input" placeholder="Your name"
+                />
+              </Field>
+            )}
+            <Field label="Email">
+              <input
+                type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                className="auth-input" placeholder="you@example.com"
+              />
+            </Field>
+            <Field label="Password">
+              <input
+                type="password" required minLength={6}
+                value={password} onChange={(e) => setPassword(e.target.value)}
+                className="auth-input" placeholder="At least 6 characters"
+              />
+            </Field>
+            <button
+              type="submit" disabled={busy}
+              className="mt-2 w-full h-11 rounded-full bg-navy text-white font-semibold text-sm hover:bg-navy/90 disabled:opacity-60"
+            >
+              {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+            </button>
+          </form>
+
+          <p className="mt-5 text-center text-sm text-mute">
+            {mode === "signin" ? "New to AurumVault?" : "Already have an account?"}{" "}
+            <button
+              onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+              className="font-medium text-navy underline-offset-2 hover:underline"
+            >
+              {mode === "signin" ? "Create an account" : "Sign in"}
+            </button>
+          </p>
+        </motion.div>
+      </div>
+      <style>{`.auth-input{display:block;width:100%;height:44px;border-radius:12px;border:1px solid rgb(0 0 0 / 0.1);padding:0 14px;font-size:14px;background:white;color:#0F1A33}.auth-input:focus{outline:none;border-color:#C9A24B;box-shadow:0 0 0 3px rgb(201 162 75 / 0.15)}`}</style>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="block text-[12px] font-medium text-ink/70 mb-1">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function GoogleGlyph() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+      <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.2.8 3.9 1.5l2.7-2.6C16.9 3.3 14.7 2.3 12 2.3 6.6 2.3 2.3 6.6 2.3 12s4.3 9.7 9.7 9.7c5.6 0 9.3-3.9 9.3-9.4 0-.6-.1-1.1-.2-1.6H12z"/>
+    </svg>
+  );
+}
