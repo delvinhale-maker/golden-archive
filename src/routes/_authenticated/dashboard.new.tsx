@@ -475,6 +475,29 @@ function NewProduct() {
           )}
         </div>
       </main>
+      {coverLightbox && coverPreview && (
+        <div
+          role="dialog"
+          aria-label="Cover full size preview"
+          onClick={() => setCoverLightbox(false)}
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
+        >
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setCoverLightbox(false); }}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center"
+            aria-label="Close preview"
+          >
+            <X size={20} />
+          </button>
+          <img
+            src={coverPreview}
+            alt="Cover full size"
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[90vh] max-w-[95vw] object-contain rounded-md shadow-2xl"
+          />
+        </div>
+      )}
       <style>{`.inp{display:block;width:100%;min-height:44px;border-radius:12px;border:1px solid rgb(0 0 0 / 0.12);padding:10px 14px;font-size:14px;background:white;color:#0F1A33}.inp:focus{outline:none;border-color:#C9A24B;box-shadow:0 0 0 3px rgb(201 162 75 / 0.15)}`}</style>
     </div>
   );
