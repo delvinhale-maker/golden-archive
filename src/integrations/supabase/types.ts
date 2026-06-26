@@ -185,6 +185,7 @@ export type Database = {
           compare_at_price_cents: number | null
           cover_url: string | null
           created_at: string
+          creator_name: string | null
           description: string
           file_path: string | null
           file_size_bytes: number | null
@@ -211,6 +212,7 @@ export type Database = {
           compare_at_price_cents?: number | null
           cover_url?: string | null
           created_at?: string
+          creator_name?: string | null
           description: string
           file_path?: string | null
           file_size_bytes?: number | null
@@ -237,6 +239,7 @@ export type Database = {
           compare_at_price_cents?: number | null
           cover_url?: string | null
           created_at?: string
+          creator_name?: string | null
           description?: string
           file_path?: string | null
           file_size_bytes?: number | null
