@@ -679,6 +679,12 @@ function StepContent(p: {
             <CheckCircle2 size={16} className="mt-0.5 shrink-0" /><span>Cover meets the required specs.</span>
           </div>
         )}
+        {!p.cover && p.existingCoverUrl && (
+          <div className="mt-2 flex items-center gap-2 text-sm text-navy bg-paper border border-ink/10 rounded-lg p-3">
+            <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+            <span className="truncate">Current cover shown above. Drop a new image to replace it.</span>
+          </div>
+        )}
       </div>
     </div>
   );
