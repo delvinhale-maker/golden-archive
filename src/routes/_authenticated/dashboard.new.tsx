@@ -53,9 +53,14 @@ function PublishFlow() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const runReview = useServerFn(reviewProduct);
+  const { id: editingId } = Route.useSearch();
+  const isEditing = !!editingId;
 
   const [step, setStep] = useState<StepNum>(1);
   const accent: PublisherAccent = STEPS.find((s) => s.n === step)!.accent;
+  const [loadingEdit, setLoadingEdit] = useState<boolean>(isEditing);
+  const [existingCoverUrl, setExistingCoverUrl] = useState<string | null>(null);
+  const [existingFilePath, setExistingFilePath] = useState<string | null>(null);
 
   // Step 1
   const [title, setTitle] = useState("");
