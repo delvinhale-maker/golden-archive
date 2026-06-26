@@ -31,6 +31,7 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHealthCoversRouteImport } from './routes/api/public/health/covers'
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
+import { Route as ApiPublicHealthCoversReportRouteImport } from './routes/api/public/health/covers.report'
 
 const VaultRoute = VaultRouteImport.update({
   id: '/vault',
@@ -148,6 +149,12 @@ const ApiPublicHealthCategoriesRoute =
     path: '/api/public/health/categories',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHealthCoversReportRoute =
+  ApiPublicHealthCoversReportRouteImport.update({
+    id: '/report',
+    path: '/report',
+    getParentRoute: () => ApiPublicHealthCoversRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -166,11 +173,12 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
-  '/api/public/health/covers': typeof ApiPublicHealthCoversRoute
+  '/api/public/health/covers': typeof ApiPublicHealthCoversRouteWithChildren
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/api/public/health/covers/report': typeof ApiPublicHealthCoversReportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -188,11 +196,12 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
-  '/api/public/health/covers': typeof ApiPublicHealthCoversRoute
+  '/api/public/health/covers': typeof ApiPublicHealthCoversRouteWithChildren
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/api/public/health/covers/report': typeof ApiPublicHealthCoversReportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -213,11 +222,12 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
-  '/api/public/health/covers': typeof ApiPublicHealthCoversRoute
+  '/api/public/health/covers': typeof ApiPublicHealthCoversRouteWithChildren
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/api/public/health/covers/report': typeof ApiPublicHealthCoversReportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -243,6 +253,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/api/public/health/covers/report'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/api/public/health/covers/report'
   id:
     | '__root__'
     | '/'
@@ -289,6 +301,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/api/public/health/covers/report'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -304,7 +317,7 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
-  ApiPublicHealthCoversRoute: typeof ApiPublicHealthCoversRoute
+  ApiPublicHealthCoversRoute: typeof ApiPublicHealthCoversRouteWithChildren
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -467,6 +480,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthCategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/health/covers/report': {
+      id: '/api/public/health/covers/report'
+      path: '/report'
+      fullPath: '/api/public/health/covers/report'
+      preLoaderRoute: typeof ApiPublicHealthCoversReportRouteImport
+      parentRoute: typeof ApiPublicHealthCoversRoute
+    }
   }
 }
 
@@ -499,6 +519,19 @@ const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
   ProductsRouteChildren,
 )
 
+interface ApiPublicHealthCoversRouteChildren {
+  ApiPublicHealthCoversReportRoute: typeof ApiPublicHealthCoversReportRoute
+}
+
+const ApiPublicHealthCoversRouteChildren: ApiPublicHealthCoversRouteChildren = {
+  ApiPublicHealthCoversReportRoute: ApiPublicHealthCoversReportRoute,
+}
+
+const ApiPublicHealthCoversRouteWithChildren =
+  ApiPublicHealthCoversRoute._addFileChildren(
+    ApiPublicHealthCoversRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -512,7 +545,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
-  ApiPublicHealthCoversRoute: ApiPublicHealthCoversRoute,
+  ApiPublicHealthCoversRoute: ApiPublicHealthCoversRouteWithChildren,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
@@ -521,13 +554,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
