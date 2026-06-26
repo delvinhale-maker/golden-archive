@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
-import { Plus, LogOut, ShieldCheck, Package, Hourglass, CheckCircle2, XCircle, Upload } from "lucide-react";
+import { Plus, LogOut, ShieldCheck, Package, Hourglass, CheckCircle2, XCircle, Upload, BookPlus, Circle } from "lucide-react";
 import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
 import { toast } from "sonner";
 
