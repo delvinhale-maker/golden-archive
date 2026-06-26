@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      cover_audit_runs: {
+        Row: {
+          category: string
+          checked_at: string
+          failing: number
+          failing_rows: Json
+          ok: boolean
+          passing: number
+          results: Json
+          total: number
+        }
+        Insert: {
+          category: string
+          checked_at?: string
+          failing: number
+          failing_rows: Json
+          ok: boolean
+          passing: number
+          results: Json
+          total: number
+        }
+        Update: {
+          category?: string
+          checked_at?: string
+          failing?: number
+          failing_rows?: Json
+          ok?: boolean
+          passing?: number
+          results?: Json
+          total?: number
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
