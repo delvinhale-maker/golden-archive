@@ -4,18 +4,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   BadgeCheck,
   Check,
-  Download,
   Heart,
   Lock,
   Share2,
   Star,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { StripeEmbeddedProductCheckout } from "@/components/StripeEmbeddedCheckout";
 import { CustomersAlsoBought } from "@/components/marketplace/CustomersAlsoBought";
+import { ImageZoom } from "@/components/marketplace/ImageZoom";
+import { TrustBadges, KingdomGuarantee, FormatSelector } from "@/components/marketplace/TrustBadges";
+import { ReviewsSection } from "@/components/marketplace/ReviewsSection";
 import { useWishlist } from "@/hooks/use-av-store";
 import { getProduct, type Product } from "@/lib/marketplace.functions";
 
@@ -52,9 +54,10 @@ function ProductPage() {
   const { data: product } = useSuspenseQuery(productQ(id)) as { data: Product };
   const wishlist = useWishlist();
   const liked = wishlist.has(product.id);
-  const [active, setActive] = useState(0);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  void active;
+
+  const formats = useMemo(() => formatsFor(product.category), [product.category]);
+  const [format, setFormat] = useState(formats[0]?.id ?? "pdf");
 
   return (
     <MarketShell>
@@ -76,11 +79,18 @@ function ProductPage() {
         <div className="grid gap-10 md:grid-cols-[55%_45%]">
           {/* Gallery */}
           <div>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-              className="relative flex h-[360px] w-full items-center justify-center overflow-hidden rounded-xl bg-[#f5f4ef] md:h-[460px]"
+            <ImageZoom
+              ariaLabel={product.title}
+              renderExpanded={() => (
+                <div className="aspect-[1.6/1] w-full overflow-hidden rounded-xl bg-[#f5f4ef]">
+                  <ProductCover
+                    title={product.title}
+                    category={product.category}
+                    productId={product.id}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
             >
               <ProductCover
                 title={product.title}
@@ -89,29 +99,12 @@ function ProductPage() {
                 className="h-full w-full object-cover"
               />
               {product.bestseller && (
-                <span className="absolute left-4 top-4 rounded-sm bg-gold px-2.5 py-1 text-[11px] font-bold uppercase tracking-caps text-navy">
+                <span className="absolute left-4 top-4 z-10 rounded-sm bg-gold px-2.5 py-1 text-[11px] font-bold uppercase tracking-caps text-navy">
                   Bestseller
                 </span>
               )}
-            </motion.div>
-            <div className="mt-3 flex gap-2">
-              {[0, 1, 2].map((i) => (
-                <button
-                  key={i}
-                  onClick={() => setActive(i)}
-                  className={`h-16 w-16 overflow-hidden rounded-md border-2 ${
-                    active === i ? "border-gold" : "border-line"
-                  }`}
-                >
-                  <ProductCover
-                    title={product.title + (i ? ` · ${i}` : "")}
-                    category={product.category}
-                    productId={product.id + ":" + i}
-                    className="h-full w-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+            </ImageZoom>
+            <TrustBadges />
           </div>
 
           {/* Details */}
@@ -171,6 +164,10 @@ function ProductPage() {
             <p className="mt-5 text-[15px] leading-relaxed text-mute">
               {product.description}
             </p>
+
+            <FormatSelector formats={formats} value={format} onChange={setFormat} />
+
+            <KingdomGuarantee />
 
             <motion.button
               whileTap={{ scale: 0.98 }}
@@ -253,75 +250,11 @@ function ProductPage() {
           </div>
         </div>
 
-        {/* Reviews */}
-        <section className="mt-16">
-          <h2 className="font-display text-2xl font-bold text-ink md:text-3xl">
-            Reviews
-          </h2>
-          <div className="mt-6 grid gap-8 md:grid-cols-[300px_1fr]">
-            <div className="rounded-lg border border-line bg-white p-6">
-              <div className="font-display text-5xl font-bold text-ink">
-                {product.rating.toFixed(1)}
-              </div>
-              <div className="mt-2 flex">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    size={16}
-                    fill={i < Math.round(product.rating) ? "var(--gold)" : "none"}
-                    stroke="var(--gold)"
-                  />
-                ))}
-              </div>
-              <div className="mt-1 text-xs text-mute">
-                {product.reviewCount} verified reviews
-              </div>
-              <div className="mt-5 space-y-1.5">
-                {[5, 4, 3, 2, 1].map((s) => (
-                  <div key={s} className="flex items-center gap-2 text-xs">
-                    <span className="w-3 text-mute">{s}</span>
-                    <div className="h-1.5 flex-1 rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-gold"
-                        style={{ width: `${[68, 22, 6, 3, 1][5 - s]}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-5">
-              {MOCK_REVIEWS.map((r, i) => (
-                <div key={i} className="rounded-lg border border-line bg-white p-5">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={`https://i.pravatar.cc/64?img=${20 + i}`}
-                      alt=""
-                      className="h-9 w-9 rounded-full object-cover"
-                    />
-                    <div>
-                      <div className="text-sm font-bold text-ink">{r.name}</div>
-                      <div className="flex items-center gap-2 text-xs text-mute">
-                        <div className="flex">
-                          {Array.from({ length: 5 }).map((_, j) => (
-                            <Star
-                              key={j}
-                              size={11}
-                              fill={j < r.stars ? "var(--gold)" : "none"}
-                              stroke="var(--gold)"
-                            />
-                          ))}
-                        </div>
-                        <span>{r.date}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-sm leading-relaxed text-ink">{r.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <ReviewsSection
+          productId={product.id}
+          fallbackRating={product.rating}
+          fallbackCount={product.reviewCount}
+        />
 
         <CustomersAlsoBought category={product.category} excludeId={product.id} />
       </div>
@@ -361,29 +294,26 @@ function ProductPage() {
   );
 }
 
-const MOCK_REVIEWS = [
-  {
-    name: "Reuben A.",
-    stars: 5,
-    date: "Mar 12, 2025",
-    text:
-      "Easily the most thoughtfully designed resource I've bought this year. Worth every penny — the audio companion is exceptional.",
-  },
-  {
-    name: "Imani C.",
-    stars: 5,
-    date: "Feb 28, 2025",
-    text:
-      "I share this with every operator on my team. The frameworks are practical and the design is on another level.",
-  },
-  {
-    name: "Daniel R.",
-    stars: 4,
-    date: "Feb 04, 2025",
-    text:
-      "Solid content and beautifully produced. Would love an EPUB version in a future update.",
-  },
-];
-
-// avoid unused import warning when Download isn't referenced
-void Download;
+function formatsFor(category: string): { id: string; label: string; sub?: string }[] {
+  const c = category.toLowerCase();
+  if (c.includes("audio")) return [
+    { id: "mp3", label: "MP3", sub: "Streaming + download" },
+    { id: "m4b", label: "M4B", sub: "Chaptered audiobook" },
+    { id: "pdf", label: "PDF Notes", sub: "Companion guide" },
+  ];
+  if (c.includes("course")) return [
+    { id: "video", label: "Video", sub: "HD streaming" },
+    { id: "pdf", label: "PDF Workbook", sub: "Printable" },
+    { id: "audio", label: "Audio", sub: "Listen on the go" },
+  ];
+  if (c.includes("template")) return [
+    { id: "notion", label: "Notion", sub: "Duplicate to workspace" },
+    { id: "pdf", label: "PDF", sub: "Print-ready" },
+    { id: "docx", label: "Docx", sub: "Editable" },
+  ];
+  return [
+    { id: "pdf", label: "PDF", sub: "Universal" },
+    { id: "epub", label: "EPUB", sub: "Kindle / iBooks" },
+    { id: "audio", label: "Audio", sub: "When available" },
+  ];
+}

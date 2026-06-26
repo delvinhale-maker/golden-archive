@@ -310,6 +310,62 @@ export type Database = {
         }
         Relationships: []
       }
+      product_reviews: {
+        Row: {
+          body: string
+          created_at: string
+          helpful_count: number
+          id: string
+          is_seed: boolean
+          product_id: string
+          rating: number
+          reviewer_avatar: string | null
+          reviewer_name: string
+          title: string | null
+          updated_at: string
+          user_id: string | null
+          verified_purchase: boolean
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          helpful_count?: number
+          id?: string
+          is_seed?: boolean
+          product_id: string
+          rating: number
+          reviewer_avatar?: string | null
+          reviewer_name: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string | null
+          verified_purchase?: boolean
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          helpful_count?: number
+          id?: string
+          is_seed?: boolean
+          product_id?: string
+          rating?: number
+          reviewer_avatar?: string | null
+          reviewer_name?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string | null
+          verified_purchase?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -339,6 +395,32 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      review_helpful_votes: {
+        Row: {
+          created_at: string
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_helpful_votes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "product_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       seller_applications: {
         Row: {
