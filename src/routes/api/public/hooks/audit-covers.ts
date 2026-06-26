@@ -20,20 +20,30 @@ export const Route = createFileRoute("/api/public/hooks/audit-covers")({
         const { runCoverAudit, writeCoverAuditCache, COVER_AUDIT_CATEGORIES } = await import(
           "@/lib/cover-audit.server"
         );
+        const { maybeSendCoverAuditAlert } = await import("@/lib/cover-audit-alert.server");
 
         const summary: Record<string, { ok: boolean; total: number; failing: number; error?: string }> = {};
+        const results = [] as Awaited<ReturnType<typeof runCoverAudit>>[];
         for (const category of COVER_AUDIT_CATEGORIES) {
           try {
             const result = await runCoverAudit(supabaseAdmin, category);
             await writeCoverAuditCache(supabaseAdmin, result);
+            results.push(result);
             summary[category] = { ok: result.ok, total: result.summary.total, failing: result.summary.failing };
           } catch (e) {
             summary[category] = { ok: false, total: 0, failing: 0, error: e instanceof Error ? e.message : String(e) };
           }
         }
 
+        let alert: Awaited<ReturnType<typeof maybeSendCoverAuditAlert>> | { error: string } | undefined;
+        try {
+          alert = await maybeSendCoverAuditAlert(supabaseAdmin, results);
+        } catch (e) {
+          alert = { error: e instanceof Error ? e.message : String(e) };
+        }
+
         const allOk = Object.values(summary).every((s) => s.ok);
-        return new Response(JSON.stringify({ ok: allOk, ranAt: new Date().toISOString(), summary }), {
+        return new Response(JSON.stringify({ ok: allOk, ranAt: new Date().toISOString(), summary, alert }), {
           status: 200,
           headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
         });
