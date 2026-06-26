@@ -62,7 +62,7 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
       .eq("status", "approved")
       .order("created_at", { ascending: false });
     if (opts.category && opts.category !== "All") {
-      query = query.eq("category", opts.category.toLowerCase());
+      query = query.eq("category", opts.category.toLowerCase() as "ebooks" | "courses" | "templates" | "audio" | "leadership");
     }
     if (opts.q) query = query.ilike("title", `%${opts.q}%`);
     const { data, error } = await query;
