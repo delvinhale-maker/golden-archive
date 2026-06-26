@@ -12,6 +12,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    id: typeof s.id === "string" ? s.id : undefined,
+  }),
   component: PublishFlow,
 });
 
@@ -50,9 +53,14 @@ function PublishFlow() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const runReview = useServerFn(reviewProduct);
+  const { id: editingId } = Route.useSearch();
+  const isEditing = !!editingId;
 
   const [step, setStep] = useState<StepNum>(1);
   const accent: PublisherAccent = STEPS.find((s) => s.n === step)!.accent;
+  const [loadingEdit, setLoadingEdit] = useState<boolean>(isEditing);
+  const [existingCoverUrl, setExistingCoverUrl] = useState<string | null>(null);
+  const [existingFilePath, setExistingFilePath] = useState<string | null>(null);
 
   // Step 1
   const [title, setTitle] = useState("");
@@ -97,9 +105,63 @@ function PublishFlow() {
       .then(({ data }) => setCanSell(data?.status === "approved"));
   }, [user]);
 
+  // Load product for editing
+  useEffect(() => {
+    if (!editingId || !user) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from("marketplace_products")
+        .select("*")
+        .eq("id", editingId)
+        .maybeSingle();
+      if (error || !data) {
+        toast.error("Could not load this title.");
+        setLoadingEdit(false);
+        return;
+      }
+      if (data.seller_id !== user.id) {
+        toast.error("You can only edit your own titles.");
+        navigate({ to: "/dashboard" });
+        return;
+      }
+      setTitle(data.title ?? "");
+      setSubtitle(data.subtitle ?? "");
+      setAuthor(data.creator_name ?? "Illustrious Capital™");
+      setDescription(data.description ?? "");
+      setLanguage(data.language ?? "English");
+      setCategory((data.category as typeof CATEGORIES[number]["value"]) ?? "ebooks");
+      setPrice(((data.price_cents ?? 0) / 100).toString());
+      setExistingCoverUrl(data.cover_url ?? null);
+      setExistingFilePath(data.file_path ?? null);
+      try {
+        const raw = data.admin_notes as unknown;
+        const n = typeof raw === "string" ? JSON.parse(raw) : raw;
+        if (n && typeof n === "object") {
+          const o = n as Record<string, unknown>;
+          if (typeof o.seriesName === "string") setSeriesName(o.seriesName);
+          if (typeof o.edition === "string") setEdition(o.edition);
+          if (Array.isArray(o.keywords)) setKeywords(o.keywords.filter((k): k is string => typeof k === "string"));
+          if (typeof o.ageRange === "string") setAgeRange(o.ageRange);
+          if (typeof o.ownsRights === "boolean") setOwnsRights(o.ownsRights);
+          if (typeof o.drm === "boolean") setDrm(o.drm);
+          if (typeof o.premium === "boolean") setPremium(o.premium);
+        }
+      } catch {
+        // ignore malformed admin_notes
+      }
+      setLoadingEdit(false);
+    })();
+  }, [editingId, user, navigate]);
+
   // Cover preview + dim validation
   useEffect(() => {
-    if (!cover) { setCoverPreview(null); setCoverDims(null); setCoverChecking(false); return; }
+    if (!cover) {
+      setCoverPreview(existingCoverUrl ?? null);
+      setCoverDims(null);
+      setCoverChecking(false);
+      setCoverError(null);
+      return;
+    }
     const url = URL.createObjectURL(cover);
     setCoverPreview(url);
     setCoverDims(null);
@@ -117,7 +179,7 @@ function PublishFlow() {
     };
     img.src = url;
     return () => URL.revokeObjectURL(url);
-  }, [cover]);
+  }, [cover, existingCoverUrl]);
 
   function validateCover(w: number, h: number) {
     if (w < MIN_COVER_W || h < MIN_COVER_H) {
@@ -162,7 +224,9 @@ function PublishFlow() {
   }
 
   const step1Valid = title.trim() && author.trim() && description.trim().length >= 150;
-  const step2Valid = ownsRights && cover && !coverError && coverDims && file && !fileError;
+  const hasCover = (!!cover && !coverError && !!coverDims) || (!cover && !!existingCoverUrl);
+  const hasFile = (!!file && !fileError) || (!file && !!existingFilePath);
+  const step2Valid = ownsRights && hasCover && hasFile;
   const step3Valid = !!price && parseFloat(price) >= 1;
 
   const priceNum = parseFloat(price || "0");
@@ -173,35 +237,45 @@ function PublishFlow() {
     if (step === 1 && !step1Valid) return toast.error("Fill all required fields (description ≥ 150 chars).");
     if (step === 2 && !step2Valid) {
       if (!ownsRights) return toast.error("You must confirm you own the rights to this content.");
-      return toast.error("Upload a valid cover and manuscript.");
+      return toast.error(isEditing ? "Cover or manuscript is invalid." : "Upload a valid cover and manuscript.");
     }
     if (step === 3 && !step3Valid) return toast.error("Enter a price of at least $1.");
     setStep((step + 1) as StepNum);
   }
 
   async function uploadAndSave(publish: boolean) {
-    if (!user || !cover || !file) return;
+    if (!user) return;
+    if (!isEditing && (!cover || !file)) return;
     setSubmitting(true); setUploading(true); setUploadProgress(5);
     try {
       const ts = Date.now();
-      const coverPath = `${user.id}/${ts}-${cover.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-      const filePath = `${user.id}/${ts}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      let coverUrl: string | null = existingCoverUrl;
+      let storedFilePath: string | null = existingFilePath;
+      let fileSize: number | undefined;
 
-      const coverUp = await supabase.storage.from("product-covers").upload(coverPath, cover, { upsert: false });
-      if (coverUp.error) throw coverUp.error;
-      setUploadProgress(35);
+      if (cover) {
+        const coverPath = `${user.id}/${ts}-${cover.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+        const coverUp = await supabase.storage.from("product-covers").upload(coverPath, cover, { upsert: false });
+        if (coverUp.error) throw coverUp.error;
+        const { data: signed } = await supabase.storage.from("product-covers")
+          .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
+        coverUrl = signed?.signedUrl ?? null;
+      }
+      setUploadProgress(40);
 
-      const t = setInterval(() => setUploadProgress((p) => (p < 90 ? p + 3 : p)), 400);
-      const fileUp = await supabase.storage.from("product-files").upload(filePath, file, { upsert: false });
-      clearInterval(t);
-      if (fileUp.error) throw fileUp.error;
+      if (file) {
+        const newFilePath = `${user.id}/${ts}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+        const t = setInterval(() => setUploadProgress((p) => (p < 90 ? p + 3 : p)), 400);
+        const fileUp = await supabase.storage.from("product-files").upload(newFilePath, file, { upsert: false });
+        clearInterval(t);
+        if (fileUp.error) throw fileUp.error;
+        storedFilePath = newFilePath;
+        fileSize = file.size;
+      }
       setUploadProgress(95);
 
-      const { data: signed } = await supabase.storage.from("product-covers")
-        .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
-
       const priceCents = Math.round(priceNum * 100);
-      const status: "draft" | "approved" = publish ? "approved" : "draft";
+      const status: "draft" | "approved" | "pending" = publish ? (isEditing ? "pending" : "approved") : "draft";
       const notes = JSON.stringify({
         seriesName: seriesName || null,
         edition: edition || null,
@@ -210,30 +284,52 @@ function PublishFlow() {
         ownsRights, drm, premium, territory,
       });
 
-      const { data: inserted, error } = await supabase.from("marketplace_products").insert({
-        seller_id: user.id,
-        title: title.trim(),
-        subtitle: subtitle.trim() || null,
-        description: description.trim(),
-        creator_name: author.trim(),
-        language, category,
-        price_cents: priceCents,
-        cover_url: signed?.signedUrl ?? null,
-        file_path: filePath,
-        file_size_bytes: file.size,
-        status,
-        published: publish,
-        admin_notes: notes,
-      }).select("id").single();
-      if (error) throw error;
+      let savedId: string | null = editingId ?? null;
+      if (isEditing && editingId) {
+        const update = {
+          title: title.trim(),
+          subtitle: subtitle.trim() || null,
+          description: description.trim(),
+          creator_name: author.trim(),
+          language,
+          category,
+          price_cents: priceCents,
+          cover_url: coverUrl,
+          file_path: storedFilePath,
+          status,
+          published: publish,
+          admin_notes: notes,
+          ...(fileSize !== undefined ? { file_size_bytes: fileSize } : {}),
+        };
+        const { error } = await supabase.from("marketplace_products").update(update).eq("id", editingId);
+        if (error) throw error;
+      } else {
+        const { data: inserted, error } = await supabase.from("marketplace_products").insert({
+          seller_id: user.id,
+          title: title.trim(),
+          subtitle: subtitle.trim() || null,
+          description: description.trim(),
+          creator_name: author.trim(),
+          language, category,
+          price_cents: priceCents,
+          cover_url: coverUrl,
+          file_path: storedFilePath,
+          file_size_bytes: fileSize,
+          status,
+          published: publish,
+          admin_notes: notes,
+        }).select("id").single();
+        if (error) throw error;
+        savedId = inserted?.id ?? null;
+      }
       setUploadProgress(100);
 
       if (publish) {
-        toast.success("Published to the Vault!");
-        if (inserted?.id) {
-          runReview({ data: { productId: inserted.id } }).catch((err) => console.error("AI review failed", err));
+        toast.success(isEditing ? "Title updated." : "Published to the Vault!");
+        if (savedId) {
+          runReview({ data: { productId: savedId } }).catch((err) => console.error("AI review failed", err));
         }
-        setPublishedId(inserted?.id ?? null);
+        setPublishedId(savedId);
       } else {
         toast.success("Draft saved.");
         navigate({ to: "/dashboard" });
@@ -258,8 +354,17 @@ function PublishFlow() {
       <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-mute hover:text-navy">
         <ArrowLeft size={14} /> Back to Bookshelf
       </Link>
-      <h1 className="font-display text-3xl md:text-4xl text-navy mt-3">Publish a new title</h1>
-      <p className="text-mute mt-1">A KDP-style flow. AurumVault keeps 9%; you keep 91%.</p>
+      <h1 className="font-display text-3xl md:text-4xl text-navy mt-3">
+        {isEditing ? "Edit title" : "Publish a new title"}
+      </h1>
+      <p className="text-mute mt-1">
+        {isEditing
+          ? "Update any field and re-publish. Republishing sends the title back through AI review."
+          : "A KDP-style flow. AurumVault keeps 9%; you keep 91%."}
+      </p>
+      {loadingEdit && (
+        <p className="mt-2 text-xs text-mute">Loading title…</p>
+      )}
 
       {canSell === false && (
         <div className="mt-6 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
@@ -299,6 +404,8 @@ function PublishFlow() {
               file={file} fileError={fileError} handleFileChange={handleFileChange}
               uploadProgress={uploadProgress} uploading={uploading}
               onZoomCover={() => setCoverLightbox(true)}
+              existingCoverUrl={existingCoverUrl}
+              existingFilePath={existingFilePath}
             />
           )}
           {step === 3 && (
@@ -500,6 +607,8 @@ function StepContent(p: {
   file: File | null; fileError: string | null; handleFileChange: (f: File | null) => void;
   uploadProgress: number; uploading: boolean;
   onZoomCover: () => void;
+  existingCoverUrl: string | null;
+  existingFilePath: string | null;
 }) {
   return (
     <div className="space-y-6">
@@ -534,6 +643,12 @@ function StepContent(p: {
             <span className="truncate">{p.file.name} — {(p.file.size / 1024 / 1024).toFixed(2)} MB</span>
           </div>
         )}
+        {!p.file && !p.fileError && p.existingFilePath && (
+          <div className="mt-2 flex items-center gap-2 text-sm text-navy bg-paper border border-ink/10 rounded-lg p-3">
+            <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+            <span className="truncate">Current manuscript on file. Drop a new file to replace it.</span>
+          </div>
+        )}
         {p.uploading && (
           <div className="mt-3">
             <div className="flex justify-between text-xs text-mute mb-1"><span>Uploading…</span><span>{p.uploadProgress}%</span></div>
@@ -562,6 +677,12 @@ function StepContent(p: {
         {p.cover && !p.coverError && !p.coverChecking && p.coverDims && (
           <div className="mt-2 flex items-start gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <CheckCircle2 size={16} className="mt-0.5 shrink-0" /><span>Cover meets the required specs.</span>
+          </div>
+        )}
+        {!p.cover && p.existingCoverUrl && (
+          <div className="mt-2 flex items-center gap-2 text-sm text-navy bg-paper border border-ink/10 rounded-lg p-3">
+            <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+            <span className="truncate">Current cover shown above. Drop a new image to replace it.</span>
           </div>
         )}
       </div>
