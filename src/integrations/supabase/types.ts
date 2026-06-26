@@ -104,6 +104,13 @@ export type Database = {
       marketplace_products: {
         Row: {
           admin_notes: string | null
+          ai_review_blurb: string | null
+          ai_review_issues: Json | null
+          ai_review_score: number | null
+          ai_review_seo_title: string | null
+          ai_review_status: string | null
+          ai_review_tags: Json | null
+          ai_reviewed_at: string | null
           approved_at: string | null
           category: Database["public"]["Enums"]["product_category"]
           compare_at_price_cents: number | null
@@ -123,6 +130,13 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          ai_review_blurb?: string | null
+          ai_review_issues?: Json | null
+          ai_review_score?: number | null
+          ai_review_seo_title?: string | null
+          ai_review_status?: string | null
+          ai_review_tags?: Json | null
+          ai_reviewed_at?: string | null
           approved_at?: string | null
           category: Database["public"]["Enums"]["product_category"]
           compare_at_price_cents?: number | null
@@ -142,6 +156,13 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          ai_review_blurb?: string | null
+          ai_review_issues?: Json | null
+          ai_review_score?: number | null
+          ai_review_seo_title?: string | null
+          ai_review_status?: string | null
+          ai_review_tags?: Json | null
+          ai_reviewed_at?: string | null
           approved_at?: string | null
           category?: Database["public"]["Enums"]["product_category"]
           compare_at_price_cents?: number | null
