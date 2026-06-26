@@ -18,7 +18,7 @@ import { CustomersAlsoBought } from "@/components/marketplace/CustomersAlsoBough
 import { ImageZoom } from "@/components/marketplace/ImageZoom";
 import { TrustBadges, KingdomGuarantee, FormatSelector } from "@/components/marketplace/TrustBadges";
 import { ReviewsSection } from "@/components/marketplace/ReviewsSection";
-import { useWishlist } from "@/hooks/use-av-store";
+import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { getProduct, type Product } from "@/lib/marketplace.functions";
 
 const productQ = (id: string) =>
@@ -53,7 +53,9 @@ function ProductPage() {
   const { id } = Route.useParams();
   const { data: product } = useSuspenseQuery(productQ(id)) as { data: Product };
   const wishlist = useWishlist();
+  const cart = useCart();
   const liked = wishlist.has(product.id);
+  const inCart = cart.has(product.id);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const formats = useMemo(() => formatsFor(product.category), [product.category]);
@@ -176,6 +178,22 @@ function ProductPage() {
               className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full bg-gold text-base font-bold text-navy shadow-gold-glow"
             >
               Buy Now · ${product.price}
+            </motion.button>
+
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() =>
+                cart.add({
+                  id: product.id,
+                  title: product.title,
+                  price: product.price,
+                  category: product.category,
+                  image: product.image,
+                })
+              }
+              className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-navy text-sm font-bold text-navy hover:bg-navy hover:text-white"
+            >
+              {inCart ? "✓ Added — View Cart" : "Add to Cart"}
             </motion.button>
 
             <motion.button

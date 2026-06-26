@@ -1,12 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { BadgeCheck, Heart, Star } from "lucide-react";
-import { useWishlist } from "@/hooks/use-av-store";
+import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import type { Product } from "@/lib/marketplace.functions";
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
   const wishlist = useWishlist();
+  const cart = useCart();
   const liked = wishlist.has(product.id);
 
   return (
@@ -101,9 +102,18 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
+          onClick={() =>
+            cart.add({
+              id: product.id,
+              title: product.title,
+              price: product.price,
+              category: product.category,
+              image: product.image,
+            })
+          }
           className="mt-4 w-full rounded-full bg-gold py-2.5 text-[13px] font-bold text-navy hover:shadow-gold-glow"
         >
-          Buy Now
+          {cart.has(product.id) ? "✓ In Cart" : "Add to Cart"}
         </motion.button>
       </div>
     </motion.article>
