@@ -250,75 +250,11 @@ function ProductPage() {
           </div>
         </div>
 
-        {/* Reviews */}
-        <section className="mt-16">
-          <h2 className="font-display text-2xl font-bold text-ink md:text-3xl">
-            Reviews
-          </h2>
-          <div className="mt-6 grid gap-8 md:grid-cols-[300px_1fr]">
-            <div className="rounded-lg border border-line bg-white p-6">
-              <div className="font-display text-5xl font-bold text-ink">
-                {product.rating.toFixed(1)}
-              </div>
-              <div className="mt-2 flex">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    size={16}
-                    fill={i < Math.round(product.rating) ? "var(--gold)" : "none"}
-                    stroke="var(--gold)"
-                  />
-                ))}
-              </div>
-              <div className="mt-1 text-xs text-mute">
-                {product.reviewCount} verified reviews
-              </div>
-              <div className="mt-5 space-y-1.5">
-                {[5, 4, 3, 2, 1].map((s) => (
-                  <div key={s} className="flex items-center gap-2 text-xs">
-                    <span className="w-3 text-mute">{s}</span>
-                    <div className="h-1.5 flex-1 rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-gold"
-                        style={{ width: `${[68, 22, 6, 3, 1][5 - s]}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-5">
-              {MOCK_REVIEWS.map((r, i) => (
-                <div key={i} className="rounded-lg border border-line bg-white p-5">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={`https://i.pravatar.cc/64?img=${20 + i}`}
-                      alt=""
-                      className="h-9 w-9 rounded-full object-cover"
-                    />
-                    <div>
-                      <div className="text-sm font-bold text-ink">{r.name}</div>
-                      <div className="flex items-center gap-2 text-xs text-mute">
-                        <div className="flex">
-                          {Array.from({ length: 5 }).map((_, j) => (
-                            <Star
-                              key={j}
-                              size={11}
-                              fill={j < r.stars ? "var(--gold)" : "none"}
-                              stroke="var(--gold)"
-                            />
-                          ))}
-                        </div>
-                        <span>{r.date}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-sm leading-relaxed text-ink">{r.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <ReviewsSection
+          productId={product.id}
+          fallbackRating={product.rating}
+          fallbackCount={product.reviewCount}
+        />
 
         <CustomersAlsoBought category={product.category} excludeId={product.id} />
       </div>
