@@ -18,6 +18,7 @@ type Product = {
   category: string;
   price_cents: number;
   status: string;
+  published: boolean;
   cover_url: string | null;
   created_at: string;
   rejected_reason: string | null;
