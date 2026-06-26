@@ -11,27 +11,30 @@ export function useAuth() {
 
   useEffect(() => {
     let mounted = true;
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!mounted) return;
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        setTimeout(() => loadRoles(session.user.id), 0);
-      } else {
-        setRoles([]);
-      }
-    });
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setUser(data.session?.user ?? null);
-      if (data.session?.user) loadRoles(data.session.user.id);
-      setLoading(false);
-    });
 
     async function loadRoles(uid: string) {
       const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
       if (mounted) setRoles((data ?? []).map((r) => r.role as AppRole));
     }
+
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return;
+      setLoading(true);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        await loadRoles(session.user.id);
+      } else {
+        setRoles([]);
+      }
+      if (mounted) setLoading(false);
+    });
+
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!mounted) return;
+      setUser(data.session?.user ?? null);
+      if (data.session?.user) await loadRoles(data.session.user.id);
+      if (mounted) setLoading(false);
+    });
 
     return () => {
       mounted = false;

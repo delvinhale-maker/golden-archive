@@ -55,7 +55,7 @@ function Dashboard() {
           <span className="hidden md:inline text-sm text-white/60">Seller Dashboard</span>
           <div className="ml-auto flex items-center gap-2">
             {isAdmin && (
-              <Link to="/admin" className="hidden md:inline-flex items-center gap-1.5 text-sm rounded-full bg-gold/15 text-gold px-3 py-1.5">
+              <Link to="/admin" className="inline-flex items-center gap-1.5 text-sm rounded-full bg-gold/15 text-gold px-3 py-1.5">
                 <ShieldCheck size={14} /> Admin
               </Link>
             )}
