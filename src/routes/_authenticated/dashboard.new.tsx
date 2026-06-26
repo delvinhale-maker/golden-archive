@@ -249,6 +249,31 @@ function NewProduct() {
         <Stepper step={step} />
 
         <div className="mt-6 bg-white rounded-2xl p-6 border border-ink/10">
+          {step === 0 && (
+            <div className="space-y-5">
+              <h2 className="font-display text-2xl text-navy">What are you uploading?</h2>
+              <p className="text-sm text-mute">Pick a product type — this controls which file formats the uploader will accept.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {PRODUCT_TYPES.map((t) => {
+                  const active = productType === t.value;
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setProductType(t.value)}
+                      className={`text-left rounded-xl border p-4 transition ${active ? "border-gold bg-gold/5 ring-2 ring-gold/30" : "border-ink/10 hover:border-navy/30 bg-white"}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-display text-lg text-navy">{t.label}</span>
+                        {active && <Check size={16} className="text-gold" />}
+                      </div>
+                      <p className="text-xs text-mute mt-1">{t.description}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {step === 1 && (
             <div className="space-y-5">
               <h2 className="font-display text-2xl text-navy">Book details</h2>
