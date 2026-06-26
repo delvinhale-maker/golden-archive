@@ -519,14 +519,14 @@ function CoverInput({ file, preview, onFile }: { file: File | null; preview: str
   );
 }
 
-function FileInput({ file, onFile }: { file: File | null; onFile: (f: File | null) => void }) {
+function FileInput({ file, onFile, accept, hint }: { file: File | null; onFile: (f: File | null) => void; accept: string; hint: string }) {
   const ref = useRef<HTMLInputElement>(null);
   return (
     <div className="space-y-2">
       <input
         ref={ref}
         type="file"
-        accept=".pdf,.epub,application/pdf,application/epub+zip"
+        accept={accept}
         className="hidden"
         onChange={(e) => onFile(e.target.files?.[0] ?? null)}
       />
@@ -537,7 +537,7 @@ function FileInput({ file, onFile }: { file: File | null; onFile: (f: File | nul
       >
         {file ? <FileText size={20} className="text-navy shrink-0" /> : <Upload size={20} className="text-mute shrink-0" />}
         <span className="text-sm text-ink/80 truncate">
-          {file ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB` : "Tap to choose a manuscript (PDF or EPUB)"}
+          {file ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB` : hint}
         </span>
       </button>
       {file && (
