@@ -476,27 +476,11 @@ function NewProduct() {
         </div>
       </main>
       {coverLightbox && coverPreview && (
-        <div
-          role="dialog"
-          aria-label="Cover full size preview"
-          onClick={() => setCoverLightbox(false)}
-          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
-        >
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setCoverLightbox(false); }}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center"
-            aria-label="Close preview"
-          >
-            <X size={20} />
-          </button>
-          <img
-            src={coverPreview}
-            alt="Cover full size"
-            onClick={(e) => e.stopPropagation()}
-            className="max-h-[90vh] max-w-[95vw] object-contain rounded-md shadow-2xl"
-          />
-        </div>
+        <CoverLightbox
+          src={coverPreview}
+          fileName={cover?.name}
+          onClose={() => setCoverLightbox(false)}
+        />
       )}
       <style>{`.inp{display:block;width:100%;min-height:44px;border-radius:12px;border:1px solid rgb(0 0 0 / 0.12);padding:10px 14px;font-size:14px;background:white;color:#0F1A33}.inp:focus{outline:none;border-color:#C9A24B;box-shadow:0 0 0 3px rgb(201 162 75 / 0.15)}`}</style>
     </div>
@@ -643,39 +627,128 @@ function FilePreview({ file, previewUrl, textPreview }: { file: File; previewUrl
   const sizeMB = (file.size / 1024 / 1024).toFixed(2);
   const modified = new Date(file.lastModified).toLocaleString();
   const Icon = kind === "audio" ? Music : kind === "video" ? Film : kind === "json" ? FileJson : kind === "doc" || kind === "sheet" ? FileType2 : FileText;
+  const headingId = `file-preview-${file.name.replace(/[^a-zA-Z0-9]/g, "-")}`;
+  const summary = `Selected file ${file.name}, type ${ext.toUpperCase()}, size ${sizeMB} megabytes, last modified ${modified}`;
 
   return (
-    <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 overflow-hidden">
+    <section
+      aria-labelledby={headingId}
+      className="rounded-xl border border-emerald-200 bg-emerald-50/40 overflow-hidden"
+    >
       <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 border-b border-emerald-200">
-        <CheckCircle2 size={18} className="text-emerald-700 shrink-0" />
+        <CheckCircle2 size={18} className="text-emerald-700 shrink-0" aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold text-navy truncate">{file.name}</div>
+          <h3 id={headingId} className="text-sm font-semibold text-navy truncate" title={file.name}>{file.name}</h3>
           <div className="text-xs text-mute">.{ext.toUpperCase()} · {sizeMB} MB · modified {modified}</div>
+          <span className="sr-only">{summary}</span>
         </div>
-        <Icon size={20} className="text-navy/70 shrink-0" />
+        <Icon size={20} className="text-navy/70 shrink-0" aria-hidden="true" />
       </div>
       <div className="p-4 bg-white">
         {kind === "image" && previewUrl && (
-          <img src={previewUrl} alt="File preview" className="max-h-72 mx-auto rounded-md border border-ink/10" />
+          <img src={previewUrl} alt={`Preview of ${file.name}`} className="max-h-72 mx-auto rounded-md border border-ink/10" />
         )}
         {kind === "audio" && previewUrl && (
-          <audio controls src={previewUrl} className="w-full" />
+          <audio controls src={previewUrl} aria-label={`Audio preview of ${file.name}`} className="w-full" />
         )}
         {kind === "video" && previewUrl && (
-          <video controls src={previewUrl} className="w-full max-h-72 rounded-md bg-black" />
+          <video controls src={previewUrl} aria-label={`Video preview of ${file.name}`} className="w-full max-h-72 rounded-md bg-black" />
         )}
         {kind === "pdf" && previewUrl && (
-          <iframe src={previewUrl} title="PDF preview" className="w-full h-80 rounded-md border border-ink/10 bg-white" />
+          <iframe src={previewUrl} title={`PDF preview of ${file.name}`} className="w-full h-80 rounded-md border border-ink/10 bg-white" />
         )}
         {(kind === "text" || kind === "json") && textPreview != null && (
-          <pre className="text-xs text-ink/80 bg-paper rounded-md p-3 max-h-60 overflow-auto whitespace-pre-wrap break-words border border-ink/10">{textPreview}{textPreview.length >= 2048 ? "\n…" : ""}</pre>
+          <pre
+            aria-label={`Text preview of ${file.name}, first 2 kilobytes`}
+            tabIndex={0}
+            className="text-xs text-ink/80 bg-paper rounded-md p-3 max-h-60 overflow-auto whitespace-pre-wrap break-words border border-ink/10 focus:outline-none focus:ring-2 focus:ring-gold"
+          >{textPreview}{textPreview.length >= 2048 ? "\n…" : ""}</pre>
         )}
         {(kind === "archive" || kind === "doc" || kind === "sheet" || kind === "other") && (
-          <div className="text-xs text-mute italic">
+          <p className="text-xs text-mute italic">
             No inline preview for .{ext.toUpperCase()} files — confirm the name and size above match your intended upload.
-          </div>
+          </p>
         )}
       </div>
+    </section>
+  );
+}
+
+function CoverLightbox({ src, fileName, onClose }: { src: string; fileName?: string; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const titleId = "cover-lightbox-title";
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeBtnRef.current?.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose();
+        return;
+      }
+      if (e.key === "Tab") {
+        // Trap focus among focusable descendants
+        const root = dialogRef.current;
+        if (!root) return;
+        const focusables = root.querySelectorAll<HTMLElement>(
+          'button, [href], input, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length === 0) {
+          e.preventDefault();
+          return;
+        }
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+        if (e.shiftKey && active === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+      previouslyFocused?.focus?.();
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
+    >
+      <h2 id={titleId} className="sr-only">
+        {fileName ? `Full size preview of ${fileName}` : "Cover full size preview"}
+      </h2>
+      <button
+        ref={closeBtnRef}
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onClose(); }}
+        className="absolute top-4 right-4 min-w-11 min-h-11 rounded-full bg-white/10 text-white hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold flex items-center justify-center"
+        aria-label="Close full size preview (Esc)"
+      >
+        <X size={20} aria-hidden="true" />
+      </button>
+      <img
+        src={src}
+        alt={fileName ? `Full size cover: ${fileName}` : "Cover full size"}
+        onClick={(e) => e.stopPropagation()}
+        className="max-h-[90vh] max-w-[95vw] object-contain rounded-md shadow-2xl"
+      />
     </div>
   );
 }
