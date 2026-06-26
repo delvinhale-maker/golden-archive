@@ -478,7 +478,7 @@ function NewProduct() {
       {coverLightbox && coverPreview && (
         <CoverLightbox
           src={coverPreview}
-          fileName={coverFile?.name}
+          fileName={cover?.name}
           onClose={() => setCoverLightbox(false)}
         />
       )}
