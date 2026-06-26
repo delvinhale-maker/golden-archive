@@ -23,6 +23,7 @@ const CATEGORIES = [
 function NewProduct() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const runReview = useServerFn(reviewProduct);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("ebooks");
