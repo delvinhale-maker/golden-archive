@@ -322,6 +322,37 @@ function ProductPage() {
           </div>
         </section>
       </div>
+
+      <AnimatePresence>
+        {checkoutOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm"
+            onClick={() => setCheckoutOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 16 }}
+              className="relative my-6 w-full max-w-2xl rounded-2xl bg-white shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setCheckoutOpen(false)}
+                aria-label="Close checkout"
+                className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow hover:bg-white"
+              >
+                <X size={18} />
+              </button>
+              <div className="p-2">
+                <StripeEmbeddedProductCheckout productId={product.id} />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </MarketShell>
   );
 }
