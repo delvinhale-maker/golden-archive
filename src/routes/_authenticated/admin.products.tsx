@@ -22,6 +22,8 @@ type Prod = {
   cover_url: string | null;
   status: Status;
   created_at: string;
+  file_path: string | null;
+  seller_id: string;
 };
 
 const CATEGORIES: Category[] = ["ebooks", "courses", "templates", "audio", "leadership"];
