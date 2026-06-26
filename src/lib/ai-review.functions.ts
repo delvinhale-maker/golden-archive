@@ -47,7 +47,7 @@ export const reviewProduct = createServerFn({ method: "POST" })
     const model = gateway("google/gemini-3-flash-preview");
 
     const userParts: Array<
-      { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }
+      { type: "text"; text: string } | { type: "image"; image: URL }
     > = [
       {
         type: "text",
@@ -73,7 +73,11 @@ Then write a polished SEO blurb (140-160 chars) and a refined SEO title (<60 cha
     ];
 
     if (product.cover_url) {
-      userParts.push({ type: "image_url", image_url: { url: product.cover_url } });
+      try {
+        userParts.push({ type: "image", image: new URL(product.cover_url) });
+      } catch {
+        // ignore invalid url
+      }
     }
 
     const { output } = await generateText({
