@@ -79,11 +79,18 @@ function ProductPage() {
         <div className="grid gap-10 md:grid-cols-[55%_45%]">
           {/* Gallery */}
           <div>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-              className="relative flex h-[360px] w-full items-center justify-center overflow-hidden rounded-xl bg-[#f5f4ef] md:h-[460px]"
+            <ImageZoom
+              ariaLabel={product.title}
+              renderExpanded={() => (
+                <div className="aspect-[1.6/1] w-full overflow-hidden rounded-xl bg-[#f5f4ef]">
+                  <ProductCover
+                    title={product.title}
+                    category={product.category}
+                    productId={product.id}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
             >
               <ProductCover
                 title={product.title}
@@ -92,29 +99,12 @@ function ProductPage() {
                 className="h-full w-full object-cover"
               />
               {product.bestseller && (
-                <span className="absolute left-4 top-4 rounded-sm bg-gold px-2.5 py-1 text-[11px] font-bold uppercase tracking-caps text-navy">
+                <span className="absolute left-4 top-4 z-10 rounded-sm bg-gold px-2.5 py-1 text-[11px] font-bold uppercase tracking-caps text-navy">
                   Bestseller
                 </span>
               )}
-            </motion.div>
-            <div className="mt-3 flex gap-2">
-              {[0, 1, 2].map((i) => (
-                <button
-                  key={i}
-                  onClick={() => setActive(i)}
-                  className={`h-16 w-16 overflow-hidden rounded-md border-2 ${
-                    active === i ? "border-gold" : "border-line"
-                  }`}
-                >
-                  <ProductCover
-                    title={product.title + (i ? ` · ${i}` : "")}
-                    category={product.category}
-                    productId={product.id + ":" + i}
-                    className="h-full w-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+            </ImageZoom>
+            <TrustBadges />
           </div>
 
           {/* Details */}
