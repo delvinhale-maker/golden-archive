@@ -28,11 +28,12 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         className="relative block"
       >
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#f5f4ef]">
-          {product.image && /^https?:\/\//.test(product.image) ? (
+          {hasImage ? (
             <img
               src={product.image}
               alt={product.title}
               loading="lazy"
+              onError={() => setImgFailed(true)}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             />
           ) : (
