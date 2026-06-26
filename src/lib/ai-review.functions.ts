@@ -140,8 +140,7 @@ async function notifySellerOfReview(params: {
   score: number;
   issues: AIReviewResult["issues"];
   callerAuthHeader: string | null;
-  host: string | null;
-  proto: string;
+  origin: string | null;
 }) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const approved = params.status === "pass";
