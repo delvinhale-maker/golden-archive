@@ -23,6 +23,26 @@ const CATEGORIES: { label: string; value: "ebooks" | "finance" | "leadership" | 
 
 const LANGUAGES = ["English", "Spanish", "French", "German", "Portuguese", "Italian", "Other"];
 
+type ProductType = "ebook" | "manuscript" | "prompt-pack" | "template" | "audio" | "course" | "bundle" | "other";
+
+const PRODUCT_TYPES: {
+  value: ProductType;
+  label: string;
+  description: string;
+  accept: string;
+  extensions: string[];
+  enforceCoverRatio: boolean;
+}[] = [
+  { value: "ebook", label: "eBook", description: "PDF, EPUB, or MOBI", accept: ".pdf,.epub,.mobi,application/pdf,application/epub+zip", extensions: ["pdf", "epub", "mobi"], enforceCoverRatio: true },
+  { value: "manuscript", label: "Manuscript", description: "DOCX or PDF", accept: ".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document", extensions: ["docx", "pdf"], enforceCoverRatio: true },
+  { value: "prompt-pack", label: "Prompt Pack", description: "PDF, TXT, or JSON", accept: ".pdf,.txt,.json,application/pdf,text/plain,application/json", extensions: ["pdf", "txt", "json"], enforceCoverRatio: false },
+  { value: "template", label: "Template", description: "DOCX, XLSX, or PDF", accept: ".docx,.xlsx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", extensions: ["docx", "xlsx", "pdf"], enforceCoverRatio: false },
+  { value: "audio", label: "Audio", description: "MP3, WAV, or M4A", accept: ".mp3,.wav,.m4a,audio/mpeg,audio/wav,audio/x-m4a,audio/mp4", extensions: ["mp3", "wav", "m4a"], enforceCoverRatio: false },
+  { value: "course", label: "Course / Video", description: "MP4 or MOV", accept: ".mp4,.mov,video/mp4,video/quicktime", extensions: ["mp4", "mov"], enforceCoverRatio: false },
+  { value: "bundle", label: "Bundle", description: "ZIP (multi-file)", accept: ".zip,application/zip", extensions: ["zip"], enforceCoverRatio: false },
+  { value: "other", label: "Other", description: "ZIP archive", accept: ".zip,application/zip", extensions: ["zip"], enforceCoverRatio: false },
+];
+
 const MAX_COVER_MB = 10;
 const MAX_FILE_MB = 650;
 const MIN_COVER_W = 1600;
@@ -30,16 +50,16 @@ const MIN_COVER_H = 2560;
 const TARGET_RATIO = 1600 / 2560; // 0.625 (portrait, 1:1.6)
 const RATIO_TOL = 0.03;
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 0 | 1 | 2 | 3 | 4;
 
 function NewProduct() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const runReview = useServerFn(reviewProduct);
 
-  const [step, setStep] = useState<Step>(1);
-
-  // Step 1
+  const [step, setStep] = useState<Step>(0);
+  const [productType, setProductType] = useState<ProductType>("ebook");
+  const typeMeta = PRODUCT_TYPES.find((t) => t.value === productType)!;
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [author, setAuthor] = useState("Illustrious Capital™");
@@ -88,10 +108,12 @@ function NewProduct() {
       setCoverError(`Image is ${w}×${h}px. Minimum ${MIN_COVER_W}×${MIN_COVER_H}px required.`);
       return false;
     }
-    const ratio = w / h;
-    if (Math.abs(ratio - TARGET_RATIO) > RATIO_TOL) {
-      setCoverError(`Aspect ratio must be 1:1.6 (portrait). Yours is ${ratio.toFixed(3)}.`);
-      return false;
+    if (typeMeta.enforceCoverRatio) {
+      const ratio = w / h;
+      if (Math.abs(ratio - TARGET_RATIO) > RATIO_TOL) {
+        setCoverError(`Aspect ratio must be 1:1.6 (portrait). Yours is ${ratio.toFixed(3)}.`);
+        return false;
+      }
     }
     setCoverError(null);
     return true;
@@ -114,14 +136,13 @@ function NewProduct() {
   function handleFileChange(f: File | null) {
     setFileError(null);
     if (!f) { setFile(null); return; }
-    const name = f.name.toLowerCase();
-    const okExt = name.endsWith(".pdf") || name.endsWith(".epub");
-    if (!okExt) {
-      setFileError("Manuscript must be a PDF or EPUB file.");
+    const ext = f.name.toLowerCase().split(".").pop() ?? "";
+    if (!typeMeta.extensions.includes(ext)) {
+      setFileError(`File must be one of: ${typeMeta.extensions.map((e) => "." + e).join(", ")}.`);
       return;
     }
     if (f.size > MAX_FILE_MB * 1024 * 1024) {
-      setFileError(`Manuscript must be under ${MAX_FILE_MB} MB.`);
+      setFileError(`File must be under ${MAX_FILE_MB} MB.`);
       return;
     }
     setFile(f);
@@ -137,7 +158,7 @@ function NewProduct() {
   function next() {
     if (step === 1 && !step1Valid) return toast.error("Fill all required fields (description ≥ 150 chars).");
     if (step === 2 && !step2Valid) return toast.error("Upload a valid cover image.");
-    if (step === 3 && !step3Valid) return toast.error("Upload a valid manuscript.");
+    if (step === 3 && !step3Valid) return toast.error("Upload a valid product file.");
     setStep(((step + 1) as Step));
   }
 
@@ -216,8 +237,8 @@ function NewProduct() {
         <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-mute hover:text-navy">
           <ArrowLeft size={14} /> Back to dashboard
         </Link>
-        <h1 className="font-display text-3xl md:text-4xl text-navy mt-3">New eBook</h1>
-        <p className="text-mute mt-1">KDP-style upload flow. AurumVault keeps 9%; you keep 91%.</p>
+        <h1 className="font-display text-3xl md:text-4xl text-navy mt-3">Upload Product</h1>
+        <p className="text-mute mt-1">Universal upload for any digital product. AurumVault keeps 9%; you keep 91%.</p>
 
         {canSell === false && (
           <div className="mt-6 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
@@ -228,6 +249,31 @@ function NewProduct() {
         <Stepper step={step} />
 
         <div className="mt-6 bg-white rounded-2xl p-6 border border-ink/10">
+          {step === 0 && (
+            <div className="space-y-5">
+              <h2 className="font-display text-2xl text-navy">What are you uploading?</h2>
+              <p className="text-sm text-mute">Pick a product type — this controls which file formats the uploader will accept.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {PRODUCT_TYPES.map((t) => {
+                  const active = productType === t.value;
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setProductType(t.value)}
+                      className={`text-left rounded-xl border p-4 transition ${active ? "border-gold bg-gold/5 ring-2 ring-gold/30" : "border-ink/10 hover:border-navy/30 bg-white"}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-display text-lg text-navy">{t.label}</span>
+                        {active && <Check size={16} className="text-gold" />}
+                      </div>
+                      <p className="text-xs text-mute mt-1">{t.description}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {step === 1 && (
             <div className="space-y-5">
               <h2 className="font-display text-2xl text-navy">Book details</h2>
@@ -268,7 +314,8 @@ function NewProduct() {
             <div className="space-y-5">
               <h2 className="font-display text-2xl text-navy">Cover upload</h2>
               <p className="text-sm text-mute">
-                KDP standard: <strong>JPG or PNG</strong>, minimum <strong>1600×2560 px</strong>, aspect ratio <strong>1:1.6</strong> (portrait).
+                <strong>JPG or PNG</strong>, minimum <strong>1600×2560 px</strong>
+                {typeMeta.enforceCoverRatio ? <>, aspect ratio <strong>1:1.6</strong> (portrait)</> : null}.
               </p>
               <CoverInput file={cover} preview={coverPreview} onFile={handleCoverChange} />
               {coverDims && (
@@ -283,7 +330,7 @@ function NewProduct() {
               )}
               {cover && !coverError && (
                 <div className="flex items-start gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-                  <CheckCircle2 size={16} className="mt-0.5 shrink-0" /> <span>Cover passes KDP specs.</span>
+                  <CheckCircle2 size={16} className="mt-0.5 shrink-0" /> <span>Cover meets the required specs.</span>
                 </div>
               )}
             </div>
@@ -291,11 +338,11 @@ function NewProduct() {
 
           {step === 3 && (
             <div className="space-y-5">
-              <h2 className="font-display text-2xl text-navy">Manuscript upload</h2>
+              <h2 className="font-display text-2xl text-navy">Product file upload</h2>
               <p className="text-sm text-mute">
-                Accepted: <strong>PDF or EPUB</strong>. Max size <strong>650 MB</strong> (KDP limit).
+                {typeMeta.label} accepts: <strong>{typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")}</strong>. Max size <strong>{MAX_FILE_MB} MB</strong>.
               </p>
-              <FileInput file={file} onFile={handleFileChange} />
+              <FileInput file={file} onFile={handleFileChange} accept={typeMeta.accept} hint={`Tap to choose a ${typeMeta.label.toLowerCase()} file (${typeMeta.extensions.map((e) => "." + e).join(", ")})`} />
               {fileError && (
                 <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
                   <AlertCircle size={16} className="mt-0.5 shrink-0" /> <span>{fileError}</span>
@@ -368,7 +415,7 @@ function NewProduct() {
               <button
                 type="button"
                 onClick={() => setStep(((step - 1) as Step))}
-                disabled={step === 1}
+                disabled={step === 0}
                 className="h-11 px-5 rounded-full text-navy font-medium hover:bg-navy/5 disabled:opacity-40 inline-flex items-center gap-1.5"
               >
                 <ArrowLeft size={16} /> Back
@@ -389,7 +436,7 @@ function NewProduct() {
                 onClick={() => setStep(3)}
                 className="text-sm text-mute hover:text-navy inline-flex items-center gap-1.5"
               >
-                <ArrowLeft size={14} /> Back to manuscript
+                <ArrowLeft size={14} /> Back to product file
               </button>
             </div>
           )}
@@ -401,18 +448,18 @@ function NewProduct() {
 }
 
 function Stepper({ step }: { step: Step }) {
-  const steps = ["Details", "Cover", "Manuscript", "Publish"];
+  const steps = ["Type", "Details", "Cover", "File", "Publish"];
   return (
     <ol className="mt-6 flex items-center gap-2">
       {steps.map((label, i) => {
-        const n = (i + 1) as Step;
+        const n = i as Step;
         const active = n === step;
         const done = n < step;
         return (
           <li key={label} className="flex-1 flex items-center gap-2">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0
               ${done ? "bg-gold text-navy" : active ? "bg-navy text-white" : "bg-ink/10 text-mute"}`}>
-              {done ? <Check size={14} /> : n}
+              {done ? <Check size={14} /> : n + 1}
             </div>
             <span className={`text-xs sm:text-sm font-medium ${active ? "text-navy" : "text-mute"} truncate`}>{label}</span>
             {i < steps.length - 1 && <div className={`flex-1 h-px ${done ? "bg-gold" : "bg-ink/15"}`} />}
@@ -472,14 +519,14 @@ function CoverInput({ file, preview, onFile }: { file: File | null; preview: str
   );
 }
 
-function FileInput({ file, onFile }: { file: File | null; onFile: (f: File | null) => void }) {
+function FileInput({ file, onFile, accept, hint }: { file: File | null; onFile: (f: File | null) => void; accept: string; hint: string }) {
   const ref = useRef<HTMLInputElement>(null);
   return (
     <div className="space-y-2">
       <input
         ref={ref}
         type="file"
-        accept=".pdf,.epub,application/pdf,application/epub+zip"
+        accept={accept}
         className="hidden"
         onChange={(e) => onFile(e.target.files?.[0] ?? null)}
       />
@@ -490,7 +537,7 @@ function FileInput({ file, onFile }: { file: File | null; onFile: (f: File | nul
       >
         {file ? <FileText size={20} className="text-navy shrink-0" /> : <Upload size={20} className="text-mute shrink-0" />}
         <span className="text-sm text-ink/80 truncate">
-          {file ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB` : "Tap to choose a manuscript (PDF or EPUB)"}
+          {file ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB` : hint}
         </span>
       </button>
       {file && (
