@@ -67,7 +67,7 @@ function NewProduct() {
 
       const { data: signed } = await supabase.storage.from("product-covers").createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
 
-      const { error } = await supabase.from("marketplace_products").insert({
+      const { data: inserted, error } = await supabase.from("marketplace_products").insert({
         seller_id: user.id,
         title,
         description,
@@ -77,10 +77,15 @@ function NewProduct() {
         file_path: filePath,
         file_size_bytes: file.size,
         status: "pending",
-      });
+      }).select("id").single();
       if (error) throw error;
 
-      toast.success("Product submitted for review");
+      toast.success("Product submitted — running AI review…");
+      if (inserted?.id) {
+        runReview({ data: { productId: inserted.id } }).catch((err) => {
+          console.error("AI review failed", err);
+        });
+      }
       navigate({ to: "/dashboard" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
