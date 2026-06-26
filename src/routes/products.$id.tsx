@@ -85,21 +85,29 @@ function ProductPage() {
               ariaLabel={product.title}
               renderExpanded={() => (
                 <div className="aspect-[1.6/1] w-full overflow-hidden rounded-xl bg-[#f5f4ef]">
-                  <ProductCover
-                    title={product.title}
-                    category={product.category}
-                    productId={product.id}
-                    className="h-full w-full object-cover"
-                  />
+                  {product.image && /^https?:\/\//.test(product.image) ? (
+                    <img src={product.image} alt={product.title} className="h-full w-full object-cover" />
+                  ) : (
+                    <ProductCover
+                      title={product.title}
+                      category={product.category}
+                      productId={product.id}
+                      className="h-full w-full object-cover"
+                    />
+                  )}
                 </div>
               )}
             >
-              <ProductCover
-                title={product.title}
-                category={product.category}
-                productId={product.id}
-                className="h-full w-full object-cover"
-              />
+              {product.image && /^https?:\/\//.test(product.image) ? (
+                <img src={product.image} alt={product.title} className="h-full w-full object-cover" />
+              ) : (
+                <ProductCover
+                  title={product.title}
+                  category={product.category}
+                  productId={product.id}
+                  className="h-full w-full object-cover"
+                />
+              )}
               {product.bestseller && (
                 <span className="absolute left-4 top-4 z-10 rounded-sm bg-gold px-2.5 py-1 text-[11px] font-bold uppercase tracking-caps text-navy">
                   Bestseller
