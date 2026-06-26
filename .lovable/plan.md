@@ -1,91 +1,55 @@
+# AurumVault → Full Amazon-Style Marketplace
 
-# Wave 1 — Checkout & Instant Delivery
+That's 10 large feature areas. Building all at once would take many hours, blow past safe edit batches, and likely break the live site mid-flight. I want to ship this in **5 sequenced waves**, each one independently testable and publishable.
 
-Buyers purchase without signing in. They enter an email at checkout, pay via Stripe Embedded Checkout, and receive a branded email with a signed download link. The 9% platform fee is tracked per order so seller payouts can be paid out later.
+## Wave 1 — Discovery & Storefront polish
+- Rotating hero banners (3 slides, autoplay, dot nav)
+- Deals of the Day strip with live countdown timers
+- Category grid (eBooks / Courses / Templates / Audio / Leadership)
+- Bestsellers row (sorted by sales count from `orders`)
+- "Customers Also Bought" on product page (category-matched fallback until we have co-purchase data)
+- Skeleton loaders on all storefront grids
 
-## Flow
+## Wave 2 — Product page + Reviews
+- Cover zoom on hover/click, format selector (eBook / Audio / Bundle if applicable)
+- Trust badges row + Kingdom Guarantee box (30-day, instant delivery, secure checkout)
+- New `reviews` table (rating, title, body, verified_purchase, helpful_votes)
+- Star breakdown bars, verified-purchase badge, helpful vote button
+- Seed 3–5 launch reviews per existing product
+- Open Graph + Twitter card tags per product (dynamic from loader)
 
-```text
-Product page  ──►  "Buy now" opens Stripe Embedded Checkout (modal)
-                    │
-                    ▼
-              Buyer enters email + card  (no account required)
-                    │
-                    ▼
-       Stripe webhook → /api/public/webhooks/stripe
-                    │
-                    ├── insert order + order_items + order_downloads (signed token)
-                    ├── record 9% platform fee, 91% seller balance
-                    └── send branded "Your AurumVault download" email
-                    │
-                    ▼
-       Buyer clicks email link → /download/$token
-                    │
-                    ▼
-       Server fn validates token (not expired, < N downloads) →
-       returns Supabase Storage signed URL for product-files
-```
+## Wave 3 — Cart, Bundles, Promos, Checkout flow
+- Slide-in cart drawer (persisted in localStorage, multi-item)
+- Multi-line Stripe checkout (replaces current single-item buy-now)
+- Promo code field → Stripe coupon lookup
+- 3 pre-built bundles as `marketplace_products` rows with `is_bundle` flag + bundle_items
+  - Kingdom Entrepreneur, Kingdom Kids, Full Access
+- Flash sale banner (admin-toggleable, countdown)
+- Checkout progress steps + gold confetti animation on `/checkout/return`
 
-## Database (one migration)
+## Wave 4 — Search, Filters, Buyer Dashboard
+- Live search dropdown in header (debounced, top 6 results)
+- `/search` results page with sidebar filters: category, price slider, rating, format
+- Sort controls (newest, bestselling, price asc/desc, rating)
+- `/library` — buyer's purchased products with download buttons (re-uses existing token system, regenerates on demand)
+- `/orders` — order history with re-download
+- `/wishlist` — already have the hook, add a page
+- In-app notification bell (unread count from new `notifications` table)
 
-- `orders` — id, buyer_email, stripe_session_id, stripe_payment_intent, amount_cents, currency, status, created_at
-- `order_items` — id, order_id, product_id, seller_id, unit_amount_cents, platform_fee_cents (9%), seller_amount_cents (91%)
-- `order_downloads` — id, order_item_id, token (unguessable), max_downloads (default 5), download_count, expires_at (90 days), created_at
-- `seller_balances` — seller_id, pending_cents, paid_cents (for future payout wave)
+## Wave 5 — Admin Seller Central + PWA/SEO
+- `/admin` upgrade: KPI cards (GMV, orders, sellers, pending), tabs for Products / Orders / Coupons / Sellers
+- Coupon manager (creates Stripe coupons via API)
+- `manifest.json`, service worker for install + offline shell
+- Push notifications opt-in (web push, fires on order delivery)
+- Full OG/Twitter metadata pass on every public route
 
-All four tables get explicit GRANTs. RLS:
-- `orders` / `order_items`: no anon, sellers can SELECT their own rows (`order_items.seller_id = auth.uid()`), admin sees all
-- `order_downloads`: no direct client access — token verification runs server-side only via `supabaseAdmin`
-- `seller_balances`: seller reads own row
+## Out of scope (call out now)
+- **Resend**: you already have Lovable Emails wired (notify.www.aurumvault.store). I'll extend that, not swap to Resend, unless you say otherwise.
+- **Stripe Connect payouts**: still tracked-only in `seller_balances`. Real payouts to sellers are a separate buildout — flag for later.
+- **Push notifications** require user permission + an icon set; will use a generated placeholder unless you upload one.
 
-## Stripe wiring
+## Confirm before I start
 
-- `src/lib/stripe.server.ts` — gateway client (per stripe-shared-utility, verbatim)
-- `src/lib/payments.functions.ts`:
-  - `createProductCheckout` — accepts `{ productId, returnUrl, environment }`; resolves price from DB; creates Stripe Embedded Checkout session with `price_data` (dynamic seller-set prices); `managed_payments: { enabled: true }`; returns `clientSecret`
-- `src/components/StripeEmbeddedCheckout.tsx` + `src/hooks/useStripeCheckout.tsx` — per stripe-checkout
-- `src/components/PaymentTestModeBanner.tsx` — sandbox notice
-- Wire "Buy now" on `ProductDetailPage.tsx` to open checkout
-
-## Webhook
-
-- `src/routes/api/public/webhooks/stripe.ts` (POST)
-- Verify signature with `PAYMENTS_SANDBOX_WEBHOOK_SECRET` / `PAYMENTS_LIVE_WEBHOOK_SECRET`
-- On `checkout.session.completed`:
-  1. Insert `orders` + `order_items` rows
-  2. Generate `order_downloads` row with crypto-random token, 90-day expiry, max 5 downloads
-  3. Increment `seller_balances.pending_cents` by 91% of price
-  4. Enqueue "Order delivery" branded email via existing `sendTransactionalEmail`
-
-## Download delivery
-
-- New email template `src/lib/email-templates/order-delivery.tsx` — gold/navy branded, lists items, "Download your file" CTA per item linking to `https://www.aurumvault.store/download/{token}`
-- New route `src/routes/download.$token.tsx`:
-  - Loader calls `getDownload` server fn → validates token + expiry + count → returns short-lived Supabase storage signed URL
-  - Page shows "Your download is ready" with auto-redirect to signed URL + manual fallback button
-- Server fn increments `download_count` per redemption
-
-## Return page
-
-- `src/routes/checkout.return.tsx` — reads `session_id` search param, shows "Payment received — your download link has been emailed to {email}"
-
-## Files created
-
-- `supabase/migrations/<ts>_orders.sql`
-- `src/lib/stripe.server.ts`
-- `src/lib/stripe.ts`
-- `src/lib/payments.functions.ts`
-- `src/components/StripeEmbeddedCheckout.tsx`
-- `src/components/PaymentTestModeBanner.tsx`
-- `src/hooks/useStripeCheckout.tsx`
-- `src/routes/api/public/webhooks/stripe.ts`
-- `src/routes/checkout.return.tsx`
-- `src/routes/download.$token.tsx`
-- `src/lib/email-templates/order-delivery.tsx`
-- Edits to `ProductDetailPage.tsx` (Buy now button) and `MarketShell.tsx` (test-mode banner)
-
-## Out of scope (later waves)
-
-- Buyer accounts / `/library` (Wave 2) — guest checkout is the flow now
-- Reviews, search/filters (Waves 3-4)
-- Stripe Connect for actual seller payouts — Wave 1 just tracks the balance ledger so no money is stuck when payouts ship
+1. **Approve the 5-wave order**, or reorder.
+2. **Start with Wave 1 only** this turn, then publish + smoke-test before Wave 2? (Recommended — each wave is 8–15 files.)
+3. **Resend vs. Lovable Emails** — stay on Lovable Emails? (Recommended.)

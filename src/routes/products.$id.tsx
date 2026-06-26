@@ -15,6 +15,7 @@ import { useState } from "react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { StripeEmbeddedProductCheckout } from "@/components/StripeEmbeddedCheckout";
+import { CustomersAlsoBought } from "@/components/marketplace/CustomersAlsoBought";
 import { useWishlist } from "@/hooks/use-av-store";
 import { getProduct, type Product } from "@/lib/marketplace.functions";
 
@@ -321,7 +322,10 @@ function ProductPage() {
             </div>
           </div>
         </section>
+
+        <CustomersAlsoBought category={product.category} excludeId={product.id} />
       </div>
+
 
       <AnimatePresence>
         {checkoutOpen && (
