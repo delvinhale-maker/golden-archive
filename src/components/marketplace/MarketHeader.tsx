@@ -238,13 +238,23 @@ export function MarketHeader() {
             </nav>
             <div className="space-y-3 p-6 pt-0">
               {canUpload ? (
-                <Link
-                  to="/dashboard/new"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3 text-center text-sm font-semibold text-navy"
-                >
-                  <Upload size={16} /> Upload Product
-                </Link>
+                <>
+                  <Link
+                    to="/dashboard/new"
+                    search={{ type: "ebook" }}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-white py-3 text-center text-sm font-semibold text-navy"
+                  >
+                    <BookPlus size={16} /> Create eBook
+                  </Link>
+                  <Link
+                    to="/dashboard/new"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3 text-center text-sm font-semibold text-navy"
+                  >
+                    <Upload size={16} /> Upload Product
+                  </Link>
+                </>
               ) : (
                 <Link
                   to="/sell"
