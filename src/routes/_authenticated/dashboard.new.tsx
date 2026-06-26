@@ -360,17 +360,20 @@ function NewProduct() {
                 acceptedHint="JPG, PNG"
                 onZoom={() => setCoverLightbox(true)}
               />
+              {coverChecking && (
+                <div className="text-xs text-mute">Checking image dimensions…</div>
+              )}
               {coverDims && (
                 <div className="text-xs text-mute">
-                  Detected: {coverDims.w}×{coverDims.h}px · ratio {(coverDims.w / coverDims.h).toFixed(3)}
+                  Detected: {coverDims.w}×{coverDims.h}px · ratio {(coverDims.w / coverDims.h).toFixed(3)} · minimum {MIN_COVER_W}×{MIN_COVER_H}px
                 </div>
               )}
               {coverError && (
-                <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+                <div role="alert" aria-live="polite" className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
                   <AlertCircle size={16} className="mt-0.5 shrink-0" /> <span>{coverError}</span>
                 </div>
               )}
-              {cover && !coverError && (
+              {cover && !coverError && !coverChecking && coverDims && (
                 <div className="flex items-start gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
                   <CheckCircle2 size={16} className="mt-0.5 shrink-0" /> <span>Cover meets the required specs.</span>
                 </div>
