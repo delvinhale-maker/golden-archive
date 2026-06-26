@@ -124,7 +124,8 @@ function Dashboard() {
                 {products.map((p) => <ProductRow key={p.id} p={p} />)}
               </div>
             )}
-          </section>
+            </section>
+          </>
         )}
 
         <section className="rounded-2xl bg-white p-6 border border-ink/10">
