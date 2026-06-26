@@ -4,18 +4,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   BadgeCheck,
   Check,
-  Download,
   Heart,
   Lock,
   Share2,
   Star,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { StripeEmbeddedProductCheckout } from "@/components/StripeEmbeddedCheckout";
 import { CustomersAlsoBought } from "@/components/marketplace/CustomersAlsoBought";
+import { ImageZoom } from "@/components/marketplace/ImageZoom";
+import { TrustBadges, KingdomGuarantee, FormatSelector } from "@/components/marketplace/TrustBadges";
+import { ReviewsSection } from "@/components/marketplace/ReviewsSection";
 import { useWishlist } from "@/hooks/use-av-store";
 import { getProduct, type Product } from "@/lib/marketplace.functions";
 
