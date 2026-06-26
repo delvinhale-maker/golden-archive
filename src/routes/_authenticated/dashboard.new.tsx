@@ -77,6 +77,9 @@ function NewProduct() {
   // Step 3
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
+  const [fileTextPreview, setFileTextPreview] = useState<string | null>(null);
+  const [coverLightbox, setCoverLightbox] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
 
