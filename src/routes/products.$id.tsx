@@ -294,29 +294,26 @@ function ProductPage() {
   );
 }
 
-const MOCK_REVIEWS = [
-  {
-    name: "Reuben A.",
-    stars: 5,
-    date: "Mar 12, 2025",
-    text:
-      "Easily the most thoughtfully designed resource I've bought this year. Worth every penny — the audio companion is exceptional.",
-  },
-  {
-    name: "Imani C.",
-    stars: 5,
-    date: "Feb 28, 2025",
-    text:
-      "I share this with every operator on my team. The frameworks are practical and the design is on another level.",
-  },
-  {
-    name: "Daniel R.",
-    stars: 4,
-    date: "Feb 04, 2025",
-    text:
-      "Solid content and beautifully produced. Would love an EPUB version in a future update.",
-  },
-];
-
-// avoid unused import warning when Download isn't referenced
-void Download;
+function formatsFor(category: string): { id: string; label: string; sub?: string }[] {
+  const c = category.toLowerCase();
+  if (c.includes("audio")) return [
+    { id: "mp3", label: "MP3", sub: "Streaming + download" },
+    { id: "m4b", label: "M4B", sub: "Chaptered audiobook" },
+    { id: "pdf", label: "PDF Notes", sub: "Companion guide" },
+  ];
+  if (c.includes("course")) return [
+    { id: "video", label: "Video", sub: "HD streaming" },
+    { id: "pdf", label: "PDF Workbook", sub: "Printable" },
+    { id: "audio", label: "Audio", sub: "Listen on the go" },
+  ];
+  if (c.includes("template")) return [
+    { id: "notion", label: "Notion", sub: "Duplicate to workspace" },
+    { id: "pdf", label: "PDF", sub: "Print-ready" },
+    { id: "docx", label: "Docx", sub: "Editable" },
+  ];
+  return [
+    { id: "pdf", label: "PDF", sub: "Universal" },
+    { id: "epub", label: "EPUB", sub: "Kindle / iBooks" },
+    { id: "audio", label: "Audio", sub: "When available" },
+  ];
+}
