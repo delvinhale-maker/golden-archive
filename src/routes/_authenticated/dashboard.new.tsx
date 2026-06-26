@@ -105,9 +105,63 @@ function PublishFlow() {
       .then(({ data }) => setCanSell(data?.status === "approved"));
   }, [user]);
 
+  // Load product for editing
+  useEffect(() => {
+    if (!editingId || !user) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from("marketplace_products")
+        .select("*")
+        .eq("id", editingId)
+        .maybeSingle();
+      if (error || !data) {
+        toast.error("Could not load this title.");
+        setLoadingEdit(false);
+        return;
+      }
+      if (data.seller_id !== user.id) {
+        toast.error("You can only edit your own titles.");
+        navigate({ to: "/dashboard" });
+        return;
+      }
+      setTitle(data.title ?? "");
+      setSubtitle(data.subtitle ?? "");
+      setAuthor(data.creator_name ?? "Illustrious Capital™");
+      setDescription(data.description ?? "");
+      setLanguage(data.language ?? "English");
+      setCategory((data.category as typeof CATEGORIES[number]["value"]) ?? "ebooks");
+      setPrice(((data.price_cents ?? 0) / 100).toString());
+      setExistingCoverUrl(data.cover_url ?? null);
+      setExistingFilePath(data.file_path ?? null);
+      try {
+        const raw = data.admin_notes as unknown;
+        const n = typeof raw === "string" ? JSON.parse(raw) : raw;
+        if (n && typeof n === "object") {
+          const o = n as Record<string, unknown>;
+          if (typeof o.seriesName === "string") setSeriesName(o.seriesName);
+          if (typeof o.edition === "string") setEdition(o.edition);
+          if (Array.isArray(o.keywords)) setKeywords(o.keywords.filter((k): k is string => typeof k === "string"));
+          if (typeof o.ageRange === "string") setAgeRange(o.ageRange);
+          if (typeof o.ownsRights === "boolean") setOwnsRights(o.ownsRights);
+          if (typeof o.drm === "boolean") setDrm(o.drm);
+          if (typeof o.premium === "boolean") setPremium(o.premium);
+        }
+      } catch {
+        // ignore malformed admin_notes
+      }
+      setLoadingEdit(false);
+    })();
+  }, [editingId, user, navigate]);
+
   // Cover preview + dim validation
   useEffect(() => {
-    if (!cover) { setCoverPreview(null); setCoverDims(null); setCoverChecking(false); return; }
+    if (!cover) {
+      setCoverPreview(existingCoverUrl ?? null);
+      setCoverDims(null);
+      setCoverChecking(false);
+      setCoverError(null);
+      return;
+    }
     const url = URL.createObjectURL(cover);
     setCoverPreview(url);
     setCoverDims(null);
@@ -125,7 +179,7 @@ function PublishFlow() {
     };
     img.src = url;
     return () => URL.revokeObjectURL(url);
-  }, [cover]);
+  }, [cover, existingCoverUrl]);
 
   function validateCover(w: number, h: number) {
     if (w < MIN_COVER_W || h < MIN_COVER_H) {
