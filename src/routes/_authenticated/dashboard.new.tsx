@@ -415,7 +415,7 @@ function NewProduct() {
               <button
                 type="button"
                 onClick={() => setStep(((step - 1) as Step))}
-                disabled={step === 1}
+                disabled={step === 0}
                 className="h-11 px-5 rounded-full text-navy font-medium hover:bg-navy/5 disabled:opacity-40 inline-flex items-center gap-1.5"
               >
                 <ArrowLeft size={16} /> Back
@@ -436,7 +436,7 @@ function NewProduct() {
                 onClick={() => setStep(3)}
                 className="text-sm text-mute hover:text-navy inline-flex items-center gap-1.5"
               >
-                <ArrowLeft size={14} /> Back to manuscript
+                <ArrowLeft size={14} /> Back to product file
               </button>
             </div>
           )}
@@ -448,18 +448,18 @@ function NewProduct() {
 }
 
 function Stepper({ step }: { step: Step }) {
-  const steps = ["Details", "Cover", "Manuscript", "Publish"];
+  const steps = ["Type", "Details", "Cover", "File", "Publish"];
   return (
     <ol className="mt-6 flex items-center gap-2">
       {steps.map((label, i) => {
-        const n = (i + 1) as Step;
+        const n = i as Step;
         const active = n === step;
         const done = n < step;
         return (
           <li key={label} className="flex-1 flex items-center gap-2">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0
               ${done ? "bg-gold text-navy" : active ? "bg-navy text-white" : "bg-ink/10 text-mute"}`}>
-              {done ? <Check size={14} /> : n}
+              {done ? <Check size={14} /> : n + 1}
             </div>
             <span className={`text-xs sm:text-sm font-medium ${active ? "text-navy" : "text-mute"} truncate`}>{label}</span>
             {i < steps.length - 1 && <div className={`flex-1 h-px ${done ? "bg-gold" : "bg-ink/15"}`} />}
