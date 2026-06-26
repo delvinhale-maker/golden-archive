@@ -111,14 +111,22 @@ function CoverAuditPage() {
           <h1 className="text-2xl font-semibold flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-[#c9a44a]" /> Cover Audit
           </h1>
-          <button
-            onClick={runNow}
-            disabled={busy}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#0f1629] text-white text-xs disabled:opacity-50"
-          >
-            {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-            Run now
-          </button>
+          <div className="flex gap-2">
+            <Link
+              to="/admin/health/covers/alerts"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-300 bg-white text-xs"
+            >
+              Alerts
+            </Link>
+            <button
+              onClick={runNow}
+              disabled={busy}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#0f1629] text-white text-xs disabled:opacity-50"
+            >
+              {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+              Run now
+            </button>
+          </div>
         </div>
         <p className="text-xs text-slate-500 mt-1">
           {result
