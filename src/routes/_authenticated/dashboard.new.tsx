@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
 import { ArrowLeft, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { reviewProduct } from "@/lib/ai-review.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
   component: NewProduct,
