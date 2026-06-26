@@ -184,7 +184,6 @@ function AdminProductsPage() {
                     className="w-full h-10 rounded-md border border-ink/15 px-2 bg-white capitalize">
                     {CATEGORIES.map(c => <option key={c} value={c} className="capitalize">{c}</option>)}
                   </select>
-                  </select>
                 </Field>
                 <Field label="Price (USD)">
                   <input type="number" step="0.01" min="0"
