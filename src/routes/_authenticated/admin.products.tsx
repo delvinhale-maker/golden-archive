@@ -52,7 +52,7 @@ function AdminProductsPage() {
 
   async function refresh() {
     const { data } = await supabase.from("marketplace_products")
-      .select("id,title,description,category,price_cents,creator_name,cover_url,status,created_at")
+      .select("id,title,description,category,price_cents,creator_name,cover_url,status,created_at,file_path,seller_id")
       .order("created_at", { ascending: false });
     setItems((data ?? []) as Prod[]);
   }
