@@ -607,6 +607,8 @@ function StepContent(p: {
   file: File | null; fileError: string | null; handleFileChange: (f: File | null) => void;
   uploadProgress: number; uploading: boolean;
   onZoomCover: () => void;
+  existingCoverUrl: string | null;
+  existingFilePath: string | null;
 }) {
   return (
     <div className="space-y-6">
