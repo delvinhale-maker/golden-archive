@@ -404,6 +404,8 @@ function PublishFlow() {
               file={file} fileError={fileError} handleFileChange={handleFileChange}
               uploadProgress={uploadProgress} uploading={uploading}
               onZoomCover={() => setCoverLightbox(true)}
+              existingCoverUrl={existingCoverUrl}
+              existingFilePath={existingFilePath}
             />
           )}
           {step === 3 && (
