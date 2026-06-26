@@ -36,7 +36,7 @@ type DbProductRow = {
   created_at: string;
 };
 
-function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault Creator"): Product {
+function dbRowToProduct(r: DbProductRow, sellerName = "Illustrious Capital™"): Product {
   const catLabel = CAT_LABEL[r.category?.toLowerCase()] ?? r.category ?? "eBooks";
   return {
     id: r.id,
