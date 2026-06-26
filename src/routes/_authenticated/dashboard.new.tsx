@@ -57,9 +57,9 @@ function NewProduct() {
   const { user } = useAuth();
   const runReview = useServerFn(reviewProduct);
 
-  const [step, setStep] = useState<Step>(1);
-
-  // Step 1
+  const [step, setStep] = useState<Step>(0);
+  const [productType, setProductType] = useState<ProductType>("ebook");
+  const typeMeta = PRODUCT_TYPES.find((t) => t.value === productType)!;
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [author, setAuthor] = useState("Illustrious Capital™");
