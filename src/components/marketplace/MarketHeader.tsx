@@ -227,13 +227,23 @@ export function MarketHeader() {
               ))}
             </nav>
             <div className="space-y-3 p-6 pt-0">
-              <Link
-                to="/sell"
-                onClick={() => setMenuOpen(false)}
-                className="block w-full rounded-full border border-gold/40 py-3 text-center text-sm font-semibold text-gold"
-              >
-                Sell on AurumVault
-              </Link>
+              {canUpload ? (
+                <Link
+                  to="/dashboard/new"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3 text-center text-sm font-semibold text-navy"
+                >
+                  <Upload size={16} /> Upload Product
+                </Link>
+              ) : (
+                <Link
+                  to="/sell"
+                  onClick={() => setMenuOpen(false)}
+                  className="block w-full rounded-full border border-gold/40 py-3 text-center text-sm font-semibold text-gold"
+                >
+                  Sell on AurumVault
+                </Link>
+              )}
               <Link
                 to={user ? "/dashboard" : "/auth"}
                 onClick={() => setMenuOpen(false)}
