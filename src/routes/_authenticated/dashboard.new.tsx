@@ -132,6 +132,7 @@ function NewProduct() {
       ]);
       if (coverUp.error) throw coverUp.error;
       if (fileUp.error) throw fileUp.error;
+      toast.success(`Uploaded: ${file.name}`);
 
       const { data: signed } = await supabase.storage.from("product-covers").createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
 
