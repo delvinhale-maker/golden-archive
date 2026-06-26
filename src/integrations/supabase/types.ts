@@ -182,6 +182,134 @@ export type Database = {
         }
         Relationships: []
       }
+      order_downloads: {
+        Row: {
+          created_at: string
+          download_count: number
+          expires_at: string
+          id: string
+          max_downloads: number
+          order_item_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          download_count?: number
+          expires_at?: string
+          id?: string
+          max_downloads?: number
+          order_item_id: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          download_count?: number
+          expires_at?: string
+          id?: string
+          max_downloads?: number
+          order_item_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_downloads_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          platform_fee_cents: number
+          product_id: string
+          product_title: string
+          seller_amount_cents: number
+          seller_id: string
+          unit_amount_cents: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          platform_fee_cents: number
+          product_id: string
+          product_title: string
+          seller_amount_cents: number
+          seller_id: string
+          unit_amount_cents: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          platform_fee_cents?: number
+          product_id?: string
+          product_title?: string
+          seller_amount_cents?: number
+          seller_id?: string
+          unit_amount_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          amount_cents: number
+          buyer_email: string
+          created_at: string
+          currency: string
+          environment: string
+          id: string
+          status: string
+          stripe_payment_intent: string | null
+          stripe_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          buyer_email: string
+          created_at?: string
+          currency?: string
+          environment?: string
+          id?: string
+          status?: string
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          buyer_email?: string
+          created_at?: string
+          currency?: string
+          environment?: string
+          id?: string
+          status?: string
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -251,6 +379,30 @@ export type Database = {
           status?: Database["public"]["Enums"]["application_status"]
           user_id?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      seller_balances: {
+        Row: {
+          currency: string
+          paid_cents: number
+          pending_cents: number
+          seller_id: string
+          updated_at: string
+        }
+        Insert: {
+          currency?: string
+          paid_cents?: number
+          pending_cents?: number
+          seller_id: string
+          updated_at?: string
+        }
+        Update: {
+          currency?: string
+          paid_cents?: number
+          pending_cents?: number
+          seller_id?: string
+          updated_at?: string
         }
         Relationships: []
       }

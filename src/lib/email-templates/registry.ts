@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import { template as sellerApplicationReceived } from './seller-application-received'
 import { template as sellerApplicationApproved } from './seller-application-approved'
 import { template as sellerApplicationRejected } from './seller-application-rejected'
+import { template as orderDelivery } from './order-delivery'
 
 export interface TemplateEntry {
   component: ComponentType<any>
@@ -16,4 +17,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'seller-application-received': sellerApplicationReceived,
   'seller-application-approved': sellerApplicationApproved,
   'seller-application-rejected': sellerApplicationRejected,
+  'order-delivery': orderDelivery,
 }
