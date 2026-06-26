@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
+import { sendTransactionalEmail } from "@/lib/email/send";
 
 export const Route = createFileRoute("/sell")({
   component: SellPage,
@@ -38,10 +39,19 @@ function SellPage() {
     setBusy(true);
     const { error } = await supabase.from("seller_applications").insert({
       user_id: user.id, brand_name: brandName, pitch, product_types: productTypes, website: website || null,
+      applicant_email: user.email ?? null,
     });
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Application submitted. We'll review within 48 hours.");
+    if (user.email) {
+      sendTransactionalEmail({
+        templateName: "seller-application-received",
+        recipientEmail: user.email,
+        idempotencyKey: `seller-app-received-${user.id}-${Date.now()}`,
+        templateData: { brandName },
+      }).catch((err) => console.error("Email send failed", err));
+    }
     navigate({ to: "/dashboard" });
   }
 
