@@ -3,23 +3,34 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
-import { CheckCircle2, XCircle, ShieldCheck, ArrowLeft } from "lucide-react";
+import { CheckCircle2, XCircle, ShieldCheck, ArrowLeft, Sparkles, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { sendTransactionalEmail } from "@/lib/email/send";
+import { useServerFn } from "@tanstack/react-start";
+import { reviewProduct } from "@/lib/ai-review.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
 type App = { id: string; user_id: string; brand_name: string; pitch: string; product_types: string | null; status: string; created_at: string; applicant_email: string | null };
-type Prod = { id: string; seller_id: string; title: string; description: string; category: string; price_cents: number; cover_url: string | null; status: string; created_at: string };
+type AIIssue = { severity: "low" | "medium" | "high"; area: string; message: string };
+type Prod = {
+  id: string; seller_id: string; title: string; description: string; category: string;
+  price_cents: number; cover_url: string | null; status: string; created_at: string;
+  ai_review_status: string | null; ai_review_score: number | null; ai_review_issues: AIIssue[] | null;
+  ai_review_blurb: string | null; ai_review_seo_title: string | null; ai_review_tags: string[] | null;
+  ai_reviewed_at: string | null;
+};
 
 function AdminPage() {
   const navigate = useNavigate();
   const { user, isAdmin, loading } = useAuth();
+  const runReview = useServerFn(reviewProduct);
   const [apps, setApps] = useState<App[]>([]);
   const [prods, setProds] = useState<Prod[]>([]);
   const [tab, setTab] = useState<"products" | "applications">("products");
+  const [reviewing, setReviewing] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!loading && user && !isAdmin) navigate({ to: "/dashboard" });
@@ -31,7 +42,7 @@ function AdminPage() {
       supabase.from("marketplace_products").select("*").eq("status", "pending").order("created_at"),
     ]);
     setApps((a ?? []) as App[]);
-    setProds((p ?? []) as Prod[]);
+    setProds((p ?? []) as unknown as Prod[]);
   }
 
   useEffect(() => { if (isAdmin) refresh(); }, [isAdmin]);
@@ -82,6 +93,24 @@ function AdminPage() {
     toast.success("Product rejected");
     refresh();
   }
+  async function runAI(p: Prod) {
+    setReviewing((r) => ({ ...r, [p.id]: true }));
+    try {
+      await runReview({ data: { productId: p.id } });
+      toast.success("AI review complete");
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "AI review failed");
+    } finally {
+      setReviewing((r) => ({ ...r, [p.id]: false }));
+    }
+  }
+  async function applyBlurb(p: Prod) {
+    if (!p.ai_review_blurb) return;
+    await supabase.from("marketplace_products").update({ description: p.ai_review_blurb }).eq("id", p.id);
+    toast.success("Applied AI blurb to description");
+    refresh();
+  }
 
   if (loading) return null;
 
@@ -114,22 +143,65 @@ function AdminPage() {
           prods.length === 0 ? <Empty msg="No products awaiting review." /> :
           <div className="grid gap-4">
             {prods.map((p) => (
-              <div key={p.id} className="bg-white border border-ink/10 rounded-2xl p-4 flex gap-4">
-                <div className="w-28 h-28 shrink-0 rounded-lg bg-gradient-to-br from-navy to-[#22335A]" style={p.cover_url ? { backgroundImage: `url(${p.cover_url})`, backgroundSize: "cover" } : {}} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] uppercase tracking-wider text-mute">{p.category}</p>
-                  <p className="font-display text-xl text-navy">{p.title}</p>
-                  <p className="text-sm text-mute mt-1 line-clamp-2">{p.description}</p>
-                  <p className="text-gold font-medium mt-2">${(p.price_cents / 100).toFixed(2)}</p>
+              <div key={p.id} className="bg-white border border-ink/10 rounded-2xl p-4">
+                <div className="flex gap-4">
+                  <div className="w-28 h-28 shrink-0 rounded-lg bg-gradient-to-br from-navy to-[#22335A]" style={p.cover_url ? { backgroundImage: `url(${p.cover_url})`, backgroundSize: "cover" } : {}} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-[11px] uppercase tracking-wider text-mute">{p.category}</p>
+                      <AIBadge p={p} />
+                    </div>
+                    <p className="font-display text-xl text-navy">{p.title}</p>
+                    <p className="text-sm text-mute mt-1 line-clamp-2">{p.description}</p>
+                    <p className="text-gold font-medium mt-2">${(p.price_cents / 100).toFixed(2)}</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button onClick={() => approveProd(p)} className="inline-flex items-center gap-1 text-sm rounded-full bg-emerald-600 text-white px-3 py-1.5 hover:bg-emerald-700">
+                      <CheckCircle2 size={14} /> Approve
+                    </button>
+                    <button onClick={() => rejectProd(p)} className="inline-flex items-center gap-1 text-sm rounded-full bg-red-600 text-white px-3 py-1.5 hover:bg-red-700">
+                      <XCircle size={14} /> Reject
+                    </button>
+                    <button onClick={() => runAI(p)} disabled={reviewing[p.id]} className="inline-flex items-center gap-1 text-xs rounded-full border border-navy/20 text-navy px-3 py-1.5 hover:bg-navy/5 disabled:opacity-50">
+                      {reviewing[p.id] ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                      {p.ai_reviewed_at ? "Re-run AI" : "Run AI"}
+                    </button>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <button onClick={() => approveProd(p)} className="inline-flex items-center gap-1 text-sm rounded-full bg-emerald-600 text-white px-3 py-1.5 hover:bg-emerald-700">
-                    <CheckCircle2 size={14} /> Approve
-                  </button>
-                  <button onClick={() => rejectProd(p)} className="inline-flex items-center gap-1 text-sm rounded-full bg-red-600 text-white px-3 py-1.5 hover:bg-red-700">
-                    <XCircle size={14} /> Reject
-                  </button>
-                </div>
+
+                {p.ai_reviewed_at && (
+                  <div className="mt-4 rounded-xl bg-paper/60 border border-ink/10 p-3 space-y-2">
+                    {p.ai_review_issues && p.ai_review_issues.length > 0 && (
+                      <div>
+                        <p className="text-[11px] font-semibold text-navy uppercase tracking-wider mb-1.5">Flagged issues</p>
+                        <ul className="space-y-1">
+                          {p.ai_review_issues.map((i, idx) => (
+                            <li key={idx} className="text-xs flex items-start gap-1.5">
+                              <AlertTriangle size={12} className={`mt-0.5 shrink-0 ${i.severity === "high" ? "text-red-600" : i.severity === "medium" ? "text-amber-600" : "text-mute"}`} />
+                              <span><span className="font-medium text-navy">{i.area}:</span> <span className="text-ink/80">{i.message}</span></span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {p.ai_review_blurb && (
+                      <div>
+                        <p className="text-[11px] font-semibold text-navy uppercase tracking-wider mb-1">Suggested SEO blurb</p>
+                        <p className="text-xs text-ink/80 italic">"{p.ai_review_blurb}"</p>
+                        <button onClick={() => applyBlurb(p)} className="mt-1.5 text-xs text-gold hover:underline">
+                          Apply to description →
+                        </button>
+                      </div>
+                    )}
+                    {p.ai_review_tags && p.ai_review_tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {p.ai_review_tags.map((t) => (
+                          <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-navy/5 text-navy">{t}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -155,6 +227,23 @@ function AdminPage() {
         )}
       </main>
     </div>
+  );
+}
+
+function AIBadge({ p }: { p: Prod }) {
+  if (!p.ai_review_status) {
+    return <span className="text-[10px] px-2 py-0.5 rounded-full bg-ink/5 text-mute">AI: pending</span>;
+  }
+  const map = {
+    pass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    warn: "bg-amber-50 text-amber-800 border-amber-200",
+    fail: "bg-red-50 text-red-700 border-red-200",
+  } as const;
+  const cls = map[p.ai_review_status as keyof typeof map] ?? map.warn;
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border ${cls}`}>
+      <Sparkles size={10} /> AI: {p.ai_review_status} {p.ai_review_score != null && `· ${p.ai_review_score}`}
+    </span>
   );
 }
 
