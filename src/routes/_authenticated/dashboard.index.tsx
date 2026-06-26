@@ -183,14 +183,13 @@ function BookshelfTable({ products, onUnpublish }: { products: Product[]; onUnpu
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2 whitespace-nowrap">
-                      <button
-                        type="button"
-                        disabled
-                        title="Editing coming soon"
-                        className="inline-flex items-center gap-1 text-xs font-medium text-mute px-2 py-1.5 rounded hover:bg-paper disabled:cursor-not-allowed"
+                      <Link
+                        to="/dashboard/new"
+                        search={{ id: p.id }}
+                        className="inline-flex items-center gap-1 text-xs font-medium text-navy px-2 py-1.5 rounded hover:bg-paper"
                       >
                         <Pencil size={13} /> Edit
-                      </button>
+                      </Link>
                       {isLive && (
                         <Link
                           to="/products/$id"
