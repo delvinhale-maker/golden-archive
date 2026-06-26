@@ -200,8 +200,12 @@ function NewProduct() {
           </Field>
           <p className="-mt-3 text-[11px] text-mute">Tip: match Kindle Direct Publishing — height:width = 1.6:1 (e.g. 2560×1600 or 1600×1000). Minimum 1000 px on the longest side, RGB, under 10 MB.</p>
 
-          <Field label="Product file (PDF, ZIP, EPUB, audio · max 500 MB)">
-            <FileInput accept=".pdf,.zip,.epub,.mp3,.wav,.m4a,.mp4" file={file} onFile={handleFileChange} />
+          <Field label="Product file (PDF, EPUB, or DOCX · max 500 MB)">
+            <FileInput
+              accept=".pdf,.epub,.docx,application/pdf,application/epub+zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              file={file}
+              onFile={handleFileChange}
+            />
           </Field>
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
