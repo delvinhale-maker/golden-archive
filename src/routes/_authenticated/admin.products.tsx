@@ -10,20 +10,22 @@ export const Route = createFileRoute("/_authenticated/admin/products")({
   component: AdminProductsPage,
 });
 
+type Category = "ebooks" | "courses" | "templates" | "audio" | "leadership";
+type Status = "pending" | "approved" | "rejected";
 type Prod = {
   id: string;
   title: string;
   description: string;
-  category: string;
+  category: Category;
   price_cents: number;
   creator_name: string | null;
   cover_url: string | null;
-  status: string;
+  status: Status;
   created_at: string;
 };
 
-const CATEGORIES = ["eBooks", "Courses", "Templates", "Audio", "Leadership"];
-const STATUSES = ["pending", "approved", "rejected"];
+const CATEGORIES: Category[] = ["ebooks", "courses", "templates", "audio", "leadership"];
+const STATUSES: Status[] = ["pending", "approved", "rejected"];
 
 function AdminProductsPage() {
   const navigate = useNavigate();
