@@ -237,8 +237,8 @@ function NewProduct() {
         <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-mute hover:text-navy">
           <ArrowLeft size={14} /> Back to dashboard
         </Link>
-        <h1 className="font-display text-3xl md:text-4xl text-navy mt-3">New eBook</h1>
-        <p className="text-mute mt-1">KDP-style upload flow. AurumVault keeps 9%; you keep 91%.</p>
+        <h1 className="font-display text-3xl md:text-4xl text-navy mt-3">Upload Product</h1>
+        <p className="text-mute mt-1">Universal upload for any digital product. AurumVault keeps 9%; you keep 91%.</p>
 
         {canSell === false && (
           <div className="mt-6 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
