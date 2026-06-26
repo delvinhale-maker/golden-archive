@@ -337,7 +337,13 @@ function NewProduct() {
                 <strong>JPG or PNG</strong>, minimum <strong>1600×2560 px</strong>
                 {typeMeta.enforceCoverRatio ? <>, aspect ratio <strong>1:1.6</strong> (portrait)</> : null}.
               </p>
-              <CoverInput file={cover} preview={coverPreview} onFile={handleCoverChange} acceptedHint="JPG, PNG" />
+              <CoverInput
+                file={cover}
+                preview={coverPreview}
+                onFile={handleCoverChange}
+                acceptedHint="JPG, PNG"
+                onZoom={() => setCoverLightbox(true)}
+              />
               {coverDims && (
                 <div className="text-xs text-mute">
                   Detected: {coverDims.w}×{coverDims.h}px · ratio {(coverDims.w / coverDims.h).toFixed(3)}
@@ -352,6 +358,24 @@ function NewProduct() {
                 <div className="flex items-start gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
                   <CheckCircle2 size={16} className="mt-0.5 shrink-0" /> <span>Cover meets the required specs.</span>
                 </div>
+              )}
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-5">
+              <h2 className="font-display text-2xl text-navy">Product file upload</h2>
+              <p className="text-sm text-mute">
+                {typeMeta.label} accepts: <strong>{typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")}</strong>. Max size <strong>{MAX_FILE_MB} MB</strong>.
+              </p>
+              <FileInput file={file} onFile={handleFileChange} accept={typeMeta.accept} hint={`Drag & drop or tap to choose a ${typeMeta.label.toLowerCase()} file`} acceptedHint={typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")} />
+              {fileError && (
+                <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+                  <AlertCircle size={16} className="mt-0.5 shrink-0" /> <span>{fileError}</span>
+                </div>
+              )}
+              {file && !fileError && (
+                <FilePreview file={file} previewUrl={filePreviewUrl} textPreview={fileTextPreview} />
               )}
             </div>
           )}
