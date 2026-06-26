@@ -384,19 +384,28 @@ function NewProduct() {
           {step === 4 && (
             <div className="space-y-5">
               <h2 className="font-display text-2xl text-navy">Preview & publish</h2>
-              <div className="rounded-xl border border-ink/10 bg-paper p-4 flex gap-4">
+              <div className="rounded-xl border border-ink/10 bg-paper p-4 flex flex-col sm:flex-row gap-5">
                 {coverPreview ? (
-                  <img src={coverPreview} alt="" className="w-24 h-[154px] object-cover rounded-md border border-ink/10 shrink-0" />
-                ) : <div className="w-24 h-[154px] bg-ink/5 rounded-md shrink-0" />}
+                  <button type="button" onClick={() => setCoverLightbox(true)} className="shrink-0 group relative self-start">
+                    <img src={coverPreview} alt="Cover preview" className="w-40 sm:w-48 h-auto aspect-[1/1.6] object-cover rounded-md border border-ink/10 shadow-md" />
+                    <span className="absolute inset-0 rounded-md bg-navy/0 group-hover:bg-navy/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <Maximize2 size={20} className="text-white" />
+                    </span>
+                  </button>
+                ) : <div className="w-40 sm:w-48 aspect-[1/1.6] bg-ink/5 rounded-md shrink-0" />}
                 <div className="min-w-0 flex-1 text-sm">
                   <div className="font-display text-xl text-navy leading-tight">{title || "Untitled"}</div>
                   {subtitle && <div className="text-mute italic mt-0.5">{subtitle}</div>}
                   <div className="text-ink mt-2">by <strong>{author}</strong></div>
-                  <div className="text-mute text-xs mt-1">{catLabel} · {language}</div>
-                  <div className="font-mono text-navy mt-2">${parseFloat(price || "0").toFixed(2)} USD</div>
+                  <div className="text-mute text-xs mt-1">{catLabel} · {language} · {typeMeta.label}</div>
+                  <div className="font-mono text-navy text-lg mt-2">${parseFloat(price || "0").toFixed(2)} USD</div>
                   {file && (
-                    <div className="text-xs text-mute mt-2 flex items-center gap-1.5">
-                      <FileText size={12} /> {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB
+                    <div className="mt-3 rounded-lg border border-ink/10 bg-white p-2.5 text-xs text-ink/80 flex items-center gap-2">
+                      <FileText size={14} className="text-navy shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium text-navy">{file.name}</div>
+                        <div className="text-mute">{(file.size / 1024 / 1024).toFixed(2)} MB · {file.type || file.name.split(".").pop()?.toUpperCase()}</div>
+                      </div>
                     </div>
                   )}
                 </div>
