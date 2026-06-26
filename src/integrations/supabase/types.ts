@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      cover_audit_alert_config: {
+        Row: {
+          cooldown_minutes: number
+          created_at: string
+          enabled: boolean
+          id: number
+          last_alert_at: string | null
+          recipient_email: string | null
+          threshold: number
+          updated_at: string
+          webhook_url: string | null
+        }
+        Insert: {
+          cooldown_minutes?: number
+          created_at?: string
+          enabled?: boolean
+          id?: number
+          last_alert_at?: string | null
+          recipient_email?: string | null
+          threshold?: number
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          cooldown_minutes?: number
+          created_at?: string
+          enabled?: boolean
+          id?: number
+          last_alert_at?: string | null
+          recipient_email?: string | null
+          threshold?: number
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
       cover_audit_runs: {
         Row: {
           category: string
