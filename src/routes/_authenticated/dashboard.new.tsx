@@ -244,28 +244,38 @@ function PublishFlow() {
   }
 
   async function uploadAndSave(publish: boolean) {
-    if (!user || !cover || !file) return;
+    if (!user) return;
+    if (!isEditing && (!cover || !file)) return;
     setSubmitting(true); setUploading(true); setUploadProgress(5);
     try {
       const ts = Date.now();
-      const coverPath = `${user.id}/${ts}-${cover.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-      const filePath = `${user.id}/${ts}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      let coverUrl: string | null = existingCoverUrl;
+      let storedFilePath: string | null = existingFilePath;
+      let fileSize: number | undefined;
 
-      const coverUp = await supabase.storage.from("product-covers").upload(coverPath, cover, { upsert: false });
-      if (coverUp.error) throw coverUp.error;
-      setUploadProgress(35);
+      if (cover) {
+        const coverPath = `${user.id}/${ts}-${cover.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+        const coverUp = await supabase.storage.from("product-covers").upload(coverPath, cover, { upsert: false });
+        if (coverUp.error) throw coverUp.error;
+        const { data: signed } = await supabase.storage.from("product-covers")
+          .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
+        coverUrl = signed?.signedUrl ?? null;
+      }
+      setUploadProgress(40);
 
-      const t = setInterval(() => setUploadProgress((p) => (p < 90 ? p + 3 : p)), 400);
-      const fileUp = await supabase.storage.from("product-files").upload(filePath, file, { upsert: false });
-      clearInterval(t);
-      if (fileUp.error) throw fileUp.error;
+      if (file) {
+        const newFilePath = `${user.id}/${ts}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+        const t = setInterval(() => setUploadProgress((p) => (p < 90 ? p + 3 : p)), 400);
+        const fileUp = await supabase.storage.from("product-files").upload(newFilePath, file, { upsert: false });
+        clearInterval(t);
+        if (fileUp.error) throw fileUp.error;
+        storedFilePath = newFilePath;
+        fileSize = file.size;
+      }
       setUploadProgress(95);
 
-      const { data: signed } = await supabase.storage.from("product-covers")
-        .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
-
       const priceCents = Math.round(priceNum * 100);
-      const status: "draft" | "approved" = publish ? "approved" : "draft";
+      const status: "draft" | "approved" | "pending" = publish ? (isEditing ? "pending" : "approved") : "draft";
       const notes = JSON.stringify({
         seriesName: seriesName || null,
         edition: edition || null,
@@ -274,30 +284,51 @@ function PublishFlow() {
         ownsRights, drm, premium, territory,
       });
 
-      const { data: inserted, error } = await supabase.from("marketplace_products").insert({
-        seller_id: user.id,
-        title: title.trim(),
-        subtitle: subtitle.trim() || null,
-        description: description.trim(),
-        creator_name: author.trim(),
-        language, category,
-        price_cents: priceCents,
-        cover_url: signed?.signedUrl ?? null,
-        file_path: filePath,
-        file_size_bytes: file.size,
-        status,
-        published: publish,
-        admin_notes: notes,
-      }).select("id").single();
-      if (error) throw error;
+      let savedId: string | null = editingId ?? null;
+      if (isEditing && editingId) {
+        const update: Record<string, unknown> = {
+          title: title.trim(),
+          subtitle: subtitle.trim() || null,
+          description: description.trim(),
+          creator_name: author.trim(),
+          language, category,
+          price_cents: priceCents,
+          cover_url: coverUrl,
+          file_path: storedFilePath,
+          status,
+          published: publish,
+          admin_notes: notes,
+        };
+        if (fileSize !== undefined) update.file_size_bytes = fileSize;
+        const { error } = await supabase.from("marketplace_products").update(update).eq("id", editingId);
+        if (error) throw error;
+      } else {
+        const { data: inserted, error } = await supabase.from("marketplace_products").insert({
+          seller_id: user.id,
+          title: title.trim(),
+          subtitle: subtitle.trim() || null,
+          description: description.trim(),
+          creator_name: author.trim(),
+          language, category,
+          price_cents: priceCents,
+          cover_url: coverUrl,
+          file_path: storedFilePath,
+          file_size_bytes: fileSize,
+          status,
+          published: publish,
+          admin_notes: notes,
+        }).select("id").single();
+        if (error) throw error;
+        savedId = inserted?.id ?? null;
+      }
       setUploadProgress(100);
 
       if (publish) {
-        toast.success("Published to the Vault!");
-        if (inserted?.id) {
-          runReview({ data: { productId: inserted.id } }).catch((err) => console.error("AI review failed", err));
+        toast.success(isEditing ? "Title updated." : "Published to the Vault!");
+        if (savedId) {
+          runReview({ data: { productId: savedId } }).catch((err) => console.error("AI review failed", err));
         }
-        setPublishedId(inserted?.id ?? null);
+        setPublishedId(savedId);
       } else {
         toast.success("Draft saved.");
         navigate({ to: "/dashboard" });
