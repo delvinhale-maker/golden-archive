@@ -4,6 +4,7 @@ import { BadgeCheck, Heart, Star } from "lucide-react";
 import { useState } from "react";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { ProductCover } from "@/components/marketplace/ProductCover";
+import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
 import type { Product } from "@/lib/marketplace.functions";
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
