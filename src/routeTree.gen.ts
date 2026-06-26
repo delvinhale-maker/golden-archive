@@ -29,6 +29,7 @@ import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lova
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
 
 const VaultRoute = VaultRouteImport.update({
   id: '/vault',
@@ -135,6 +136,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHealthCategoriesRoute =
+  ApiPublicHealthCategoriesRouteImport.update({
+    id: '/api/public/health/categories',
+    path: '/api/public/health/categories',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -172,6 +180,7 @@ export interface FileRoutesByTo {
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -195,6 +204,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/dashboard/new'
     | '/lovable/email/suppression'
     | '/dashboard/'
+    | '/api/public/health/categories'
     | '/api/public/payments/webhook'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/dashboard/new'
     | '/lovable/email/suppression'
     | '/dashboard'
+    | '/api/public/health/categories'
     | '/api/public/payments/webhook'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -260,6 +272,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/new'
     | '/lovable/email/suppression'
     | '/_authenticated/dashboard/'
+    | '/api/public/health/categories'
     | '/api/public/payments/webhook'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -278,6 +291,7 @@ export interface RootRouteChildren {
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -426,6 +440,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/health/categories': {
+      id: '/api/public/health/categories'
+      path: '/api/public/health/categories'
+      fullPath: '/api/public/health/categories'
+      preLoaderRoute: typeof ApiPublicHealthCategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -470,6 +491,7 @@ const rootRouteChildren: RootRouteChildren = {
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
