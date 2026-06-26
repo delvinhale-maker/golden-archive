@@ -35,11 +35,12 @@ export const reviewProduct = createServerFn({ method: "POST" })
     const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
     const { data: product, error: pErr } = await supabase
       .from("marketplace_products")
-      .select("id, seller_id, title, description, category, price_cents, cover_url")
+      .select("id, seller_id, title, description, category, price_cents, cover_url, ai_review_status")
       .eq("id", data.productId)
       .maybeSingle();
     if (pErr || !product) throw new Error("Product not found");
     if (!isAdmin && product.seller_id !== userId) throw new Error("Forbidden");
+    const prevStatus = product.ai_review_status;
 
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
