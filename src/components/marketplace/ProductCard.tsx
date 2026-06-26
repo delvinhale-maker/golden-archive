@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { BadgeCheck, Heart, Star } from "lucide-react";
+import { useState } from "react";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import type { Product } from "@/lib/marketplace.functions";
@@ -9,6 +10,8 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
   const wishlist = useWishlist();
   const cart = useCart();
   const liked = wishlist.has(product.id);
+  const [imgFailed, setImgFailed] = useState(false);
+  const hasImage = !imgFailed && !!product.image && /^https?:\/\//.test(product.image);
 
   return (
     <motion.article
@@ -25,11 +28,12 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         className="relative block"
       >
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#f5f4ef]">
-          {product.image && /^https?:\/\//.test(product.image) ? (
+          {hasImage ? (
             <img
               src={product.image}
               alt={product.title}
               loading="lazy"
+              onError={() => setImgFailed(true)}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             />
           ) : (
