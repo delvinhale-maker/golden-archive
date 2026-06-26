@@ -108,10 +108,12 @@ function NewProduct() {
       setCoverError(`Image is ${w}×${h}px. Minimum ${MIN_COVER_W}×${MIN_COVER_H}px required.`);
       return false;
     }
-    const ratio = w / h;
-    if (Math.abs(ratio - TARGET_RATIO) > RATIO_TOL) {
-      setCoverError(`Aspect ratio must be 1:1.6 (portrait). Yours is ${ratio.toFixed(3)}.`);
-      return false;
+    if (typeMeta.enforceCoverRatio) {
+      const ratio = w / h;
+      if (Math.abs(ratio - TARGET_RATIO) > RATIO_TOL) {
+        setCoverError(`Aspect ratio must be 1:1.6 (portrait). Yours is ${ratio.toFixed(3)}.`);
+        return false;
+      }
     }
     setCoverError(null);
     return true;
@@ -134,14 +136,13 @@ function NewProduct() {
   function handleFileChange(f: File | null) {
     setFileError(null);
     if (!f) { setFile(null); return; }
-    const name = f.name.toLowerCase();
-    const okExt = name.endsWith(".pdf") || name.endsWith(".epub");
-    if (!okExt) {
-      setFileError("Manuscript must be a PDF or EPUB file.");
+    const ext = f.name.toLowerCase().split(".").pop() ?? "";
+    if (!typeMeta.extensions.includes(ext)) {
+      setFileError(`File must be one of: ${typeMeta.extensions.map((e) => "." + e).join(", ")}.`);
       return;
     }
     if (f.size > MAX_FILE_MB * 1024 * 1024) {
-      setFileError(`Manuscript must be under ${MAX_FILE_MB} MB.`);
+      setFileError(`File must be under ${MAX_FILE_MB} MB.`);
       return;
     }
     setFile(f);
@@ -157,7 +158,7 @@ function NewProduct() {
   function next() {
     if (step === 1 && !step1Valid) return toast.error("Fill all required fields (description ≥ 150 chars).");
     if (step === 2 && !step2Valid) return toast.error("Upload a valid cover image.");
-    if (step === 3 && !step3Valid) return toast.error("Upload a valid manuscript.");
+    if (step === 3 && !step3Valid) return toast.error("Upload a valid product file.");
     setStep(((step + 1) as Step));
   }
 
