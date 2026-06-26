@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
-import { ArrowLeft, ArrowRight, Check, Image as ImageIcon, FileText, Upload, X, CheckCircle2, AlertCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Image as ImageIcon, FileText, Upload, X, CheckCircle2, AlertCircle, Maximize2, Music, Film, FileJson, FileType2 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
@@ -77,6 +77,9 @@ function NewProduct() {
   // Step 3
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
+  const [fileTextPreview, setFileTextPreview] = useState<string | null>(null);
+  const [coverLightbox, setCoverLightbox] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
 
@@ -102,6 +105,23 @@ function NewProduct() {
     img.src = url;
     return () => URL.revokeObjectURL(url);
   }, [cover]);
+
+  // Generate inline preview for product file
+  useEffect(() => {
+    setFileTextPreview(null);
+    if (!file) { setFilePreviewUrl(null); return; }
+    const ext = file.name.toLowerCase().split(".").pop() ?? "";
+    const blobTypes = ["pdf", "mp3", "wav", "m4a", "mp4", "mov", "jpg", "jpeg", "png"];
+    if (blobTypes.includes(ext)) {
+      const url = URL.createObjectURL(file);
+      setFilePreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setFilePreviewUrl(null);
+    if (["txt", "json"].includes(ext) && file.size < 2 * 1024 * 1024) {
+      file.slice(0, 2048).text().then((t) => setFileTextPreview(t)).catch(() => {});
+    }
+  }, [file]);
 
   function validateCover(w: number, h: number) {
     if (w < MIN_COVER_W || h < MIN_COVER_H) {
@@ -317,7 +337,13 @@ function NewProduct() {
                 <strong>JPG or PNG</strong>, minimum <strong>1600×2560 px</strong>
                 {typeMeta.enforceCoverRatio ? <>, aspect ratio <strong>1:1.6</strong> (portrait)</> : null}.
               </p>
-              <CoverInput file={cover} preview={coverPreview} onFile={handleCoverChange} acceptedHint="JPG, PNG" />
+              <CoverInput
+                file={cover}
+                preview={coverPreview}
+                onFile={handleCoverChange}
+                acceptedHint="JPG, PNG"
+                onZoom={() => setCoverLightbox(true)}
+              />
               {coverDims && (
                 <div className="text-xs text-mute">
                   Detected: {coverDims.w}×{coverDims.h}px · ratio {(coverDims.w / coverDims.h).toFixed(3)}
@@ -349,30 +375,37 @@ function NewProduct() {
                 </div>
               )}
               {file && !fileError && (
-                <div className="flex items-start gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-                  <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
-                  <span><strong>{file.name}</strong> · {(file.size / 1024 / 1024).toFixed(2)} MB — ready to upload.</span>
-                </div>
+                <FilePreview file={file} previewUrl={filePreviewUrl} textPreview={fileTextPreview} />
               )}
             </div>
           )}
 
+
           {step === 4 && (
             <div className="space-y-5">
               <h2 className="font-display text-2xl text-navy">Preview & publish</h2>
-              <div className="rounded-xl border border-ink/10 bg-paper p-4 flex gap-4">
+              <div className="rounded-xl border border-ink/10 bg-paper p-4 flex flex-col sm:flex-row gap-5">
                 {coverPreview ? (
-                  <img src={coverPreview} alt="" className="w-24 h-[154px] object-cover rounded-md border border-ink/10 shrink-0" />
-                ) : <div className="w-24 h-[154px] bg-ink/5 rounded-md shrink-0" />}
+                  <button type="button" onClick={() => setCoverLightbox(true)} className="shrink-0 group relative self-start">
+                    <img src={coverPreview} alt="Cover preview" className="w-40 sm:w-48 h-auto aspect-[1/1.6] object-cover rounded-md border border-ink/10 shadow-md" />
+                    <span className="absolute inset-0 rounded-md bg-navy/0 group-hover:bg-navy/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <Maximize2 size={20} className="text-white" />
+                    </span>
+                  </button>
+                ) : <div className="w-40 sm:w-48 aspect-[1/1.6] bg-ink/5 rounded-md shrink-0" />}
                 <div className="min-w-0 flex-1 text-sm">
                   <div className="font-display text-xl text-navy leading-tight">{title || "Untitled"}</div>
                   {subtitle && <div className="text-mute italic mt-0.5">{subtitle}</div>}
                   <div className="text-ink mt-2">by <strong>{author}</strong></div>
-                  <div className="text-mute text-xs mt-1">{catLabel} · {language}</div>
-                  <div className="font-mono text-navy mt-2">${parseFloat(price || "0").toFixed(2)} USD</div>
+                  <div className="text-mute text-xs mt-1">{catLabel} · {language} · {typeMeta.label}</div>
+                  <div className="font-mono text-navy text-lg mt-2">${parseFloat(price || "0").toFixed(2)} USD</div>
                   {file && (
-                    <div className="text-xs text-mute mt-2 flex items-center gap-1.5">
-                      <FileText size={12} /> {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB
+                    <div className="mt-3 rounded-lg border border-ink/10 bg-white p-2.5 text-xs text-ink/80 flex items-center gap-2">
+                      <FileText size={14} className="text-navy shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium text-navy">{file.name}</div>
+                        <div className="text-mute">{(file.size / 1024 / 1024).toFixed(2)} MB · {file.type || file.name.split(".").pop()?.toUpperCase()}</div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -442,6 +475,29 @@ function NewProduct() {
           )}
         </div>
       </main>
+      {coverLightbox && coverPreview && (
+        <div
+          role="dialog"
+          aria-label="Cover full size preview"
+          onClick={() => setCoverLightbox(false)}
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
+        >
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setCoverLightbox(false); }}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center"
+            aria-label="Close preview"
+          >
+            <X size={20} />
+          </button>
+          <img
+            src={coverPreview}
+            alt="Cover full size"
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[90vh] max-w-[95vw] object-contain rounded-md shadow-2xl"
+          />
+        </div>
+      )}
       <style>{`.inp{display:block;width:100%;min-height:44px;border-radius:12px;border:1px solid rgb(0 0 0 / 0.12);padding:10px 14px;font-size:14px;background:white;color:#0F1A33}.inp:focus{outline:none;border-color:#C9A24B;box-shadow:0 0 0 3px rgb(201 162 75 / 0.15)}`}</style>
     </div>
   );
@@ -508,7 +564,7 @@ function useDropZone(onFile: (f: File | null) => void) {
   return { isOver, handlers };
 }
 
-function CoverInput({ file, preview, onFile, acceptedHint }: { file: File | null; preview: string | null; onFile: (f: File | null) => void; acceptedHint: string }) {
+function CoverInput({ file, preview, onFile, acceptedHint, onZoom }: { file: File | null; preview: string | null; onFile: (f: File | null) => void; acceptedHint: string; onZoom?: () => void }) {
   const ref = useRef<HTMLInputElement>(null);
   const { isOver, handlers } = useDropZone(onFile);
   return (
@@ -522,8 +578,18 @@ function CoverInput({ file, preview, onFile, acceptedHint }: { file: File | null
       />
       {preview ? (
         <div className="relative rounded-xl border border-ink/10 bg-paper overflow-hidden" {...handlers}>
-          <div className="mx-auto bg-white" style={{ aspectRatio: "1 / 1.6", maxWidth: "240px" }}>
-            <img src={preview} alt="Cover preview" className="w-full h-full object-cover" />
+          <div className="relative mx-auto bg-white group" style={{ aspectRatio: "1 / 1.6", maxWidth: "360px" }}>
+            <img src={preview} alt="Cover preview" className="w-full h-full object-cover shadow-lg" />
+            {onZoom && (
+              <button
+                type="button"
+                onClick={onZoom}
+                className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-navy/80 hover:bg-navy text-white text-xs font-medium px-2.5 py-1.5 backdrop-blur"
+                aria-label="View full size"
+              >
+                <Maximize2 size={12} /> Full size
+              </button>
+            )}
           </div>
           {isOver && (
             <div className="absolute inset-0 bg-gold/20 border-2 border-dashed border-gold rounded-xl flex items-center justify-center pointer-events-none">
@@ -554,6 +620,62 @@ function CoverInput({ file, preview, onFile, acceptedHint }: { file: File | null
           <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
         </button>
       )}
+    </div>
+  );
+}
+
+function fileKind(name: string): { kind: "image" | "audio" | "video" | "pdf" | "text" | "json" | "archive" | "doc" | "sheet" | "other"; ext: string } {
+  const ext = (name.toLowerCase().split(".").pop() ?? "");
+  if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return { kind: "image", ext };
+  if (["mp3", "wav", "m4a"].includes(ext)) return { kind: "audio", ext };
+  if (["mp4", "mov", "webm"].includes(ext)) return { kind: "video", ext };
+  if (ext === "pdf") return { kind: "pdf", ext };
+  if (ext === "txt") return { kind: "text", ext };
+  if (ext === "json") return { kind: "json", ext };
+  if (["zip", "rar", "7z"].includes(ext)) return { kind: "archive", ext };
+  if (["docx", "doc", "epub", "mobi"].includes(ext)) return { kind: "doc", ext };
+  if (["xlsx", "csv"].includes(ext)) return { kind: "sheet", ext };
+  return { kind: "other", ext };
+}
+
+function FilePreview({ file, previewUrl, textPreview }: { file: File; previewUrl: string | null; textPreview: string | null }) {
+  const { kind, ext } = fileKind(file.name);
+  const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+  const modified = new Date(file.lastModified).toLocaleString();
+  const Icon = kind === "audio" ? Music : kind === "video" ? Film : kind === "json" ? FileJson : kind === "doc" || kind === "sheet" ? FileType2 : FileText;
+
+  return (
+    <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 overflow-hidden">
+      <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 border-b border-emerald-200">
+        <CheckCircle2 size={18} className="text-emerald-700 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-semibold text-navy truncate">{file.name}</div>
+          <div className="text-xs text-mute">.{ext.toUpperCase()} · {sizeMB} MB · modified {modified}</div>
+        </div>
+        <Icon size={20} className="text-navy/70 shrink-0" />
+      </div>
+      <div className="p-4 bg-white">
+        {kind === "image" && previewUrl && (
+          <img src={previewUrl} alt="File preview" className="max-h-72 mx-auto rounded-md border border-ink/10" />
+        )}
+        {kind === "audio" && previewUrl && (
+          <audio controls src={previewUrl} className="w-full" />
+        )}
+        {kind === "video" && previewUrl && (
+          <video controls src={previewUrl} className="w-full max-h-72 rounded-md bg-black" />
+        )}
+        {kind === "pdf" && previewUrl && (
+          <iframe src={previewUrl} title="PDF preview" className="w-full h-80 rounded-md border border-ink/10 bg-white" />
+        )}
+        {(kind === "text" || kind === "json") && textPreview != null && (
+          <pre className="text-xs text-ink/80 bg-paper rounded-md p-3 max-h-60 overflow-auto whitespace-pre-wrap break-words border border-ink/10">{textPreview}{textPreview.length >= 2048 ? "\n…" : ""}</pre>
+        )}
+        {(kind === "archive" || kind === "doc" || kind === "sheet" || kind === "other") && (
+          <div className="text-xs text-mute italic">
+            No inline preview for .{ext.toUpperCase()} files — confirm the name and size above match your intended upload.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
