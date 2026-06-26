@@ -1,7 +1,77 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 const API_BASE = "https://web-builder-pro-delvinhale.replit.app/api";
+
+// Map DB category codes ("ebooks") → display labels ("eBooks")
+const CAT_LABEL: Record<string, string> = {
+  ebooks: "eBooks",
+  courses: "Courses",
+  templates: "Templates",
+  audio: "Audio",
+  finance: "Finance",
+  leadership: "Leadership",
+  purpose: "Purpose",
+  business: "Business",
+};
+
+function serverSupabase() {
+  return createClient<Database>(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_PUBLISHABLE_KEY!,
+    { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
+  );
+}
+
+type DbProductRow = {
+  id: string;
+  title: string;
+  category: string;
+  price_cents: number;
+  cover_url: string | null;
+  description: string | null;
+  seller_id: string;
+  created_at: string;
+};
+
+function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault Creator"): Product {
+  const catLabel = CAT_LABEL[r.category?.toLowerCase()] ?? r.category ?? "eBooks";
+  return {
+    id: r.id,
+    title: r.title,
+    category: catLabel,
+    price: r.price_cents / 100,
+    rating: 5,
+    reviewCount: 0,
+    image: r.cover_url ?? `av:${catLabel}:0`,
+    bestseller: false,
+    creator: { id: r.seller_id, name: sellerName, verified: true },
+    description: r.description ?? undefined,
+    included: ["Instant digital download", "Lifetime access"],
+  };
+}
+
+async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Promise<Product[]> {
+  try {
+    const supa = serverSupabase();
+    let query = supa
+      .from("marketplace_products")
+      .select("id,title,category,price_cents,cover_url,description,seller_id,created_at")
+      .eq("status", "approved")
+      .order("created_at", { ascending: false });
+    if (opts.category && opts.category !== "All") {
+      query = query.eq("category", opts.category.toLowerCase());
+    }
+    if (opts.q) query = query.ilike("title", `%${opts.q}%`);
+    const { data, error } = await query;
+    if (error || !data) return [];
+    return (data as DbProductRow[]).map((r) => dbRowToProduct(r));
+  } catch {
+    return [];
+  }
+}
 
 export type Creator = {
   id: string;
