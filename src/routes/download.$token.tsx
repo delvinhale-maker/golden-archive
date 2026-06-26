@@ -23,7 +23,7 @@ function DownloadPage() {
       .then((res) => {
         if (cancelled) return;
         if ("error" in res) {
-          setState({ kind: "error", message: res.error });
+          setState({ kind: "error", message: res.error ?? "Download unavailable" });
         } else {
           setState({ kind: "ready", url: res.url, title: res.title, remaining: res.remaining });
           // auto-trigger
