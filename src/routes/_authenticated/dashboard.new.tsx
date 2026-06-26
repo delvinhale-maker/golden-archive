@@ -81,6 +81,12 @@ function NewProduct() {
 
   function handleFileChange(f: File | null) {
     if (!f) { setFile(null); return; }
+    const name = f.name.toLowerCase();
+    const okExt = name.endsWith(".pdf") || name.endsWith(".epub") || name.endsWith(".docx");
+    if (!okExt) {
+      toast.error("Product file must be a PDF, EPUB, or DOCX.");
+      return;
+    }
     if (f.size > MAX_FILE_MB * 1024 * 1024) {
       toast.error(`Product file must be under ${MAX_FILE_MB} MB.`);
       return;
