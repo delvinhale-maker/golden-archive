@@ -25,16 +25,37 @@ type Prod = {
 
 function AdminPage() {
   const navigate = useNavigate();
-  const { user, isAdmin, loading } = useAuth();
+  const { user, loading } = useAuth();
   const runReview = useServerFn(reviewProduct);
   const [apps, setApps] = useState<App[]>([]);
   const [prods, setProds] = useState<Prod[]>([]);
   const [tab, setTab] = useState<"products" | "applications">("products");
   const [reviewing, setReviewing] = useState<Record<string, boolean>>({});
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
 
   useEffect(() => {
-    if (!loading && user && !isAdmin) navigate({ to: "/dashboard" });
-  }, [loading, user, isAdmin, navigate]);
+    if (loading) return;
+    if (!user) return;
+    let active = true;
+    setCheckingAdmin(true);
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!active) return;
+        const allowed = data?.role === "admin";
+        setIsAdmin(allowed);
+        setCheckingAdmin(false);
+        if (!allowed) navigate({ to: "/dashboard" });
+      });
+    return () => {
+      active = false;
+    };
+  }, [loading, user, navigate]);
 
   async function refresh() {
     const [{ data: a }, { data: p }] = await Promise.all([
@@ -112,7 +133,7 @@ function AdminPage() {
     refresh();
   }
 
-  if (loading) return null;
+  if (loading || checkingAdmin) return null;
 
   return (
     <div className="min-h-screen bg-paper">
