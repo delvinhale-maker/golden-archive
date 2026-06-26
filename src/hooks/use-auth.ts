@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { User } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
 export type AppRole = "admin" | "seller" | "buyer";
@@ -11,27 +11,27 @@ export function useAuth() {
 
   useEffect(() => {
     let mounted = true;
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+
+    async function applySession(session: Session | null) {
+      setLoading(true);
       if (!mounted) return;
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        setTimeout(() => loadRoles(session.user.id), 0);
+      const nextUser = session?.user ?? null;
+      setUser(nextUser);
+      if (nextUser) {
+        const { data } = await supabase.from("user_roles").select("role").eq("user_id", nextUser.id);
+        if (!mounted) return;
+        setRoles((data ?? []).map((r) => r.role as AppRole));
       } else {
         setRoles([]);
       }
-    });
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setUser(data.session?.user ?? null);
-      if (data.session?.user) loadRoles(data.session.user.id);
-      setLoading(false);
-    });
-
-    async function loadRoles(uid: string) {
-      const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-      if (mounted) setRoles((data ?? []).map((r) => r.role as AppRole));
+      if (mounted) setLoading(false);
     }
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setTimeout(() => void applySession(session), 0);
+    });
+
+    supabase.auth.getSession().then(({ data }) => void applySession(data.session));
 
     return () => {
       mounted = false;
