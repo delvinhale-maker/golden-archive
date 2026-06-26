@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
 import { Plus, LogOut, ShieldCheck, Package, Hourglass, CheckCircle2, XCircle } from "lucide-react";
+import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
