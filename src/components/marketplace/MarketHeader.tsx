@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  BookPlus,
   Heart,
   LayoutDashboard,
   Loader2,
