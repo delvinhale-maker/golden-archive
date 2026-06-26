@@ -194,6 +194,7 @@ export type Database = {
       seller_applications: {
         Row: {
           admin_notes: string | null
+          applicant_email: string | null
           brand_name: string
           created_at: string
           id: string
@@ -206,6 +207,7 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          applicant_email?: string | null
           brand_name: string
           created_at?: string
           id?: string
@@ -218,6 +220,7 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          applicant_email?: string | null
           brand_name?: string
           created_at?: string
           id?: string

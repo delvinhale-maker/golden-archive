@@ -5,12 +5,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
 import { CheckCircle2, XCircle, ShieldCheck, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { sendTransactionalEmail } from "@/lib/email/send";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
-type App = { id: string; user_id: string; brand_name: string; pitch: string; product_types: string | null; status: string; created_at: string };
+type App = { id: string; user_id: string; brand_name: string; pitch: string; product_types: string | null; status: string; created_at: string; applicant_email: string | null };
 type Prod = { id: string; seller_id: string; title: string; description: string; category: string; price_cents: number; cover_url: string | null; status: string; created_at: string };
 
 function AdminPage() {
@@ -44,11 +45,29 @@ function AdminPage() {
       return;
     }
     toast.success(`${a.brand_name} approved`);
+    if (a.applicant_email) {
+      sendTransactionalEmail({
+        templateName: "seller-application-approved",
+        recipientEmail: a.applicant_email,
+        idempotencyKey: `seller-app-approved-${a.id}`,
+        templateData: { brandName: a.brand_name },
+      }).catch((err) => console.error("Email send failed", err));
+    }
     refresh();
   }
   async function rejectApp(a: App) {
+    const reason = window.prompt("Reason for rejection (visible to applicant):", "Thanks for applying — we'd like to see more detail about the products you plan to sell.");
+    if (reason === null) return;
     await supabase.from("seller_applications").update({ status: "rejected", reviewed_at: new Date().toISOString() }).eq("id", a.id);
     toast.success("Application rejected");
+    if (a.applicant_email) {
+      sendTransactionalEmail({
+        templateName: "seller-application-rejected",
+        recipientEmail: a.applicant_email,
+        idempotencyKey: `seller-app-rejected-${a.id}`,
+        templateData: { brandName: a.brand_name, reason: reason || undefined },
+      }).catch((err) => console.error("Email send failed", err));
+    }
     refresh();
   }
   async function approveProd(p: Prod) {
