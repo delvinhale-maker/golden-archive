@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
-import { ArrowLeft, ShieldCheck, Pencil, CheckCircle2, XCircle, Search, Save, X } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Pencil, CheckCircle2, XCircle, Search, Save, X, Upload, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/products")({
