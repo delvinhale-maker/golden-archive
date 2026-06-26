@@ -408,6 +408,10 @@ export const getProducts = createServerFn({ method: "GET" })
       list = list.filter((p) => p.title.toLowerCase().includes(q));
     }
 
+    // Merge real seller products at the front, scoped to the active filter.
+    const dbItems = await fetchDbProducts({ category: data.category, q: data.q });
+    list = [...dbItems, ...list];
+
     // Deduplicate by id as a final safety net.
     const seen = new Set<string>();
     list = list.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
@@ -415,11 +419,23 @@ export const getProducts = createServerFn({ method: "GET" })
     return { items: list, page: data.page, hasMore: data.page < 4 };
   });
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const getProduct = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ id: z.string() }).parse(input))
   .handler(async ({ data }) => {
+    // Real product (UUID) → fetch from DB
+    if (UUID_RE.test(data.id)) {
+      const supa = serverSupabase();
+      const { data: row } = await supa
+        .from("marketplace_products")
+        .select("id,title,category,price_cents,cover_url,description,seller_id,created_at")
+        .eq("id", data.id)
+        .eq("status", "approved")
+        .maybeSingle();
+      if (row) return dbRowToProduct(row as DbProductRow);
+    }
     const parts = data.id.split("_");
-    // ids look like p_<idx> or p_<category>_<idx>
     const maybeCat = parts.length === 3 ? parts[1] : undefined;
     const matchedCat = maybeCat
       ? CATEGORIES.find((c) => c.toLowerCase() === maybeCat)
