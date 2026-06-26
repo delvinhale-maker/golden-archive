@@ -54,9 +54,10 @@ function ProductPage() {
   const { data: product } = useSuspenseQuery(productQ(id)) as { data: Product };
   const wishlist = useWishlist();
   const liked = wishlist.has(product.id);
-  const [active, setActive] = useState(0);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  void active;
+
+  const formats = useMemo(() => formatsFor(product.category), [product.category]);
+  const [format, setFormat] = useState(formats[0]?.id ?? "pdf");
 
   return (
     <MarketShell>
