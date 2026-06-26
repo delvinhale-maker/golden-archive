@@ -317,7 +317,7 @@ function NewProduct() {
                 <strong>JPG or PNG</strong>, minimum <strong>1600×2560 px</strong>
                 {typeMeta.enforceCoverRatio ? <>, aspect ratio <strong>1:1.6</strong> (portrait)</> : null}.
               </p>
-              <CoverInput file={cover} preview={coverPreview} onFile={handleCoverChange} />
+              <CoverInput file={cover} preview={coverPreview} onFile={handleCoverChange} acceptedHint="JPG, PNG" />
               {coverDims && (
                 <div className="text-xs text-mute">
                   Detected: {coverDims.w}×{coverDims.h}px · ratio {(coverDims.w / coverDims.h).toFixed(3)}
@@ -342,7 +342,7 @@ function NewProduct() {
               <p className="text-sm text-mute">
                 {typeMeta.label} accepts: <strong>{typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")}</strong>. Max size <strong>{MAX_FILE_MB} MB</strong>.
               </p>
-              <FileInput file={file} onFile={handleFileChange} accept={typeMeta.accept} hint={`Tap to choose a ${typeMeta.label.toLowerCase()} file (${typeMeta.extensions.map((e) => "." + e).join(", ")})`} />
+              <FileInput file={file} onFile={handleFileChange} accept={typeMeta.accept} hint={`Drag & drop or tap to choose a ${typeMeta.label.toLowerCase()} file`} acceptedHint={typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")} />
               {fileError && (
                 <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
                   <AlertCircle size={16} className="mt-0.5 shrink-0" /> <span>{fileError}</span>
@@ -479,8 +479,38 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function CoverInput({ file, preview, onFile }: { file: File | null; preview: string | null; onFile: (f: File | null) => void }) {
+function useDropZone(onFile: (f: File | null) => void) {
+  const [isOver, setIsOver] = useState(false);
+  const counter = useRef(0);
+  const handlers = {
+    onDragEnter: (e: React.DragEvent) => {
+      e.preventDefault(); e.stopPropagation();
+      counter.current += 1;
+      if (e.dataTransfer?.types?.includes("Files")) setIsOver(true);
+    },
+    onDragOver: (e: React.DragEvent) => {
+      e.preventDefault(); e.stopPropagation();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+    },
+    onDragLeave: (e: React.DragEvent) => {
+      e.preventDefault(); e.stopPropagation();
+      counter.current -= 1;
+      if (counter.current <= 0) { counter.current = 0; setIsOver(false); }
+    },
+    onDrop: (e: React.DragEvent) => {
+      e.preventDefault(); e.stopPropagation();
+      counter.current = 0;
+      setIsOver(false);
+      const f = e.dataTransfer?.files?.[0] ?? null;
+      if (f) onFile(f);
+    },
+  };
+  return { isOver, handlers };
+}
+
+function CoverInput({ file, preview, onFile, acceptedHint }: { file: File | null; preview: string | null; onFile: (f: File | null) => void; acceptedHint: string }) {
   const ref = useRef<HTMLInputElement>(null);
+  const { isOver, handlers } = useDropZone(onFile);
   return (
     <div className="space-y-2">
       <input
@@ -491,10 +521,15 @@ function CoverInput({ file, preview, onFile }: { file: File | null; preview: str
         onChange={(e) => onFile(e.target.files?.[0] ?? null)}
       />
       {preview ? (
-        <div className="relative rounded-xl border border-ink/10 bg-paper overflow-hidden">
+        <div className="relative rounded-xl border border-ink/10 bg-paper overflow-hidden" {...handlers}>
           <div className="mx-auto bg-white" style={{ aspectRatio: "1 / 1.6", maxWidth: "240px" }}>
             <img src={preview} alt="Cover preview" className="w-full h-full object-cover" />
           </div>
+          {isOver && (
+            <div className="absolute inset-0 bg-gold/20 border-2 border-dashed border-gold rounded-xl flex items-center justify-center pointer-events-none">
+              <span className="text-sm font-semibold text-navy">Drop to replace</span>
+            </div>
+          )}
           <div className="flex items-center justify-between px-3 py-2 bg-white border-t border-ink/10">
             <span className="text-xs text-mute truncate">
               {file?.name} {file ? `· ${(file.size / 1024 / 1024).toFixed(2)} MB` : ""}
@@ -509,18 +544,23 @@ function CoverInput({ file, preview, onFile }: { file: File | null; preview: str
         <button
           type="button"
           onClick={() => ref.current?.click()}
-          className="w-full flex items-center gap-3 rounded-xl border border-dashed border-ink/20 bg-paper px-4 py-6 hover:border-gold text-left"
+          {...handlers}
+          className={`w-full flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition ${isOver ? "border-gold bg-gold/10" : "border-ink/20 bg-paper hover:border-gold"}`}
         >
-          <ImageIcon size={20} className="text-mute shrink-0" />
-          <span className="text-sm text-ink/80">Tap to choose a cover image (JPG or PNG)</span>
+          <ImageIcon size={28} className={isOver ? "text-gold" : "text-mute"} />
+          <span className="text-sm font-medium text-ink/80">
+            {isOver ? "Drop image here" : "Drag & drop a cover, or tap to browse"}
+          </span>
+          <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
         </button>
       )}
     </div>
   );
 }
 
-function FileInput({ file, onFile, accept, hint }: { file: File | null; onFile: (f: File | null) => void; accept: string; hint: string }) {
+function FileInput({ file, onFile, accept, hint, acceptedHint }: { file: File | null; onFile: (f: File | null) => void; accept: string; hint: string; acceptedHint: string }) {
   const ref = useRef<HTMLInputElement>(null);
+  const { isOver, handlers } = useDropZone(onFile);
   return (
     <div className="space-y-2">
       <input
@@ -533,12 +573,14 @@ function FileInput({ file, onFile, accept, hint }: { file: File | null; onFile: 
       <button
         type="button"
         onClick={() => ref.current?.click()}
-        className="w-full flex items-center gap-3 rounded-xl border border-dashed border-ink/20 bg-paper px-4 py-6 hover:border-gold text-left"
+        {...handlers}
+        className={`w-full flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition ${isOver ? "border-gold bg-gold/10" : "border-ink/20 bg-paper hover:border-gold"}`}
       >
-        {file ? <FileText size={20} className="text-navy shrink-0" /> : <Upload size={20} className="text-mute shrink-0" />}
-        <span className="text-sm text-ink/80 truncate">
-          {file ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB` : hint}
+        {file ? <FileText size={28} className="text-navy" /> : <Upload size={28} className={isOver ? "text-gold" : "text-mute"} />}
+        <span className="text-sm font-medium text-ink/80 truncate max-w-full">
+          {isOver ? "Drop file here" : file ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB` : hint}
         </span>
+        <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
       </button>
       {file && (
         <div className="flex gap-3 text-xs">
