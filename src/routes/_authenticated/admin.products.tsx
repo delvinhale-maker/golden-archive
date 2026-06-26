@@ -198,6 +198,15 @@ function AdminProductsPage() {
                 <input value={editing.creator_name ?? ""} onChange={(e) => setEditing({ ...editing, creator_name: e.target.value })}
                   className="w-full h-10 rounded-md border border-ink/15 px-3" />
               </Field>
+              <Field label="Product file (PDF, EPUB, DOCX)">
+                <ProductFileUpload
+                  product={editing}
+                  onUpdated={(newPath) => {
+                    setEditing({ ...editing, file_path: newPath });
+                    refresh();
+                  }}
+                />
+              </Field>
               <Field label="Description">
                 <textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })}
                   rows={6} className="w-full rounded-md border border-ink/15 p-3" />
