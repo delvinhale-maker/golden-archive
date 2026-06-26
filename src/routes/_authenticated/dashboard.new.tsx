@@ -62,9 +62,11 @@ function NewProduct() {
   const { user } = useAuth();
   const runReview = useServerFn(reviewProduct);
 
-  const [step, setStep] = useState<Step>(0);
-  const [productType, setProductType] = useState<ProductType>("ebook");
+  const { type: presetType } = Route.useSearch();
+  const [step, setStep] = useState<Step>(presetType ? 1 : 0);
+  const [productType, setProductType] = useState<ProductType>(presetType ?? "ebook");
   const typeMeta = PRODUCT_TYPES.find((t) => t.value === productType)!;
+  const isEbookFlow = presetType === "ebook";
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [author, setAuthor] = useState("Illustrious Capital™");
