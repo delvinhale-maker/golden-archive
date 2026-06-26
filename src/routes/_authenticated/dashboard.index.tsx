@@ -170,12 +170,12 @@ function ProductRow({ p }: { p: Product }) {
   }[p.status] ?? { label: p.status, cls: "bg-ink/10 text-ink/70", icon: null };
 
   return (
-    <div className="rounded-xl bg-white border border-ink/10 overflow-hidden">
-      <div className="aspect-[4/3] bg-gradient-to-br from-navy to-[#22335A]" style={p.cover_url ? { backgroundImage: `url(${p.cover_url})`, backgroundSize: "cover", backgroundPosition: "center" } : {}} />
+    <div className="rounded-xl bg-white border border-ink/10 overflow-hidden flex flex-col">
+      <div className="aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A]" style={p.cover_url ? { backgroundImage: `url(${p.cover_url})`, backgroundSize: "cover", backgroundPosition: "center" } : {}} />
       <div className="p-3">
-        <p className="font-medium text-navy text-sm line-clamp-2 min-h-[2.5em]">{p.title}</p>
+        <p className="font-display text-navy text-base leading-snug line-clamp-2 min-h-[2.6em]">{p.title}</p>
         <div className="flex items-center justify-between mt-2">
-          <span className="text-gold font-display text-lg">${(p.price_cents / 100).toFixed(0)}</span>
+          <span className="text-gold font-display text-lg">${(p.price_cents / 100).toFixed(2)}</span>
           <span className={`inline-flex items-center gap-1 text-[11px] font-medium rounded-full px-2 py-0.5 ${badge.cls}`}>
             {badge.icon} {badge.label}
           </span>
