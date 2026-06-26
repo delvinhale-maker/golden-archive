@@ -22,7 +22,7 @@ function UnsubscribePage() {
         const res = await fetch(`/email/unsubscribe?token=${encodeURIComponent(token)}`);
         const body = await res.json().catch(() => ({}));
         if (!res.ok || !body.valid) {
-          setStatus(body?.reason === "already_used" ? "used" : "invalid");
+          setStatus(body?.reason === "already_unsubscribed" ? "used" : "invalid");
           return;
         }
         setEmail(body.email || "");
