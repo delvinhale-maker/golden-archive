@@ -354,8 +354,13 @@ async function safeFetch<T>(path: string, fallback: T): Promise<T> {
 
 export const getFeaturedProducts = createServerFn({ method: "GET" }).handler(async () => {
   const fallback = mockProductsAcross(8);
+  const dbItems = await fetchDbProducts();
   const data = await safeFetch<unknown>("/marketplace/featured", fallback as unknown);
-  return (Array.isArray(data) && data.length ? (data as Product[]) : fallback) as Product[];
+  const upstream = (Array.isArray(data) && data.length ? (data as Product[]) : fallback) as Product[];
+  // Real seller products lead; pad with curated picks to fill the row.
+  const merged = [...dbItems, ...upstream];
+  const seen = new Set<string>();
+  return merged.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, 12);
 });
 
 export const getProducts = createServerFn({ method: "GET" })
