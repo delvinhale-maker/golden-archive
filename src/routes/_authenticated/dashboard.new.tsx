@@ -286,20 +286,21 @@ function PublishFlow() {
 
       let savedId: string | null = editingId ?? null;
       if (isEditing && editingId) {
-        const update: Record<string, unknown> = {
+        const update = {
           title: title.trim(),
           subtitle: subtitle.trim() || null,
           description: description.trim(),
           creator_name: author.trim(),
-          language, category,
+          language,
+          category,
           price_cents: priceCents,
           cover_url: coverUrl,
           file_path: storedFilePath,
           status,
           published: publish,
           admin_notes: notes,
+          ...(fileSize !== undefined ? { file_size_bytes: fileSize } : {}),
         };
-        if (fileSize !== undefined) update.file_size_bytes = fileSize;
         const { error } = await supabase.from("marketplace_products").update(update).eq("id", editingId);
         if (error) throw error;
       } else {
