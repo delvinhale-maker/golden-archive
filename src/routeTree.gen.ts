@@ -19,8 +19,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authenticated/dashboard.new'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -76,16 +76,17 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDashboardIndexRoute =
+  AuthenticatedDashboardIndexRouteImport.update({
+    id: '/dashboard/',
+    path: '/dashboard/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
@@ -93,9 +94,9 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
 } as any)
 const AuthenticatedDashboardNewRoute =
   AuthenticatedDashboardNewRouteImport.update({
-    id: '/new',
-    path: '/new',
-    getParentRoute: () => AuthenticatedDashboardRoute,
+    id: '/dashboard/new',
+    path: '/dashboard/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
@@ -124,12 +125,12 @@ export interface FileRoutesByFullPath {
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
   '/admin': typeof AuthenticatedAdminRoute
-  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/': typeof ProductsIndexRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -141,12 +142,12 @@ export interface FileRoutesByTo {
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
   '/admin': typeof AuthenticatedAdminRoute
-  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
   '/products': typeof ProductsIndexRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -161,12 +162,12 @@ export interface FileRoutesById {
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
-  '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -181,12 +182,12 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/vault'
     | '/admin'
-    | '/dashboard'
     | '/email/unsubscribe'
     | '/products/$id'
     | '/products/'
     | '/dashboard/new'
     | '/lovable/email/suppression'
+    | '/dashboard/'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -198,12 +199,12 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/vault'
     | '/admin'
-    | '/dashboard'
     | '/email/unsubscribe'
     | '/products/$id'
     | '/products'
     | '/dashboard/new'
     | '/lovable/email/suppression'
+    | '/dashboard'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -217,12 +218,12 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/vault'
     | '/_authenticated/admin'
-    | '/_authenticated/dashboard'
     | '/email/unsubscribe'
     | '/products/$id'
     | '/products/'
     | '/_authenticated/dashboard/new'
     | '/lovable/email/suppression'
+    | '/_authenticated/dashboard/'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -315,18 +316,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/': {
+      id: '/_authenticated/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/lovable/email/suppression': {
@@ -338,10 +339,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/dashboard/new': {
       id: '/_authenticated/dashboard/new'
-      path: '/new'
+      path: '/dashboard/new'
       fullPath: '/dashboard/new'
       preLoaderRoute: typeof AuthenticatedDashboardNewRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
@@ -367,28 +368,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedDashboardRouteChildren {
-  AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
-}
-
-const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
-  {
-    AuthenticatedDashboardNewRoute: AuthenticatedDashboardNewRoute,
-  }
-
-const AuthenticatedDashboardRouteWithChildren =
-  AuthenticatedDashboardRoute._addFileChildren(
-    AuthenticatedDashboardRouteChildren,
-  )
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
+  AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
+  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
+  AuthenticatedDashboardNewRoute: AuthenticatedDashboardNewRoute,
+  AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
