@@ -200,22 +200,35 @@ function RejectedBanner() {
 }
 
 function ProductRow({ p }: { p: Product }) {
-  const badge = {
-    approved: { label: "Live", cls: "bg-emerald-100 text-emerald-700", icon: <CheckCircle2 size={12} /> },
-    pending: { label: "Pending review", cls: "bg-amber-100 text-amber-700", icon: <Hourglass size={12} /> },
-    rejected: { label: "Rejected", cls: "bg-red-100 text-red-700", icon: <XCircle size={12} /> },
-    draft: { label: "Draft", cls: "bg-ink/10 text-ink/70", icon: <Package size={12} /> },
-  }[p.status] ?? { label: p.status, cls: "bg-ink/10 text-ink/70", icon: null };
+  const isLive = p.published && p.status === "approved";
+  const liveBadge = isLive
+    ? { label: "Live", cls: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: <CheckCircle2 size={12} /> }
+    : { label: "Draft", cls: "bg-ink/10 text-ink/70 border-ink/15", icon: <Circle size={12} /> };
+  const statusBadge = {
+    approved: { label: "Approved", cls: "bg-emerald-50 text-emerald-700" },
+    pending: { label: "Pending review", cls: "bg-amber-100 text-amber-700" },
+    rejected: { label: "Rejected", cls: "bg-red-100 text-red-700" },
+    draft: { label: "Unsubmitted", cls: "bg-ink/10 text-ink/70" },
+  }[p.status] ?? { label: p.status, cls: "bg-ink/10 text-ink/70" };
 
   return (
     <div className="rounded-xl bg-white border border-ink/10 overflow-hidden flex flex-col">
-      <div className="aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A]" style={p.cover_url ? { backgroundImage: `url(${p.cover_url})`, backgroundSize: "cover", backgroundPosition: "center" } : {}} />
+      <div className="aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A] relative" style={p.cover_url ? { backgroundImage: `url(${p.cover_url})`, backgroundSize: "cover", backgroundPosition: "center" } : {}}>
+        <span className={`absolute top-2 left-2 inline-flex items-center gap-1 text-[11px] font-semibold rounded-full px-2 py-0.5 border ${liveBadge.cls}`}>
+          {liveBadge.icon} {liveBadge.label}
+        </span>
+      </div>
       <div className="p-3">
-        <p className="font-display text-navy text-base leading-snug line-clamp-2 min-h-[2.6em]">{p.title}</p>
+        <div className="flex items-start gap-2">
+          <p className="font-display text-navy text-base leading-snug line-clamp-2 min-h-[2.6em] flex-1">{p.title}</p>
+          <span className={`shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold rounded-full px-2 py-0.5 border ${liveBadge.cls}`}>
+            {liveBadge.icon} {liveBadge.label}
+          </span>
+        </div>
         <div className="flex items-center justify-between mt-2">
           <span className="text-gold font-display text-lg">${(p.price_cents / 100).toFixed(2)}</span>
-          <span className={`inline-flex items-center gap-1 text-[11px] font-medium rounded-full px-2 py-0.5 ${badge.cls}`}>
-            {badge.icon} {badge.label}
+          <span className={`inline-flex items-center gap-1 text-[11px] font-medium rounded-full px-2 py-0.5 ${statusBadge.cls}`}>
+            {statusBadge.label}
           </span>
         </div>
         <div className="mt-2">
