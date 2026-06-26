@@ -165,6 +165,10 @@ function ProductPage() {
               {product.description}
             </p>
 
+            <FormatSelector formats={formats} value={format} onChange={setFormat} />
+
+            <KingdomGuarantee />
+
             <motion.button
               whileTap={{ scale: 0.98 }}
               whileHover={{ scale: 1.01 }}
