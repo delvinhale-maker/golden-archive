@@ -643,6 +643,12 @@ function StepContent(p: {
             <span className="truncate">{p.file.name} — {(p.file.size / 1024 / 1024).toFixed(2)} MB</span>
           </div>
         )}
+        {!p.file && !p.fileError && p.existingFilePath && (
+          <div className="mt-2 flex items-center gap-2 text-sm text-navy bg-paper border border-ink/10 rounded-lg p-3">
+            <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+            <span className="truncate">Current manuscript on file. Drop a new file to replace it.</span>
+          </div>
+        )}
         {p.uploading && (
           <div className="mt-3">
             <div className="flex justify-between text-xs text-mute mb-1"><span>Uploading…</span><span>{p.uploadProgress}%</span></div>
