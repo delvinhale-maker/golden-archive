@@ -22,7 +22,9 @@ import {
   ProductCard,
   ProductCardSkeleton,
 } from "@/components/marketplace/ProductCard";
-import { ProductCover } from "@/components/marketplace/ProductCover";
+import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
+import { DealsStrip } from "@/components/marketplace/DealsStrip";
+import { BestsellersRow } from "@/components/marketplace/BestsellersRow";
 import {
   getFeaturedProducts,
   getFeaturedCreators,
@@ -78,8 +80,11 @@ const CATS = [
 function Home() {
   return (
     <MarketShell>
-      <Hero />
+      <HeroCarousel />
       <HeroStatsBar />
+      <Suspense fallback={null}>
+        <DealsAndBestsellers />
+      </Suspense>
       <CategoriesSection />
       <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProducts />
@@ -89,6 +94,17 @@ function Home() {
       </Suspense>
       <TrustBar />
     </MarketShell>
+  );
+}
+
+function DealsAndBestsellers() {
+  const { data } = useSuspenseQuery(featuredQ);
+  const list = data as Product[];
+  return (
+    <>
+      <DealsStrip products={list} />
+      <BestsellersRow products={[...list].reverse()} />
+    </>
   );
 }
 
