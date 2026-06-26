@@ -34,6 +34,8 @@ type DbProductRow = {
   description: string | null;
   seller_id: string;
   created_at: string;
+  ai_review_status: string | null;
+  ai_review_score: number | null;
 };
 
 function dbRowToProduct(r: DbProductRow, sellerName = "Illustrious Capital™"): Product {
@@ -50,8 +52,11 @@ function dbRowToProduct(r: DbProductRow, sellerName = "Illustrious Capital™"):
     creator: { id: r.seller_id, name: sellerName, verified: true },
     description: r.description ?? undefined,
     included: ["Instant digital download", "Lifetime access"],
+    aiReviewStatus: (r.ai_review_status as Product["aiReviewStatus"]) ?? null,
+    aiReviewScore: r.ai_review_score ?? null,
   };
 }
+
 
 async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Promise<Product[]> {
   try {
