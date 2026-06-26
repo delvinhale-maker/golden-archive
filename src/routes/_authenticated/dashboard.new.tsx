@@ -81,6 +81,12 @@ function NewProduct() {
 
   function handleFileChange(f: File | null) {
     if (!f) { setFile(null); return; }
+    const name = f.name.toLowerCase();
+    const okExt = name.endsWith(".pdf") || name.endsWith(".epub") || name.endsWith(".docx");
+    if (!okExt) {
+      toast.error("Product file must be a PDF, EPUB, or DOCX.");
+      return;
+    }
     if (f.size > MAX_FILE_MB * 1024 * 1024) {
       toast.error(`Product file must be under ${MAX_FILE_MB} MB.`);
       return;
@@ -126,6 +132,7 @@ function NewProduct() {
       ]);
       if (coverUp.error) throw coverUp.error;
       if (fileUp.error) throw fileUp.error;
+      toast.success(`Uploaded: ${file.name}`);
 
       const { data: signed } = await supabase.storage.from("product-covers").createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
 
@@ -200,8 +207,12 @@ function NewProduct() {
           </Field>
           <p className="-mt-3 text-[11px] text-mute">Tip: match Kindle Direct Publishing — height:width = 1.6:1 (e.g. 2560×1600 or 1600×1000). Minimum 1000 px on the longest side, RGB, under 10 MB.</p>
 
-          <Field label="Product file (PDF, ZIP, EPUB, audio · max 500 MB)">
-            <FileInput accept=".pdf,.zip,.epub,.mp3,.wav,.m4a,.mp4" file={file} onFile={handleFileChange} />
+          <Field label="Product file (PDF, EPUB, or DOCX · max 500 MB)">
+            <FileInput
+              accept=".pdf,.epub,.docx,application/pdf,application/epub+zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              file={file}
+              onFile={handleFileChange}
+            />
           </Field>
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">

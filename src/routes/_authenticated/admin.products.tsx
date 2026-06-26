@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
-import { ArrowLeft, ShieldCheck, Pencil, CheckCircle2, XCircle, Search, Save, X } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Pencil, CheckCircle2, XCircle, Search, Save, X, Upload, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/products")({
@@ -22,6 +22,8 @@ type Prod = {
   cover_url: string | null;
   status: Status;
   created_at: string;
+  file_path: string | null;
+  seller_id: string;
 };
 
 const CATEGORIES: Category[] = ["ebooks", "courses", "templates", "audio", "leadership"];
@@ -50,7 +52,7 @@ function AdminProductsPage() {
 
   async function refresh() {
     const { data } = await supabase.from("marketplace_products")
-      .select("id,title,description,category,price_cents,creator_name,cover_url,status,created_at")
+      .select("id,title,description,category,price_cents,creator_name,cover_url,status,created_at,file_path,seller_id")
       .order("created_at", { ascending: false });
     setItems((data ?? []) as Prod[]);
   }
@@ -196,6 +198,15 @@ function AdminProductsPage() {
                 <input value={editing.creator_name ?? ""} onChange={(e) => setEditing({ ...editing, creator_name: e.target.value })}
                   className="w-full h-10 rounded-md border border-ink/15 px-3" />
               </Field>
+              <Field label="Product file (PDF, EPUB, DOCX)">
+                <ProductFileUpload
+                  product={editing}
+                  onUpdated={(newPath) => {
+                    setEditing({ ...editing, file_path: newPath });
+                    refresh();
+                  }}
+                />
+              </Field>
               <Field label="Description">
                 <textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })}
                   rows={6} className="w-full rounded-md border border-ink/15 p-3" />
@@ -231,4 +242,59 @@ function StatusBadge({ status }: { status: string }) {
     rejected: "bg-red-50 text-red-700 border-red-200",
   };
   return <span className={`text-[10px] px-2 py-0.5 rounded-full border ${map[status] ?? "bg-ink/5 text-mute"}`}>{status}</span>;
+}
+
+function ProductFileUpload({ product, onUpdated }: { product: Prod; onUpdated: (newPath: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const currentName = product.file_path ? product.file_path.split("/").pop() ?? product.file_path : null;
+
+  async function handle(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f) return;
+    const lower = f.name.toLowerCase();
+    if (!(lower.endsWith(".pdf") || lower.endsWith(".epub") || lower.endsWith(".docx"))) {
+      toast.error("File must be PDF, EPUB, or DOCX.");
+      return;
+    }
+    if (f.size > 500 * 1024 * 1024) {
+      toast.error("File must be under 500 MB.");
+      return;
+    }
+    setUploading(true);
+    try {
+      const path = `${product.seller_id}/${Date.now()}-${f.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      const up = await supabase.storage.from("product-files").upload(path, f, { upsert: false });
+      if (up.error) throw up.error;
+      const { error } = await supabase.from("marketplace_products")
+        .update({ file_path: path, file_size_bytes: f.size })
+        .eq("id", product.id);
+      if (error) throw error;
+      toast.success(`Uploaded: ${f.name}`);
+      onUpdated(path);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      {currentName ? (
+        <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm">
+          <FileText size={16} className="text-emerald-700 shrink-0" />
+          <span className="text-emerald-900 truncate flex-1">{currentName}</span>
+          <CheckCircle2 size={14} className="text-emerald-700 shrink-0" />
+        </div>
+      ) : (
+        <p className="text-xs text-mute">No file attached yet.</p>
+      )}
+      <label className="inline-flex items-center gap-2 text-sm rounded-md border border-ink/15 bg-white px-3 py-2 cursor-pointer hover:bg-ink/5">
+        <Upload size={14} />
+        {uploading ? "Uploading…" : currentName ? "Replace file" : "Upload file"}
+        <input type="file" accept=".pdf,.epub,.docx" className="hidden" onChange={handle} disabled={uploading} />
+      </label>
+    </div>
+  );
 }
