@@ -4,6 +4,7 @@ import { BadgeCheck, Heart, Star } from "lucide-react";
 import { useState } from "react";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { ProductCover } from "@/components/marketplace/ProductCover";
+import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
 import type { Product } from "@/lib/marketplace.functions";
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
@@ -73,10 +74,14 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
       </Link>
 
       <div className="flex flex-1 flex-col p-4">
-        <div className="text-[11px] font-semibold uppercase tracking-caps text-gold">
-          {product.category}
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-[11px] font-semibold uppercase tracking-caps text-gold">
+            {product.category}
+          </div>
+          <AIReviewBadge status={product.aiReviewStatus} variant="storefront" />
         </div>
         <Link
+
           to="/products/$id"
           params={{ id: product.id }}
           className="mt-1 line-clamp-2 min-h-[2.6em] break-words font-display text-[15px] font-bold leading-snug text-ink hover:text-navy"

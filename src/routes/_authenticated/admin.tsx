@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { sendTransactionalEmail } from "@/lib/email/send";
 import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
+import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -253,21 +254,15 @@ function AdminPage() {
 }
 
 function AIBadge({ p }: { p: Prod }) {
-  if (!p.ai_review_status) {
-    return <span className="text-[10px] px-2 py-0.5 rounded-full bg-ink/5 text-mute">AI: pending</span>;
-  }
-  const map = {
-    pass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    warn: "bg-amber-50 text-amber-800 border-amber-200",
-    fail: "bg-red-50 text-red-700 border-red-200",
-  } as const;
-  const cls = map[p.ai_review_status as keyof typeof map] ?? map.warn;
   return (
-    <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border ${cls}`}>
-      <Sparkles size={10} /> AI: {p.ai_review_status} {p.ai_review_score != null && `· ${p.ai_review_score}`}
-    </span>
+    <AIReviewBadge
+      status={(p.ai_review_status as "pass" | "warn" | "fail" | null) ?? "pending"}
+      score={p.ai_review_score}
+      variant="admin"
+    />
   );
 }
+
 
 function Empty({ msg }: { msg: string }) {
   return <div className="rounded-2xl border border-dashed border-ink/15 bg-white p-10 text-center text-mute">{msg}</div>;

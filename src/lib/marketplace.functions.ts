@@ -34,6 +34,8 @@ type DbProductRow = {
   description: string | null;
   seller_id: string;
   created_at: string;
+  ai_review_status: string | null;
+  ai_review_score: number | null;
 };
 
 function dbRowToProduct(r: DbProductRow, sellerName = "Illustrious Capital™"): Product {
@@ -50,15 +52,18 @@ function dbRowToProduct(r: DbProductRow, sellerName = "Illustrious Capital™"):
     creator: { id: r.seller_id, name: sellerName, verified: true },
     description: r.description ?? undefined,
     included: ["Instant digital download", "Lifetime access"],
+    aiReviewStatus: (r.ai_review_status as Product["aiReviewStatus"]) ?? null,
+    aiReviewScore: r.ai_review_score ?? null,
   };
 }
+
 
 async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Promise<Product[]> {
   try {
     const supa = serverSupabase();
     let query = supa
       .from("marketplace_products")
-      .select("id,title,category,price_cents,cover_url,description,seller_id,created_at")
+      .select("id,title,category,price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score")
       .eq("status", "approved")
       .order("created_at", { ascending: false });
     if (opts.category && opts.category !== "All") {
@@ -98,7 +103,10 @@ export type Product = {
   creator: { id: string; name: string; verified: boolean; avatar?: string };
   description?: string;
   included?: string[];
+  aiReviewStatus?: "pass" | "warn" | "fail" | "pending" | null;
+  aiReviewScore?: number | null;
 };
+
 
 const CATEGORIES = [
   "eBooks",
@@ -382,7 +390,7 @@ export const getProduct = createServerFn({ method: "GET" })
     const supa = serverSupabase();
     const { data: row } = await supa
       .from("marketplace_products")
-      .select("id,title,category,price_cents,cover_url,description,seller_id,created_at")
+      .select("id,title,category,price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score")
       .eq("id", data.id)
       .eq("status", "approved")
       .maybeSingle();

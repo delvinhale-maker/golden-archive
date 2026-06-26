@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
 import { Plus, LogOut, ShieldCheck, Package, Hourglass, CheckCircle2, XCircle } from "lucide-react";
+import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
@@ -20,7 +21,10 @@ type Product = {
   cover_url: string | null;
   created_at: string;
   rejected_reason: string | null;
+  ai_review_status: string | null;
+  ai_review_score: number | null;
 };
+
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -180,6 +184,13 @@ function ProductRow({ p }: { p: Product }) {
             {badge.icon} {badge.label}
           </span>
         </div>
+        <div className="mt-2">
+          <AIReviewBadge
+            status={(p.ai_review_status as "pass" | "warn" | "fail" | null) ?? "pending"}
+            score={p.ai_review_score}
+            variant="seller"
+          />
+        </div>
         {p.status === "rejected" && p.rejected_reason && (
           <p className="text-[11px] text-red-700 mt-1">{p.rejected_reason}</p>
         )}
@@ -187,3 +198,4 @@ function ProductRow({ p }: { p: Product }) {
     </div>
   );
 }
+
