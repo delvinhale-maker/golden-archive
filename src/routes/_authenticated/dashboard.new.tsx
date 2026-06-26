@@ -23,6 +23,26 @@ const CATEGORIES: { label: string; value: "ebooks" | "finance" | "leadership" | 
 
 const LANGUAGES = ["English", "Spanish", "French", "German", "Portuguese", "Italian", "Other"];
 
+type ProductType = "ebook" | "manuscript" | "prompt-pack" | "template" | "audio" | "course" | "bundle" | "other";
+
+const PRODUCT_TYPES: {
+  value: ProductType;
+  label: string;
+  description: string;
+  accept: string;
+  extensions: string[];
+  enforceCoverRatio: boolean;
+}[] = [
+  { value: "ebook", label: "eBook", description: "PDF, EPUB, or MOBI", accept: ".pdf,.epub,.mobi,application/pdf,application/epub+zip", extensions: ["pdf", "epub", "mobi"], enforceCoverRatio: true },
+  { value: "manuscript", label: "Manuscript", description: "DOCX or PDF", accept: ".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document", extensions: ["docx", "pdf"], enforceCoverRatio: true },
+  { value: "prompt-pack", label: "Prompt Pack", description: "PDF, TXT, or JSON", accept: ".pdf,.txt,.json,application/pdf,text/plain,application/json", extensions: ["pdf", "txt", "json"], enforceCoverRatio: false },
+  { value: "template", label: "Template", description: "DOCX, XLSX, or PDF", accept: ".docx,.xlsx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", extensions: ["docx", "xlsx", "pdf"], enforceCoverRatio: false },
+  { value: "audio", label: "Audio", description: "MP3, WAV, or M4A", accept: ".mp3,.wav,.m4a,audio/mpeg,audio/wav,audio/x-m4a,audio/mp4", extensions: ["mp3", "wav", "m4a"], enforceCoverRatio: false },
+  { value: "course", label: "Course / Video", description: "MP4 or MOV", accept: ".mp4,.mov,video/mp4,video/quicktime", extensions: ["mp4", "mov"], enforceCoverRatio: false },
+  { value: "bundle", label: "Bundle", description: "ZIP (multi-file)", accept: ".zip,application/zip", extensions: ["zip"], enforceCoverRatio: false },
+  { value: "other", label: "Other", description: "ZIP archive", accept: ".zip,application/zip", extensions: ["zip"], enforceCoverRatio: false },
+];
+
 const MAX_COVER_MB = 10;
 const MAX_FILE_MB = 650;
 const MIN_COVER_W = 1600;
@@ -30,7 +50,7 @@ const MIN_COVER_H = 2560;
 const TARGET_RATIO = 1600 / 2560; // 0.625 (portrait, 1:1.6)
 const RATIO_TOL = 0.03;
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 0 | 1 | 2 | 3 | 4;
 
 function NewProduct() {
   const navigate = useNavigate();
