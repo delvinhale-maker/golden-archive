@@ -61,8 +61,8 @@ function AdminProductsPage() {
     (!q || p.title.toLowerCase().includes(q.toLowerCase()) || (p.creator_name ?? "").toLowerCase().includes(q.toLowerCase()))
   ), [items, filter, q]);
 
-  async function setStatus(p: Prod, status: "approved" | "rejected" | "pending") {
-    const patch: Record<string, unknown> = { status };
+  async function setStatus(p: Prod, status: Status) {
+    const patch: { status: Status; approved_at?: string; rejected_reason?: string } = { status };
     if (status === "approved") patch.approved_at = new Date().toISOString();
     if (status === "rejected") {
       const reason = window.prompt("Reason for rejection:", "Does not meet our quality guidelines.");
