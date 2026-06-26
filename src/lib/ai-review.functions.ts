@@ -122,8 +122,7 @@ Then write a polished SEO blurb (140-160 chars) and a refined SEO title (<60 cha
           score: output.score,
           issues: output.issues,
           callerAuthHeader: getRequestHeader("Authorization") ?? null,
-          host: getRequestHeader("host") ?? getRequestHeader("x-forwarded-host") ?? null,
-          proto: getRequestHeader("x-forwarded-proto") ?? "https",
+          origin: (() => { try { return getRequestUrl().origin; } catch { return null; } })(),
         });
       } catch (e) {
         console.error("notifySellerOfReview failed", e);
