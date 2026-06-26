@@ -29,6 +29,7 @@ import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lova
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicHealthCoversRouteImport } from './routes/api/public/health/covers'
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
 
 const VaultRoute = VaultRouteImport.update({
@@ -136,6 +137,11 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHealthCoversRoute = ApiPublicHealthCoversRouteImport.update({
+  id: '/api/public/health/covers',
+  path: '/api/public/health/covers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHealthCategoriesRoute =
   ApiPublicHealthCategoriesRouteImport.update({
     id: '/api/public/health/categories',
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
+  '/api/public/health/covers': typeof ApiPublicHealthCoversRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -181,6 +188,7 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
+  '/api/public/health/covers': typeof ApiPublicHealthCoversRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
+  '/api/public/health/covers': typeof ApiPublicHealthCoversRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -229,6 +238,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/dashboard/'
     | '/api/public/health/categories'
+    | '/api/public/health/covers'
     | '/api/public/payments/webhook'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/dashboard'
     | '/api/public/health/categories'
+    | '/api/public/health/covers'
     | '/api/public/payments/webhook'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/_authenticated/dashboard/'
     | '/api/public/health/categories'
+    | '/api/public/health/covers'
     | '/api/public/payments/webhook'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -292,6 +304,7 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
+  ApiPublicHealthCoversRoute: typeof ApiPublicHealthCoversRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -440,6 +453,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/health/covers': {
+      id: '/api/public/health/covers'
+      path: '/api/public/health/covers'
+      fullPath: '/api/public/health/covers'
+      preLoaderRoute: typeof ApiPublicHealthCoversRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/health/categories': {
       id: '/api/public/health/categories'
       path: '/api/public/health/categories'
@@ -492,6 +512,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
+  ApiPublicHealthCoversRoute: ApiPublicHealthCoversRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
@@ -500,13 +521,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
