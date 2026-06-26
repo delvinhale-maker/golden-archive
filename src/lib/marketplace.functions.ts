@@ -36,7 +36,7 @@ type DbProductRow = {
   created_at: string;
 };
 
-function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault Creator"): Product {
+function dbRowToProduct(r: DbProductRow, sellerName = "Illustrious Capital™"): Product {
   const catLabel = CAT_LABEL[r.category?.toLowerCase()] ?? r.category ?? "eBooks";
   return {
     id: r.id,
@@ -353,14 +353,8 @@ async function safeFetch<T>(path: string, fallback: T): Promise<T> {
 }
 
 export const getFeaturedProducts = createServerFn({ method: "GET" }).handler(async () => {
-  const fallback = mockProductsAcross(8);
   const dbItems = await fetchDbProducts();
-  const data = await safeFetch<unknown>("/marketplace/featured", fallback as unknown);
-  const upstream = (Array.isArray(data) && data.length ? (data as Product[]) : fallback) as Product[];
-  // Real seller products lead; pad with curated picks to fill the row.
-  const merged = [...dbItems, ...upstream];
-  const seen = new Set<string>();
-  return merged.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, 12);
+  return dbItems.slice(0, 12);
 });
 
 export const getProducts = createServerFn({ method: "GET" })
@@ -375,48 +369,8 @@ export const getProducts = createServerFn({ method: "GET" })
       .parse(input ?? {}),
   )
   .handler(async ({ data }) => {
-    const PAGE = 12;
-    const offset = (data.page - 1) * PAGE;
-
-    // Build a category-aware fallback so filtered views show distinct items.
-    const fallback =
-      data.category && data.category !== "All"
-        ? mockProductsForCategory(data.category, PAGE, offset)
-        : mockProductsAcross(PAGE, offset);
-
-    const params = new URLSearchParams();
-    if (data.category) params.set("category", data.category);
-    if (data.sort) params.set("sort", data.sort);
-    if (data.q) params.set("q", data.q);
-    params.set("page", String(data.page));
-    const result = await safeFetch<unknown>(`/products?${params.toString()}`, fallback as unknown);
-
-    let list = (Array.isArray(result) && result.length
-      ? (result as Product[])
-      : fallback) as Product[];
-
-    if (data.category && data.category !== "All") {
-      const filtered = list.filter(
-        (p) => p.category?.toLowerCase() === data.category!.toLowerCase(),
-      );
-      // If the upstream response had nothing for this category, fall back to
-      // the locally-generated, category-specific set (unique titles + ids).
-      list = filtered.length ? filtered : fallback;
-    }
-    if (data.q) {
-      const q = data.q.toLowerCase();
-      list = list.filter((p) => p.title.toLowerCase().includes(q));
-    }
-
-    // Merge real seller products at the front, scoped to the active filter.
     const dbItems = await fetchDbProducts({ category: data.category, q: data.q });
-    list = [...dbItems, ...list];
-
-    // Deduplicate by id as a final safety net.
-    const seen = new Set<string>();
-    list = list.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
-
-    return { items: list, page: data.page, hasMore: data.page < 4 };
+    return { items: dbItems, page: data.page, hasMore: false };
   });
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -424,26 +378,16 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export const getProduct = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ id: z.string() }).parse(input))
   .handler(async ({ data }) => {
-    // Real product (UUID) → fetch from DB
-    if (UUID_RE.test(data.id)) {
-      const supa = serverSupabase();
-      const { data: row } = await supa
-        .from("marketplace_products")
-        .select("id,title,category,price_cents,cover_url,description,seller_id,created_at")
-        .eq("id", data.id)
-        .eq("status", "approved")
-        .maybeSingle();
-      if (row) return dbRowToProduct(row as DbProductRow);
-    }
-    const parts = data.id.split("_");
-    const maybeCat = parts.length === 3 ? parts[1] : undefined;
-    const matchedCat = maybeCat
-      ? CATEGORIES.find((c) => c.toLowerCase() === maybeCat)
-      : undefined;
-    const seed = Number(parts[parts.length - 1]) || 1;
-    const fallback = mockProduct(seed, matchedCat);
-    const result = await safeFetch<Product | null>(`/products/${data.id}`, fallback);
-    return (result && typeof result === "object" ? (result as Product) : fallback) as Product;
+    if (!UUID_RE.test(data.id)) return null as unknown as Product;
+    const supa = serverSupabase();
+    const { data: row } = await supa
+      .from("marketplace_products")
+      .select("id,title,category,price_cents,cover_url,description,seller_id,created_at")
+      .eq("id", data.id)
+      .eq("status", "approved")
+      .maybeSingle();
+    if (!row) return null as unknown as Product;
+    return dbRowToProduct(row as DbProductRow);
   });
 
 export const getFeaturedCreators = createServerFn({ method: "GET" }).handler(async () => {
