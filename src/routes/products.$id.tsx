@@ -53,7 +53,9 @@ function ProductPage() {
   const { id } = Route.useParams();
   const { data: product } = useSuspenseQuery(productQ(id)) as { data: Product };
   const wishlist = useWishlist();
+  const cart = useCart();
   const liked = wishlist.has(product.id);
+  const inCart = cart.has(product.id);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const formats = useMemo(() => formatsFor(product.category), [product.category]);
