@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { MarketHeader } from "./MarketHeader";
 import { MarketFooter } from "./MarketFooter";
 import { MobileTabBar } from "./MobileTabBar";
+import { CartDrawer } from "./CartDrawer";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { motion } from "framer-motion";
 
@@ -20,6 +21,7 @@ export function MarketShell({ children }: { children: ReactNode }) {
       </motion.main>
       <MarketFooter />
       <MobileTabBar />
+      <CartDrawer />
     </div>
   );
 }
