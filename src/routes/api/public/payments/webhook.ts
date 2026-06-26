@@ -211,7 +211,7 @@ async function enqueueDeliveryEmail(args: {
   });
 }
 
-export const Route = createFileRoute("/api/public/webhooks/stripe")({
+export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
