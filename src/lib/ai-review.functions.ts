@@ -181,8 +181,8 @@ async function notifySellerOfReview(params: {
     .maybeSingle();
 
   // Internal call to the email send route, forwarding the caller's auth.
-  if (!params.callerAuthHeader || !params.host) return;
-  const url = `${params.proto}://${params.host}/lovable/email/transactional/send`;
+  if (!params.callerAuthHeader || !params.origin) return;
+  const url = `${params.origin}/lovable/email/transactional/send`;
   await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: params.callerAuthHeader },
