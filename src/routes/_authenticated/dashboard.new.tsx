@@ -380,26 +380,6 @@ function NewProduct() {
             </div>
           )}
 
-          {step === 3 && (
-            <div className="space-y-5">
-              <h2 className="font-display text-2xl text-navy">Product file upload</h2>
-              <p className="text-sm text-mute">
-                {typeMeta.label} accepts: <strong>{typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")}</strong>. Max size <strong>{MAX_FILE_MB} MB</strong>.
-              </p>
-              <FileInput file={file} onFile={handleFileChange} accept={typeMeta.accept} hint={`Drag & drop or tap to choose a ${typeMeta.label.toLowerCase()} file`} acceptedHint={typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")} />
-              {fileError && (
-                <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
-                  <AlertCircle size={16} className="mt-0.5 shrink-0" /> <span>{fileError}</span>
-                </div>
-              )}
-              {file && !fileError && (
-                <div className="flex items-start gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-                  <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
-                  <span><strong>{file.name}</strong> · {(file.size / 1024 / 1024).toFixed(2)} MB — ready to upload.</span>
-                </div>
-              )}
-            </div>
-          )}
 
           {step === 4 && (
             <div className="space-y-5">
