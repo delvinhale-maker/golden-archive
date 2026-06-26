@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
-import { Plus, LogOut, ShieldCheck, Package, Hourglass, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, LogOut, ShieldCheck, Package, Hourglass, CheckCircle2, XCircle, Upload } from "lucide-react";
 import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
 import { toast } from "sonner";
 
@@ -87,16 +87,31 @@ function Dashboard() {
         ) : null}
 
         {(isSeller || app?.status === "approved" || isAdmin) && (
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-display text-2xl text-navy">Your products</h2>
-              <Link
-                to="/dashboard/new"
-                className="inline-flex items-center gap-1.5 rounded-full bg-navy text-white text-sm font-semibold px-4 py-2 hover:bg-navy/90"
-              >
-                <Plus size={16} /> New product
-              </Link>
-            </div>
+          <>
+            <Link
+              to="/dashboard/new"
+              className="group flex items-center gap-4 rounded-2xl bg-gradient-to-r from-gold to-[#e0bf6f] text-navy p-5 md:p-6 hover:from-[#e0bf6f] hover:to-gold transition shadow-lg shadow-gold/20"
+            >
+              <div className="h-12 w-12 rounded-full bg-navy text-gold flex items-center justify-center shrink-0">
+                <Upload size={22} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-display text-xl md:text-2xl leading-tight">Upload Product</div>
+                <div className="text-sm text-navy/80 mt-0.5">eBooks, courses, audio, templates, prompt packs & bundles — universal upload flow.</div>
+              </div>
+              <Plus size={20} className="hidden sm:block opacity-60 group-hover:opacity-100" />
+            </Link>
+
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display text-2xl text-navy">Your products</h2>
+                <Link
+                  to="/dashboard/new"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-navy text-white text-sm font-semibold px-4 py-2 hover:bg-navy/90"
+                >
+                  <Upload size={16} /> Upload Product
+                </Link>
+              </div>
 
             {products.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-ink/15 bg-white p-10 text-center">
