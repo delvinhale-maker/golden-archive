@@ -30,26 +30,19 @@ const LANGUAGES = ["English", "Spanish", "French", "German", "Portuguese", "Ital
 
 type ProductType = "ebook" | "manuscript" | "prompt-pack" | "template" | "audio" | "course" | "bundle" | "other";
 
-const PRODUCT_TYPES: {
-  value: ProductType;
-  label: string;
-  description: string;
-  accept: string;
-  extensions: string[];
-  enforceCoverRatio: boolean;
-}[] = [
-  { value: "ebook", label: "eBook", description: "PDF, EPUB, or MOBI", accept: ".pdf,.epub,.mobi,application/pdf,application/epub+zip", extensions: ["pdf", "epub", "mobi"], enforceCoverRatio: true },
-  { value: "manuscript", label: "Manuscript", description: "DOCX or PDF", accept: ".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document", extensions: ["docx", "pdf"], enforceCoverRatio: true },
-  { value: "prompt-pack", label: "Prompt Pack", description: "PDF, TXT, or JSON", accept: ".pdf,.txt,.json,application/pdf,text/plain,application/json", extensions: ["pdf", "txt", "json"], enforceCoverRatio: false },
-  { value: "template", label: "Template", description: "DOCX, XLSX, or PDF", accept: ".docx,.xlsx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", extensions: ["docx", "xlsx", "pdf"], enforceCoverRatio: false },
-  { value: "audio", label: "Audio", description: "MP3, WAV, or M4A", accept: ".mp3,.wav,.m4a,audio/mpeg,audio/wav,audio/x-m4a,audio/mp4", extensions: ["mp3", "wav", "m4a"], enforceCoverRatio: false },
-  { value: "course", label: "Course / Video", description: "MP4 or MOV", accept: ".mp4,.mov,video/mp4,video/quicktime", extensions: ["mp4", "mov"], enforceCoverRatio: false },
-  { value: "bundle", label: "Bundle", description: "ZIP (multi-file)", accept: ".zip,application/zip", extensions: ["zip"], enforceCoverRatio: false },
-  { value: "other", label: "Other", description: "ZIP archive", accept: ".zip,application/zip", extensions: ["zip"], enforceCoverRatio: false },
+
+const PRODUCT_TYPES: { value: ProductType; label: string; description: string; accept: string; extensions: string[]; mimeTypes: string[]; enforceCoverRatio: boolean; maxMb: number }[] = [
+  { value: "ebook", label: "eBook", description: "PDF, EPUB, or DOCX", accept: ".pdf,.epub,.docx,application/pdf,application/epub+zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document", extensions: ["pdf", "epub", "docx"], mimeTypes: ["application/pdf", "application/epub+zip", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"], enforceCoverRatio: true, maxMb: 100 },
+  { value: "manuscript", label: "Manuscript", description: "PDF, EPUB, or DOCX", accept: ".pdf,.epub,.docx,application/pdf,application/epub+zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document", extensions: ["pdf", "epub", "docx"], mimeTypes: ["application/pdf", "application/epub+zip", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"], enforceCoverRatio: true, maxMb: 100 },
+  { value: "prompt-pack", label: "Prompt Pack", description: "PDF, TXT, or JSON", accept: ".pdf,.txt,.json,application/pdf,text/plain,application/json", extensions: ["pdf", "txt", "json"], mimeTypes: ["application/pdf", "text/plain", "application/json"], enforceCoverRatio: false, maxMb: 50 },
+  { value: "template", label: "Template", description: "DOCX, XLSX, or PDF", accept: ".docx,.xlsx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", extensions: ["docx", "xlsx", "pdf"], mimeTypes: ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"], enforceCoverRatio: false, maxMb: 50 },
+  { value: "audio", label: "Audio", description: "MP3, WAV, or M4A", accept: ".mp3,.wav,.m4a,audio/mpeg,audio/wav,audio/x-m4a,audio/mp4", extensions: ["mp3", "wav", "m4a"], mimeTypes: ["audio/mpeg", "audio/wav", "audio/x-m4a", "audio/mp4"], enforceCoverRatio: false, maxMb: 500 },
+  { value: "course", label: "Course / Video", description: "MP4 or MOV", accept: ".mp4,.mov,video/mp4,video/quicktime", extensions: ["mp4", "mov"], mimeTypes: ["video/mp4", "video/quicktime"], enforceCoverRatio: false, maxMb: 2000 },
+  { value: "bundle", label: "Bundle", description: "ZIP (multi-file)", accept: ".zip,application/zip", extensions: ["zip"], mimeTypes: ["application/zip", "application/x-zip-compressed"], enforceCoverRatio: false, maxMb: 1000 },
+  { value: "other", label: "Other", description: "ZIP archive", accept: ".zip,application/zip", extensions: ["zip"], mimeTypes: ["application/zip", "application/x-zip-compressed"], enforceCoverRatio: false, maxMb: 1000 },
 ];
 
 const MAX_COVER_MB = 10;
-const MAX_FILE_MB = 650;
 const MIN_COVER_W = 1600;
 const MIN_COVER_H = 2560;
 const TARGET_RATIO = 1600 / 2560; // 0.625 (portrait, 1:1.6)
@@ -172,17 +165,29 @@ function NewProduct() {
   function handleFileChange(f: File | null) {
     setFileError(null);
     if (!f) { setFile(null); return; }
-    const ext = f.name.toLowerCase().split(".").pop() ?? "";
-    if (!typeMeta.extensions.includes(ext)) {
-      setFileError(`File must be one of: ${typeMeta.extensions.map((e) => "." + e).join(", ")}.`);
+    const acceptedList = typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ");
+    if (f.size === 0) {
+      setFileError("File is empty. Choose a valid file.");
       return;
     }
-    if (f.size > MAX_FILE_MB * 1024 * 1024) {
-      setFileError(`File must be under ${MAX_FILE_MB} MB.`);
+    const ext = f.name.toLowerCase().split(".").pop() ?? "";
+    if (!typeMeta.extensions.includes(ext)) {
+      setFileError(`Unsupported file type ".${ext || "unknown"}". Accepted: ${acceptedList}.`);
+      return;
+    }
+    if (f.type && typeMeta.mimeTypes.length > 0 && !typeMeta.mimeTypes.includes(f.type)) {
+      setFileError(`File contents don't match a ${typeMeta.label.toLowerCase()} (${f.type || "unknown type"}). Accepted: ${acceptedList}.`);
+      return;
+    }
+    const maxBytes = typeMeta.maxMb * 1024 * 1024;
+    if (f.size > maxBytes) {
+      const sizeMb = (f.size / (1024 * 1024)).toFixed(1);
+      setFileError(`File is ${sizeMb} MB — exceeds the ${typeMeta.maxMb} MB limit for ${typeMeta.label.toLowerCase()}s.`);
       return;
     }
     setFile(f);
   }
+
 
   const step1Valid = title.trim().length > 0
     && author.trim().length > 0
@@ -385,7 +390,7 @@ function NewProduct() {
             <div className="space-y-5">
               <h2 className="font-display text-2xl text-navy">Product file upload</h2>
               <p className="text-sm text-mute">
-                {typeMeta.label} accepts: <strong>{typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")}</strong>. Max size <strong>{MAX_FILE_MB} MB</strong>.
+                {typeMeta.label} accepts: <strong>{typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")}</strong>. Max size <strong>{typeMeta.maxMb} MB</strong>.
               </p>
               <FileInput file={file} onFile={handleFileChange} accept={typeMeta.accept} hint={`Drag & drop or tap to choose a ${typeMeta.label.toLowerCase()} file`} acceptedHint={typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")} />
               {fileError && (
