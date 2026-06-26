@@ -190,11 +190,14 @@ export type Database = {
           file_path: string | null
           file_size_bytes: number | null
           id: string
+          language: string
           platform_fee_pct: number
           price_cents: number
+          published: boolean
           rejected_reason: string | null
           seller_id: string
           status: Database["public"]["Enums"]["product_status"]
+          subtitle: string | null
           title: string
           updated_at: string
         }
@@ -217,11 +220,14 @@ export type Database = {
           file_path?: string | null
           file_size_bytes?: number | null
           id?: string
+          language?: string
           platform_fee_pct?: number
           price_cents: number
+          published?: boolean
           rejected_reason?: string | null
           seller_id: string
           status?: Database["public"]["Enums"]["product_status"]
+          subtitle?: string | null
           title: string
           updated_at?: string
         }
@@ -244,11 +250,14 @@ export type Database = {
           file_path?: string | null
           file_size_bytes?: number | null
           id?: string
+          language?: string
           platform_fee_pct?: number
           price_cents?: number
+          published?: boolean
           rejected_reason?: string | null
           seller_id?: string
           status?: Database["public"]["Enums"]["product_status"]
+          subtitle?: string | null
           title?: string
           updated_at?: string
         }
@@ -652,6 +661,9 @@ export type Database = {
         | "templates"
         | "audio"
         | "leadership"
+        | "finance"
+        | "purpose"
+        | "business"
       product_status: "draft" | "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -788,6 +800,9 @@ export const Constants = {
         "templates",
         "audio",
         "leadership",
+        "finance",
+        "purpose",
+        "business",
       ],
       product_status: ["draft", "pending", "approved", "rejected"],
     },
