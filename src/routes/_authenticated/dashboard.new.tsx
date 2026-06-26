@@ -317,7 +317,7 @@ function NewProduct() {
                 <strong>JPG or PNG</strong>, minimum <strong>1600×2560 px</strong>
                 {typeMeta.enforceCoverRatio ? <>, aspect ratio <strong>1:1.6</strong> (portrait)</> : null}.
               </p>
-              <CoverInput file={cover} preview={coverPreview} onFile={handleCoverChange} />
+              <CoverInput file={cover} preview={coverPreview} onFile={handleCoverChange} acceptedHint="JPG, PNG" />
               {coverDims && (
                 <div className="text-xs text-mute">
                   Detected: {coverDims.w}×{coverDims.h}px · ratio {(coverDims.w / coverDims.h).toFixed(3)}
