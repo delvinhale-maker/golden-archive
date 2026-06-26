@@ -89,28 +89,45 @@ function Dashboard() {
 
         {(isSeller || app?.status === "approved" || isAdmin) && (
           <>
-            <Link
-              to="/dashboard/new"
-              className="group flex items-center gap-4 rounded-2xl bg-gradient-to-r from-gold to-[#e0bf6f] text-navy p-5 md:p-6 hover:from-[#e0bf6f] hover:to-gold transition shadow-lg shadow-gold/20"
-            >
-              <div className="h-12 w-12 rounded-full bg-navy text-gold flex items-center justify-center shrink-0">
-                <Upload size={22} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-display text-xl md:text-2xl leading-tight">Upload Product</div>
-                <div className="text-sm text-navy/80 mt-0.5">eBooks, courses, audio, templates, prompt packs & bundles — universal upload flow.</div>
-              </div>
-              <Plus size={20} className="hidden sm:block opacity-60 group-hover:opacity-100" />
-            </Link>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Link
+                to="/dashboard/new"
+                search={{ type: "ebook" }}
+                className="group flex items-center gap-4 rounded-2xl bg-navy text-white p-5 md:p-6 hover:bg-navy/90 transition shadow-lg shadow-navy/10"
+              >
+                <div className="h-12 w-12 rounded-full bg-gold text-navy flex items-center justify-center shrink-0">
+                  <BookPlus size={22} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-display text-xl md:text-2xl leading-tight">Create eBook</div>
+                  <div className="text-sm text-white/75 mt-0.5">Title, cover, manuscript — publish a new eBook in minutes.</div>
+                </div>
+                <Plus size={20} className="hidden sm:block opacity-60 group-hover:opacity-100" />
+              </Link>
+              <Link
+                to="/dashboard/new"
+                className="group flex items-center gap-4 rounded-2xl bg-gradient-to-r from-gold to-[#e0bf6f] text-navy p-5 md:p-6 hover:from-[#e0bf6f] hover:to-gold transition shadow-lg shadow-gold/20"
+              >
+                <div className="h-12 w-12 rounded-full bg-navy text-gold flex items-center justify-center shrink-0">
+                  <Upload size={22} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-display text-xl md:text-2xl leading-tight">Upload Product</div>
+                  <div className="text-sm text-navy/80 mt-0.5">Courses, audio, templates, prompt packs & bundles.</div>
+                </div>
+                <Plus size={20} className="hidden sm:block opacity-60 group-hover:opacity-100" />
+              </Link>
+            </div>
 
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-display text-2xl text-navy">Your products</h2>
                 <Link
                   to="/dashboard/new"
+                  search={{ type: "ebook" }}
                   className="inline-flex items-center gap-1.5 rounded-full bg-navy text-white text-sm font-semibold px-4 py-2 hover:bg-navy/90"
                 >
-                  <Upload size={16} /> Upload Product
+                  <BookPlus size={16} /> Create eBook
                 </Link>
               </div>
 
