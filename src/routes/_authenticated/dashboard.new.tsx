@@ -390,7 +390,7 @@ function NewProduct() {
             <div className="space-y-5">
               <h2 className="font-display text-2xl text-navy">Product file upload</h2>
               <p className="text-sm text-mute">
-                {typeMeta.label} accepts: <strong>{typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")}</strong>. Max size <strong>{MAX_FILE_MB} MB</strong>.
+                {typeMeta.label} accepts: <strong>{typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")}</strong>. Max size <strong>{typeMeta.maxMb} MB</strong>.
               </p>
               <FileInput file={file} onFile={handleFileChange} accept={typeMeta.accept} hint={`Drag & drop or tap to choose a ${typeMeta.label.toLowerCase()} file`} acceptedHint={typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")} />
               {fileError && (
