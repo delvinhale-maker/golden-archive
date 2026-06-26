@@ -42,7 +42,7 @@ const CATEGORIES = [
 ];
 
 const CREATOR_NAMES = [
-  ["Delvin Hale", "Founder · AurumVault"],
+  ["AurumVault", "Curated by AurumVault"],
 ];
 
 // Category-specific title pools — every category has ≥ 14 unique titles

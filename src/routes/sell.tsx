@@ -100,7 +100,7 @@ function SellPage() {
           <form onSubmit={submit} className="bg-white rounded-2xl border border-ink/10 p-6 md:p-8 space-y-5">
             <h2 className="font-display text-2xl text-navy">Creator application</h2>
             <Field label="Brand / creator name">
-              <input required value={brandName} onChange={(e) => setBrandName(e.target.value)} className="inp" placeholder="e.g. Delvin Hale" />
+              <input required value={brandName} onChange={(e) => setBrandName(e.target.value)} className="inp" placeholder="Your brand or full name" />
             </Field>
             <Field label="What will you sell? (a few words)">
               <input value={productTypes} onChange={(e) => setProductTypes(e.target.value)} className="inp" placeholder="eBooks, courses, templates…" />
