@@ -17,24 +17,32 @@ export function useAuth() {
       if (mounted) setRoles((data ?? []).map((r) => r.role as AppRole));
     }
 
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!mounted) return;
+    async function syncSession() {
       setLoading(true);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await loadRoles(session.user.id);
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      const nextUser = data.session?.user ?? null;
+      setUser(nextUser);
+      if (nextUser) {
+        await loadRoles(nextUser.id);
       } else {
         setRoles([]);
       }
       if (mounted) setLoading(false);
+    }
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        setTimeout(() => void syncSession(), 0);
+      } else {
+        setRoles([]);
+        setLoading(false);
+      }
     });
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!mounted) return;
-      setUser(data.session?.user ?? null);
-      if (data.session?.user) await loadRoles(data.session.user.id);
-      if (mounted) setLoading(false);
-    });
+    void syncSession();
 
     return () => {
       mounted = false;
