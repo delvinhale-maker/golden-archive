@@ -73,6 +73,122 @@ export const createProductCheckout = createServerFn({ method: "POST" })
     }
   });
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const PROMOS: Record<string, { kind: "pct" | "flat"; value: number }> = {
+  AURUM10: { kind: "pct", value: 10 },
+  VAULT20: { kind: "pct", value: 20 },
+  FIRST5: { kind: "flat", value: 5 },
+};
+
+export const createCartCheckout = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      items: { id: string; title: string; priceCents: number; qty: number }[];
+      promoCode?: string;
+      returnUrl: string;
+      environment: StripeEnv;
+    }) => {
+      if (!Array.isArray(data.items) || data.items.length === 0) {
+        throw new Error("Cart is empty");
+      }
+      if (data.items.length > 50) throw new Error("Too many items");
+      for (const it of data.items) {
+        if (!it.id || typeof it.title !== "string") throw new Error("Invalid item");
+        if (!Number.isFinite(it.priceCents) || it.priceCents < 50) {
+          throw new Error("Invalid price");
+        }
+        if (!Number.isInteger(it.qty) || it.qty < 1 || it.qty > 99) {
+          throw new Error("Invalid qty");
+        }
+      }
+      if (data.environment !== "sandbox" && data.environment !== "live") {
+        throw new Error("Invalid environment");
+      }
+      return data;
+    },
+  )
+  .handler(async ({ data }): Promise<CheckoutResult> => {
+    try {
+      const supabase = createClient<Database>(
+        process.env.SUPABASE_URL!,
+        process.env.SUPABASE_PUBLISHABLE_KEY!,
+        { auth: { persistSession: false, autoRefreshToken: false, storage: undefined } },
+      );
+
+      // For DB-backed items, re-fetch authoritative price/title.
+      const dbIds = data.items.filter((i) => UUID_RE.test(i.id)).map((i) => i.id);
+      let dbMap: Record<string, { title: string; price_cents: number; seller_id: string }> = {};
+      if (dbIds.length) {
+        const { data: rows } = await supabase
+          .from("marketplace_products")
+          .select("id,title,price_cents,seller_id,status")
+          .in("id", dbIds)
+          .eq("status", "approved");
+        for (const r of rows ?? []) {
+          dbMap[r.id] = { title: r.title, price_cents: r.price_cents, seller_id: r.seller_id };
+        }
+      }
+
+      // Compute promo discount as % off each unit_amount, evenly.
+      const promo = data.promoCode ? PROMOS[data.promoCode.toUpperCase()] : null;
+      const subtotal = data.items.reduce((n, it) => {
+        const cents = dbMap[it.id]?.price_cents ?? it.priceCents;
+        return n + cents * it.qty;
+      }, 0);
+      const discountTotal =
+        promo?.kind === "pct"
+          ? Math.floor(subtotal * (promo.value / 100))
+          : promo
+            ? Math.min(promo.value * 100, subtotal)
+            : 0;
+      const factor = subtotal > 0 ? (subtotal - discountTotal) / subtotal : 1;
+
+      const stripe = createStripeClient(data.environment);
+
+      const line_items = data.items.map((it) => {
+        const authoritative = dbMap[it.id];
+        const baseCents = authoritative?.price_cents ?? it.priceCents;
+        const adjusted = Math.max(50, Math.round(baseCents * factor));
+        return {
+          price_data: {
+            currency: "usd",
+            product_data: { name: authoritative?.title ?? it.title },
+            unit_amount: adjusted,
+            tax_behavior: "exclusive",
+          },
+          quantity: it.qty,
+        };
+      });
+
+      const sellerIds = Array.from(
+        new Set(Object.values(dbMap).map((d) => d.seller_id).filter(Boolean)),
+      );
+
+      const session = await stripe.checkout.sessions.create({
+        line_items,
+        mode: "payment",
+        ui_mode: "embedded_page",
+        return_url: data.returnUrl,
+        payment_intent_data: {
+          description: `AurumVault order · ${data.items.length} item${data.items.length > 1 ? "s" : ""}`,
+        },
+        metadata: {
+          cart: "true",
+          environment: data.environment,
+          item_count: String(data.items.length),
+          promo_code: data.promoCode ?? "",
+          product_ids: dbIds.join(",").slice(0, 500),
+          seller_ids: sellerIds.join(",").slice(0, 500),
+        },
+        managed_payments: { enabled: true },
+      } as any);
+
+      return { clientSecret: session.client_secret ?? "" };
+    } catch (error) {
+      return { error: getStripeErrorMessage(error) };
+    }
+  });
+
 export const getDownloadInfo = createServerFn({ method: "GET" })
   .inputValidator((data: { token: string }) => {
     if (!/^[a-f0-9]{32,128}$/.test(data.token)) throw new Error("Invalid token");
