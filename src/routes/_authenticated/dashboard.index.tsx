@@ -6,7 +6,7 @@ import { AVLogo } from "@/components/marketplace/AVLogo";
 import { Plus, LogOut, ShieldCheck, Package, Hourglass, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/dashboard")({
+export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: Dashboard,
 });
 
