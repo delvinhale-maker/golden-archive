@@ -180,10 +180,10 @@ function AdminProductsPage() {
               </Field>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Category">
-                  <select value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })}
-                    className="w-full h-10 rounded-md border border-ink/15 px-2 bg-white">
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                    {!CATEGORIES.includes(editing.category) && <option value={editing.category}>{editing.category}</option>}
+                  <select value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value as Category })}
+                    className="w-full h-10 rounded-md border border-ink/15 px-2 bg-white capitalize">
+                    {CATEGORIES.map(c => <option key={c} value={c} className="capitalize">{c}</option>)}
+                  </select>
                   </select>
                 </Field>
                 <Field label="Price (USD)">
