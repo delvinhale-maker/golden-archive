@@ -80,6 +80,7 @@ function NewProduct() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [coverDims, setCoverDims] = useState<{ w: number; h: number } | null>(null);
   const [coverError, setCoverError] = useState<string | null>(null);
+  const [coverChecking, setCoverChecking] = useState(false);
 
   // Step 3
   const [file, setFile] = useState<File | null>(null);
@@ -101,13 +102,21 @@ function NewProduct() {
   }, [user]);
 
   useEffect(() => {
-    if (!cover) { setCoverPreview(null); setCoverDims(null); return; }
+    if (!cover) { setCoverPreview(null); setCoverDims(null); setCoverChecking(false); return; }
     const url = URL.createObjectURL(cover);
     setCoverPreview(url);
+    setCoverDims(null);
+    setCoverChecking(true);
     const img = new Image();
     img.onload = () => {
+      setCoverChecking(false);
       setCoverDims({ w: img.naturalWidth, h: img.naturalHeight });
       validateCover(img.naturalWidth, img.naturalHeight);
+    };
+    img.onerror = () => {
+      setCoverChecking(false);
+      setCoverDims(null);
+      setCoverError("Could not read this image. Please try a different JPG or PNG file.");
     };
     img.src = url;
     return () => URL.revokeObjectURL(url);
@@ -351,17 +360,20 @@ function NewProduct() {
                 acceptedHint="JPG, PNG"
                 onZoom={() => setCoverLightbox(true)}
               />
+              {coverChecking && (
+                <div className="text-xs text-mute">Checking image dimensions…</div>
+              )}
               {coverDims && (
                 <div className="text-xs text-mute">
-                  Detected: {coverDims.w}×{coverDims.h}px · ratio {(coverDims.w / coverDims.h).toFixed(3)}
+                  Detected: {coverDims.w}×{coverDims.h}px · ratio {(coverDims.w / coverDims.h).toFixed(3)} · minimum {MIN_COVER_W}×{MIN_COVER_H}px
                 </div>
               )}
               {coverError && (
-                <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+                <div role="alert" aria-live="polite" className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
                   <AlertCircle size={16} className="mt-0.5 shrink-0" /> <span>{coverError}</span>
                 </div>
               )}
-              {cover && !coverError && (
+              {cover && !coverError && !coverChecking && coverDims && (
                 <div className="flex items-start gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
                   <CheckCircle2 size={16} className="mt-0.5 shrink-0" /> <span>Cover meets the required specs.</span>
                 </div>
