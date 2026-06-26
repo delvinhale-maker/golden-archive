@@ -80,6 +80,7 @@ function NewProduct() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [coverDims, setCoverDims] = useState<{ w: number; h: number } | null>(null);
   const [coverError, setCoverError] = useState<string | null>(null);
+  const [coverChecking, setCoverChecking] = useState(false);
 
   // Step 3
   const [file, setFile] = useState<File | null>(null);
