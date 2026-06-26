@@ -84,12 +84,21 @@ export function MarketHeader() {
 
           <div className="ml-auto flex items-center gap-1 md:ml-0 md:gap-2">
             {canUpload ? (
-              <Link
-                to="/dashboard/new"
-                className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-gold px-3 py-1.5 text-[12px] font-semibold text-navy hover:bg-gold/90 transition"
-              >
-                <Upload size={14} /> Upload Product
-              </Link>
+              <>
+                <Link
+                  to="/dashboard/new"
+                  search={{ type: "ebook" }}
+                  className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-navy px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-navy/90 transition"
+                >
+                  <BookPlus size={14} /> Create eBook
+                </Link>
+                <Link
+                  to="/dashboard/new"
+                  className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-gold px-3 py-1.5 text-[12px] font-semibold text-navy hover:bg-gold/90 transition"
+                >
+                  <Upload size={14} /> Upload Product
+                </Link>
+              </>
             ) : (
               <Link
                 to="/sell"
