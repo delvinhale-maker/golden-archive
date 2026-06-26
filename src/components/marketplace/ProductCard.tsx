@@ -25,13 +25,22 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         className="relative block"
       >
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#f5f4ef]">
-          <ProductCover
-            title={product.title}
-            category={product.category}
-            productId={product.id}
-            index={index}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-          />
+          {product.image && /^https?:\/\//.test(product.image) ? (
+            <img
+              src={product.image}
+              alt={product.title}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            />
+          ) : (
+            <ProductCover
+              title={product.title}
+              category={product.category}
+              productId={product.id}
+              index={index}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            />
+          )}
           {product.bestseller && (
             <span className="absolute left-3 top-3 rounded-sm bg-gold px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-navy">
               Bestseller
