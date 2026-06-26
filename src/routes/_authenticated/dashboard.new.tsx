@@ -224,7 +224,9 @@ function PublishFlow() {
   }
 
   const step1Valid = title.trim() && author.trim() && description.trim().length >= 150;
-  const step2Valid = ownsRights && cover && !coverError && coverDims && file && !fileError;
+  const hasCover = (!!cover && !coverError && !!coverDims) || (!cover && !!existingCoverUrl);
+  const hasFile = (!!file && !fileError) || (!file && !!existingFilePath);
+  const step2Valid = ownsRights && hasCover && hasFile;
   const step3Valid = !!price && parseFloat(price) >= 1;
 
   const priceNum = parseFloat(price || "0");
@@ -235,7 +237,7 @@ function PublishFlow() {
     if (step === 1 && !step1Valid) return toast.error("Fill all required fields (description ≥ 150 chars).");
     if (step === 2 && !step2Valid) {
       if (!ownsRights) return toast.error("You must confirm you own the rights to this content.");
-      return toast.error("Upload a valid cover and manuscript.");
+      return toast.error(isEditing ? "Cover or manuscript is invalid." : "Upload a valid cover and manuscript.");
     }
     if (step === 3 && !step3Valid) return toast.error("Enter a price of at least $1.");
     setStep((step + 1) as StepNum);
