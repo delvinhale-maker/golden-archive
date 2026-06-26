@@ -249,7 +249,9 @@ function CoverInput({ file, preview, onFile }: { file: File | null; preview: str
       />
       {preview ? (
         <div className="relative rounded-xl border border-ink/10 bg-paper overflow-hidden">
-          <img src={preview} alt="Cover preview" className="w-full max-h-64 object-contain bg-white" />
+          <div className="mx-auto bg-white" style={{ aspectRatio: "1 / 1.6", maxWidth: "240px" }}>
+            <img src={preview} alt="Cover preview" className="w-full h-full object-cover" />
+          </div>
           <div className="flex items-center justify-between px-3 py-2 bg-white border-t border-ink/10">
             <span className="text-xs text-mute truncate">
               {file?.name} {file ? `· ${(file.size / 1024 / 1024).toFixed(2)} MB` : ""}
