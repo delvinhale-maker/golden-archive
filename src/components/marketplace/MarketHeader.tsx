@@ -1,10 +1,23 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Menu, Search, ShoppingBag, User, X, LayoutDashboard, Store } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import {
+  Heart,
+  LayoutDashboard,
+  Loader2,
+  Menu,
+  Search,
+  ShoppingBag,
+  Store,
+  User,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AVLogo } from "./AVLogo";
-import { useCart, useWishlist } from "@/hooks/use-av-store";
+import { ProductCover } from "./ProductCover";
+import { useCart, useWishlist, openCartDrawer } from "@/hooks/use-av-store";
 import { useAuth } from "@/hooks/use-auth";
+import { getProducts } from "@/lib/marketplace.functions";
 
 const CATEGORIES = [
   "All",
@@ -56,26 +69,14 @@ export function MarketHeader() {
 
           <AVLogo />
 
-          <form
-            onSubmit={onSearch}
-            className="relative ml-auto hidden flex-1 max-w-[40%] md:flex"
-          >
-            <input
-              type="search"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search eBooks, courses, templates..."
-              className="h-11 w-full rounded-full bg-white pl-5 pr-14 text-[14px] text-ink placeholder:text-mute focus:outline-none focus:ring-2 focus:ring-[var(--gold)]"
+          <div className="relative ml-auto hidden flex-1 max-w-[40%] md:flex">
+            <LiveSearch
+              q={q}
+              setQ={setQ}
+              onSubmit={onSearch}
+              onPick={() => setQ("")}
             />
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              type="submit"
-              aria-label="Search"
-              className="absolute right-1 top-1 flex h-9 w-11 items-center justify-center rounded-full bg-gold text-navy"
-            >
-              <Search size={16} />
-            </motion.button>
-          </form>
+          </div>
 
           <div className="ml-auto flex items-center gap-1 md:ml-0 md:gap-2">
             <Link
@@ -110,29 +111,21 @@ export function MarketHeader() {
               label="Cart"
               icon={<ShoppingBag size={20} />}
               badge={cart.count}
+              onClick={openCartDrawer}
             />
           </div>
         </div>
 
         {/* Mobile search */}
-        <form onSubmit={onSearch} className="px-4 pb-3 md:hidden">
-          <div className="relative">
-            <input
-              type="search"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search the vault..."
-              className="h-11 w-full rounded-full bg-white pl-5 pr-14 text-[14px] text-ink placeholder:text-mute focus:outline-none focus:ring-2 focus:ring-[var(--gold)]"
-            />
-            <button
-              type="submit"
-              aria-label="Search"
-              className="absolute right-1 top-1 flex h-9 w-11 items-center justify-center rounded-full bg-gold text-navy"
-            >
-              <Search size={16} />
-            </button>
-          </div>
-        </form>
+        <div className="px-4 pb-3 md:hidden">
+          <LiveSearch
+            q={q}
+            setQ={setQ}
+            onSubmit={onSearch}
+            onPick={() => setQ("")}
+            placeholder="Search the vault..."
+          />
+        </div>
       </div>
 
       {/* Category bar */}
@@ -248,18 +241,156 @@ export function MarketHeader() {
   );
 }
 
+/* --------------------------- Live search dropdown --------------------------- */
+
+function LiveSearch({
+  q,
+  setQ,
+  onSubmit,
+  onPick,
+  placeholder = "Search eBooks, courses, templates...",
+}: {
+  q: string;
+  setQ: (v: string) => void;
+  onSubmit: (e: FormEvent) => void;
+  onPick: () => void;
+  placeholder?: string;
+}) {
+  const [debounced, setDebounced] = useState(q);
+  const [focused, setFocused] = useState(false);
+  const navigate = useNavigate();
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(q.trim()), 220);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (!boxRef.current?.contains(e.target as Node)) setFocused(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
+
+  const enabled = debounced.length >= 2;
+  const query = useQuery({
+    queryKey: ["search-suggest", debounced],
+    enabled,
+    queryFn: () => getProducts({ data: { q: debounced, page: 1 } }),
+    staleTime: 30_000,
+  });
+
+  const items = (query.data?.items ?? []).slice(0, 6);
+  const open = focused && enabled;
+
+  return (
+    <div ref={boxRef} className="relative w-full">
+      <form onSubmit={onSubmit} className="relative w-full">
+        <input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onFocus={() => setFocused(true)}
+          placeholder={placeholder}
+          className="h-11 w-full rounded-full bg-white pl-5 pr-14 text-[14px] text-ink placeholder:text-mute focus:outline-none focus:ring-2 focus:ring-[var(--gold)]"
+        />
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          type="submit"
+          aria-label="Search"
+          className="absolute right-1 top-1 flex h-9 w-11 items-center justify-center rounded-full bg-gold text-navy"
+        >
+          <Search size={16} />
+        </motion.button>
+      </form>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="absolute left-0 right-0 top-[52px] z-50 overflow-hidden rounded-xl border border-line bg-white shadow-2xl"
+          >
+            {query.isLoading ? (
+              <div className="flex items-center gap-2 px-4 py-6 text-sm text-mute">
+                <Loader2 size={14} className="animate-spin" /> Searching...
+              </div>
+            ) : items.length === 0 ? (
+              <div className="px-4 py-6 text-sm text-mute">
+                No matches for "{debounced}"
+              </div>
+            ) : (
+              <>
+                <ul className="max-h-[60vh] overflow-y-auto py-1">
+                  {items.map((p) => (
+                    <li key={p.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onPick();
+                          setFocused(false);
+                          navigate({ to: "/products/$id", params: { id: p.id } });
+                        }}
+                        className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-[#fafaf7]"
+                      >
+                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded bg-[#f5f4ef]">
+                          <ProductCover
+                            title={p.title}
+                            category={p.category}
+                            productId={p.id}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-semibold text-ink">
+                            {p.title}
+                          </div>
+                          <div className="text-[11px] text-mute">
+                            {p.category} · ${p.price}
+                          </div>
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFocused(false);
+                    navigate({ to: "/products", search: { q: debounced } as never });
+                  }}
+                  className="block w-full border-t border-line bg-[#fafaf7] py-2.5 text-center text-xs font-bold uppercase tracking-caps text-navy hover:text-gold"
+                >
+                  See all results for "{debounced}" →
+                </button>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function HeaderIcon({
   icon,
   label,
   badge,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   badge?: number;
+  onClick?: () => void;
 }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       aria-label={label}
       className="relative flex h-11 w-11 items-center justify-center rounded-full text-white hover:bg-white/10"
     >
