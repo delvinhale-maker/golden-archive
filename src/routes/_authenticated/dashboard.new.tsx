@@ -342,7 +342,7 @@ function NewProduct() {
               <p className="text-sm text-mute">
                 {typeMeta.label} accepts: <strong>{typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")}</strong>. Max size <strong>{MAX_FILE_MB} MB</strong>.
               </p>
-              <FileInput file={file} onFile={handleFileChange} accept={typeMeta.accept} hint={`Tap to choose a ${typeMeta.label.toLowerCase()} file (${typeMeta.extensions.map((e) => "." + e).join(", ")})`} />
+              <FileInput file={file} onFile={handleFileChange} accept={typeMeta.accept} hint={`Drag & drop or tap to choose a ${typeMeta.label.toLowerCase()} file`} acceptedHint={typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ")} />
               {fileError && (
                 <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
                   <AlertCircle size={16} className="mt-0.5 shrink-0" /> <span>{fileError}</span>
