@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   BadgeCheck,
   Check,
@@ -9,10 +9,12 @@ import {
   Lock,
   Share2,
   Star,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
+import { StripeEmbeddedProductCheckout } from "@/components/StripeEmbeddedCheckout";
 import { useWishlist } from "@/hooks/use-av-store";
 import { getProduct, type Product } from "@/lib/marketplace.functions";
 
@@ -50,6 +52,7 @@ function ProductPage() {
   const wishlist = useWishlist();
   const liked = wishlist.has(product.id);
   const [active, setActive] = useState(0);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   void active;
 
   return (
@@ -171,6 +174,7 @@ function ProductPage() {
             <motion.button
               whileTap={{ scale: 0.98 }}
               whileHover={{ scale: 1.01 }}
+              onClick={() => setCheckoutOpen(true)}
               className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full bg-gold text-base font-bold text-navy shadow-gold-glow"
             >
               Buy Now · ${product.price}
