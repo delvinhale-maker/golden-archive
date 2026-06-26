@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader, getRequestUrl } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, Output } from "ai";
 import { z } from "zod";
@@ -35,11 +36,12 @@ export const reviewProduct = createServerFn({ method: "POST" })
     const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
     const { data: product, error: pErr } = await supabase
       .from("marketplace_products")
-      .select("id, seller_id, title, description, category, price_cents, cover_url")
+      .select("id, seller_id, title, description, category, price_cents, cover_url, ai_review_status")
       .eq("id", data.productId)
       .maybeSingle();
     if (pErr || !product) throw new Error("Product not found");
     if (!isAdmin && product.seller_id !== userId) throw new Error("Forbidden");
+    const prevStatus = product.ai_review_status;
 
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
@@ -108,5 +110,95 @@ Then write a polished SEO blurb (140-160 chars) and a refined SEO title (<60 cha
       .eq("id", product.id);
     if (updErr) throw updErr;
 
+    // Notify seller on transition into a terminal state (pass / warn / fail).
+    // Skip when status didn't actually change.
+    if (output.status !== prevStatus && (output.status === "pass" || output.status === "warn" || output.status === "fail")) {
+      try {
+        await notifySellerOfReview({
+          sellerId: product.seller_id,
+          productId: product.id,
+          productTitle: product.title,
+          status: output.status,
+          score: output.score,
+          issues: output.issues,
+          callerAuthHeader: getRequestHeader("Authorization") ?? null,
+          origin: (() => { try { return getRequestUrl().origin; } catch { return null; } })(),
+        });
+      } catch (e) {
+        console.error("notifySellerOfReview failed", e);
+      }
+    }
+
     return output;
   });
+
+async function notifySellerOfReview(params: {
+  sellerId: string;
+  productId: string;
+  productTitle: string;
+  status: "pass" | "warn" | "fail";
+  score: number;
+  issues: AIReviewResult["issues"];
+  callerAuthHeader: string | null;
+  origin: string | null;
+}) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const approved = params.status === "pass";
+  const uiStatus: "approved" | "needs-changes" = approved ? "approved" : "needs-changes";
+  const title = approved
+    ? `"${params.productTitle}" passed AI review`
+    : `"${params.productTitle}" needs changes`;
+  const body = approved
+    ? `Score ${params.score}/100. Your product is approved and ready for the storefront.`
+    : `Score ${params.score}/100. Review the flagged items and re-submit.`;
+  const link = `/dashboard`;
+
+  // In-app notification
+  await supabaseAdmin.from("notifications").insert({
+    user_id: params.sellerId,
+    type: `product.review.${uiStatus}`,
+    title,
+    body,
+    link,
+    metadata: {
+      productId: params.productId,
+      score: params.score,
+      status: uiStatus,
+      issues: params.issues,
+    },
+  });
+
+  // Look up seller email
+  const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(params.sellerId);
+  const email = userRes?.user?.email;
+  if (!email) return;
+
+  // Display name from profile
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("display_name")
+    .eq("id", params.sellerId)
+    .maybeSingle();
+
+  // Internal call to the email send route, forwarding the caller's auth.
+  if (!params.callerAuthHeader || !params.origin) return;
+  const url = `${params.origin}/lovable/email/transactional/send`;
+  await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: params.callerAuthHeader },
+    body: JSON.stringify({
+      templateName: "product-review-update",
+      recipientEmail: email,
+      idempotencyKey: `product-review-${params.productId}-${uiStatus}-${Date.now()}`,
+      templateData: {
+        brandName: profile?.display_name ?? email.split("@")[0],
+        productTitle: params.productTitle,
+        status: uiStatus,
+        score: params.score,
+        issues: params.issues,
+        productUrl: `https://aurumvault.store/products/${params.productId}`,
+        siteUrl: "https://aurumvault.store",
+      },
+    }),
+  });
+}

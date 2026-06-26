@@ -18,6 +18,7 @@ import { ProductCover } from "./ProductCover";
 import { useCart, useWishlist, openCartDrawer } from "@/hooks/use-av-store";
 import { useAuth } from "@/hooks/use-auth";
 import { getProducts } from "@/lib/marketplace.functions";
+import { NotificationsBell } from "./NotificationsBell";
 
 const CATEGORIES = [
   "All",
@@ -86,13 +87,16 @@ export function MarketHeader() {
               <Store size={14} /> Sell on AurumVault
             </Link>
             {user ? (
-              <Link
-                to="/dashboard"
-                aria-label="Dashboard"
-                className="relative flex h-11 w-11 items-center justify-center rounded-full text-white hover:bg-white/10"
-              >
-                <LayoutDashboard size={20} />
-              </Link>
+              <>
+                <NotificationsBell />
+                <Link
+                  to="/dashboard"
+                  aria-label="Dashboard"
+                  className="relative flex h-11 w-11 items-center justify-center rounded-full text-white hover:bg-white/10"
+                >
+                  <LayoutDashboard size={20} />
+                </Link>
+              </>
             ) : (
               <Link
                 to="/auth"
