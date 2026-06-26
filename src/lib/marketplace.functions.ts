@@ -103,7 +103,10 @@ export type Product = {
   creator: { id: string; name: string; verified: boolean; avatar?: string };
   description?: string;
   included?: string[];
+  aiReviewStatus?: "pass" | "warn" | "fail" | "pending" | null;
+  aiReviewScore?: number | null;
 };
+
 
 const CATEGORIES = [
   "eBooks",
