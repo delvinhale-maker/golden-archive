@@ -102,13 +102,21 @@ function NewProduct() {
   }, [user]);
 
   useEffect(() => {
-    if (!cover) { setCoverPreview(null); setCoverDims(null); return; }
+    if (!cover) { setCoverPreview(null); setCoverDims(null); setCoverChecking(false); return; }
     const url = URL.createObjectURL(cover);
     setCoverPreview(url);
+    setCoverDims(null);
+    setCoverChecking(true);
     const img = new Image();
     img.onload = () => {
+      setCoverChecking(false);
       setCoverDims({ w: img.naturalWidth, h: img.naturalHeight });
       validateCover(img.naturalWidth, img.naturalHeight);
+    };
+    img.onerror = () => {
+      setCoverChecking(false);
+      setCoverDims(null);
+      setCoverError("Could not read this image. Please try a different JPG or PNG file.");
     };
     img.src = url;
     return () => URL.revokeObjectURL(url);
