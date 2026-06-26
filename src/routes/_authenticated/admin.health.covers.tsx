@@ -1,10 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { auditCovers, type CoverAuditResult } from "@/lib/cover-audit.functions";
-import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
+import {
+  auditCovers,
+  getCachedCoverAudit,
+  type CoverAuditResult,
+} from "@/lib/cover-audit.functions";
+import { ArrowLeft, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
 
 const CATEGORIES = ["ebooks", "courses", "templates", "audio", "leadership"] as const;
 type Category = (typeof CATEGORIES)[number];
@@ -22,9 +26,11 @@ function CoverAuditPage() {
   const { user, loading } = useAuth();
   const { category, view } = Route.useSearch();
   const run = useServerFn(auditCovers);
+  const loadCached = useServerFn(getCachedCoverAudit);
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
   const [result, setResult] = useState<CoverAuditResult | null>(null);
+  const [fromCache, setFromCache] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -49,19 +55,39 @@ function CoverAuditPage() {
     };
   }, [loading, user, navigate]);
 
+  // Default: read the cached row written by the nightly cron job.
   useEffect(() => {
     if (!isAdmin) return;
     let active = true;
     setBusy(true);
     setErr(null);
-    run({ data: { category } })
-      .then((r) => active && setResult(r))
+    setResult(null);
+    loadCached({ data: { category } })
+      .then((r) => {
+        if (!active) return;
+        setResult(r);
+        setFromCache(!!r);
+      })
       .catch((e) => active && setErr(e instanceof Error ? e.message : String(e)))
       .finally(() => active && setBusy(false));
     return () => {
       active = false;
     };
-  }, [isAdmin, category, run]);
+  }, [isAdmin, category, loadCached]);
+
+  const runNow = useCallback(async () => {
+    setBusy(true);
+    setErr(null);
+    try {
+      const r = await run({ data: { category } });
+      setResult(r);
+      setFromCache(false);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }, [run, category]);
 
   const failing = useMemo(() => result?.failing ?? [], [result]);
   const passing = useMemo(() => result?.results.filter((r) => r.ok) ?? [], [result]);
@@ -81,11 +107,23 @@ function CoverAuditPage() {
         <Link to="/admin" className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-[#0f1629]">
           <ArrowLeft className="w-4 h-4" /> Back to admin
         </Link>
-        <h1 className="text-2xl font-semibold mt-2 flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-[#c9a44a]" /> Cover Audit
-        </h1>
+        <div className="flex items-center justify-between mt-2 flex-wrap gap-3">
+          <h1 className="text-2xl font-semibold flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-[#c9a44a]" /> Cover Audit
+          </h1>
+          <button
+            onClick={runNow}
+            disabled={busy}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#0f1629] text-white text-xs disabled:opacity-50"
+          >
+            {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+            Run now
+          </button>
+        </div>
         <p className="text-xs text-slate-500 mt-1">
-          Admin-only · Checked {result?.checkedAt ?? "…"}
+          {result
+            ? `${fromCache ? "Cached" : "Live"} · checked ${new Date(result.checkedAt).toLocaleString()}`
+            : "Admin-only · no cached run yet — runs nightly at 03:00 UTC"}
         </p>
       </header>
 

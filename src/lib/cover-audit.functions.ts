@@ -1,94 +1,64 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
+import {
+  COVER_AUDIT_CATEGORIES,
+  type CoverAuditResult,
+  type CoverAuditRow,
+  type CoverCategory,
+} from "./cover-audit.server";
 
-const CATEGORIES = ["ebooks", "courses", "templates", "audio", "leadership"] as const;
-type Category = (typeof CATEGORIES)[number];
+export type { CoverAuditResult, CoverAuditRow, CoverCategory };
 
-export type CoverAuditRow = {
-  id: string;
-  title: string;
-  category: string;
-  cover_url: string | null;
-  ok: boolean;
-  status?: number;
-  contentType?: string;
-  reason?: string;
-};
+export type CachedCoverAudit = CoverAuditResult & { cached: true };
 
-export type CoverAuditResult = {
-  ok: boolean;
-  checkedAt: string;
-  category: Category;
-  summary: { total: number; passing: number; failing: number };
-  results: CoverAuditRow[];
-  failing: CoverAuditRow[];
-};
-
-async function checkUrl(url: string) {
-  try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 6000);
-    let res = await fetch(url, { method: "HEAD", signal: ctrl.signal });
-    if (!res.ok || !res.headers.get("content-type")) {
-      res = await fetch(url, { method: "GET", headers: { Range: "bytes=0-0" }, signal: ctrl.signal });
-    }
-    clearTimeout(t);
-    const ct = res.headers.get("content-type") ?? undefined;
-    const ok = res.ok && !!ct && ct.startsWith("image/");
-    return { ok, status: res.status, contentType: ct };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : String(e) };
-  }
+async function assertAdmin(supabase: SupabaseClient<Database>, userId: string) {
+  const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+  if (!isAdmin) throw new Error("Forbidden: admin only");
 }
 
+// Run on-demand from the admin page. Writes through to the cache table.
 export const auditCovers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ category: z.enum(CATEGORIES).default("ebooks") }).parse(input ?? {}),
+    z.object({ category: z.enum(COVER_AUDIT_CATEGORIES).default("ebooks") }).parse(input ?? {}),
   )
   .handler(async ({ data, context }): Promise<CoverAuditResult> => {
     const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+    const { runCoverAudit, writeCoverAuditCache } = await import("./cover-audit.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const result = await runCoverAudit(supabase, data.category);
+    // Use admin client to bypass RLS for the cache write so on-demand and cron share one table.
+    await writeCoverAuditCache(supabaseAdmin, result);
+    return result;
+  });
 
-    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-    if (!isAdmin) throw new Error("Forbidden: admin only");
-
-    const { data: rows, error } = await supabase
-      .from("marketplace_products")
-      .select("id,title,category,cover_url")
-      .eq("status", "approved")
-      .eq("category", data.category);
-
+// Read the cached row for a single category. Admin only.
+export const getCachedCoverAudit = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ category: z.enum(COVER_AUDIT_CATEGORIES).default("ebooks") }).parse(input ?? {}),
+  )
+  .handler(async ({ data, context }): Promise<CachedCoverAudit | null> => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+    const { data: row, error } = await supabase
+      .from("cover_audit_runs")
+      .select("*")
+      .eq("category", data.category)
+      .maybeSingle();
     if (error) throw new Error(error.message);
-
-    const results: CoverAuditRow[] = await Promise.all(
-      (rows ?? []).map(async (r) => {
-        const hasHttp = !!r.cover_url && /^https?:\/\//.test(r.cover_url);
-        if (!hasHttp) {
-          return { ...r, ok: false, reason: "missing_or_invalid_url" };
-        }
-        const probe = await checkUrl(r.cover_url!);
-        return {
-          ...r,
-          ok: probe.ok,
-          status: probe.status,
-          contentType: probe.contentType,
-          reason: probe.ok
-            ? undefined
-            : probe.error
-              ? `fetch_error:${probe.error}`
-              : `bad_response:${probe.status ?? "?"}:${probe.contentType ?? "no-content-type"}`,
-        };
-      }),
-    );
-
-    const failing = results.filter((r) => !r.ok);
+    if (!row) return null;
     return {
-      ok: failing.length === 0,
-      checkedAt: new Date().toISOString(),
-      category: data.category,
-      summary: { total: results.length, passing: results.length - failing.length, failing: failing.length },
-      results,
-      failing,
+      cached: true,
+      ok: row.ok,
+      checkedAt: row.checked_at,
+      category: row.category as CoverCategory,
+      summary: { total: row.total, passing: row.passing, failing: row.failing },
+      results: (row.results as CoverAuditRow[]) ?? [],
+      failing: (row.failing_rows as CoverAuditRow[]) ?? [],
     };
   });
