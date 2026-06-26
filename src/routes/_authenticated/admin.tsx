@@ -143,7 +143,8 @@ function AdminPage() {
           <span className="inline-flex items-center gap-1.5 text-sm rounded-full bg-gold/15 text-gold px-3 py-1">
             <ShieldCheck size={14} /> Admin
           </span>
-          <Link to="/dashboard" className="ml-auto text-sm text-white/70 hover:text-white inline-flex items-center gap-1">
+          <Link to="/admin/products" className="ml-auto text-sm text-white/70 hover:text-white">All products</Link>
+          <Link to="/dashboard" className="text-sm text-white/70 hover:text-white inline-flex items-center gap-1">
             <ArrowLeft size={14} /> Dashboard
           </Link>
         </div>
