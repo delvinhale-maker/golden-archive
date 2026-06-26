@@ -9,6 +9,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
+  validateSearch: (search: Record<string, unknown>) => {
+    const t = typeof search.type === "string" ? search.type : undefined;
+    const allowed = ["ebook", "manuscript", "prompt-pack", "template", "audio", "course", "bundle", "other"] as const;
+    return { type: (allowed as readonly string[]).includes(t ?? "") ? (t as (typeof allowed)[number]) : undefined };
+  },
   component: NewProduct,
 });
 
