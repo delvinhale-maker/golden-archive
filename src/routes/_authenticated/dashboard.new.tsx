@@ -356,23 +356,6 @@ function NewProduct() {
               )}
             </div>
           )}
-              <p className="text-sm text-mute">
-                Accepted: <strong>PDF or EPUB</strong>. Max size <strong>650 MB</strong> (KDP limit).
-              </p>
-              <FileInput file={file} onFile={handleFileChange} />
-              {fileError && (
-                <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
-                  <AlertCircle size={16} className="mt-0.5 shrink-0" /> <span>{fileError}</span>
-                </div>
-              )}
-              {file && !fileError && (
-                <div className="flex items-start gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-                  <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
-                  <span><strong>{file.name}</strong> · {(file.size / 1024 / 1024).toFixed(2)} MB — ready to upload.</span>
-                </div>
-              )}
-            </div>
-          )}
 
           {step === 4 && (
             <div className="space-y-5">
