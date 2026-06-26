@@ -20,7 +20,10 @@ type Product = {
   cover_url: string | null;
   created_at: string;
   rejected_reason: string | null;
+  ai_review_status: string | null;
+  ai_review_score: number | null;
 };
+
 
 function Dashboard() {
   const navigate = useNavigate();
