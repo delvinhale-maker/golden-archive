@@ -106,6 +106,23 @@ function NewProduct() {
     return () => URL.revokeObjectURL(url);
   }, [cover]);
 
+  // Generate inline preview for product file
+  useEffect(() => {
+    setFileTextPreview(null);
+    if (!file) { setFilePreviewUrl(null); return; }
+    const ext = file.name.toLowerCase().split(".").pop() ?? "";
+    const blobTypes = ["pdf", "mp3", "wav", "m4a", "mp4", "mov", "jpg", "jpeg", "png"];
+    if (blobTypes.includes(ext)) {
+      const url = URL.createObjectURL(file);
+      setFilePreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setFilePreviewUrl(null);
+    if (["txt", "json"].includes(ext) && file.size < 2 * 1024 * 1024) {
+      file.slice(0, 2048).text().then((t) => setFileTextPreview(t)).catch(() => {});
+    }
+  }, [file]);
+
   function validateCover(w: number, h: number) {
     if (w < MIN_COVER_W || h < MIN_COVER_H) {
       setCoverError(`Image is ${w}×${h}px. Minimum ${MIN_COVER_W}×${MIN_COVER_H}px required.`);
