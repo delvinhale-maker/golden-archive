@@ -354,8 +354,17 @@ function PublishFlow() {
       <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-mute hover:text-navy">
         <ArrowLeft size={14} /> Back to Bookshelf
       </Link>
-      <h1 className="font-display text-3xl md:text-4xl text-navy mt-3">Publish a new title</h1>
-      <p className="text-mute mt-1">A KDP-style flow. AurumVault keeps 9%; you keep 91%.</p>
+      <h1 className="font-display text-3xl md:text-4xl text-navy mt-3">
+        {isEditing ? "Edit title" : "Publish a new title"}
+      </h1>
+      <p className="text-mute mt-1">
+        {isEditing
+          ? "Update any field and re-publish. Republishing sends the title back through AI review."
+          : "A KDP-style flow. AurumVault keeps 9%; you keep 91%."}
+      </p>
+      {loadingEdit && (
+        <p className="mt-2 text-xs text-mute">Loading title…</p>
+      )}
 
       {canSell === false && (
         <div className="mt-6 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
