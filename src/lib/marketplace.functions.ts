@@ -65,6 +65,7 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
       .from("marketplace_products")
       .select("id,title,category,price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score")
       .eq("status", "approved")
+      .eq("published", true)
       .order("created_at", { ascending: false });
     if (opts.category && opts.category !== "All") {
       query = query.eq("category", opts.category.toLowerCase() as "ebooks" | "courses" | "templates" | "audio" | "leadership");
@@ -393,6 +394,7 @@ export const getProduct = createServerFn({ method: "GET" })
       .select("id,title,category,price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score")
       .eq("id", data.id)
       .eq("status", "approved")
+      .eq("published", true)
       .maybeSingle();
     if (!row) return null as unknown as Product;
     return dbRowToProduct(row as DbProductRow);

@@ -9,6 +9,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
+  validateSearch: (search: Record<string, unknown>) => {
+    const t = typeof search.type === "string" ? search.type : undefined;
+    const allowed = ["ebook", "manuscript", "prompt-pack", "template", "audio", "course", "bundle", "other"] as const;
+    return { type: (allowed as readonly string[]).includes(t ?? "") ? (t as (typeof allowed)[number]) : undefined };
+  },
   component: NewProduct,
 });
 
@@ -57,9 +62,11 @@ function NewProduct() {
   const { user } = useAuth();
   const runReview = useServerFn(reviewProduct);
 
-  const [step, setStep] = useState<Step>(0);
-  const [productType, setProductType] = useState<ProductType>("ebook");
+  const { type: presetType } = Route.useSearch();
+  const [step, setStep] = useState<Step>(presetType ? 1 : 0);
+  const [productType, setProductType] = useState<ProductType>(presetType ?? "ebook");
   const typeMeta = PRODUCT_TYPES.find((t) => t.value === productType)!;
+  const isEbookFlow = presetType === "ebook";
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [author, setAuthor] = useState("Illustrious Capital™");
@@ -257,8 +264,8 @@ function NewProduct() {
         <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-mute hover:text-navy">
           <ArrowLeft size={14} /> Back to dashboard
         </Link>
-        <h1 className="font-display text-3xl md:text-4xl text-navy mt-3">Upload Product</h1>
-        <p className="text-mute mt-1">Universal upload for any digital product. AurumVault keeps 9%; you keep 91%.</p>
+        <h1 className="font-display text-3xl md:text-4xl text-navy mt-3">{isEbookFlow ? "Create eBook" : "Upload Product"}</h1>
+        <p className="text-mute mt-1">{isEbookFlow ? "Publish a new eBook to the Vault. AurumVault keeps 9%; you keep 91%." : "Universal upload for any digital product. AurumVault keeps 9%; you keep 91%."}</p>
 
         {canSell === false && (
           <div className="mt-6 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">

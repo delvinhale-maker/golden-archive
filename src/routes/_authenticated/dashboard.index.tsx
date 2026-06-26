@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
-import { Plus, LogOut, ShieldCheck, Package, Hourglass, CheckCircle2, XCircle, Upload } from "lucide-react";
+import { Plus, LogOut, ShieldCheck, Package, Hourglass, CheckCircle2, XCircle, Upload, BookPlus, Circle } from "lucide-react";
 import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
 import { toast } from "sonner";
 
@@ -18,6 +18,7 @@ type Product = {
   category: string;
   price_cents: number;
   status: string;
+  published: boolean;
   cover_url: string | null;
   created_at: string;
   rejected_reason: string | null;
@@ -88,28 +89,45 @@ function Dashboard() {
 
         {(isSeller || app?.status === "approved" || isAdmin) && (
           <>
-            <Link
-              to="/dashboard/new"
-              className="group flex items-center gap-4 rounded-2xl bg-gradient-to-r from-gold to-[#e0bf6f] text-navy p-5 md:p-6 hover:from-[#e0bf6f] hover:to-gold transition shadow-lg shadow-gold/20"
-            >
-              <div className="h-12 w-12 rounded-full bg-navy text-gold flex items-center justify-center shrink-0">
-                <Upload size={22} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-display text-xl md:text-2xl leading-tight">Upload Product</div>
-                <div className="text-sm text-navy/80 mt-0.5">eBooks, courses, audio, templates, prompt packs & bundles — universal upload flow.</div>
-              </div>
-              <Plus size={20} className="hidden sm:block opacity-60 group-hover:opacity-100" />
-            </Link>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Link
+                to="/dashboard/new"
+                search={{ type: "ebook" }}
+                className="group flex items-center gap-4 rounded-2xl bg-navy text-white p-5 md:p-6 hover:bg-navy/90 transition shadow-lg shadow-navy/10"
+              >
+                <div className="h-12 w-12 rounded-full bg-gold text-navy flex items-center justify-center shrink-0">
+                  <BookPlus size={22} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-display text-xl md:text-2xl leading-tight">Create eBook</div>
+                  <div className="text-sm text-white/75 mt-0.5">Title, cover, manuscript — publish a new eBook in minutes.</div>
+                </div>
+                <Plus size={20} className="hidden sm:block opacity-60 group-hover:opacity-100" />
+              </Link>
+              <Link
+                to="/dashboard/new"
+                className="group flex items-center gap-4 rounded-2xl bg-gradient-to-r from-gold to-[#e0bf6f] text-navy p-5 md:p-6 hover:from-[#e0bf6f] hover:to-gold transition shadow-lg shadow-gold/20"
+              >
+                <div className="h-12 w-12 rounded-full bg-navy text-gold flex items-center justify-center shrink-0">
+                  <Upload size={22} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-display text-xl md:text-2xl leading-tight">Upload Product</div>
+                  <div className="text-sm text-navy/80 mt-0.5">Courses, audio, templates, prompt packs & bundles.</div>
+                </div>
+                <Plus size={20} className="hidden sm:block opacity-60 group-hover:opacity-100" />
+              </Link>
+            </div>
 
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-display text-2xl text-navy">Your products</h2>
                 <Link
                   to="/dashboard/new"
+                  search={{ type: "ebook" }}
                   className="inline-flex items-center gap-1.5 rounded-full bg-navy text-white text-sm font-semibold px-4 py-2 hover:bg-navy/90"
                 >
-                  <Upload size={16} /> Upload Product
+                  <BookPlus size={16} /> Create eBook
                 </Link>
               </div>
 
@@ -182,22 +200,35 @@ function RejectedBanner() {
 }
 
 function ProductRow({ p }: { p: Product }) {
-  const badge = {
-    approved: { label: "Live", cls: "bg-emerald-100 text-emerald-700", icon: <CheckCircle2 size={12} /> },
-    pending: { label: "Pending review", cls: "bg-amber-100 text-amber-700", icon: <Hourglass size={12} /> },
-    rejected: { label: "Rejected", cls: "bg-red-100 text-red-700", icon: <XCircle size={12} /> },
-    draft: { label: "Draft", cls: "bg-ink/10 text-ink/70", icon: <Package size={12} /> },
-  }[p.status] ?? { label: p.status, cls: "bg-ink/10 text-ink/70", icon: null };
+  const isLive = p.published && p.status === "approved";
+  const liveBadge = isLive
+    ? { label: "Live", cls: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: <CheckCircle2 size={12} /> }
+    : { label: "Draft", cls: "bg-ink/10 text-ink/70 border-ink/15", icon: <Circle size={12} /> };
+  const statusBadge = {
+    approved: { label: "Approved", cls: "bg-emerald-50 text-emerald-700" },
+    pending: { label: "Pending review", cls: "bg-amber-100 text-amber-700" },
+    rejected: { label: "Rejected", cls: "bg-red-100 text-red-700" },
+    draft: { label: "Unsubmitted", cls: "bg-ink/10 text-ink/70" },
+  }[p.status] ?? { label: p.status, cls: "bg-ink/10 text-ink/70" };
 
   return (
     <div className="rounded-xl bg-white border border-ink/10 overflow-hidden flex flex-col">
-      <div className="aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A]" style={p.cover_url ? { backgroundImage: `url(${p.cover_url})`, backgroundSize: "cover", backgroundPosition: "center" } : {}} />
+      <div className="aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A] relative" style={p.cover_url ? { backgroundImage: `url(${p.cover_url})`, backgroundSize: "cover", backgroundPosition: "center" } : {}}>
+        <span className={`absolute top-2 left-2 inline-flex items-center gap-1 text-[11px] font-semibold rounded-full px-2 py-0.5 border ${liveBadge.cls}`}>
+          {liveBadge.icon} {liveBadge.label}
+        </span>
+      </div>
       <div className="p-3">
-        <p className="font-display text-navy text-base leading-snug line-clamp-2 min-h-[2.6em]">{p.title}</p>
+        <div className="flex items-start gap-2">
+          <p className="font-display text-navy text-base leading-snug line-clamp-2 min-h-[2.6em] flex-1">{p.title}</p>
+          <span className={`shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold rounded-full px-2 py-0.5 border ${liveBadge.cls}`}>
+            {liveBadge.icon} {liveBadge.label}
+          </span>
+        </div>
         <div className="flex items-center justify-between mt-2">
           <span className="text-gold font-display text-lg">${(p.price_cents / 100).toFixed(2)}</span>
-          <span className={`inline-flex items-center gap-1 text-[11px] font-medium rounded-full px-2 py-0.5 ${badge.cls}`}>
-            {badge.icon} {badge.label}
+          <span className={`inline-flex items-center gap-1 text-[11px] font-medium rounded-full px-2 py-0.5 ${statusBadge.cls}`}>
+            {statusBadge.label}
           </span>
         </div>
         <div className="mt-2">
