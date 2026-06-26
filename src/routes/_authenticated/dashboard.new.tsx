@@ -165,17 +165,29 @@ function NewProduct() {
   function handleFileChange(f: File | null) {
     setFileError(null);
     if (!f) { setFile(null); return; }
-    const ext = f.name.toLowerCase().split(".").pop() ?? "";
-    if (!typeMeta.extensions.includes(ext)) {
-      setFileError(`File must be one of: ${typeMeta.extensions.map((e) => "." + e).join(", ")}.`);
+    const acceptedList = typeMeta.extensions.map((e) => "." + e.toUpperCase()).join(", ");
+    if (f.size === 0) {
+      setFileError("File is empty. Choose a valid file.");
       return;
     }
-    if (f.size > MAX_FILE_MB * 1024 * 1024) {
-      setFileError(`File must be under ${MAX_FILE_MB} MB.`);
+    const ext = f.name.toLowerCase().split(".").pop() ?? "";
+    if (!typeMeta.extensions.includes(ext)) {
+      setFileError(`Unsupported file type ".${ext || "unknown"}". Accepted: ${acceptedList}.`);
+      return;
+    }
+    if (f.type && typeMeta.mimeTypes.length > 0 && !typeMeta.mimeTypes.includes(f.type)) {
+      setFileError(`File contents don't match a ${typeMeta.label.toLowerCase()} (${f.type || "unknown type"}). Accepted: ${acceptedList}.`);
+      return;
+    }
+    const maxBytes = typeMeta.maxMb * 1024 * 1024;
+    if (f.size > maxBytes) {
+      const sizeMb = (f.size / (1024 * 1024)).toFixed(1);
+      setFileError(`File is ${sizeMb} MB — exceeds the ${typeMeta.maxMb} MB limit for ${typeMeta.label.toLowerCase()}s.`);
       return;
     }
     setFile(f);
   }
+
 
   const step1Valid = title.trim().length > 0
     && author.trim().length > 0
