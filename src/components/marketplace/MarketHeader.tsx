@@ -8,6 +8,7 @@ import {
   Search,
   ShoppingBag,
   Store,
+  Upload,
   User,
   X,
 } from "lucide-react";
@@ -43,7 +44,8 @@ export function MarketHeader() {
   const [q, setQ] = useState("");
   const wishlist = useWishlist();
   const cart = useCart();
-  const { user } = useAuth();
+  const { user, isAdmin, isSeller } = useAuth();
+  const canUpload = isAdmin || isSeller;
 
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -80,12 +82,21 @@ export function MarketHeader() {
           </div>
 
           <div className="ml-auto flex items-center gap-1 md:ml-0 md:gap-2">
-            <Link
-              to="/sell"
-              className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-gold/40 px-3 py-1.5 text-[12px] font-medium text-gold hover:bg-gold hover:text-navy transition"
-            >
-              <Store size={14} /> Sell on AurumVault
-            </Link>
+            {canUpload ? (
+              <Link
+                to="/dashboard/new"
+                className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-gold px-3 py-1.5 text-[12px] font-semibold text-navy hover:bg-gold/90 transition"
+              >
+                <Upload size={14} /> Upload Product
+              </Link>
+            ) : (
+              <Link
+                to="/sell"
+                className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-gold/40 px-3 py-1.5 text-[12px] font-medium text-gold hover:bg-gold hover:text-navy transition"
+              >
+                <Store size={14} /> Sell on AurumVault
+              </Link>
+            )}
             {user ? (
               <>
                 <NotificationsBell />
