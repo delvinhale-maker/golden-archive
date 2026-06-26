@@ -84,21 +84,12 @@ export function MarketHeader() {
 
           <div className="ml-auto flex items-center gap-1 md:ml-0 md:gap-2">
             {canUpload ? (
-              <>
-                <Link
-                  to="/dashboard/new"
-                  search={{ type: "ebook" }}
-                  className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-navy px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-navy/90 transition"
-                >
-                  <BookPlus size={14} /> Create eBook
-                </Link>
-                <Link
-                  to="/dashboard/new"
-                  className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-gold px-3 py-1.5 text-[12px] font-semibold text-navy hover:bg-gold/90 transition"
-                >
-                  <Upload size={14} /> Upload Product
-                </Link>
-              </>
+              <Link
+                to="/dashboard/new"
+                className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-gold px-3 py-1.5 text-[12px] font-semibold text-navy hover:bg-gold/90 transition"
+              >
+                <BookPlus size={14} /> Publish
+              </Link>
             ) : (
               <Link
                 to="/sell"
@@ -238,23 +229,13 @@ export function MarketHeader() {
             </nav>
             <div className="space-y-3 p-6 pt-0">
               {canUpload ? (
-                <>
-                  <Link
-                    to="/dashboard/new"
-                    search={{ type: "ebook" }}
-                    onClick={() => setMenuOpen(false)}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-white py-3 text-center text-sm font-semibold text-navy"
-                  >
-                    <BookPlus size={16} /> Create eBook
-                  </Link>
-                  <Link
-                    to="/dashboard/new"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3 text-center text-sm font-semibold text-navy"
-                  >
-                    <Upload size={16} /> Upload Product
-                  </Link>
-                </>
+                <Link
+                  to="/dashboard/new"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3 text-center text-sm font-semibold text-navy"
+                >
+                  <BookPlus size={16} /> Publish
+                </Link>
               ) : (
                 <Link
                   to="/sell"

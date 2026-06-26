@@ -25,6 +25,8 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authenticated/dashboard.new'
+import { Route as AuthenticatedDashboardHelpRouteImport } from './routes/_authenticated/dashboard.help'
+import { Route as AuthenticatedDashboardEarnRouteImport } from './routes/_authenticated/dashboard.earn'
 import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authenticated/admin.products'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -116,6 +118,18 @@ const AuthenticatedDashboardNewRoute =
     path: '/dashboard/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardHelpRoute =
+  AuthenticatedDashboardHelpRouteImport.update({
+    id: '/dashboard/help',
+    path: '/dashboard/help',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardEarnRoute =
+  AuthenticatedDashboardEarnRouteImport.update({
+    id: '/dashboard/earn',
+    path: '/dashboard/earn',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminProductsRoute =
   AuthenticatedAdminProductsRouteImport.update({
     id: '/products',
@@ -185,6 +199,8 @@ export interface FileRoutesByFullPath {
   '/products/$id': typeof ProductsIdRoute
   '/products/': typeof ProductsIndexRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
+  '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
+  '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -210,6 +226,8 @@ export interface FileRoutesByTo {
   '/products/$id': typeof ProductsIdRoute
   '/products': typeof ProductsIndexRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
+  '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
+  '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
@@ -238,6 +256,8 @@ export interface FileRoutesById {
   '/products/$id': typeof ProductsIdRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
+  '/_authenticated/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
+  '/_authenticated/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -266,6 +286,8 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/products/'
     | '/admin/products'
+    | '/dashboard/earn'
+    | '/dashboard/help'
     | '/dashboard/new'
     | '/lovable/email/suppression'
     | '/dashboard/'
@@ -291,6 +313,8 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/products'
     | '/admin/products'
+    | '/dashboard/earn'
+    | '/dashboard/help'
     | '/dashboard/new'
     | '/lovable/email/suppression'
     | '/dashboard'
@@ -318,6 +342,8 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/products/'
     | '/_authenticated/admin/products'
+    | '/_authenticated/dashboard/earn'
+    | '/_authenticated/dashboard/help'
     | '/_authenticated/dashboard/new'
     | '/lovable/email/suppression'
     | '/_authenticated/dashboard/'
@@ -465,6 +491,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/help': {
+      id: '/_authenticated/dashboard/help'
+      path: '/dashboard/help'
+      fullPath: '/dashboard/help'
+      preLoaderRoute: typeof AuthenticatedDashboardHelpRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/earn': {
+      id: '/_authenticated/dashboard/earn'
+      path: '/dashboard/earn'
+      fullPath: '/dashboard/earn'
+      preLoaderRoute: typeof AuthenticatedDashboardEarnRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/products': {
       id: '/_authenticated/admin/products'
       path: '/products'
@@ -562,12 +602,16 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedDashboardEarnRoute: typeof AuthenticatedDashboardEarnRoute
+  AuthenticatedDashboardHelpRoute: typeof AuthenticatedDashboardHelpRoute
   AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedDashboardEarnRoute: AuthenticatedDashboardEarnRoute,
+  AuthenticatedDashboardHelpRoute: AuthenticatedDashboardHelpRoute,
   AuthenticatedDashboardNewRoute: AuthenticatedDashboardNewRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
 }
