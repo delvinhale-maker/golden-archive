@@ -30,16 +30,6 @@ const LANGUAGES = ["English", "Spanish", "French", "German", "Portuguese", "Ital
 
 type ProductType = "ebook" | "manuscript" | "prompt-pack" | "template" | "audio" | "course" | "bundle" | "other";
 
-const PRODUCT_TYPES: {
-  value: ProductType;
-  label: string;
-  description: string;
-  accept: string;
-  extensions: string[];
-  mimeTypes: string[];
-  enforceCoverRatio: boolean;
-  maxMb: number;
-};
 
 const PRODUCT_TYPES: { value: ProductType; label: string; description: string; accept: string; extensions: string[]; mimeTypes: string[]; enforceCoverRatio: boolean; maxMb: number }[] = [
   { value: "ebook", label: "eBook", description: "PDF, EPUB, or DOCX", accept: ".pdf,.epub,.docx,application/pdf,application/epub+zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document", extensions: ["pdf", "epub", "docx"], mimeTypes: ["application/pdf", "application/epub+zip", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"], enforceCoverRatio: true, maxMb: 100 },
