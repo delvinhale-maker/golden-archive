@@ -1,7 +1,77 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 const API_BASE = "https://web-builder-pro-delvinhale.replit.app/api";
+
+// Map DB category codes ("ebooks") → display labels ("eBooks")
+const CAT_LABEL: Record<string, string> = {
+  ebooks: "eBooks",
+  courses: "Courses",
+  templates: "Templates",
+  audio: "Audio",
+  finance: "Finance",
+  leadership: "Leadership",
+  purpose: "Purpose",
+  business: "Business",
+};
+
+function serverSupabase() {
+  return createClient<Database>(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_PUBLISHABLE_KEY!,
+    { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
+  );
+}
+
+type DbProductRow = {
+  id: string;
+  title: string;
+  category: string;
+  price_cents: number;
+  cover_url: string | null;
+  description: string | null;
+  seller_id: string;
+  created_at: string;
+};
+
+function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault Creator"): Product {
+  const catLabel = CAT_LABEL[r.category?.toLowerCase()] ?? r.category ?? "eBooks";
+  return {
+    id: r.id,
+    title: r.title,
+    category: catLabel,
+    price: r.price_cents / 100,
+    rating: 5,
+    reviewCount: 0,
+    image: r.cover_url ?? `av:${catLabel}:0`,
+    bestseller: false,
+    creator: { id: r.seller_id, name: sellerName, verified: true },
+    description: r.description ?? undefined,
+    included: ["Instant digital download", "Lifetime access"],
+  };
+}
+
+async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Promise<Product[]> {
+  try {
+    const supa = serverSupabase();
+    let query = supa
+      .from("marketplace_products")
+      .select("id,title,category,price_cents,cover_url,description,seller_id,created_at")
+      .eq("status", "approved")
+      .order("created_at", { ascending: false });
+    if (opts.category && opts.category !== "All") {
+      query = query.eq("category", opts.category.toLowerCase() as "ebooks" | "courses" | "templates" | "audio" | "leadership");
+    }
+    if (opts.q) query = query.ilike("title", `%${opts.q}%`);
+    const { data, error } = await query;
+    if (error || !data) return [];
+    return (data as DbProductRow[]).map((r) => dbRowToProduct(r));
+  } catch {
+    return [];
+  }
+}
 
 export type Creator = {
   id: string;
@@ -284,8 +354,13 @@ async function safeFetch<T>(path: string, fallback: T): Promise<T> {
 
 export const getFeaturedProducts = createServerFn({ method: "GET" }).handler(async () => {
   const fallback = mockProductsAcross(8);
+  const dbItems = await fetchDbProducts();
   const data = await safeFetch<unknown>("/marketplace/featured", fallback as unknown);
-  return (Array.isArray(data) && data.length ? (data as Product[]) : fallback) as Product[];
+  const upstream = (Array.isArray(data) && data.length ? (data as Product[]) : fallback) as Product[];
+  // Real seller products lead; pad with curated picks to fill the row.
+  const merged = [...dbItems, ...upstream];
+  const seen = new Set<string>();
+  return merged.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, 12);
 });
 
 export const getProducts = createServerFn({ method: "GET" })
@@ -333,6 +408,10 @@ export const getProducts = createServerFn({ method: "GET" })
       list = list.filter((p) => p.title.toLowerCase().includes(q));
     }
 
+    // Merge real seller products at the front, scoped to the active filter.
+    const dbItems = await fetchDbProducts({ category: data.category, q: data.q });
+    list = [...dbItems, ...list];
+
     // Deduplicate by id as a final safety net.
     const seen = new Set<string>();
     list = list.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
@@ -340,11 +419,23 @@ export const getProducts = createServerFn({ method: "GET" })
     return { items: list, page: data.page, hasMore: data.page < 4 };
   });
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const getProduct = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ id: z.string() }).parse(input))
   .handler(async ({ data }) => {
+    // Real product (UUID) → fetch from DB
+    if (UUID_RE.test(data.id)) {
+      const supa = serverSupabase();
+      const { data: row } = await supa
+        .from("marketplace_products")
+        .select("id,title,category,price_cents,cover_url,description,seller_id,created_at")
+        .eq("id", data.id)
+        .eq("status", "approved")
+        .maybeSingle();
+      if (row) return dbRowToProduct(row as DbProductRow);
+    }
     const parts = data.id.split("_");
-    // ids look like p_<idx> or p_<category>_<idx>
     const maybeCat = parts.length === 3 ? parts[1] : undefined;
     const matchedCat = maybeCat
       ? CATEGORIES.find((c) => c.toLowerCase() === maybeCat)
