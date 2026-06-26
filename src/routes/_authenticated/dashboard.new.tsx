@@ -12,6 +12,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    id: typeof s.id === "string" ? s.id : undefined,
+  }),
   component: PublishFlow,
 });
 
