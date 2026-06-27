@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Download, AlertTriangle, Loader2 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getDownloadInfo } from "@/lib/payments.functions";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/download/$token")({
   head: () => ({ meta: [{ title: "Your download · AurumVault" }] }),
