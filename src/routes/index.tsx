@@ -80,7 +80,9 @@ const CATS = [
 function Home() {
   return (
     <MarketShell>
-      <HeroCarousel />
+      <Suspense fallback={<HeroCarousel />}>
+        <FeaturedHero />
+      </Suspense>
       <HeroStatsBar />
       <Suspense fallback={null}>
         <DealsAndBestsellers />
@@ -90,10 +92,31 @@ function Home() {
         <FeaturedProducts />
       </Suspense>
       <Suspense fallback={null}>
-        <FeaturedCreators />
+        <IllustriousCreator />
       </Suspense>
       <TrustBar />
     </MarketShell>
+  );
+}
+
+function FeaturedHero() {
+  const { data } = useSuspenseQuery(highlightsQ);
+  const hp = data.heroProduct;
+  return (
+    <HeroCarousel
+      heroProduct={
+        hp
+          ? {
+              id: hp.id,
+              title: hp.title,
+              category: hp.category,
+              price: hp.price,
+              coverUrl:
+                hp.image && hp.image.startsWith("http") ? hp.image : null,
+            }
+          : null
+      }
+    />
   );
 }
 
