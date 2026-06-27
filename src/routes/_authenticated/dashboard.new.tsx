@@ -369,24 +369,53 @@ function PublishFlow() {
   }
 
   // Upload helpers — independent per-zone uploads triggered on file select.
+  // Automatic retry with exponential backoff (up to 3 attempts) before
+  // surfacing the manual Retry banner.
+  const MAX_AUTO_ATTEMPTS = 3;
+  function friendlyUploadError(e: unknown, label: string): string {
+    const raw = e instanceof Error ? e.message : String(e ?? "");
+    if (/network|fetch|failed to fetch|load failed/i.test(raw))
+      return `${label} couldn't reach the server. Check your connection and tap Retry.`;
+    if (/timeout|timed out/i.test(raw))
+      return `${label} timed out. Tap Retry to try again.`;
+    if (/payload|too large|413/i.test(raw))
+      return `${label} is too large for the server. Try a smaller file.`;
+    if (/unauthor|401|403/i.test(raw))
+      return `${label} was rejected (auth). Please sign out and back in.`;
+    return raw || `${label} failed. Tap Retry to try again.`;
+  }
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
   async function uploadCoverNow(f: File) {
     if (!user) return;
     setCoverUploading(true); setCoverProgress(8); setCoverUploadError(null);
     const tick = setInterval(() => setCoverProgress((p) => (p < 88 ? p + 6 : p)), 250);
+    let lastErr: unknown = null;
     try {
-      const ts = Date.now();
-      const coverPath = `${user.id}/${ts}-${f.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-      const up = await supabase.storage.from("product-covers").upload(coverPath, f, { upsert: false });
-      if (up.error) throw up.error;
-      const { data: signed } = await supabase.storage.from("product-covers")
-        .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
-      const url = signed?.signedUrl ?? null;
-      setUploadedCoverUrl(url);
-      setCoverProgress(100);
-      await autosaveDraftToDB({ coverUrl: url });
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Cover upload failed. Check your connection and try again.";
-      setCoverUploadError(msg);
+      for (let attempt = 1; attempt <= MAX_AUTO_ATTEMPTS; attempt++) {
+        try {
+          const ts = Date.now();
+          const coverPath = `${user.id}/${ts}-${f.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+          const up = await supabase.storage.from("product-covers").upload(coverPath, f, { upsert: false });
+          if (up.error) throw up.error;
+          const { data: signed } = await supabase.storage.from("product-covers")
+            .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
+          const url = signed?.signedUrl ?? null;
+          setUploadedCoverUrl(url);
+          setCoverProgress(100);
+          setCoverUploadError(null);
+          await autosaveDraftToDB({ coverUrl: url });
+          return;
+        } catch (e) {
+          lastErr = e;
+          if (attempt < MAX_AUTO_ATTEMPTS) {
+            setCoverUploadError(`${friendlyUploadError(e, "Cover")} Auto-retrying (${attempt}/${MAX_AUTO_ATTEMPTS - 1})…`);
+            await sleep(600 * Math.pow(2, attempt - 1));
+            setCoverProgress(8);
+          }
+        }
+      }
+      setCoverUploadError(friendlyUploadError(lastErr, "Cover"));
     } finally {
       clearInterval(tick);
       setCoverUploading(false);
@@ -397,18 +426,30 @@ function PublishFlow() {
     if (!user) return;
     setFileUploading(true); setFileProgress(8); setFileUploadError(null);
     const tick = setInterval(() => setFileProgress((p) => (p < 88 ? p + 4 : p)), 300);
+    let lastErr: unknown = null;
     try {
-      const ts = Date.now();
-      const path = `${user.id}/${ts}-${f.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-      const up = await supabase.storage.from("product-files").upload(path, f, { upsert: false });
-      if (up.error) throw up.error;
-      setUploadedFilePath(path);
-      setUploadedFileMeta({ name: f.name, size: f.size });
-      setFileProgress(100);
-      await autosaveDraftToDB({ filePath: path, fileSize: f.size });
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Manuscript upload failed. Check your connection and try again.";
-      setFileUploadError(msg);
+      for (let attempt = 1; attempt <= MAX_AUTO_ATTEMPTS; attempt++) {
+        try {
+          const ts = Date.now();
+          const path = `${user.id}/${ts}-${f.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+          const up = await supabase.storage.from("product-files").upload(path, f, { upsert: false });
+          if (up.error) throw up.error;
+          setUploadedFilePath(path);
+          setUploadedFileMeta({ name: f.name, size: f.size });
+          setFileProgress(100);
+          setFileUploadError(null);
+          await autosaveDraftToDB({ filePath: path, fileSize: f.size });
+          return;
+        } catch (e) {
+          lastErr = e;
+          if (attempt < MAX_AUTO_ATTEMPTS) {
+            setFileUploadError(`${friendlyUploadError(e, "Manuscript")} Auto-retrying (${attempt}/${MAX_AUTO_ATTEMPTS - 1})…`);
+            await sleep(800 * Math.pow(2, attempt - 1));
+            setFileProgress(8);
+          }
+        }
+      }
+      setFileUploadError(friendlyUploadError(lastErr, "Manuscript"));
     } finally {
       clearInterval(tick);
       setFileUploading(false);
