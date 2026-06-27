@@ -452,12 +452,17 @@ function FeaturedSkeleton() {
 }
 
 function IllustriousCreator() {
-  const { data } = useSuspenseQuery(highlightsQ);
+  const { data, isFetching } = useSuspenseQuery(highlightsQ);
   const count = data.illustriousProductCount;
   return (
-    <section className="bg-[#f9fafb] py-16 md:py-24">
+    <section className="bg-[#f9fafb] py-16 md:py-24" aria-busy={isFetching}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader kicker="OUR FOUNDING PUBLISHER" title="Illustrious Capital™" />
+        {isFetching && (
+          <div className="mb-4 text-center text-[11px] font-semibold tracking-caps text-mute" aria-live="polite">
+            Refreshing…
+          </div>
+        )}
         <div className="mx-auto max-w-md">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
