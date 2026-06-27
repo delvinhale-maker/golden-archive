@@ -14,6 +14,44 @@ import {
 
 type CheckoutResult = { clientSecret: string } | { error: string };
 
+/**
+ * If Stripe rejects automatic_tax (e.g. the connected account has no head
+ * office address configured), retry once with tax fields stripped so the
+ * checkout can still complete. Buyer is charged the listed price; the
+ * seller can enable tax automation later in their dashboard.
+ */
+function isAutomaticTaxConfigError(err: unknown): boolean {
+  const ids = extractStripeIds(err);
+  const msg = (ids.message ?? "").toLowerCase();
+  return (
+    msg.includes("automatic tax") ||
+    msg.includes("automatic_tax") ||
+    msg.includes("head office") ||
+    msg.includes("origin address") ||
+    (msg.includes("tax") && msg.includes("address"))
+  );
+}
+
+function stripTaxFields<T extends Record<string, any>>(params: T): T {
+  const next: any = { ...params };
+  delete next.automatic_tax;
+  delete next.managed_payments;
+  if (Array.isArray(next.line_items)) {
+    next.line_items = next.line_items.map((li: any) => {
+      if (!li?.price_data) return li;
+      const pd = { ...li.price_data };
+      delete pd.tax_behavior;
+      if (pd.product_data) {
+        const prod = { ...pd.product_data };
+        delete prod.tax_code;
+        pd.product_data = prod;
+      }
+      return { ...li, price_data: pd };
+    });
+  }
+  return next as T;
+}
+
 export const createProductCheckout = createServerFn({ method: "POST" })
   .inputValidator(
     (data: { productId: string; returnUrl: string; environment: StripeEnv; referralCode?: string }) => {
