@@ -134,7 +134,7 @@ export const Route = createFileRoute("/products/$id")({
     <MarketShell>
       <div className="mx-auto max-w-2xl px-4 py-20 text-center">
         <h1 className="font-display text-2xl font-bold text-ink">Product not found</h1>
-        <p className="mt-3 text-mute">It may have been unpublished or removed.</p>
+        <p className="mt-3 text-mute">It may have been removed.</p>
         <Link to="/products" className="mt-6 inline-block rounded-full bg-gold px-6 py-3 text-sm font-bold text-navy">
           Browse products
         </Link>
