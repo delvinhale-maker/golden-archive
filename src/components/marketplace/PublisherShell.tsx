@@ -3,6 +3,7 @@ import { type ReactNode } from "react";
 import { LogOut } from "lucide-react";
 import { AVLogo } from "./AVLogo";
 import { useAuth } from "@/hooks/use-auth";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 export type PublisherAccent = {
   /** Hex accent color for this page. */
