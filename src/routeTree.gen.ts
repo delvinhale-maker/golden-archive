@@ -29,6 +29,7 @@ import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as AuthenticatedReferRouteImport } from './routes/_authenticated/refer'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
@@ -145,6 +146,11 @@ const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   path: '/checkout/return',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedReferRoute = AuthenticatedReferRouteImport.update({
+  id: '/refer',
+  path: '/refer',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -255,6 +261,7 @@ export interface FileRoutesByFullPath {
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/refer': typeof AuthenticatedReferRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -291,6 +298,7 @@ export interface FileRoutesByTo {
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/refer': typeof AuthenticatedReferRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -330,6 +338,7 @@ export interface FileRoutesById {
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/refer': typeof AuthenticatedReferRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -369,6 +378,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/wishlist'
     | '/admin'
+    | '/refer'
     | '/checkout/return'
     | '/download/$token'
     | '/email/unsubscribe'
@@ -405,6 +415,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/wishlist'
     | '/admin'
+    | '/refer'
     | '/checkout/return'
     | '/download/$token'
     | '/email/unsubscribe'
@@ -443,6 +454,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/wishlist'
     | '/_authenticated/admin'
+    | '/_authenticated/refer'
     | '/checkout/return'
     | '/download/$token'
     | '/email/unsubscribe'
@@ -637,6 +649,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutReturnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/refer': {
+      id: '/_authenticated/refer'
+      path: '/refer'
+      fullPath: '/refer'
+      preLoaderRoute: typeof AuthenticatedReferRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -783,6 +802,7 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedReferRoute: typeof AuthenticatedReferRoute
   AuthenticatedDashboardEarnRoute: typeof AuthenticatedDashboardEarnRoute
   AuthenticatedDashboardHelpRoute: typeof AuthenticatedDashboardHelpRoute
   AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
@@ -791,6 +811,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedReferRoute: AuthenticatedReferRoute,
   AuthenticatedDashboardEarnRoute: AuthenticatedDashboardEarnRoute,
   AuthenticatedDashboardHelpRoute: AuthenticatedDashboardHelpRoute,
   AuthenticatedDashboardNewRoute: AuthenticatedDashboardNewRoute,
@@ -845,13 +866,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
