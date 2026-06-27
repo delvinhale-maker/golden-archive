@@ -740,12 +740,18 @@ function StepDetails(p: {
           </select>
         </Field>
       </div>
-      <Field label={`Description * (${p.description.trim().length}/150 min)`}>
-        <textarea rows={6} className="inp" value={p.description} onChange={(e) => p.setDescription(e.target.value)} placeholder="What's in this book? Who is it for?" />
-        {p.description.length > 0 && p.description.trim().length < 150 && (
-          <p className="mt-1 text-xs text-amber-700">{150 - p.description.trim().length} more characters needed.</p>
-        )}
+      <Field label="Description *">
+        <textarea
+          rows={6}
+          className="inp"
+          value={p.description}
+          maxLength={DESC_MAX}
+          onChange={(e) => p.setDescription(e.target.value.slice(0, DESC_MAX))}
+          placeholder="What's in this book? Who is it for?"
+        />
+        <DescriptionCounter value={p.description} />
       </Field>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Category">
           <select className="inp" value={p.category} onChange={(e) => p.setCategory(e.target.value as typeof p.category)}>
