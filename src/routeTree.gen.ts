@@ -23,6 +23,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
+import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
@@ -37,6 +38,7 @@ import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authen
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as ApiPublicSubscribersSubscribeRouteImport } from './routes/api/public/subscribers/subscribe'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/public/hooks/audit-covers'
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
@@ -111,6 +113,11 @@ const ProductsIndexRoute = ProductsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ProductsRoute,
+} as any)
+const SubscribeConfirmRoute = SubscribeConfirmRouteImport.update({
+  id: '/subscribe/confirm',
+  path: '/subscribe/confirm',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsIdRoute = ProductsIdRouteImport.update({
   id: '/$id',
@@ -190,6 +197,12 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicSubscribersSubscribeRoute =
+  ApiPublicSubscribersSubscribeRouteImport.update({
+    id: '/api/public/subscribers/subscribe',
+    path: '/api/public/subscribers/subscribe',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -239,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products/': typeof ProductsIndexRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
@@ -250,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -272,6 +287,7 @@ export interface FileRoutesByTo {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products': typeof ProductsIndexRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
@@ -283,6 +299,7 @@ export interface FileRoutesByTo {
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -308,6 +325,7 @@ export interface FileRoutesById {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
   '/_authenticated/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
@@ -319,6 +337,7 @@ export interface FileRoutesById {
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -344,6 +363,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/subscribe/confirm'
     | '/products/'
     | '/admin/products'
     | '/dashboard/earn'
@@ -355,6 +375,7 @@ export interface FileRouteTypes {
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/payments/webhook'
+    | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -377,6 +398,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/subscribe/confirm'
     | '/products'
     | '/admin/products'
     | '/dashboard/earn'
@@ -388,6 +410,7 @@ export interface FileRouteTypes {
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/payments/webhook'
+    | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -412,6 +435,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/subscribe/confirm'
     | '/products/'
     | '/_authenticated/admin/products'
     | '/_authenticated/dashboard/earn'
@@ -423,6 +447,7 @@ export interface FileRouteTypes {
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/payments/webhook'
+    | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -446,10 +471,12 @@ export interface RootRouteChildren {
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  SubscribeConfirmRoute: typeof SubscribeConfirmRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
   ApiPublicHooksAuditCoversRoute: typeof ApiPublicHooksAuditCoversRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicSubscribersSubscribeRoute: typeof ApiPublicSubscribersSubscribeRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
@@ -555,6 +582,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsIndexRouteImport
       parentRoute: typeof ProductsRoute
     }
+    '/subscribe/confirm': {
+      id: '/subscribe/confirm'
+      path: '/subscribe/confirm'
+      fullPath: '/subscribe/confirm'
+      preLoaderRoute: typeof SubscribeConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products/$id': {
       id: '/products/$id'
       path: '/$id'
@@ -651,6 +685,13 @@ declare module '@tanstack/react-router' {
       path: '/lovable/email/queue/process'
       fullPath: '/lovable/email/queue/process'
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/subscribers/subscribe': {
+      id: '/api/public/subscribers/subscribe'
+      path: '/api/public/subscribers/subscribe'
+      fullPath: '/api/public/subscribers/subscribe'
+      preLoaderRoute: typeof ApiPublicSubscribersSubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/webhook': {
@@ -770,10 +811,12 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutReturnRoute: CheckoutReturnRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  SubscribeConfirmRoute: SubscribeConfirmRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
   ApiPublicHooksAuditCoversRoute: ApiPublicHooksAuditCoversRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicSubscribersSubscribeRoute: ApiPublicSubscribersSubscribeRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,

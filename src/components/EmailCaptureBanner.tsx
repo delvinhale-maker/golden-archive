@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function EmailCaptureBanner() {
@@ -15,17 +14,31 @@ export function EmailCaptureBanner() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase
-      .from("subscribers")
-      .insert({ email: clean, source: "homepage_banner" });
-    setBusy(false);
-    if (error && !/duplicate|unique/i.test(error.message)) {
-      toast.error("Couldn't subscribe right now. Try again in a moment.");
-      return;
+    try {
+      const res = await fetch("/api/public/subscribers/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: clean, source: "homepage_banner" }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(body?.error || "Couldn't subscribe right now. Try again in a moment.");
+        return;
+      }
+      if (body.status === "already_confirmed") {
+        toast.success("You're already subscribed — thanks!");
+      } else if (body.status === "suppressed") {
+        toast.error("This address was previously unsubscribed and can't be re-added here.");
+        return;
+      } else {
+        toast.success("Check your inbox to confirm your subscription.");
+      }
+      setDone(true);
+    } finally {
+      setBusy(false);
     }
-    setDone(true);
-    toast.success("You're in! Check your inbox for a welcome gift.");
   }
+
 
   return (
     <section className="bg-gradient-to-br from-[#0a1f44] via-[#0f2756] to-[#0a1f44] py-14">
@@ -38,7 +51,7 @@ export function EmailCaptureBanner() {
         </p>
         {done ? (
           <p className="mt-6 inline-block rounded-full bg-[#d4af37]/15 px-5 py-3 text-[#f4d56b]">
-            You're in! Check your inbox for a welcome gift.
+            Almost there — check your inbox and click the confirm link to activate your subscription.
           </p>
         ) : (
           <form
