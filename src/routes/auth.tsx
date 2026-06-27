@@ -48,9 +48,25 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: returnTo });
+      if (data.session) {
+        void tryAttachReferral();
+        navigate({ to: returnTo });
+      }
     });
   }, [navigate, returnTo]);
+
+  async function tryAttachReferral() {
+    try {
+      const { getStoredRef, getStoredRefSource, clearStoredRef } = await import("@/lib/referral");
+      const code = getStoredRef();
+      if (!code) return;
+      const { attachReferral } = await import("@/lib/referrals.functions");
+      const res = await attachReferral({ data: { code, source: getStoredRefSource() ?? undefined } });
+      if (res?.ok) clearStoredRef();
+    } catch {
+      /* non-fatal */
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
