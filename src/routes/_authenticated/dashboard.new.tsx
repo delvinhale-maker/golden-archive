@@ -930,14 +930,20 @@ function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium
       <h2 className="font-display text-2xl text-navy">Pricing & royalties</h2>
       <Field label="List price (USD) *">
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-mute">$</span>
+          <span
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-mute font-medium"
+            aria-hidden="true"
+          >
+            $
+          </span>
           <input
             type="number" min="1" step="0.01"
             value={price} onChange={(e) => setPrice(e.target.value)}
-            className="inp pl-8" placeholder="9.99"
+            className="inp" style={{ paddingLeft: 28 }} placeholder="9.99"
           />
         </div>
       </Field>
+
 
       <div
         className="rounded-2xl p-5 text-white transition-colors duration-300"
