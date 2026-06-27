@@ -105,20 +105,27 @@ function PublishFlow() {
   const [submitting, setSubmitting] = useState(false);
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
   const [fileUploadError, setFileUploadError] = useState<string | null>(null);
-  // Track uploads that already succeeded in this session so a retry of the
-  // other asset doesn't re-upload (and potentially fail) a completed one.
   const [uploadedCoverUrl, setUploadedCoverUrl] = useState<string | null>(null);
   const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
+  const [uploadedFileMeta, setUploadedFileMeta] = useState<{ name: string; size: number } | null>(null);
+  // Per-zone upload state — zones operate independently
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [coverProgress, setCoverProgress] = useState(0);
+  const [fileUploading, setFileUploading] = useState(false);
+  const [fileProgress, setFileProgress] = useState(0);
   const [lastPublishAttempt, setLastPublishAttempt] = useState<boolean>(false);
   const [publishedId, setPublishedId] = useState<string | null>(null);
   const [canSell, setCanSell] = useState<boolean | null>(null);
+  // Draft row in DB — for auto-save after each upload + field changes
+  const [draftProductId, setDraftProductId] = useState<string | null>(null);
 
   // Pre-publish preview modal
   const [showPreview, setShowPreview] = useState(false);
 
-  // Draft banner (offer to resume previous unsaved draft)
-  const [draftBanner, setDraftBanner] = useState<{ savedAt: number } | null>(null);
+  // Draft banner (offer to resume previous unsaved draft from DB)
+  const [draftBanner, setDraftBanner] = useState<{ savedAt: string; productId: string; title: string } | null>(null);
   const draftHydrated = useRef(false);
+
 
   useEffect(() => {
     if (!user) return;
