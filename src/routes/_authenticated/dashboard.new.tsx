@@ -505,7 +505,30 @@ function PublishFlow() {
         </div>
       )}
 
+      {draftBanner && !isEditing && (
+        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <Save size={16} className="shrink-0" />
+          <span className="flex-1">
+            You have an unsaved draft from{" "}
+            <strong>{new Date(draftBanner.savedAt).toLocaleString()}</strong> — continue where you left off?
+          </span>
+          <button
+            type="button" onClick={resumeDraft}
+            className="rounded-full bg-amber-600 hover:bg-amber-700 text-white px-4 py-1.5 text-xs font-semibold"
+          >
+            Resume
+          </button>
+          <button
+            type="button" onClick={discardDraft}
+            className="rounded-full border border-amber-300 bg-white hover:bg-amber-100 text-amber-900 px-4 py-1.5 text-xs font-semibold"
+          >
+            Start Fresh
+          </button>
+        </div>
+      )}
+
       <StepperBar step={step} />
+
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         <div
