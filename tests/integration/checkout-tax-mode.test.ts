@@ -82,6 +82,7 @@ mock.module("@/lib/stripe.server", () => {
         console.error("[stripe] applyTaxMode received conflicting tax fields", { mode });
         throw new TaxModeConflictError(mode, ["managed_payments", "automatic_tax"], {});
       }
+      if (mode === "managed" && ha) throw new TaxModeConflictError(mode, ["automatic_tax"], {});
       if (mode === "automatic" && hm) throw new TaxModeConflictError(mode, ["managed_payments"], {});
       if (mode === "managed") params.managed_payments = { enabled: true };
       else params.automatic_tax = { enabled: true };
