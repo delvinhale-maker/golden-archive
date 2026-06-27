@@ -50,7 +50,7 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -59,11 +59,34 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+        // Supabase returns a user with empty identities[] when the email is already registered.
+        if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+          toast.error("An account with this email already exists. Please sign in instead.");
+          setMode("signin");
+          setPassword("");
+          return;
+        }
+        if (!data.session) {
+          toast.success("Check your email to confirm your account before signing in.");
+          setMode("signin");
+          return;
+        }
         toast.success("Account created — welcome to AurumVault");
         navigate({ to: returnTo });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          if (/invalid login credentials/i.test(error.message)) {
+            toast.error("Incorrect email or password. Try again or reset your password.");
+          } else {
+            toast.error(error.message);
+          }
+          return;
+        }
+        if (!data.session) {
+          toast.error("Sign-in did not complete. Please try again.");
+          return;
+        }
         toast.success("Welcome back");
         navigate({ to: returnTo });
       }
@@ -73,6 +96,26 @@ function AuthPage() {
       setBusy(false);
     }
   }
+
+  async function resetPassword() {
+    if (!email) {
+      toast.error("Enter your email above first, then tap Forgot password.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset email sent. Check your inbox.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not send reset email");
+    } finally {
+      setBusy(false);
+    }
+  }
+
 
   async function google() {
     setBusy(true);
@@ -147,12 +190,25 @@ function AuthPage() {
                 className="auth-input" placeholder="At least 6 characters"
               />
             </Field>
+            {mode === "signin" && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={resetPassword}
+                  disabled={busy}
+                  className="text-xs font-medium text-navy hover:underline disabled:opacity-60"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
             <button
               type="submit" disabled={busy}
               className="mt-2 w-full h-11 rounded-full bg-navy text-white font-semibold text-sm hover:bg-navy/90 disabled:opacity-60"
             >
               {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
             </button>
+
           </form>
 
           <p className="mt-5 text-center text-sm text-mute">
