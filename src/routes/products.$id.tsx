@@ -144,7 +144,30 @@ export const Route = createFileRoute("/products/$id")({
 
 function ProductPage() {
   const { id } = Route.useParams();
-  const { data: product } = useSuspenseQuery(productQ(id)) as { data: Product };
+  const { data: result } = useSuspenseQuery(productQ(id));
+
+  if (result.kind === "unpublished") {
+    return (
+      <MarketShell>
+        <div className="mx-auto max-w-2xl px-4 py-20 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold/10">
+            <EyeOff size={32} className="text-gold" />
+          </div>
+          <h1 className="mt-6 font-display text-2xl font-bold text-ink">
+            {result.title ? `“${result.title}” is not yet available` : "This product is not yet available"}
+          </h1>
+          <p className="mt-3 text-mute">
+            This title is currently being reviewed or has been unpublished. Check back soon, or browse available products.
+          </p>
+          <Link to="/products" className="mt-6 inline-block rounded-full bg-gold px-6 py-3 text-sm font-bold text-navy">
+            Browse products
+          </Link>
+        </div>
+      </MarketShell>
+    );
+  }
+
+  const product = result.product;
   const wishlist = useWishlist();
   const cart = useCart();
   const liked = wishlist.has(product.id);
