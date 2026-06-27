@@ -242,6 +242,7 @@ export function assertTaxModeInvariant(
       mode,
       managed_payments: params.managed_payments,
       automatic_tax: params.automatic_tax,
+      session_shape: summarizeSessionShape(params),
     });
     throw new TaxModeConflictError(mode, ["managed_payments", "automatic_tax"], {
       managed_payments: params.managed_payments,
@@ -249,9 +250,17 @@ export function assertTaxModeInvariant(
     });
   }
   if (mode === "managed" && !hasManaged) {
+    console.error("[stripe] tax-mode invariant violated: managed_payments missing", {
+      mode,
+      session_shape: summarizeSessionShape(params),
+    });
     throw new TaxModeConflictError(mode, ["managed_payments(missing)"], {});
   }
   if (mode === "automatic" && !hasAutomatic) {
+    console.error("[stripe] tax-mode invariant violated: automatic_tax missing", {
+      mode,
+      session_shape: summarizeSessionShape(params),
+    });
     throw new TaxModeConflictError(mode, ["automatic_tax(missing)"], {});
   }
 }
