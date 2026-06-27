@@ -95,6 +95,24 @@ function AuthPage() {
           return;
         }
         toast.success("Account created — welcome to AurumVault");
+        await tryAttachReferral();
+        navigate({ to: returnTo });
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          if (/invalid login credentials/i.test(error.message)) {
+            toast.error("Incorrect email or password. Try again or reset your password.");
+          } else {
+            toast.error(error.message);
+          }
+          return;
+        }
+        if (!data.session) {
+          toast.error("Sign-in did not complete. Please try again.");
+          return;
+        }
+        toast.success("Welcome back");
+        await tryAttachReferral();
         navigate({ to: returnTo });
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
