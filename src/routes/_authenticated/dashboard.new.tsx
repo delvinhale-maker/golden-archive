@@ -388,16 +388,20 @@ function PublishFlow() {
     if (publish && !isEditing && (!cover || !file)) return;
 
     setLastPublishAttempt(publish);
-    setCoverUploadError(null);
-    setFileUploadError(null);
+    // Only reset the per-asset error for assets we're actually about to
+    // attempt — preserves the other asset's error/success state.
+    const willUploadCover = !!cover && !uploadedCoverUrl;
+    const willUploadFile = !!file && !uploadedFilePath;
+    if (willUploadCover) setCoverUploadError(null);
+    if (willUploadFile) setFileUploadError(null);
     setSubmitting(true); setUploading(true); setUploadProgress(5);
     try {
       const ts = Date.now();
-      let coverUrl: string | null = existingCoverUrl;
-      let storedFilePath: string | null = existingFilePath;
+      let coverUrl: string | null = uploadedCoverUrl ?? existingCoverUrl;
+      let storedFilePath: string | null = uploadedFilePath ?? existingFilePath;
       let fileSize: number | undefined;
 
-      if (cover) {
+      if (willUploadCover && cover) {
         try {
           const coverPath = `${user.id}/${ts}-${cover.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
           const coverUp = await supabase.storage.from("product-covers").upload(coverPath, cover, { upsert: false });
@@ -405,6 +409,7 @@ function PublishFlow() {
           const { data: signed } = await supabase.storage.from("product-covers")
             .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
           coverUrl = signed?.signedUrl ?? null;
+          setUploadedCoverUrl(coverUrl);
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Cover upload failed. Check your connection and try again.";
           setCoverUploadError(msg);
@@ -413,7 +418,7 @@ function PublishFlow() {
       }
       setUploadProgress(40);
 
-      if (file) {
+      if (willUploadFile && file) {
         const newFilePath = `${user.id}/${ts}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
         const t = setInterval(() => setUploadProgress((p) => (p < 90 ? p + 3 : p)), 400);
         try {
@@ -421,6 +426,7 @@ function PublishFlow() {
           if (fileUp.error) throw fileUp.error;
           storedFilePath = newFilePath;
           fileSize = file.size;
+          setUploadedFilePath(newFilePath);
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Manuscript upload failed. Check your connection and try again.";
           setFileUploadError(msg);
