@@ -44,7 +44,7 @@ export const attachReferral = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // First-touch: ignore conflict on referred_user_id unique constraint.
-    const { error } = await supabaseAdmin.from("referrals").upsert(
+    const { error } = await (supabaseAdmin as any).from("referrals").upsert(
       {
         referrer_user_id: referrerId,
         referred_user_id: context.userId,
