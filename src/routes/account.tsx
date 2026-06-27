@@ -79,9 +79,11 @@ function AccountPage() {
   const displayName = meta?.full_name || user.email?.split("@")[0] || "User";
   const avatar = meta?.avatar_url;
   const orders = ordersQ.data ?? [];
+  const ordersFailed = ordersQ.isError;
   const downloads = orders.flatMap((o) =>
-    o.items.map((it) => ({ ...it, orderId: o.id })),
+    (o.items ?? []).map((it) => ({ ...it, orderId: o.id })),
   );
+
 
   return (
     <MarketShell>
