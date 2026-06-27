@@ -304,7 +304,10 @@ function PublishFlow() {
 
   async function uploadAndSave(publish: boolean) {
     if (!user) return;
-    if (!isEditing && (!cover || !file)) return;
+    // For publish we require everything. For drafts (publish=false) allow
+    // partial data — the bookshelf can resume the title later.
+    if (publish && !isEditing && (!cover || !file)) return;
+
     setSubmitting(true); setUploading(true); setUploadProgress(5);
     try {
       const ts = Date.now();
