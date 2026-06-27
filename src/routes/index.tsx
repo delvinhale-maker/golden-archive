@@ -39,6 +39,8 @@ const featuredQ = queryOptions({
 const highlightsQ = queryOptions({
   queryKey: ["mp", "home-highlights"],
   queryFn: () => getHomeHighlights(),
+  staleTime: 0,
+  refetchOnMount: "always",
 });
 
 export const Route = createFileRoute("/")({
