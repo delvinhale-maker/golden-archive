@@ -141,11 +141,21 @@ async def main() -> None:
                 "Sign in via the Lovable preview, then re-run."
             )
 
-        # Step 2 holds the dropzones. The publish flow keeps step state in
-        # React, not in the URL, so we click Continue twice (Details defaults
-        # are valid for the seeded fixtures) — but to keep this test
-        # self-contained we just probe whichever dropzones are currently
-        # mounted. If we're on Step 1, advance.
+        # Step 1 requires title, author (prefilled), and a description of
+        # at least 50 characters. Fill the required fields, then advance to
+        # Step 2 where the dropzones live.
+        title_input = page.locator('input.inp').first
+        await title_input.tap()
+        await title_input.fill("Mobile Upload Zone Test Title")
+
+        desc = page.locator("textarea.inp").first
+        await desc.tap()
+        await desc.fill(
+            "This is a deliberately verbose description used solely to "
+            "satisfy the minimum length validation in the publish flow."
+        )
+
+        # Continue to Step 2.
         for _ in range(3):
             zone = page.locator('button[aria-label="Upload manuscript file"]')
             if await zone.count() > 0:
@@ -154,7 +164,8 @@ async def main() -> None:
             if await cont.count() == 0:
                 break
             await cont.first.tap()
-            await page.wait_for_timeout(300)
+            await page.wait_for_timeout(400)
+
 
         await page.screenshot(path=str(SCREENSHOTS / "step2_mobile.png"))
 
