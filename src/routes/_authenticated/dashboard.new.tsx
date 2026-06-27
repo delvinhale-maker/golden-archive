@@ -1371,7 +1371,13 @@ function CoverInput({ file, preview, onFile, acceptedHint, onZoom, uploaded }: {
                 <Maximize2 size={12} /> Full size
               </button>
             )}
+            {uploaded && (
+              <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-[11px] font-semibold px-2 py-0.5 shadow">
+                <CheckCircle2 size={12} /> Uploaded
+              </span>
+            )}
           </div>
+
           {isOver && <div className="absolute inset-0 bg-gold/20 border-2 border-dashed border-gold rounded-xl flex items-center justify-center pointer-events-none"><span className="text-sm font-semibold text-navy">Drop to replace</span></div>}
           <div className="flex items-center justify-between px-3 py-2 bg-white border-t border-ink/10">
             <span className="text-xs text-mute truncate">{file?.name} {file ? `· ${(file.size / 1024 / 1024).toFixed(2)} MB` : ""}</span>
