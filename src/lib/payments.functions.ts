@@ -124,12 +124,21 @@ export const createProductCheckout = createServerFn({ method: "POST" })
       try {
         session = await stripe.checkout.sessions.create(sessionParams as any);
       } catch (err) {
-        console.error("[stripe] createProductCheckout: sessions.create failed", {
-          stripe: extractStripeIds(err),
-          session_shape: summarizeSessionShape(sessionParams),
-          tax_mode: taxMode,
-        });
-        throw err;
+        if (isAutomaticTaxConfigError(err)) {
+          console.warn("[stripe] createProductCheckout: tax config missing, retrying without tax automation", {
+            stripe: extractStripeIds(err),
+          });
+          const fallback = stripTaxFields(sessionParams);
+          (fallback as any).metadata = { ...(fallback as any).metadata, tax_mode: "none" };
+          session = await stripe.checkout.sessions.create(fallback as any);
+        } else {
+          console.error("[stripe] createProductCheckout: sessions.create failed", {
+            stripe: extractStripeIds(err),
+            session_shape: summarizeSessionShape(sessionParams),
+            tax_mode: taxMode,
+          });
+          throw err;
+        }
       }
 
       return { clientSecret: session.client_secret ?? "" };
