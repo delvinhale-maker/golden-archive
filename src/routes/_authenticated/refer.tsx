@@ -172,6 +172,9 @@ function ReferPage() {
           </div>
         </section>
 
+        <ReferralStatusSection />
+
+
         <section className="mt-6 grid gap-4 sm:grid-cols-3">
           {[
             { step: "1", title: "Share your link", body: "Send it to friends, post it, or text it — it works anywhere." },
