@@ -23,6 +23,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
+import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
@@ -112,6 +113,11 @@ const ProductsIndexRoute = ProductsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ProductsRoute,
+} as any)
+const SubscribeConfirmRoute = SubscribeConfirmRouteImport.update({
+  id: '/subscribe/confirm',
+  path: '/subscribe/confirm',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsIdRoute = ProductsIdRouteImport.update({
   id: '/$id',
@@ -246,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products/': typeof ProductsIndexRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products': typeof ProductsIndexRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
@@ -317,6 +325,7 @@ export interface FileRoutesById {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
   '/_authenticated/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
@@ -354,6 +363,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/subscribe/confirm'
     | '/products/'
     | '/admin/products'
     | '/dashboard/earn'
@@ -388,6 +398,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/subscribe/confirm'
     | '/products'
     | '/admin/products'
     | '/dashboard/earn'
@@ -424,6 +435,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/subscribe/confirm'
     | '/products/'
     | '/_authenticated/admin/products'
     | '/_authenticated/dashboard/earn'
@@ -459,6 +471,7 @@ export interface RootRouteChildren {
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  SubscribeConfirmRoute: typeof SubscribeConfirmRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
   ApiPublicHooksAuditCoversRoute: typeof ApiPublicHooksAuditCoversRoute
@@ -568,6 +581,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/products/'
       preLoaderRoute: typeof ProductsIndexRouteImport
       parentRoute: typeof ProductsRoute
+    }
+    '/subscribe/confirm': {
+      id: '/subscribe/confirm'
+      path: '/subscribe/confirm'
+      fullPath: '/subscribe/confirm'
+      preLoaderRoute: typeof SubscribeConfirmRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/products/$id': {
       id: '/products/$id'
@@ -791,6 +811,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutReturnRoute: CheckoutReturnRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  SubscribeConfirmRoute: SubscribeConfirmRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
   ApiPublicHooksAuditCoversRoute: ApiPublicHooksAuditCoversRoute,
