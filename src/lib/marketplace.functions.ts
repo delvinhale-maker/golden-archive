@@ -436,7 +436,9 @@ export const getProduct = createServerFn({ method: "GET" })
       .eq("published", true)
       .maybeSingle();
     if (!row) return null as unknown as Product;
-    return dbRowToProduct(row as DbProductRow);
+    const product = dbRowToProduct(row as DbProductRow);
+    const agg = await fetchReviewAggregates(supa, [product.id]);
+    return applyAggregates([product], agg)[0];
   });
 
 export const getFeaturedCreators = createServerFn({ method: "GET" }).handler(async () => {
