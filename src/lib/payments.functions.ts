@@ -191,6 +191,19 @@ export const createCartCheckout = createServerFn({ method: "POST" })
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+// In-memory throttle: per (userId, token) cache the most recent mint until
+// remaining uses changes or TTL expires. Prevents excessive signed-URL minting
+// from repeated tab refreshes / retries.
+type CachedMint = {
+  url: string;
+  title: string;
+  remaining: number;
+  expiresAt: string;
+  mintedAt: number;
+};
+const MINT_TTL_MS = 30_000;
+const mintCache = new Map<string, CachedMint>();
+
 export const getDownloadInfo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { token: string }) => {
@@ -202,6 +215,19 @@ export const getDownloadInfo = createServerFn({ method: "GET" })
 
     const buyerEmail = (context.claims as { email?: string })?.email?.toLowerCase();
     if (!buyerEmail) return { error: "Sign in to access your download" } as const;
+
+    const cacheKey = `${context.userId}:${data.token}`;
+    const cached = mintCache.get(cacheKey);
+    if (cached && Date.now() - cached.mintedAt < MINT_TTL_MS) {
+      return {
+        ok: true as const,
+        url: cached.url,
+        title: cached.title,
+        remaining: cached.remaining,
+        expiresAt: cached.expiresAt,
+        throttled: true as const,
+      };
+    }
 
     const { data: dl, error } = await supabaseAdmin
       .from("order_downloads")
@@ -220,6 +246,7 @@ export const getDownloadInfo = createServerFn({ method: "GET" })
     const expired = new Date(dl.expires_at).getTime() < Date.now();
     if (expired) return { error: "This download link has expired" } as const;
     if (dl.download_count >= dl.max_downloads) {
+      mintCache.delete(cacheKey);
       return { error: "Download limit reached for this link" } as const;
     }
 
@@ -239,11 +266,21 @@ export const getDownloadInfo = createServerFn({ method: "GET" })
       .update({ download_count: dl.download_count + 1 })
       .eq("id", dl.id);
 
-    return {
+    const result = {
       ok: true as const,
       url: signed.signedUrl,
       title,
       remaining: dl.max_downloads - dl.download_count - 1,
       expiresAt: dl.expires_at,
     };
+    mintCache.set(cacheKey, { ...result, mintedAt: Date.now() });
+    // Opportunistic GC
+    if (mintCache.size > 500) {
+      const now = Date.now();
+      for (const [k, v] of mintCache) {
+        if (now - v.mintedAt > MINT_TTL_MS) mintCache.delete(k);
+      }
+    }
+    return result;
   });
+
