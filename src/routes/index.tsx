@@ -28,24 +28,23 @@ import { DealsStrip } from "@/components/marketplace/DealsStrip";
 import { BestsellersRow } from "@/components/marketplace/BestsellersRow";
 import {
   getFeaturedProducts,
-  getFeaturedCreators,
+  getHomeHighlights,
   type Product,
-  type Creator,
 } from "@/lib/marketplace.functions";
 
 const featuredQ = queryOptions({
   queryKey: ["mp", "featured"],
   queryFn: () => getFeaturedProducts(),
 });
-const creatorsQ = queryOptions({
-  queryKey: ["mp", "creators"],
-  queryFn: () => getFeaturedCreators(),
+const highlightsQ = queryOptions({
+  queryKey: ["mp", "home-highlights"],
+  queryFn: () => getHomeHighlights(),
 });
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(featuredQ);
-    context.queryClient.ensureQueryData(creatorsQ);
+    context.queryClient.ensureQueryData(highlightsQ);
   },
   head: () => ({
     meta: [
