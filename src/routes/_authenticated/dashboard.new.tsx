@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
 
-const DRAFT_KEY = "av:publish-draft:v2";
+// (legacy localStorage draft key removed — drafts now live in the database)
 const DESC_MIN = 50;
 const DESC_MAX = 1900;
 const DESC_WARN = 1800;
@@ -105,20 +105,27 @@ function PublishFlow() {
   const [submitting, setSubmitting] = useState(false);
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
   const [fileUploadError, setFileUploadError] = useState<string | null>(null);
-  // Track uploads that already succeeded in this session so a retry of the
-  // other asset doesn't re-upload (and potentially fail) a completed one.
   const [uploadedCoverUrl, setUploadedCoverUrl] = useState<string | null>(null);
   const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
+  const [uploadedFileMeta, setUploadedFileMeta] = useState<{ name: string; size: number } | null>(null);
+  // Per-zone upload state — zones operate independently
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [coverProgress, setCoverProgress] = useState(0);
+  const [fileUploading, setFileUploading] = useState(false);
+  const [fileProgress, setFileProgress] = useState(0);
   const [lastPublishAttempt, setLastPublishAttempt] = useState<boolean>(false);
   const [publishedId, setPublishedId] = useState<string | null>(null);
   const [canSell, setCanSell] = useState<boolean | null>(null);
+  // Draft row in DB — for auto-save after each upload + field changes
+  const [draftProductId, setDraftProductId] = useState<string | null>(null);
 
   // Pre-publish preview modal
   const [showPreview, setShowPreview] = useState(false);
 
-  // Draft banner (offer to resume previous unsaved draft)
-  const [draftBanner, setDraftBanner] = useState<{ savedAt: number } | null>(null);
-  const draftHydrated = useRef(false);
+  // Draft banner (offer to resume previous unsaved draft from DB)
+  const [draftBanner, setDraftBanner] = useState<{ savedAt: string; productId: string; title: string } | null>(null);
+  
+
 
   useEffect(() => {
     if (!user) return;
@@ -126,72 +133,117 @@ function PublishFlow() {
       .then(({ data }) => setCanSell(data?.status === "approved"));
   }, [user]);
 
-  // Check for an existing local draft (not when editing an existing title)
+  // Check the DB for an existing draft owned by this user (not when editing)
   useEffect(() => {
-    if (isEditing || typeof window === "undefined") return;
-    try {
-      const raw = window.localStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as { savedAt: number };
-      if (parsed?.savedAt) setDraftBanner({ savedAt: parsed.savedAt });
-    } catch {
-      // ignore
-    }
-  }, [isEditing]);
+    if (isEditing || !user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("marketplace_products")
+        .select("id,title,updated_at")
+        .eq("seller_id", user.id)
+        .eq("published", false)
+        .eq("status", "draft")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data?.id) {
+        setDraftBanner({
+          savedAt: (data.updated_at as string | null) ?? new Date().toISOString(),
+          productId: data.id as string,
+          title: (data.title as string | null) ?? "Untitled draft",
+        });
+      }
+    })();
+  }, [isEditing, user]);
 
   function resumeDraft() {
+    if (!draftBanner) return;
+    navigate({ to: "/dashboard/new", search: { id: draftBanner.productId } });
+  }
+
+  async function discardDraft() {
+    if (!draftBanner || !user) { setDraftBanner(null); return; }
+    await supabase
+      .from("marketplace_products")
+      .delete()
+      .eq("id", draftBanner.productId)
+      .eq("seller_id", user.id);
+    setDraftBanner(null);
+    toast.success("Draft discarded.");
+  }
+
+  // Auto-save the current form state to the DB as a draft.
+  // Used after a successful upload and on a 2s debounce for field changes.
+  const autosavingRef = useRef(false);
+  async function autosaveDraftToDB(opts?: {
+    coverUrl?: string | null;
+    filePath?: string | null;
+    fileSize?: number | null;
+    silent?: boolean;
+  }) {
+    if (!user || autosavingRef.current) return;
+    if (!title.trim()) return; // need at least a title
+    autosavingRef.current = true;
     try {
-      const raw = window.localStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
-      const d = JSON.parse(raw) as Record<string, unknown>;
-      if (typeof d.title === "string") setTitle(d.title);
-      if (typeof d.subtitle === "string") setSubtitle(d.subtitle);
-      if (typeof d.author === "string") setAuthor(d.author);
-      if (typeof d.seriesName === "string") setSeriesName(d.seriesName);
-      if (typeof d.edition === "string") setEdition(d.edition);
-      if (typeof d.description === "string") setDescription(d.description);
-      if (typeof d.language === "string") setLanguage(d.language);
-      if (typeof d.category === "string") setCategory(d.category as typeof category);
-      if (Array.isArray(d.keywords)) setKeywords(d.keywords.filter((k): k is string => typeof k === "string"));
-      if (typeof d.ageRange === "string") setAgeRange(d.ageRange);
-      if (typeof d.ownsRights === "boolean") setOwnsRights(d.ownsRights);
-      if (typeof d.drm === "boolean") setDrm(d.drm);
-      if (typeof d.premium === "boolean") setPremium(d.premium);
-      if (typeof d.price === "string") setPrice(d.price);
-      if (typeof d.step === "number" && [1, 2, 3, 4].includes(d.step)) setStep(d.step as StepNum);
-      draftHydrated.current = true;
-      setDraftBanner(null);
-      toast.success("Draft restored.");
-    } catch {
-      toast.error("Could not restore draft.");
+      const priceCents = Math.round((parseFloat(price || "0") || 0) * 100);
+      const notes = JSON.stringify({
+        seriesName: seriesName || null, edition: edition || null,
+        keywords, ageRange, ownsRights, drm, premium, territory: "Worldwide",
+      });
+      const payload = {
+        title: title.trim(),
+        subtitle: subtitle.trim() || null,
+        description: description.trim(),
+        creator_name: author.trim(),
+        language, category,
+        price_cents: priceCents,
+        cover_url: opts?.coverUrl ?? uploadedCoverUrl ?? existingCoverUrl,
+        file_path: opts?.filePath ?? uploadedFilePath ?? existingFilePath,
+        ...(opts?.fileSize != null ? { file_size_bytes: opts.fileSize } : {}),
+        status: "draft" as const,
+        published: false,
+        admin_notes: notes,
+      };
+      const targetId = draftProductId ?? editingId;
+      if (targetId) {
+        const { error } = await supabase.from("marketplace_products").update(payload).eq("id", targetId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from("marketplace_products")
+          .insert({ ...payload, seller_id: user.id })
+          .select("id")
+          .single();
+        if (error) throw error;
+        if (data?.id) setDraftProductId(data.id as string);
+      }
+      if (!opts?.silent) {
+        toast.success("Progress saved", { duration: 2000 });
+      }
+    } catch (e) {
+      // Don't bother the user with toast spam on debounced saves
+      console.error("Autosave failed", e);
+    } finally {
+      autosavingRef.current = false;
     }
   }
 
-  function discardDraft() {
-    try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
-    setDraftBanner(null);
-  }
-
-  // Debounced auto-save to localStorage on any field change
+  // Debounced auto-save on any field change (2s)
   useEffect(() => {
-    if (isEditing || typeof window === "undefined") return;
+    if (!user) return;
     const t = setTimeout(() => {
-      try {
-        const draft = {
-          savedAt: Date.now(),
-          step, title, subtitle, author, seriesName, edition, description,
-          language, category, keywords, ageRange, ownsRights, drm, premium, price,
-        };
-        // Don't write a useless empty draft
-        if (!title.trim() && !description.trim() && !subtitle.trim()) return;
-        window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-      } catch { /* ignore quota errors */ }
+      // Only autosave if there's enough content to bother
+      if (!title.trim()) return;
+      autosaveDraftToDB({ silent: true });
     }, 2000);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    isEditing, step, title, subtitle, author, seriesName, edition, description,
+    user, title, subtitle, author, seriesName, edition, description,
     language, category, keywords, ageRange, ownsRights, drm, premium, price,
   ]);
+
+
 
 
 
@@ -239,8 +291,11 @@ function PublishFlow() {
       } catch {
         // ignore malformed admin_notes
       }
+      // Resuming an existing draft / editing — autosave should target this row.
+      setDraftProductId(editingId);
       setLoadingEdit(false);
     })();
+
   }, [editingId, user, navigate]);
 
   // Cover preview + dim validation
@@ -289,6 +344,7 @@ function PublishFlow() {
     setCoverError(null);
     setCoverUploadError(null);
     setUploadedCoverUrl(null);
+    setCoverProgress(0);
     if (!f) { setCover(null); return; }
     if (!["image/jpeg", "image/png"].includes(f.type)) return setCoverError("Cover must be JPG or PNG.");
     if (f.size > MAX_COVER_MB * 1024 * 1024) return setCoverError(`Cover must be under ${MAX_COVER_MB} MB.`);
@@ -299,6 +355,8 @@ function PublishFlow() {
     setFileError(null);
     setFileUploadError(null);
     setUploadedFilePath(null);
+    setUploadedFileMeta(null);
+    setFileProgress(0);
     if (!f) { setFile(null); return; }
     if (f.size === 0) return setFileError("File is empty.");
     const ext = f.name.toLowerCase().split(".").pop() ?? "";
@@ -306,7 +364,66 @@ function PublishFlow() {
     if (f.type && !FILE_MIMES.includes(f.type)) return setFileError(`File content (${f.type}) doesn't match a manuscript.`);
     if (f.size > MAX_FILE_MB * 1024 * 1024) return setFileError(`File exceeds ${MAX_FILE_MB} MB limit.`);
     setFile(f);
+    // Kick off the upload immediately so each zone operates independently.
+    void uploadManuscript(f);
   }
+
+  // Upload helpers — independent per-zone uploads triggered on file select.
+  async function uploadCoverNow(f: File) {
+    if (!user) return;
+    setCoverUploading(true); setCoverProgress(8); setCoverUploadError(null);
+    const tick = setInterval(() => setCoverProgress((p) => (p < 88 ? p + 6 : p)), 250);
+    try {
+      const ts = Date.now();
+      const coverPath = `${user.id}/${ts}-${f.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      const up = await supabase.storage.from("product-covers").upload(coverPath, f, { upsert: false });
+      if (up.error) throw up.error;
+      const { data: signed } = await supabase.storage.from("product-covers")
+        .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
+      const url = signed?.signedUrl ?? null;
+      setUploadedCoverUrl(url);
+      setCoverProgress(100);
+      await autosaveDraftToDB({ coverUrl: url });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Cover upload failed. Check your connection and try again.";
+      setCoverUploadError(msg);
+    } finally {
+      clearInterval(tick);
+      setCoverUploading(false);
+    }
+  }
+
+  async function uploadManuscript(f: File) {
+    if (!user) return;
+    setFileUploading(true); setFileProgress(8); setFileUploadError(null);
+    const tick = setInterval(() => setFileProgress((p) => (p < 88 ? p + 4 : p)), 300);
+    try {
+      const ts = Date.now();
+      const path = `${user.id}/${ts}-${f.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      const up = await supabase.storage.from("product-files").upload(path, f, { upsert: false });
+      if (up.error) throw up.error;
+      setUploadedFilePath(path);
+      setUploadedFileMeta({ name: f.name, size: f.size });
+      setFileProgress(100);
+      await autosaveDraftToDB({ filePath: path, fileSize: f.size });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Manuscript upload failed. Check your connection and try again.";
+      setFileUploadError(msg);
+    } finally {
+      clearInterval(tick);
+      setFileUploading(false);
+    }
+  }
+
+  // Trigger cover upload once the image has been validated (dims OK, no error)
+  useEffect(() => {
+    if (!cover) return;
+    if (coverError || coverChecking || !coverDims) return;
+    if (uploadedCoverUrl || coverUploading) return;
+    void uploadCoverNow(cover);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cover, coverError, coverChecking, coverDims]);
+
 
   function addKeyword() {
     const k = kwInput.trim();
@@ -447,8 +564,9 @@ function PublishFlow() {
         ownsRights, drm, premium, territory,
       });
 
-      let savedId: string | null = editingId ?? null;
-      if (isEditing && editingId) {
+      const existingRowId = editingId ?? draftProductId;
+      let savedId: string | null = existingRowId;
+      if (existingRowId) {
         const update = {
           title: title.trim(),
           subtitle: subtitle.trim() || null,
@@ -464,7 +582,7 @@ function PublishFlow() {
           admin_notes: notes,
           ...(fileSize !== undefined ? { file_size_bytes: fileSize } : {}),
         };
-        const { error } = await supabase.from("marketplace_products").update(update).eq("id", editingId);
+        const { error } = await supabase.from("marketplace_products").update(update).eq("id", existingRowId);
         if (error) throw error;
       } else {
         const { data: inserted, error } = await supabase.from("marketplace_products").insert({
@@ -485,6 +603,7 @@ function PublishFlow() {
         if (error) throw error;
         savedId = inserted?.id ?? null;
       }
+
       setUploadProgress(100);
 
       if (publish) {
@@ -492,11 +611,11 @@ function PublishFlow() {
         if (savedId) {
           runReview({ data: { productId: savedId } }).catch((err) => console.error("AI review failed", err));
         }
-        try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+        setDraftProductId(null);
         setPublishedId(savedId);
       } else {
         toast.success("Draft saved.");
-        try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+
         navigate({ to: "/dashboard" });
       }
 
@@ -510,7 +629,7 @@ function PublishFlow() {
   if (publishedId) {
     return (
       <PublisherShell accent={accent}>
-        <SuccessScreen productId={publishedId} title={title} accent={accent} />
+        <SuccessScreen productId={publishedId} title={title} accent={accent} cover={coverPreview ?? existingCoverUrl} />
       </PublisherShell>
     );
   }
@@ -591,16 +710,21 @@ function PublishFlow() {
               coverError={coverError} coverChecking={coverChecking}
               handleCoverChange={handleCoverChange}
               file={file} fileError={fileError} handleFileChange={handleFileChange}
-              uploadProgress={uploadProgress} uploading={uploading}
               onZoomCover={() => setCoverLightbox(true)}
               existingCoverUrl={existingCoverUrl}
               existingFilePath={existingFilePath}
               coverUploadError={coverUploadError}
               fileUploadError={fileUploadError}
-              onRetryCover={() => { setCoverUploadError(null); uploadAndSave(lastPublishAttempt); }}
-              onRetryFile={() => { setFileUploadError(null); uploadAndSave(lastPublishAttempt); }}
-              retryDisabled={submitting}
+              onRetryCover={() => { if (cover) void uploadCoverNow(cover); }}
+              onRetryFile={() => { if (file) void uploadManuscript(file); }}
+              retryDisabled={coverUploading || fileUploading}
+              coverUploading={coverUploading} coverProgress={coverProgress}
+              fileUploading={fileUploading} fileProgress={fileProgress}
+              uploadedCoverUrl={uploadedCoverUrl}
+              uploadedFilePath={uploadedFilePath}
+              uploadedFileMeta={uploadedFileMeta}
             />
+
           )}
           {step === 3 && (
             <StepPricing
@@ -616,13 +740,17 @@ function PublishFlow() {
               cover={coverPreview} title={title} subtitle={subtitle} author={author}
               price={priceNum} royalty={royalty}
               format="eBook" territory={territory}
+              category={category}
               uploading={uploading} uploadProgress={uploadProgress}
               submitting={submitting} disabled={canSell === false}
+              checklist={checklist} checklistPass={checklistPass}
+              onGoToStep={(s: StepNum) => setStep(s)}
               onDraft={() => uploadAndSave(false)}
-              onPublish={() => setShowPreview(true)}
+              onPublish={() => uploadAndSave(true)}
               onZoomCover={() => setCoverLightbox(true)}
             />
           )}
+
 
           {step < 4 ? (
             <div className="flex flex-wrap items-center justify-between gap-3 mt-8 pt-5 border-t border-ink/10">
@@ -840,7 +968,6 @@ function StepContent(p: {
   coverError: string | null; coverChecking: boolean;
   handleCoverChange: (f: File | null) => void;
   file: File | null; fileError: string | null; handleFileChange: (f: File | null) => void;
-  uploadProgress: number; uploading: boolean;
   onZoomCover: () => void;
   existingCoverUrl: string | null;
   existingFilePath: string | null;
@@ -849,7 +976,14 @@ function StepContent(p: {
   onRetryCover: () => void;
   onRetryFile: () => void;
   retryDisabled: boolean;
+  coverUploading: boolean; coverProgress: number;
+  fileUploading: boolean; fileProgress: number;
+  uploadedCoverUrl: string | null;
+  uploadedFilePath: string | null;
+  uploadedFileMeta: { name: string; size: number } | null;
 }) {
+  const coverDone = !!p.uploadedCoverUrl && !p.coverUploading && !p.coverUploadError;
+  const fileDone = !!p.uploadedFilePath && !p.fileUploading && !p.fileUploadError;
   return (
     <div className="space-y-6">
       <h2 className="font-display text-2xl text-navy">Content & rights</h2>
@@ -871,30 +1005,39 @@ function StepContent(p: {
       <div>
         <h3 className="font-display text-lg text-navy mb-2">Manuscript</h3>
         <p className="text-xs text-mute mb-3">Accepted: PDF, EPUB, DOCX. Max {MAX_FILE_MB} MB.</p>
-        <FileInput file={p.file} onFile={p.handleFileChange} accept=".pdf,.epub,.docx,application/pdf,application/epub+zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hint="Drag & drop or tap to choose your manuscript" acceptedHint=".PDF, .EPUB, .DOCX" />
+        {fileDone && p.file ? (
+          <UploadSuccess
+            iconLabel="manuscript"
+            name={p.uploadedFileMeta?.name ?? p.file.name}
+            size={p.uploadedFileMeta?.size ?? p.file.size}
+            onReplace={() => p.handleFileChange(null)}
+          />
+        ) : (
+          <FileInput
+            file={p.file}
+            onFile={p.handleFileChange}
+            accept=".pdf,.epub,.docx,application/pdf,application/epub+zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            hint="Drag & drop or tap to choose your manuscript"
+            acceptedHint=".PDF, .EPUB, .DOCX"
+          />
+        )}
         {p.fileError && (
           <div className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
             <AlertCircle size={16} className="mt-0.5 shrink-0" /><span>{p.fileError}</span>
           </div>
         )}
-        {p.file && !p.fileError && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-            <CheckCircle2 size={16} className="shrink-0" />
-            <span className="truncate">{p.file.name} — {(p.file.size / 1024 / 1024).toFixed(2)} MB</span>
+        {p.fileUploading && (
+          <div className="mt-3" aria-live="polite">
+            <div className="flex justify-between text-xs text-mute mb-1"><span>Uploading manuscript…</span><span>{p.fileProgress}%</span></div>
+            <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
+              <div className="h-full transition-all" style={{ width: `${p.fileProgress}%`, background: "var(--page-accent)" }} />
+            </div>
           </div>
         )}
         {!p.file && !p.fileError && p.existingFilePath && (
           <div className="mt-2 flex items-center gap-2 text-sm text-navy bg-paper border border-ink/10 rounded-lg p-3">
             <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
-            <span className="truncate">Current manuscript on file. Drop a new file to replace it.</span>
-          </div>
-        )}
-        {p.uploading && (
-          <div className="mt-3">
-            <div className="flex justify-between text-xs text-mute mb-1"><span>Uploading…</span><span>{p.uploadProgress}%</span></div>
-            <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
-              <div className="h-full transition-all" style={{ width: `${p.uploadProgress}%`, background: "var(--page-accent)" }} />
-            </div>
+            <span className="truncate">Current manuscript on file. Tap the zone above to replace it.</span>
           </div>
         )}
         {p.fileUploadError && (
@@ -904,9 +1047,7 @@ function StepContent(p: {
               <p className="font-semibold">Manuscript upload failed</p>
               <p className="text-xs mt-0.5 break-words">{p.fileUploadError}</p>
               <button
-                type="button"
-                onClick={p.onRetryFile}
-                disabled={p.retryDisabled}
+                type="button" onClick={p.onRetryFile} disabled={p.retryDisabled}
                 data-testid="manuscript-retry-upload"
                 className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5"
               >
@@ -920,7 +1061,7 @@ function StepContent(p: {
       <div>
         <h3 className="font-display text-lg text-navy mb-2">Cover</h3>
         <p className="text-xs text-mute mb-3">JPG or PNG, minimum 1600×2560 px (1:1.6 portrait).</p>
-        <CoverInput file={p.cover} preview={p.coverPreview} onFile={p.handleCoverChange} acceptedHint="JPG, PNG" onZoom={p.onZoomCover} />
+        <CoverInput file={p.cover} preview={p.coverPreview} onFile={p.handleCoverChange} acceptedHint="JPG, PNG" onZoom={p.onZoomCover} uploaded={coverDone} />
         {p.coverChecking && <div className="mt-2 text-xs text-mute">Checking image dimensions…</div>}
         {p.coverDims && (
           <div className="mt-2 text-xs text-mute">
@@ -932,15 +1073,25 @@ function StepContent(p: {
             <AlertCircle size={16} className="mt-0.5 shrink-0" /><span>{p.coverError}</span>
           </div>
         )}
-        {p.cover && !p.coverError && !p.coverChecking && p.coverDims && (
-          <div className="mt-2 flex items-start gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-            <CheckCircle2 size={16} className="mt-0.5 shrink-0" /><span>Cover meets the required specs.</span>
+        {p.coverUploading && (
+          <div className="mt-3" aria-live="polite">
+            <div className="flex justify-between text-xs text-mute mb-1"><span>Uploading cover…</span><span>{p.coverProgress}%</span></div>
+            <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
+              <div className="h-full transition-all" style={{ width: `${p.coverProgress}%`, background: "var(--page-accent)" }} />
+            </div>
+          </div>
+        )}
+        {coverDone && p.cover && (
+          <div className="mt-2 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+            <CheckCircle2 size={16} className="shrink-0" />
+            <span className="truncate flex-1">{p.cover.name} — {(p.cover.size / 1024 / 1024).toFixed(2)} MB · uploaded</span>
+            <button type="button" onClick={() => p.handleCoverChange(null)} className="text-xs font-semibold text-emerald-800 underline">Replace file</button>
           </div>
         )}
         {!p.cover && p.existingCoverUrl && (
           <div className="mt-2 flex items-center gap-2 text-sm text-navy bg-paper border border-ink/10 rounded-lg p-3">
             <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
-            <span className="truncate">Current cover shown above. Drop a new image to replace it.</span>
+            <span className="truncate">Current cover shown above. Tap the zone to replace it.</span>
           </div>
         )}
         {p.coverUploadError && (
@@ -950,9 +1101,7 @@ function StepContent(p: {
               <p className="font-semibold">Cover upload failed</p>
               <p className="text-xs mt-0.5 break-words">{p.coverUploadError}</p>
               <button
-                type="button"
-                onClick={p.onRetryCover}
-                disabled={p.retryDisabled}
+                type="button" onClick={p.onRetryCover} disabled={p.retryDisabled}
                 data-testid="cover-retry-upload"
                 className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5"
               >
@@ -965,6 +1114,28 @@ function StepContent(p: {
     </div>
   );
 }
+
+function UploadSuccess({ iconLabel, name, size, onReplace }: { iconLabel: string; name: string; size: number; onReplace: () => void }) {
+  const sizeMB = size > 1024 * 1024 ? `${(size / 1024 / 1024).toFixed(2)} MB` : `${Math.max(1, Math.round(size / 1024))} KB`;
+  return (
+    <div className="flex items-center gap-3 rounded-xl border-2 border-emerald-300 bg-emerald-50/60 p-4">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+        <CheckCircle2 size={22} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-navy truncate">{name}</p>
+        <p className="text-xs text-mute">{sizeMB} · {iconLabel} uploaded</p>
+      </div>
+      <button
+        type="button" onClick={onReplace}
+        className="shrink-0 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5"
+      >
+        Replace file
+      </button>
+    </div>
+  );
+}
+
 
 function RightsBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -1057,46 +1228,91 @@ function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium
 
 /* ---------- Step 4: Review ---------- */
 
-function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, uploading, uploadProgress, submitting, disabled, onDraft, onPublish, onZoomCover }: {
+function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover }: {
   accent: PublisherAccent;
   cover: string | null; title: string; subtitle: string; author: string;
   price: number; royalty: number; format: string; territory: string;
+  category: string;
   uploading: boolean; uploadProgress: number; submitting: boolean; disabled: boolean;
+  checklist: Array<{ id: string; label: string; ok: boolean; gotoStep: StepNum }>;
+  checklistPass: boolean;
+  onGoToStep: (s: StepNum) => void;
   onDraft: () => void; onPublish: () => void; onZoomCover: () => void;
 }) {
   return (
     <div className="space-y-6">
       <h2 className="font-display text-2xl text-navy">Review & publish</h2>
 
-      <div
-        className="rounded-2xl p-5 md:p-6 flex flex-col sm:flex-row gap-5"
-        style={{ background: `linear-gradient(135deg, ${accent.tint} 0%, white 100%)`, border: `1px solid ${accent.color}30` }}
-      >
-        {cover ? (
-          <button type="button" onClick={onZoomCover} className="group shrink-0 self-start relative">
-            <img src={cover} alt="" className="w-40 h-auto aspect-[1/1.6] object-cover rounded-md shadow-lg border border-ink/10" />
-            <span className="absolute inset-0 rounded-md bg-navy/0 group-hover:bg-navy/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
-              <Maximize2 size={20} className="text-white" />
-            </span>
-          </button>
-        ) : <div className="w-40 aspect-[1/1.6] bg-ink/5 rounded-md" />}
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: accent.color }}>Final summary</p>
-          <div className="mt-1 font-display text-2xl text-navy leading-tight">{title || "Untitled"}</div>
-          {subtitle && <div className="text-mute italic">{subtitle}</div>}
-          <div className="mt-2 text-sm text-ink">by <strong>{author}</strong></div>
-          <dl className="mt-4 grid grid-cols-2 gap-y-2 text-sm">
-            <dt className="text-mute">Format</dt><dd className="text-navy">{format}</dd>
-            <dt className="text-mute">List price</dt><dd className="text-navy font-mono">${price.toFixed(2)}</dd>
-            <dt className="text-mute">Your royalty</dt><dd className="text-navy font-mono">${royalty.toFixed(2)}</dd>
-            <dt className="text-mute">Territory</dt><dd className="text-navy">{territory}</dd>
-          </dl>
+      {/* KDP-style storefront preview card */}
+      <div className="rounded-2xl border border-ink/10 bg-gradient-to-br from-paper to-white p-5">
+        <p className="text-[11px] uppercase tracking-wider font-semibold text-mute">
+          Preview — This is how your product will appear in the Vault
+        </p>
+        <div className="mt-4 mx-auto max-w-[260px]">
+          <div className="rounded-xl bg-white border border-ink/10 shadow-sm overflow-hidden">
+            <button type="button" onClick={onZoomCover} className="block w-full aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A] overflow-hidden">
+              {cover ? (
+                <img src={cover} alt={`Cover for ${title || "untitled"}`} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">No cover</div>
+              )}
+            </button>
+            <div className="p-3">
+              <span className="inline-block text-[10px] uppercase tracking-wider font-semibold rounded-full px-2 py-0.5"
+                style={{ background: `${accent.color}22`, color: accent.color }}>
+                {category}
+              </span>
+              <p className="mt-1.5 font-display text-base text-navy leading-tight line-clamp-2">{title || "Untitled"}</p>
+              <p className="text-xs text-mute mt-0.5 truncate">by {author || "—"}</p>
+              <div className="mt-1.5 flex items-center gap-0.5" aria-label="0 of 5 stars, no reviews yet">
+                {[0,1,2,3,4].map((i) => (
+                  <svg key={i} viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-ink/15"><path d="M12 17.3 5.8 21l1.6-7L2 9.3l7.1-.6L12 2l2.9 6.7 7.1.6-5.4 4.7 1.6 7z"/></svg>
+                ))}
+                <span className="ml-1 text-[10px] text-mute">(0)</span>
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="font-mono text-navy font-semibold">${price.toFixed(2)}</span>
+                <button type="button" disabled className="text-[11px] rounded-full bg-ink/10 text-mute px-3 py-1.5 cursor-not-allowed">Add to Cart</button>
+              </div>
+            </div>
+          </div>
         </div>
+        <dl className="mt-5 grid grid-cols-2 gap-y-1.5 text-xs text-mute max-w-md mx-auto">
+          <dt>Format</dt><dd className="text-navy text-right">{format}</dd>
+          <dt>List price</dt><dd className="text-navy font-mono text-right">${price.toFixed(2)}</dd>
+          <dt>Your royalty</dt><dd className="text-navy font-mono text-right">${royalty.toFixed(2)}</dd>
+          <dt>Territory</dt><dd className="text-navy text-right">{territory}</dd>
+        </dl>
+      </div>
+
+      {/* Pre-publish checklist */}
+      <div className="rounded-2xl border border-ink/10 bg-white p-5">
+        <p className="text-[11px] uppercase tracking-wider font-semibold text-mute">Pre-publish checklist</p>
+        <ul className="mt-3 space-y-2">
+          {checklist.map((c) => (
+            <li key={c.id} className="flex items-center gap-2 text-sm">
+              {c.ok ? (
+                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" aria-hidden="true" />
+              ) : (
+                <AlertCircle size={16} className="text-red-600 shrink-0" aria-hidden="true" />
+              )}
+              <span className={c.ok ? "text-navy" : "text-red-700 font-medium"}>{c.label}</span>
+              {!c.ok && (
+                <button
+                  type="button" onClick={() => onGoToStep(c.gotoStep)}
+                  className="ml-auto text-xs text-red-700 underline hover:no-underline"
+                >
+                  Fix this →
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
 
       {uploading && (
         <div>
-          <div className="flex justify-between text-xs text-mute mb-1"><span>Uploading…</span><span>{uploadProgress}%</span></div>
+          <div className="flex justify-between text-xs text-mute mb-1"><span>Publishing…</span><span>{uploadProgress}%</span></div>
           <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
             <div className="h-full transition-all" style={{ width: `${uploadProgress}%`, background: accent.color }} />
           </div>
@@ -1111,9 +1327,10 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
           Save as Draft
         </button>
         <button
-          type="button" disabled={submitting || disabled} onClick={onPublish}
-          className="flex-1 h-12 rounded-full text-white font-semibold disabled:opacity-60 inline-flex items-center justify-center gap-2 transition-colors duration-300"
+          type="button" disabled={submitting || disabled || !checklistPass} onClick={onPublish}
+          className="flex-1 h-12 rounded-full text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 transition-colors duration-300"
           style={{ background: accent.color }}
+          title={!checklistPass ? "Resolve checklist items above" : undefined}
         >
           <ShieldCheck size={16} /> {submitting ? "Publishing…" : "Publish to Vault"}
         </button>
@@ -1122,9 +1339,10 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
   );
 }
 
+
 /* ---------- Success ---------- */
 
-function SuccessScreen({ productId, title, accent }: { productId: string; title: string; accent: PublisherAccent }) {
+function SuccessScreen({ productId, title, accent, cover }: { productId: string; title: string; accent: PublisherAccent; cover: string | null }) {
   return (
     <div className="max-w-2xl mx-auto mt-12 text-center">
       <div
@@ -1133,7 +1351,14 @@ function SuccessScreen({ productId, title, accent }: { productId: string; title:
       >
         <CheckCircle2 size={42} />
       </div>
+      {cover && (
+        <img
+          src={cover} alt={`Cover for ${title}`}
+          className="mx-auto mt-6 w-32 aspect-[1/1.6] object-cover rounded-md shadow-lg border border-ink/10"
+        />
+      )}
       <h1 className="mt-6 font-display text-3xl md:text-4xl text-navy">Your title is live on AurumVault!</h1>
+
       <p className="mt-2 text-mute">"{title}" was successfully published and is now available in the storefront.</p>
       <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
         <Link
@@ -1177,7 +1402,7 @@ function useDropZone(onFile: (f: File | null) => void) {
   return { isOver, handlers };
 }
 
-function CoverInput({ file, preview, onFile, acceptedHint, onZoom }: { file: File | null; preview: string | null; onFile: (f: File | null) => void; acceptedHint: string; onZoom?: () => void }) {
+function CoverInput({ file, preview, onFile, acceptedHint, onZoom, uploaded }: { file: File | null; preview: string | null; onFile: (f: File | null) => void; acceptedHint: string; onZoom?: () => void; uploaded?: boolean }) {
   const ref = useRef<HTMLInputElement>(null);
   const { isOver, handlers } = useDropZone(onFile);
   const openPicker = () => {
@@ -1206,7 +1431,13 @@ function CoverInput({ file, preview, onFile, acceptedHint, onZoom }: { file: Fil
                 <Maximize2 size={12} /> Full size
               </button>
             )}
+            {uploaded && (
+              <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-[11px] font-semibold px-2 py-0.5 shadow">
+                <CheckCircle2 size={12} /> Uploaded
+              </span>
+            )}
           </div>
+
           {isOver && <div className="absolute inset-0 bg-gold/20 border-2 border-dashed border-gold rounded-xl flex items-center justify-center pointer-events-none"><span className="text-sm font-semibold text-navy">Drop to replace</span></div>}
           <div className="flex items-center justify-between px-3 py-2 bg-white border-t border-ink/10">
             <span className="text-xs text-mute truncate">{file?.name} {file ? `· ${(file.size / 1024 / 1024).toFixed(2)} MB` : ""}</span>
