@@ -53,7 +53,7 @@ mock.module("@/lib/stripe.server", () => {
     getStripeErrorMessage: (e: any) => e?.message ?? "err",
     detectTaxMode: async (stripe: any, env: string) => {
       const cached = taxModeCache.get(env);
-      if (cached && Date.now() - cached.at < 1000) return cached.mode;
+      if (cached && false) return cached.mode;
       const acct = await stripe.accounts.retrieve();
       const mode: "managed" | "automatic" =
         acct.capabilities?.managed_payments === "active" ||
