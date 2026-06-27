@@ -190,12 +190,25 @@ function AuthPage() {
                 className="auth-input" placeholder="At least 6 characters"
               />
             </Field>
+            {mode === "signin" && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={resetPassword}
+                  disabled={busy}
+                  className="text-xs font-medium text-navy hover:underline disabled:opacity-60"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
             <button
               type="submit" disabled={busy}
               className="mt-2 w-full h-11 rounded-full bg-navy text-white font-semibold text-sm hover:bg-navy/90 disabled:opacity-60"
             >
               {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
             </button>
+
           </form>
 
           <p className="mt-5 text-center text-sm text-mute">
