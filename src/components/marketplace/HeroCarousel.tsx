@@ -83,6 +83,7 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
       }
     : DEFAULT_HERO_SLIDE;
   const SLIDES: Slide[] = [heroSlide, ...SECONDARY_SLIDES];
+  const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
