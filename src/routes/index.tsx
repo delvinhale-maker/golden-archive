@@ -89,6 +89,7 @@ function Home() {
         <FeaturedHero />
       </HighlightsBoundary>
       <HeroStatsBar />
+      <RefreshHighlightsBar />
       <Suspense fallback={null}>
         <DealsAndBestsellers />
       </Suspense>
@@ -101,6 +102,33 @@ function Home() {
       </HighlightsBoundary>
       <TrustBar />
     </MarketShell>
+  );
+}
+
+function RefreshHighlightsBar() {
+  const queryClient = useQueryClient();
+  const isFetching = useIsFetching({ queryKey: ["mp", "home-highlights"] }) > 0;
+  return (
+    <div className="bg-white">
+      <div className="mx-auto flex max-w-7xl items-center justify-end px-6 py-3 lg:px-8">
+        <button
+          type="button"
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] })
+          }
+          disabled={isFetching}
+          aria-label="Refresh hero product and Illustrious Capital count"
+          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-white px-3 text-[11px] font-semibold tracking-caps text-navy transition hover:border-gold hover:text-gold disabled:opacity-60"
+        >
+          <RefreshCw
+            size={12}
+            className={isFetching ? "animate-spin" : ""}
+            aria-hidden
+          />
+          {isFetching ? "REFRESHING…" : "REFRESH NOW"}
+        </button>
+      </div>
+    </div>
   );
 }
 
