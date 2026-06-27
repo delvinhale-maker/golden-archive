@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 export function UploadFab() {
   const { isAdmin, isSeller, loading } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
