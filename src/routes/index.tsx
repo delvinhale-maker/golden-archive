@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { useSuspenseQuery, queryOptions, useQueryClient, useQueryErrorResetBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import {
   BadgeCheck,
   BookOpen,
@@ -83,9 +84,9 @@ const CATS = [
 function Home() {
   return (
     <MarketShell>
-      <Suspense fallback={<HeroCarousel />}>
+      <HighlightsBoundary fallback={<HeroCarousel />} errorLabel="hero product">
         <FeaturedHero />
-      </Suspense>
+      </HighlightsBoundary>
       <HeroStatsBar />
       <Suspense fallback={null}>
         <DealsAndBestsellers />
@@ -94,32 +95,105 @@ function Home() {
       <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProducts />
       </Suspense>
-      <Suspense fallback={null}>
+      <HighlightsBoundary fallback={<CreatorSkeleton />} errorLabel="featured creator">
         <IllustriousCreator />
-      </Suspense>
+      </HighlightsBoundary>
       <TrustBar />
     </MarketShell>
   );
 }
 
+function HighlightsBoundary({
+  children,
+  fallback,
+  errorLabel,
+}: {
+  children: React.ReactNode;
+  fallback: React.ReactNode;
+  errorLabel: string;
+}) {
+  const { reset } = useQueryErrorResetBoundary();
+  const queryClient = useQueryClient();
+  return (
+    <ErrorBoundary
+      onReset={reset}
+      fallbackRender={({ resetErrorBoundary }) => (
+        <section className="bg-white py-12">
+          <div className="mx-auto max-w-2xl px-6 text-center">
+            <div className="rounded-xl border border-line bg-[#fff8f0] p-6">
+              <div className="text-[11px] font-semibold tracking-caps text-gold">
+                COULDN'T LOAD
+              </div>
+              <p className="mt-2 text-sm text-ink">
+                We couldn't refresh the {errorLabel}. Check your connection and try again.
+              </p>
+              <button
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] });
+                  resetErrorBoundary();
+                }}
+                className="mt-4 inline-flex h-10 items-center rounded-full bg-navy px-5 text-sm font-bold text-white hover:bg-navy/90"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+    >
+      <Suspense fallback={fallback}>{children}</Suspense>
+    </ErrorBoundary>
+  );
+}
+
+function CreatorSkeleton() {
+  return (
+    <section className="bg-[#f9fafb] py-16 md:py-24" aria-busy="true" aria-live="polite">
+      <div className="mx-auto max-w-md px-6">
+        <div className="av-card overflow-hidden">
+          <div className="h-[120px] animate-pulse bg-[#e5e7eb]" />
+          <div className="px-6 pb-6">
+            <div className="-mt-8 h-16 w-16 animate-pulse rounded-full border-[3px] border-white bg-[#e5e7eb]" />
+            <div className="mt-3 h-5 w-48 animate-pulse rounded bg-[#e5e7eb]" />
+            <div className="mt-2 h-4 w-64 animate-pulse rounded bg-[#eef0f3]" />
+            <div className="mt-4 h-6 w-16 animate-pulse rounded bg-[#eef0f3]" />
+          </div>
+        </div>
+        <span className="sr-only">Loading featured creator…</span>
+      </div>
+    </section>
+  );
+}
+
 function FeaturedHero() {
-  const { data } = useSuspenseQuery(highlightsQ);
+  const { data, isFetching } = useSuspenseQuery(highlightsQ);
   const hp = data.heroProduct;
   return (
-    <HeroCarousel
-      heroProduct={
-        hp
-          ? {
-              id: hp.id,
-              title: hp.title,
-              category: hp.category,
-              price: hp.price,
-              coverUrl:
-                hp.image && hp.image.startsWith("http") ? hp.image : null,
-            }
-          : null
-      }
-    />
+    <div className="relative">
+      {isFetching && (
+        <div
+          className="absolute left-0 right-0 top-0 z-20 h-0.5 overflow-hidden bg-white/10"
+          aria-live="polite"
+          aria-label="Refreshing hero"
+        >
+          <div className="h-full w-1/3 animate-[shimmer_1.2s_ease-in-out_infinite] bg-gold" />
+        </div>
+      )}
+      <HeroCarousel
+        heroProduct={
+          hp
+            ? {
+                id: hp.id,
+                title: hp.title,
+                category: hp.category,
+                price: hp.price,
+                coverUrl:
+                  hp.image && hp.image.startsWith("http") ? hp.image : null,
+              }
+            : null
+        }
+      />
+    </div>
   );
 }
 
@@ -378,12 +452,17 @@ function FeaturedSkeleton() {
 }
 
 function IllustriousCreator() {
-  const { data } = useSuspenseQuery(highlightsQ);
+  const { data, isFetching } = useSuspenseQuery(highlightsQ);
   const count = data.illustriousProductCount;
   return (
-    <section className="bg-[#f9fafb] py-16 md:py-24">
+    <section className="bg-[#f9fafb] py-16 md:py-24" aria-busy={isFetching}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader kicker="OUR FOUNDING PUBLISHER" title="Illustrious Capital™" />
+        {isFetching && (
+          <div className="mb-4 text-center text-[11px] font-semibold tracking-caps text-mute" aria-live="polite">
+            Refreshing…
+          </div>
+        )}
         <div className="mx-auto max-w-md">
           <motion.div
             initial={{ opacity: 0, y: 16 }}

@@ -237,6 +237,11 @@
     100% { background-position: -200% 0; }
   }
 
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(400%); }
+  }
+
   .av-hero-bg {
     background:
       radial-gradient(80% 60% at 20% 20%, rgba(201,162,39,0.20), transparent 60%),
