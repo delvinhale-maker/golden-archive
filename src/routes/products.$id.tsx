@@ -46,12 +46,26 @@ export const Route = createFileRoute("/products/$id")({
     const p = res?.kind === "published" ? res.product : undefined;
     const isUnpublished = res?.kind === "unpublished";
     const url = `${SITE_URL}/products/${params.id}`;
-    const baseTitle = p?.title
-      ? `${p.title} | AurumVault — Gold Standard Digital Commerce`
-      : "Product | AurumVault — Gold Standard Digital Commerce";
-    const rawDesc = p?.description?.trim()
-      ? p.description.replace(/\s+/g, " ").trim()
-      : "A premium digital resource from a verified AurumVault creator.";
+
+    let baseTitle: string;
+    let rawDesc: string;
+    if (isUnpublished) {
+      const t = res && res.kind === "unpublished" ? res.title : null;
+      baseTitle = t
+        ? `“${t}” is not yet available | AurumVault`
+        : "Product not yet available | AurumVault";
+      rawDesc = t
+        ? `“${t}” is currently being reviewed or has been unpublished on AurumVault. Check back soon or browse other premium digital products.`
+        : "This product is currently being reviewed or has been unpublished on AurumVault. Check back soon or browse other premium digital products.";
+    } else if (p) {
+      baseTitle = `${p.title} | AurumVault — Gold Standard Digital Commerce`;
+      rawDesc = p.description?.trim()
+        ? p.description.replace(/\s+/g, " ").trim()
+        : "A premium digital resource from a verified AurumVault creator.";
+    } else {
+      baseTitle = "Product | AurumVault — Gold Standard Digital Commerce";
+      rawDesc = "A premium digital resource from a verified AurumVault creator.";
+    }
     const desc = rawDesc.length > 160 ? `${rawDesc.slice(0, 157)}…` : rawDesc;
     const image =
       p?.image && /^https?:\/\//.test(p.image) ? p.image : undefined;
@@ -60,7 +74,7 @@ export const Route = createFileRoute("/products/$id")({
       { title: baseTitle },
       { name: "description", content: desc },
       { name: "robots", content: isUnpublished ? "noindex, follow" : "index, follow" },
-      { property: "og:type", content: "product" },
+      { property: "og:type", content: isUnpublished ? "website" : "product" },
       { property: "og:title", content: baseTitle },
       { property: "og:description", content: desc },
       { property: "og:url", content: url },
