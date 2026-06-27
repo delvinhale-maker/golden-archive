@@ -95,12 +95,14 @@ export function ReviewsSection({ productId, fallbackRating, fallbackCount }: {
   );
 }
 
-function ReviewCard({ review, queryKey, canVote }: {
+function ReviewCard({ review, queryKey, canVote, currentUserId }: {
   review: ReviewSummary["reviews"][number];
   queryKey: readonly unknown[];
   canVote: boolean;
+  currentUserId: string | null;
 }) {
   const vote = useServerFn(toggleHelpful);
+  const remove = useServerFn(deleteReview);
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
   const onVote = async () => {
