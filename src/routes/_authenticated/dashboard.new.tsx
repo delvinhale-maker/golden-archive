@@ -627,7 +627,7 @@ function PublishFlow() {
   if (publishedId) {
     return (
       <PublisherShell accent={accent}>
-        <SuccessScreen productId={publishedId} title={title} accent={accent} />
+        <SuccessScreen productId={publishedId} title={title} accent={accent} cover={coverPreview ?? existingCoverUrl} />
       </PublisherShell>
     );
   }
