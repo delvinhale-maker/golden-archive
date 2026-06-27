@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTrackView } from "@/hooks/use-recently-viewed";
 import {
   BadgeCheck,
   ChevronRight,
@@ -265,6 +266,7 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
 
   const [tab, setTab] = useState<TabKey>("description");
   const [liked, setLiked] = useState(false);
+  useTrackView(productId);
 
   const crumbs = breadcrumb ?? [
     { label: "Home" },
