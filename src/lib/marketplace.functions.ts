@@ -45,7 +45,7 @@ function dbRowToProduct(r: DbProductRow, sellerName = "Illustrious Capital™"):
     title: r.title,
     category: catLabel,
     price: r.price_cents / 100,
-    rating: 5,
+    rating: 0,
     reviewCount: 0,
     image: r.cover_url ?? `av:${catLabel}:0`,
     bestseller: false,
@@ -57,6 +57,43 @@ function dbRowToProduct(r: DbProductRow, sellerName = "Illustrious Capital™"):
   };
 }
 
+// Fetch real aggregate rating/review counts for a set of product IDs.
+// product_reviews has a public SELECT policy, so the publishable-key client
+// can read it server-side without exposing the service role.
+async function fetchReviewAggregates(
+  supa: ReturnType<typeof serverSupabase>,
+  productIds: string[],
+): Promise<Map<string, { rating: number; count: number }>> {
+  const map = new Map<string, { rating: number; count: number }>();
+  if (productIds.length === 0) return map;
+  const { data, error } = await supa
+    .from("product_reviews")
+    .select("product_id,rating")
+    .in("product_id", productIds);
+  if (error || !data) return map;
+  const buckets = new Map<string, { sum: number; n: number }>();
+  for (const row of data as Array<{ product_id: string; rating: number }>) {
+    const cur = buckets.get(row.product_id) ?? { sum: 0, n: 0 };
+    cur.sum += row.rating;
+    cur.n += 1;
+    buckets.set(row.product_id, cur);
+  }
+  for (const [id, { sum, n }] of buckets.entries()) {
+    map.set(id, { rating: n > 0 ? sum / n : 0, count: n });
+  }
+  return map;
+}
+
+function applyAggregates(
+  products: Product[],
+  agg: Map<string, { rating: number; count: number }>,
+): Product[] {
+  return products.map((p) => {
+    const a = agg.get(p.id);
+    if (!a) return p;
+    return { ...p, rating: Math.round(a.rating * 10) / 10, reviewCount: a.count };
+  });
+}
 
 async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Promise<Product[]> {
   try {
@@ -73,7 +110,9 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
     if (opts.q) query = query.ilike("title", `%${opts.q}%`);
     const { data, error } = await query;
     if (error || !data) return [];
-    return (data as DbProductRow[]).map((r) => dbRowToProduct(r));
+    const products = (data as DbProductRow[]).map((r) => dbRowToProduct(r));
+    const agg = await fetchReviewAggregates(supa, products.map((p) => p.id));
+    return applyAggregates(products, agg);
   } catch {
     return [];
   }
