@@ -597,7 +597,8 @@ function PublishFlow() {
               existingFilePath={existingFilePath}
               coverUploadError={coverUploadError}
               fileUploadError={fileUploadError}
-              onRetryUpload={() => uploadAndSave(lastPublishAttempt)}
+              onRetryCover={() => { setCoverUploadError(null); uploadAndSave(lastPublishAttempt); }}
+              onRetryFile={() => { setFileUploadError(null); uploadAndSave(lastPublishAttempt); }}
               retryDisabled={submitting}
             />
           )}
