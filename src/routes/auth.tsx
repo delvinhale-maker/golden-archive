@@ -47,12 +47,23 @@ function AuthPage() {
   const returnTo = redirect || "/dashboard";
 
   useEffect(() => {
+    // Initial check
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         void tryAttachReferral();
         navigate({ to: returnTo });
       }
     });
+    // Listen for sign-in completing via OAuth popup / cross-tab broker.
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        void tryAttachReferral();
+        const saved = sessionStorage.getItem("av_oauth_redirect");
+        sessionStorage.removeItem("av_oauth_redirect");
+        navigate({ to: saved || returnTo });
+      }
+    });
+    return () => sub.subscription.unsubscribe();
   }, [navigate, returnTo]);
 
   async function tryAttachReferral() {
