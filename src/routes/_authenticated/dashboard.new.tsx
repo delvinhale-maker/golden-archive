@@ -708,16 +708,21 @@ function PublishFlow() {
               coverError={coverError} coverChecking={coverChecking}
               handleCoverChange={handleCoverChange}
               file={file} fileError={fileError} handleFileChange={handleFileChange}
-              uploadProgress={uploadProgress} uploading={uploading}
               onZoomCover={() => setCoverLightbox(true)}
               existingCoverUrl={existingCoverUrl}
               existingFilePath={existingFilePath}
               coverUploadError={coverUploadError}
               fileUploadError={fileUploadError}
-              onRetryCover={() => { setCoverUploadError(null); uploadAndSave(lastPublishAttempt); }}
-              onRetryFile={() => { setFileUploadError(null); uploadAndSave(lastPublishAttempt); }}
-              retryDisabled={submitting}
+              onRetryCover={() => { if (cover) void uploadCoverNow(cover); }}
+              onRetryFile={() => { if (file) void uploadManuscript(file); }}
+              retryDisabled={coverUploading || fileUploading}
+              coverUploading={coverUploading} coverProgress={coverProgress}
+              fileUploading={fileUploading} fileProgress={fileProgress}
+              uploadedCoverUrl={uploadedCoverUrl}
+              uploadedFilePath={uploadedFilePath}
+              uploadedFileMeta={uploadedFileMeta}
             />
+
           )}
           {step === 3 && (
             <StepPricing
