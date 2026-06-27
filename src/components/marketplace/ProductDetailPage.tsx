@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTrackView } from "@/hooks/use-recently-viewed";
 import {
   BadgeCheck,
   ChevronRight,
