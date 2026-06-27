@@ -962,7 +962,6 @@ function StepContent(p: {
   coverError: string | null; coverChecking: boolean;
   handleCoverChange: (f: File | null) => void;
   file: File | null; fileError: string | null; handleFileChange: (f: File | null) => void;
-  uploadProgress: number; uploading: boolean;
   onZoomCover: () => void;
   existingCoverUrl: string | null;
   existingFilePath: string | null;
@@ -971,7 +970,14 @@ function StepContent(p: {
   onRetryCover: () => void;
   onRetryFile: () => void;
   retryDisabled: boolean;
+  coverUploading: boolean; coverProgress: number;
+  fileUploading: boolean; fileProgress: number;
+  uploadedCoverUrl: string | null;
+  uploadedFilePath: string | null;
+  uploadedFileMeta: { name: string; size: number } | null;
 }) {
+  const coverDone = !!p.uploadedCoverUrl && !p.coverUploading && !p.coverUploadError;
+  const fileDone = !!p.uploadedFilePath && !p.fileUploading && !p.fileUploadError;
   return (
     <div className="space-y-6">
       <h2 className="font-display text-2xl text-navy">Content & rights</h2>
@@ -993,30 +999,39 @@ function StepContent(p: {
       <div>
         <h3 className="font-display text-lg text-navy mb-2">Manuscript</h3>
         <p className="text-xs text-mute mb-3">Accepted: PDF, EPUB, DOCX. Max {MAX_FILE_MB} MB.</p>
-        <FileInput file={p.file} onFile={p.handleFileChange} accept=".pdf,.epub,.docx,application/pdf,application/epub+zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hint="Drag & drop or tap to choose your manuscript" acceptedHint=".PDF, .EPUB, .DOCX" />
+        {fileDone && p.file ? (
+          <UploadSuccess
+            iconLabel="manuscript"
+            name={p.uploadedFileMeta?.name ?? p.file.name}
+            size={p.uploadedFileMeta?.size ?? p.file.size}
+            onReplace={() => p.handleFileChange(null)}
+          />
+        ) : (
+          <FileInput
+            file={p.file}
+            onFile={p.handleFileChange}
+            accept=".pdf,.epub,.docx,application/pdf,application/epub+zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            hint="Drag & drop or tap to choose your manuscript"
+            acceptedHint=".PDF, .EPUB, .DOCX"
+          />
+        )}
         {p.fileError && (
           <div className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
             <AlertCircle size={16} className="mt-0.5 shrink-0" /><span>{p.fileError}</span>
           </div>
         )}
-        {p.file && !p.fileError && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-            <CheckCircle2 size={16} className="shrink-0" />
-            <span className="truncate">{p.file.name} — {(p.file.size / 1024 / 1024).toFixed(2)} MB</span>
+        {p.fileUploading && (
+          <div className="mt-3" aria-live="polite">
+            <div className="flex justify-between text-xs text-mute mb-1"><span>Uploading manuscript…</span><span>{p.fileProgress}%</span></div>
+            <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
+              <div className="h-full transition-all" style={{ width: `${p.fileProgress}%`, background: "var(--page-accent)" }} />
+            </div>
           </div>
         )}
         {!p.file && !p.fileError && p.existingFilePath && (
           <div className="mt-2 flex items-center gap-2 text-sm text-navy bg-paper border border-ink/10 rounded-lg p-3">
             <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
-            <span className="truncate">Current manuscript on file. Drop a new file to replace it.</span>
-          </div>
-        )}
-        {p.uploading && (
-          <div className="mt-3">
-            <div className="flex justify-between text-xs text-mute mb-1"><span>Uploading…</span><span>{p.uploadProgress}%</span></div>
-            <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
-              <div className="h-full transition-all" style={{ width: `${p.uploadProgress}%`, background: "var(--page-accent)" }} />
-            </div>
+            <span className="truncate">Current manuscript on file. Tap the zone above to replace it.</span>
           </div>
         )}
         {p.fileUploadError && (
@@ -1026,9 +1041,7 @@ function StepContent(p: {
               <p className="font-semibold">Manuscript upload failed</p>
               <p className="text-xs mt-0.5 break-words">{p.fileUploadError}</p>
               <button
-                type="button"
-                onClick={p.onRetryFile}
-                disabled={p.retryDisabled}
+                type="button" onClick={p.onRetryFile} disabled={p.retryDisabled}
                 data-testid="manuscript-retry-upload"
                 className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5"
               >
@@ -1042,7 +1055,7 @@ function StepContent(p: {
       <div>
         <h3 className="font-display text-lg text-navy mb-2">Cover</h3>
         <p className="text-xs text-mute mb-3">JPG or PNG, minimum 1600×2560 px (1:1.6 portrait).</p>
-        <CoverInput file={p.cover} preview={p.coverPreview} onFile={p.handleCoverChange} acceptedHint="JPG, PNG" onZoom={p.onZoomCover} />
+        <CoverInput file={p.cover} preview={p.coverPreview} onFile={p.handleCoverChange} acceptedHint="JPG, PNG" onZoom={p.onZoomCover} uploaded={coverDone} />
         {p.coverChecking && <div className="mt-2 text-xs text-mute">Checking image dimensions…</div>}
         {p.coverDims && (
           <div className="mt-2 text-xs text-mute">
@@ -1054,15 +1067,25 @@ function StepContent(p: {
             <AlertCircle size={16} className="mt-0.5 shrink-0" /><span>{p.coverError}</span>
           </div>
         )}
-        {p.cover && !p.coverError && !p.coverChecking && p.coverDims && (
-          <div className="mt-2 flex items-start gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-            <CheckCircle2 size={16} className="mt-0.5 shrink-0" /><span>Cover meets the required specs.</span>
+        {p.coverUploading && (
+          <div className="mt-3" aria-live="polite">
+            <div className="flex justify-between text-xs text-mute mb-1"><span>Uploading cover…</span><span>{p.coverProgress}%</span></div>
+            <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
+              <div className="h-full transition-all" style={{ width: `${p.coverProgress}%`, background: "var(--page-accent)" }} />
+            </div>
+          </div>
+        )}
+        {coverDone && p.cover && (
+          <div className="mt-2 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+            <CheckCircle2 size={16} className="shrink-0" />
+            <span className="truncate flex-1">{p.cover.name} — {(p.cover.size / 1024 / 1024).toFixed(2)} MB · uploaded</span>
+            <button type="button" onClick={() => p.handleCoverChange(null)} className="text-xs font-semibold text-emerald-800 underline">Replace file</button>
           </div>
         )}
         {!p.cover && p.existingCoverUrl && (
           <div className="mt-2 flex items-center gap-2 text-sm text-navy bg-paper border border-ink/10 rounded-lg p-3">
             <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
-            <span className="truncate">Current cover shown above. Drop a new image to replace it.</span>
+            <span className="truncate">Current cover shown above. Tap the zone to replace it.</span>
           </div>
         )}
         {p.coverUploadError && (
@@ -1072,9 +1095,7 @@ function StepContent(p: {
               <p className="font-semibold">Cover upload failed</p>
               <p className="text-xs mt-0.5 break-words">{p.coverUploadError}</p>
               <button
-                type="button"
-                onClick={p.onRetryCover}
-                disabled={p.retryDisabled}
+                type="button" onClick={p.onRetryCover} disabled={p.retryDisabled}
                 data-testid="cover-retry-upload"
                 className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5"
               >
@@ -1087,6 +1108,28 @@ function StepContent(p: {
     </div>
   );
 }
+
+function UploadSuccess({ iconLabel, name, size, onReplace }: { iconLabel: string; name: string; size: number; onReplace: () => void }) {
+  const sizeMB = size > 1024 * 1024 ? `${(size / 1024 / 1024).toFixed(2)} MB` : `${Math.max(1, Math.round(size / 1024))} KB`;
+  return (
+    <div className="flex items-center gap-3 rounded-xl border-2 border-emerald-300 bg-emerald-50/60 p-4">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+        <CheckCircle2 size={22} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-navy truncate">{name}</p>
+        <p className="text-xs text-mute">{sizeMB} · {iconLabel} uploaded</p>
+      </div>
+      <button
+        type="button" onClick={onReplace}
+        className="shrink-0 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5"
+      >
+        Replace file
+      </button>
+    </div>
+  );
+}
+
 
 function RightsBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
