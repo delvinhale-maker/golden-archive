@@ -84,18 +84,42 @@ Then write a polished SEO blurb (140-160 chars) and a refined SEO title (<60 cha
       }
     }
 
-    const { output } = await generateText({
-      model,
-      output: Output.object({ schema: ReviewSchema }),
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a strict but fair marketplace content reviewer. Be concise. Flag policy issues (copyright, NSFW, hate, misleading claims) as high severity. Output valid JSON only.",
-        },
-        { role: "user", content: userParts },
-      ],
-    });
+    let output: AIReviewResult;
+    try {
+      const res = await generateText({
+        model,
+        output: Output.object({ schema: ReviewSchema }),
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a strict but fair marketplace content reviewer. Be concise. Flag policy issues (copyright, NSFW, hate, misleading claims) as high severity. Output valid JSON only.",
+          },
+          { role: "user", content: userParts },
+        ],
+      });
+      output = res.output;
+    } catch (err) {
+      // Fallback: ask for raw JSON and parse manually if constrained decoding fails.
+      console.error("structured review failed, falling back to JSON parse", err);
+      const { text } = await generateText({
+        model,
+        messages: [
+          {
+            role: "system",
+            content:
+              'Return ONLY a JSON object matching this shape: {"score":number 0-100,"status":"pass"|"warn"|"fail","issues":[{"severity":"low"|"medium"|"high","area":"title"|"description"|"cover"|"policy"|"category"|"other","message":string}],"cover_moderation":{"safe":boolean,"notes":string},"suggested_seo_title":string,"suggested_blurb":string,"suggested_tags":string[]}. No prose, no markdown.',
+          },
+          { role: "user", content: userParts },
+        ],
+      });
+      const cleaned = text.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
+      const start = cleaned.indexOf("{");
+      const end = cleaned.lastIndexOf("}");
+      if (start === -1 || end === -1) throw err;
+      const parsed = JSON.parse(cleaned.slice(start, end + 1));
+      output = ReviewSchema.parse(parsed);
+    }
 
     // Persist
     const { error: updErr } = await supabase
