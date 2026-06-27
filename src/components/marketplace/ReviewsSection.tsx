@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Star, ThumbsUp, BadgeCheck, PenSquare, Trash2 } from "lucide-react";
+import { Star, ThumbsUp, BadgeCheck, PenSquare, Trash2, LogIn } from "lucide-react";
 import { listReviews, createReview, toggleHelpful, deleteReview, type ReviewSummary } from "@/lib/reviews.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
@@ -52,7 +53,17 @@ export function ReviewsSection({ productId, fallbackRating, fallbackCount }: {
         <h2 className="font-display text-2xl font-bold text-ink md:text-3xl">
           Reviews
         </h2>
-        {user && <WriteReviewButton productId={productId} queryKey={queryKey} />}
+        {user ? (
+          <WriteReviewButton productId={productId} queryKey={queryKey} />
+        ) : (
+          <Link
+            to="/auth"
+            search={{ redirect: `/products/${productId}` }}
+            className="inline-flex items-center gap-2 rounded-full border-2 border-gold px-4 py-2 text-sm font-bold text-gold hover:bg-[var(--accent)]"
+          >
+            <LogIn size={14} /> Sign in to review
+          </Link>
+        )}
       </div>
 
       <div className="mt-6 grid gap-8 md:grid-cols-[300px_1fr]">

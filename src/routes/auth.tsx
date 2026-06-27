@@ -1,13 +1,19 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { AVLogo } from "@/components/marketplace/AVLogo";
 import { toast } from "sonner";
 
+const authSearchSchema = z.object({
+  redirect: z.string().optional(),
+});
+
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
+  validateSearch: authSearchSchema,
   head: () => ({
     meta: [
       { title: "Sign in | AurumVault" },
@@ -25,17 +31,19 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { redirect } = useSearch({ from: "/auth" });
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const returnTo = redirect || "/dashboard";
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard" });
+      if (data.session) navigate({ to: returnTo });
     });
-  }, [navigate]);
+  }, [navigate, returnTo]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,12 +60,12 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Account created — welcome to AurumVault");
-        navigate({ to: "/dashboard" });
+        navigate({ to: returnTo });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back");
-        navigate({ to: "/dashboard" });
+        navigate({ to: returnTo });
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
@@ -68,6 +76,9 @@ function AuthPage() {
 
   async function google() {
     setBusy(true);
+    if (redirect) {
+      sessionStorage.setItem("av_oauth_redirect", redirect);
+    }
     const res = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
@@ -75,7 +86,9 @@ function AuthPage() {
       toast.error("Google sign-in failed");
       setBusy(false);
     } else if (!res.redirected) {
-      navigate({ to: "/dashboard" });
+      const saved = sessionStorage.getItem("av_oauth_redirect");
+      sessionStorage.removeItem("av_oauth_redirect");
+      navigate({ to: saved || "/dashboard" });
     }
   }
 
