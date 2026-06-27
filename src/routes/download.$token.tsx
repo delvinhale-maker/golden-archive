@@ -12,13 +12,23 @@ export const Route = createFileRoute("/download/$token")({
 
 function DownloadPage() {
   const { token } = Route.useParams();
+  const { user, loading: authLoading } = useAuth();
   const [state, setState] = useState<
     | { kind: "loading" }
     | { kind: "ready"; url: string; title: string; remaining: number }
-    | { kind: "error"; message: string }
+    | { kind: "error"; message: string; needsAuth?: boolean }
   >({ kind: "loading" });
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setState({
+        kind: "error",
+        message: "Sign in with the email you used at checkout to access this download.",
+        needsAuth: true,
+      });
+      return;
+    }
     let cancelled = false;
     getDownloadInfo({ data: { token } })
       .then((res) => {
@@ -27,7 +37,6 @@ function DownloadPage() {
           setState({ kind: "error", message: res.error ?? "Download unavailable" });
         } else {
           setState({ kind: "ready", url: res.url, title: res.title, remaining: res.remaining });
-          // auto-trigger
           window.location.href = res.url;
         }
       })
@@ -37,7 +46,7 @@ function DownloadPage() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, user, authLoading]);
 
   return (
     <MarketShell>
