@@ -609,11 +609,11 @@ function PublishFlow() {
         if (savedId) {
           runReview({ data: { productId: savedId } }).catch((err) => console.error("AI review failed", err));
         }
-        try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+        setDraftProductId(null);
         setPublishedId(savedId);
       } else {
         toast.success("Draft saved.");
-        try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+
         navigate({ to: "/dashboard" });
       }
 
