@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { createProductCheckout, createCartCheckout } from "@/lib/payments.functions";
+import { getStoredRef } from "@/lib/referral";
 import type { CartItem } from "@/hooks/use-av-store";
 import { AlertCircle, Loader2 } from "lucide-react";
 
