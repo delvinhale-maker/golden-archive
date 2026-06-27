@@ -78,10 +78,24 @@ export const createProductCheckout = createServerFn({ method: "POST" })
       );
 
       assertTaxModeInvariant(sessionParams, taxMode);
-      const session = await stripe.checkout.sessions.create(sessionParams as any);
+      let session;
+      try {
+        session = await stripe.checkout.sessions.create(sessionParams as any);
+      } catch (err) {
+        console.error("[stripe] createProductCheckout: sessions.create failed", {
+          stripe: extractStripeIds(err),
+          session_shape: summarizeSessionShape(sessionParams),
+          tax_mode: taxMode,
+        });
+        throw err;
+      }
 
       return { clientSecret: session.client_secret ?? "" };
     } catch (error) {
+      console.error("[stripe] createProductCheckout failed", {
+        stripe: extractStripeIds(error),
+        message: (error as Error)?.message,
+      });
       return { error: getStripeErrorMessage(error) };
     }
   });
