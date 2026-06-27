@@ -22,7 +22,7 @@ import { QASection } from "@/components/marketplace/QASection";
 import { FrequentlyBoughtTogether } from "@/components/marketplace/FrequentlyBoughtTogether";
 import { ShareButtons, ReportIssueLink } from "@/components/marketplace/ShareButtons";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
-import { getProduct, type Product } from "@/lib/marketplace.functions";
+import { getProduct, type Product, type ProductDetailResult } from "@/lib/marketplace.functions";
 
 const productQ = (id: string) =>
   queryOptions({
