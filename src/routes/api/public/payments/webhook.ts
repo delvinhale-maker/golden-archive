@@ -82,7 +82,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       environment: env,
       referral_code: referralCode ?? null,
       referrer_user_id: referrerUserId,
-    })
+    } as any)
     .select("id")
     .single();
   if (orderErr || !order) {
@@ -93,12 +93,11 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   // Backfill first_order on referrals row so the referrer's dashboard credits it.
   if (referrerUserId) {
     try {
-      await supabaseAdmin
+      await (supabaseAdmin as any)
         .from("referrals")
         .update({ first_order_id: order.id, first_order_at: new Date().toISOString() })
         .eq("referrer_user_id", referrerUserId)
-        .is("first_order_id", null)
-        .or(`referred_user_id.is.null,referral_code.eq.${referralCode}`);
+        .is("first_order_id", null);
     } catch (e) {
       console.error("Failed to backfill referral first_order", e);
     }
