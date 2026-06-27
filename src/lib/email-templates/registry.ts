@@ -5,6 +5,7 @@ import { template as sellerApplicationRejected } from './seller-application-reje
 import { template as orderDelivery } from './order-delivery'
 import { template as coverAuditAlert } from './cover-audit-alert'
 import { template as productReviewUpdate } from './product-review-update'
+import { template as subscriberConfirmation } from './subscriber-confirmation'
 
 export interface TemplateEntry {
   component: ComponentType<any>
