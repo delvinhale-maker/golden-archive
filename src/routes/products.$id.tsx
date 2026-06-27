@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   BadgeCheck,
   Check,
+  EyeOff,
   Heart,
   Lock,
   Share2,
