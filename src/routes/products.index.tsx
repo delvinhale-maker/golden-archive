@@ -9,7 +9,9 @@ import {
   ProductCard,
   ProductCardSkeleton,
 } from "@/components/marketplace/ProductCard";
-import { getProducts } from "@/lib/marketplace.functions";
+import { getProducts, type Product } from "@/lib/marketplace.functions";
+import { CategoryHero } from "@/components/marketplace/CategoryHero";
+import { getCategoryTheme } from "@/lib/category-theme";
 
 const searchSchema = z.object({
   category: z.string().optional(),
