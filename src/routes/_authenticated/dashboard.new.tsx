@@ -133,72 +133,117 @@ function PublishFlow() {
       .then(({ data }) => setCanSell(data?.status === "approved"));
   }, [user]);
 
-  // Check for an existing local draft (not when editing an existing title)
+  // Check the DB for an existing draft owned by this user (not when editing)
   useEffect(() => {
-    if (isEditing || typeof window === "undefined") return;
-    try {
-      const raw = window.localStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as { savedAt: number };
-      if (parsed?.savedAt) setDraftBanner({ savedAt: parsed.savedAt });
-    } catch {
-      // ignore
-    }
-  }, [isEditing]);
+    if (isEditing || !user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("marketplace_products")
+        .select("id,title,updated_at")
+        .eq("seller_id", user.id)
+        .eq("published", false)
+        .eq("status", "draft")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data?.id) {
+        setDraftBanner({
+          savedAt: (data.updated_at as string | null) ?? new Date().toISOString(),
+          productId: data.id as string,
+          title: (data.title as string | null) ?? "Untitled draft",
+        });
+      }
+    })();
+  }, [isEditing, user]);
 
   function resumeDraft() {
+    if (!draftBanner) return;
+    navigate({ to: "/dashboard/new", search: { id: draftBanner.productId } });
+  }
+
+  async function discardDraft() {
+    if (!draftBanner || !user) { setDraftBanner(null); return; }
+    await supabase
+      .from("marketplace_products")
+      .delete()
+      .eq("id", draftBanner.productId)
+      .eq("seller_id", user.id);
+    setDraftBanner(null);
+    toast.success("Draft discarded.");
+  }
+
+  // Auto-save the current form state to the DB as a draft.
+  // Used after a successful upload and on a 2s debounce for field changes.
+  const autosavingRef = useRef(false);
+  async function autosaveDraftToDB(opts?: {
+    coverUrl?: string | null;
+    filePath?: string | null;
+    fileSize?: number | null;
+    silent?: boolean;
+  }) {
+    if (!user || autosavingRef.current) return;
+    if (!title.trim()) return; // need at least a title
+    autosavingRef.current = true;
     try {
-      const raw = window.localStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
-      const d = JSON.parse(raw) as Record<string, unknown>;
-      if (typeof d.title === "string") setTitle(d.title);
-      if (typeof d.subtitle === "string") setSubtitle(d.subtitle);
-      if (typeof d.author === "string") setAuthor(d.author);
-      if (typeof d.seriesName === "string") setSeriesName(d.seriesName);
-      if (typeof d.edition === "string") setEdition(d.edition);
-      if (typeof d.description === "string") setDescription(d.description);
-      if (typeof d.language === "string") setLanguage(d.language);
-      if (typeof d.category === "string") setCategory(d.category as typeof category);
-      if (Array.isArray(d.keywords)) setKeywords(d.keywords.filter((k): k is string => typeof k === "string"));
-      if (typeof d.ageRange === "string") setAgeRange(d.ageRange);
-      if (typeof d.ownsRights === "boolean") setOwnsRights(d.ownsRights);
-      if (typeof d.drm === "boolean") setDrm(d.drm);
-      if (typeof d.premium === "boolean") setPremium(d.premium);
-      if (typeof d.price === "string") setPrice(d.price);
-      if (typeof d.step === "number" && [1, 2, 3, 4].includes(d.step)) setStep(d.step as StepNum);
-      draftHydrated.current = true;
-      setDraftBanner(null);
-      toast.success("Draft restored.");
-    } catch {
-      toast.error("Could not restore draft.");
+      const priceCents = Math.round((parseFloat(price || "0") || 0) * 100);
+      const notes = JSON.stringify({
+        seriesName: seriesName || null, edition: edition || null,
+        keywords, ageRange, ownsRights, drm, premium, territory: "Worldwide",
+      });
+      const payload = {
+        title: title.trim(),
+        subtitle: subtitle.trim() || null,
+        description: description.trim(),
+        creator_name: author.trim(),
+        language, category,
+        price_cents: priceCents,
+        cover_url: opts?.coverUrl ?? uploadedCoverUrl ?? existingCoverUrl,
+        file_path: opts?.filePath ?? uploadedFilePath ?? existingFilePath,
+        ...(opts?.fileSize != null ? { file_size_bytes: opts.fileSize } : {}),
+        status: "draft" as const,
+        published: false,
+        admin_notes: notes,
+      };
+      const targetId = draftProductId ?? editingId;
+      if (targetId) {
+        const { error } = await supabase.from("marketplace_products").update(payload).eq("id", targetId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from("marketplace_products")
+          .insert({ ...payload, seller_id: user.id })
+          .select("id")
+          .single();
+        if (error) throw error;
+        if (data?.id) setDraftProductId(data.id as string);
+      }
+      if (!opts?.silent) {
+        toast.success("Progress saved", { duration: 2000 });
+      }
+    } catch (e) {
+      // Don't bother the user with toast spam on debounced saves
+      console.error("Autosave failed", e);
+    } finally {
+      autosavingRef.current = false;
     }
   }
 
-  function discardDraft() {
-    try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
-    setDraftBanner(null);
-  }
-
-  // Debounced auto-save to localStorage on any field change
+  // Debounced auto-save on any field change (2s)
   useEffect(() => {
-    if (isEditing || typeof window === "undefined") return;
+    if (!user) return;
     const t = setTimeout(() => {
-      try {
-        const draft = {
-          savedAt: Date.now(),
-          step, title, subtitle, author, seriesName, edition, description,
-          language, category, keywords, ageRange, ownsRights, drm, premium, price,
-        };
-        // Don't write a useless empty draft
-        if (!title.trim() && !description.trim() && !subtitle.trim()) return;
-        window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-      } catch { /* ignore quota errors */ }
+      // Only autosave if there's enough content to bother
+      if (!title.trim()) return;
+      autosaveDraftToDB({ silent: true });
     }, 2000);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    isEditing, step, title, subtitle, author, seriesName, edition, description,
+    user, title, subtitle, author, seriesName, edition, description,
     language, category, keywords, ageRange, ownsRights, drm, premium, price,
   ]);
+
+
 
 
 
