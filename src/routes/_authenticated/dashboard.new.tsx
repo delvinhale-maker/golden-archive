@@ -829,6 +829,10 @@ function StepContent(p: {
   onZoomCover: () => void;
   existingCoverUrl: string | null;
   existingFilePath: string | null;
+  coverUploadError: string | null;
+  fileUploadError: string | null;
+  onRetryUpload: () => void;
+  retryDisabled: boolean;
 }) {
   return (
     <div className="space-y-6">
