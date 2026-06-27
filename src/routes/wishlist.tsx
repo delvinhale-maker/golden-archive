@@ -8,11 +8,16 @@ import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { useAuth } from "@/hooks/use-auth";
 import { listWishlist, removeWishlist } from "@/lib/wishlist.functions";
+import { RouteErrorFallback } from "@/components/RouteErrorFallback";
 
 export const Route = createFileRoute("/wishlist")({
   head: () => ({ meta: [{ title: "Your Wishlist — AurumVault" }] }),
   component: WishlistPage,
+  errorComponent: ({ error, reset }) => (
+    <RouteErrorFallback error={error} reset={reset} title="Wishlist isn't loading" />
+  ),
 });
+
 
 function WishlistPage() {
   const { user, loading } = useAuth();
