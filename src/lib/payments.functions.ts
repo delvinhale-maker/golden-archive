@@ -16,10 +16,13 @@ type CheckoutResult = { clientSecret: string } | { error: string };
 
 export const createProductCheckout = createServerFn({ method: "POST" })
   .inputValidator(
-    (data: { productId: string; returnUrl: string; environment: StripeEnv }) => {
+    (data: { productId: string; returnUrl: string; environment: StripeEnv; referralCode?: string }) => {
       if (!/^[a-f0-9-]{36}$/.test(data.productId)) throw new Error("Invalid productId");
       if (data.environment !== "sandbox" && data.environment !== "live") {
         throw new Error("Invalid environment");
+      }
+      if (data.referralCode && !/^[A-Z0-9]{6,16}$/.test(data.referralCode.toUpperCase())) {
+        delete data.referralCode;
       }
       return data;
     },
