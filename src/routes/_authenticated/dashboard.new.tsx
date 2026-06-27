@@ -881,6 +881,24 @@ function StepContent(p: {
             </div>
           </div>
         )}
+        {p.fileUploadError && (
+          <div role="alert" data-testid="manuscript-upload-error" className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold">Manuscript upload failed</p>
+              <p className="text-xs mt-0.5 break-words">{p.fileUploadError}</p>
+              <button
+                type="button"
+                onClick={p.onRetryUpload}
+                disabled={p.retryDisabled}
+                data-testid="manuscript-retry-upload"
+                className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5"
+              >
+                Retry upload
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div>
