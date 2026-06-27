@@ -290,8 +290,10 @@ function PublishFlow() {
         }
       } catch {
         // ignore malformed admin_notes
-      }
+      // Resuming an existing draft / editing — autosave should target this row.
+      setDraftProductId(editingId);
       setLoadingEdit(false);
+
     })();
   }, [editingId, user, navigate]);
 
