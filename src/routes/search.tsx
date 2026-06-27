@@ -6,12 +6,17 @@ import { z } from "zod";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCard, ProductCardSkeleton } from "@/components/marketplace/ProductCard";
 import { getProducts } from "@/lib/marketplace.functions";
+import { RouteErrorFallback } from "@/components/RouteErrorFallback";
 
 export const Route = createFileRoute("/search")({
   validateSearch: z.object({ q: z.string().optional() }),
   head: () => ({ meta: [{ title: "Search — AurumVault" }] }),
   component: SearchPage,
+  errorComponent: ({ error, reset }) => (
+    <RouteErrorFallback error={error} reset={reset} title="Search isn't loading" />
+  ),
 });
+
 
 function SearchPage() {
   const search = Route.useSearch();

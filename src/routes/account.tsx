@@ -12,11 +12,16 @@ import {
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { useAuth } from "@/hooks/use-auth";
 import { getMyOrders } from "@/lib/account.functions";
+import { RouteErrorFallback } from "@/components/RouteErrorFallback";
 
 export const Route = createFileRoute("/account")({
   head: () => ({ meta: [{ title: "Your Account — AurumVault" }] }),
   component: AccountPage,
+  errorComponent: ({ error, reset }) => (
+    <RouteErrorFallback error={error} reset={reset} title="Your account isn't loading" />
+  ),
 });
+
 
 function AccountPage() {
   const { user, loading, signOut, isAdmin, isSeller } = useAuth();
@@ -74,9 +79,11 @@ function AccountPage() {
   const displayName = meta?.full_name || user.email?.split("@")[0] || "User";
   const avatar = meta?.avatar_url;
   const orders = ordersQ.data ?? [];
+  const ordersFailed = ordersQ.isError;
   const downloads = orders.flatMap((o) =>
-    o.items.map((it) => ({ ...it, orderId: o.id })),
+    (o.items ?? []).map((it) => ({ ...it, orderId: o.id })),
   );
+
 
   return (
     <MarketShell>
@@ -115,10 +122,16 @@ function AccountPage() {
           <h2 className="font-display text-xl font-bold text-ink">My Downloads</h2>
           {ordersQ.isLoading ? (
             <Loader2 className="mt-4 animate-spin text-gold" />
+          ) : ordersFailed ? (
+            <p className="mt-3 text-sm text-red-700">
+              We couldn't load your downloads right now.{" "}
+              <button type="button" onClick={() => ordersQ.refetch()} className="underline">Try again</button>
+            </p>
           ) : downloads.length === 0 ? (
             <p className="mt-3 text-sm text-mute">
               No purchases yet. Items you buy will appear here for download.
             </p>
+
           ) : (
             <ul className="mt-3 divide-y divide-line rounded-2xl border border-line bg-white">
               {downloads.map((d) => (

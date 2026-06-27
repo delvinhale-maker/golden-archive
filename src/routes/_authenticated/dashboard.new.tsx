@@ -1,15 +1,22 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS, type PublisherAccent } from "@/components/marketplace/PublisherShell";
 import {
   ArrowLeft, ArrowRight, Check, Image as ImageIcon, FileText, X,
   CheckCircle2, AlertCircle, Maximize2, Plus, Sparkles, ShieldCheck, Globe,
+  Save, Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
+
+const DRAFT_KEY = "av:publish-draft:v2";
+const DESC_MIN = 50;
+const DESC_MAX = 1900;
+const DESC_WARN = 1800;
+
 
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -99,11 +106,87 @@ function PublishFlow() {
   const [publishedId, setPublishedId] = useState<string | null>(null);
   const [canSell, setCanSell] = useState<boolean | null>(null);
 
+  // Pre-publish preview modal
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Draft banner (offer to resume previous unsaved draft)
+  const [draftBanner, setDraftBanner] = useState<{ savedAt: number } | null>(null);
+  const draftHydrated = useRef(false);
+
   useEffect(() => {
     if (!user) return;
     supabase.from("seller_applications").select("status").eq("user_id", user.id).maybeSingle()
       .then(({ data }) => setCanSell(data?.status === "approved"));
   }, [user]);
+
+  // Check for an existing local draft (not when editing an existing title)
+  useEffect(() => {
+    if (isEditing || typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { savedAt: number };
+      if (parsed?.savedAt) setDraftBanner({ savedAt: parsed.savedAt });
+    } catch {
+      // ignore
+    }
+  }, [isEditing]);
+
+  function resumeDraft() {
+    try {
+      const raw = window.localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw) as Record<string, unknown>;
+      if (typeof d.title === "string") setTitle(d.title);
+      if (typeof d.subtitle === "string") setSubtitle(d.subtitle);
+      if (typeof d.author === "string") setAuthor(d.author);
+      if (typeof d.seriesName === "string") setSeriesName(d.seriesName);
+      if (typeof d.edition === "string") setEdition(d.edition);
+      if (typeof d.description === "string") setDescription(d.description);
+      if (typeof d.language === "string") setLanguage(d.language);
+      if (typeof d.category === "string") setCategory(d.category as typeof category);
+      if (Array.isArray(d.keywords)) setKeywords(d.keywords.filter((k): k is string => typeof k === "string"));
+      if (typeof d.ageRange === "string") setAgeRange(d.ageRange);
+      if (typeof d.ownsRights === "boolean") setOwnsRights(d.ownsRights);
+      if (typeof d.drm === "boolean") setDrm(d.drm);
+      if (typeof d.premium === "boolean") setPremium(d.premium);
+      if (typeof d.price === "string") setPrice(d.price);
+      if (typeof d.step === "number" && [1, 2, 3, 4].includes(d.step)) setStep(d.step as StepNum);
+      draftHydrated.current = true;
+      setDraftBanner(null);
+      toast.success("Draft restored.");
+    } catch {
+      toast.error("Could not restore draft.");
+    }
+  }
+
+  function discardDraft() {
+    try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+    setDraftBanner(null);
+  }
+
+  // Debounced auto-save to localStorage on any field change
+  useEffect(() => {
+    if (isEditing || typeof window === "undefined") return;
+    const t = setTimeout(() => {
+      try {
+        const draft = {
+          savedAt: Date.now(),
+          step, title, subtitle, author, seriesName, edition, description,
+          language, category, keywords, ageRange, ownsRights, drm, premium, price,
+        };
+        // Don't write a useless empty draft
+        if (!title.trim() && !description.trim() && !subtitle.trim()) return;
+        window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      } catch { /* ignore quota errors */ }
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [
+    isEditing, step, title, subtitle, author, seriesName, edition, description,
+    language, category, keywords, ageRange, ownsRights, drm, premium, price,
+  ]);
+
+
 
   // Load product for editing
   useEffect(() => {
@@ -223,29 +306,76 @@ function PublishFlow() {
     setKwInput("");
   }
 
-  const step1Valid = title.trim() && author.trim() && description.trim().length >= 150;
+  const descLen = description.length;
+  const descTrimLen = description.trim().length;
+  const step1Valid =
+    !!title.trim() &&
+    !!author.trim() &&
+    descTrimLen >= DESC_MIN &&
+    descLen <= DESC_MAX;
   const hasCover = (!!cover && !coverError && !!coverDims) || (!cover && !!existingCoverUrl);
   const hasFile = (!!file && !fileError) || (!file && !!existingFilePath);
   const step2Valid = ownsRights && hasCover && hasFile;
-  const step3Valid = !!price && parseFloat(price) >= 1;
+  const step3Valid = !!price && parseFloat(price) > 0;
 
   const priceNum = parseFloat(price || "0");
   const royaltyPct = 0.7;
   const royalty = priceNum * royaltyPct;
 
   function next() {
-    if (step === 1 && !step1Valid) return toast.error("Fill all required fields (description ≥ 150 chars).");
+    if (step === 1 && !step1Valid) {
+      if (descTrimLen < DESC_MIN) return toast.error(`Description needs at least ${DESC_MIN} characters.`);
+      if (descLen > DESC_MAX) return toast.error(`Description exceeds ${DESC_MAX} characters.`);
+      return toast.error("Fill all required fields.");
+    }
     if (step === 2 && !step2Valid) {
       if (!ownsRights) return toast.error("You must confirm you own the rights to this content.");
       return toast.error(isEditing ? "Cover or manuscript is invalid." : "Upload a valid cover and manuscript.");
     }
-    if (step === 3 && !step3Valid) return toast.error("Enter a price of at least $1.");
+    if (step === 3 && !step3Valid) return toast.error("Enter a price greater than $0.00.");
     setStep((step + 1) as StepNum);
   }
 
+  // Publish checklist (used by review modal)
+  const checklist = useMemo(() => {
+    const items = [
+      {
+        id: "cover",
+        label: `Cover uploaded (min ${MIN_COVER_W}×${MIN_COVER_H}px)`,
+        ok: hasCover && !coverError,
+        gotoStep: 2 as StepNum,
+      },
+      {
+        id: "manuscript",
+        label: "Manuscript uploaded",
+        ok: hasFile && !fileError,
+        gotoStep: 2 as StepNum,
+      },
+      { id: "title", label: "Title not empty", ok: !!title.trim(), gotoStep: 1 as StepNum },
+      {
+        id: "description",
+        label: `Description ≥ ${DESC_MIN} characters & ≤ ${DESC_MAX}`,
+        ok: descTrimLen >= DESC_MIN && descLen <= DESC_MAX,
+        gotoStep: 1 as StepNum,
+      },
+      {
+        id: "price",
+        label: "Price greater than $0.00",
+        ok: !!price && parseFloat(price) > 0,
+        gotoStep: 3 as StepNum,
+      },
+    ];
+    return items;
+  }, [hasCover, coverError, hasFile, fileError, title, descTrimLen, descLen, price]);
+  const checklistPass = checklist.every((c) => c.ok);
+
+
   async function uploadAndSave(publish: boolean) {
     if (!user) return;
-    if (!isEditing && (!cover || !file)) return;
+    // For publish we require everything. For drafts (publish=false) allow
+    // partial data — the bookshelf can resume the title later.
+    if (publish && !isEditing && (!cover || !file)) return;
+
     setSubmitting(true); setUploading(true); setUploadProgress(5);
     try {
       const ts = Date.now();
@@ -329,11 +459,14 @@ function PublishFlow() {
         if (savedId) {
           runReview({ data: { productId: savedId } }).catch((err) => console.error("AI review failed", err));
         }
+        try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
         setPublishedId(savedId);
       } else {
         toast.success("Draft saved.");
+        try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
         navigate({ to: "/dashboard" });
       }
+
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -372,7 +505,30 @@ function PublishFlow() {
         </div>
       )}
 
+      {draftBanner && !isEditing && (
+        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <Save size={16} className="shrink-0" />
+          <span className="flex-1">
+            You have an unsaved draft from{" "}
+            <strong>{new Date(draftBanner.savedAt).toLocaleString()}</strong> — continue where you left off?
+          </span>
+          <button
+            type="button" onClick={resumeDraft}
+            className="rounded-full bg-amber-600 hover:bg-amber-700 text-white px-4 py-1.5 text-xs font-semibold"
+          >
+            Resume
+          </button>
+          <button
+            type="button" onClick={discardDraft}
+            className="rounded-full border border-amber-300 bg-white hover:bg-amber-100 text-amber-900 px-4 py-1.5 text-xs font-semibold"
+          >
+            Start Fresh
+          </button>
+        </div>
+      )}
+
       <StepperBar step={step} />
+
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         <div
@@ -424,13 +580,14 @@ function PublishFlow() {
               format="eBook" territory={territory}
               uploading={uploading} uploadProgress={uploadProgress}
               submitting={submitting} disabled={canSell === false}
-              onDraft={() => uploadAndSave(false)} onPublish={() => uploadAndSave(true)}
+              onDraft={() => uploadAndSave(false)}
+              onPublish={() => setShowPreview(true)}
               onZoomCover={() => setCoverLightbox(true)}
             />
           )}
 
           {step < 4 ? (
-            <div className="flex justify-between mt-8 pt-5 border-t border-ink/10">
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-8 pt-5 border-t border-ink/10">
               <button
                 type="button" disabled={step === 1}
                 onClick={() => setStep((step - 1) as StepNum)}
@@ -438,18 +595,33 @@ function PublishFlow() {
               >
                 <ArrowLeft size={16} /> Back
               </button>
-              <button
-                type="button" onClick={next}
-                className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-1.5 transition-colors duration-300"
-                style={{ background: accent.color }}
-              >
-                Continue <ArrowRight size={16} />
-              </button>
+              <div className="flex gap-2 ml-auto">
+                <button
+                  type="button" onClick={() => uploadAndSave(false)} disabled={submitting || !title.trim()}
+                  className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50"
+                  title="Save progress as a draft in your bookshelf"
+                >
+                  <Save size={14} /> Save Progress
+                </button>
+                <button
+                  type="button" onClick={next}
+                  className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-1.5 transition-colors duration-300"
+                  style={{ background: accent.color }}
+                >
+                  Continue <ArrowRight size={16} />
+                </button>
+              </div>
             </div>
           ) : (
-            <div className="mt-6">
+            <div className="mt-6 flex items-center justify-between">
               <button onClick={() => setStep(3)} className="text-sm text-mute hover:text-navy inline-flex items-center gap-1.5">
                 <ArrowLeft size={14} /> Back to pricing
+              </button>
+              <button
+                type="button" onClick={() => uploadAndSave(false)} disabled={submitting || !title.trim()}
+                className="h-10 px-4 rounded-full border border-navy/20 text-navy text-sm font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <Save size={14} /> Save Progress
               </button>
             </div>
           )}
@@ -476,10 +648,29 @@ function PublishFlow() {
             </div>
           </div>
         </aside>
+
       </div>
       {coverLightbox && coverPreview && (
         <CoverLightbox src={coverPreview} fileName={cover?.name} onClose={() => setCoverLightbox(false)} />
       )}
+      {showPreview && (
+        <PrePublishPreview
+          accent={accent}
+          onClose={() => setShowPreview(false)}
+          onGoToStep={(s: StepNum) => { setShowPreview(false); setStep(s); }}
+          onConfirm={() => { setShowPreview(false); uploadAndSave(true); }}
+          checklist={checklist}
+          checklistPass={checklistPass}
+          submitting={submitting}
+          cover={coverPreview}
+          title={title} subtitle={subtitle} author={author} description={description}
+          price={priceNum} royalty={royalty}
+          fileName={file?.name ?? (existingFilePath ? existingFilePath.split("/").pop() ?? "Existing manuscript" : null)}
+          fileSize={file?.size ?? null}
+          category={category} territory={territory}
+        />
+      )}
+
       <style>{`.inp{display:block;width:100%;min-height:44px;border-radius:12px;border:1px solid rgb(0 0 0 / 0.12);padding:10px 14px;font-size:14px;background:white;color:#0F1A33;transition:border-color .2s,box-shadow .2s}.inp:focus{outline:none;border-color:var(--page-accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--page-accent) 20%,transparent)}`}</style>
     </PublisherShell>
   );
@@ -549,12 +740,18 @@ function StepDetails(p: {
           </select>
         </Field>
       </div>
-      <Field label={`Description * (${p.description.trim().length}/150 min)`}>
-        <textarea rows={6} className="inp" value={p.description} onChange={(e) => p.setDescription(e.target.value)} placeholder="What's in this book? Who is it for?" />
-        {p.description.length > 0 && p.description.trim().length < 150 && (
-          <p className="mt-1 text-xs text-amber-700">{150 - p.description.trim().length} more characters needed.</p>
-        )}
+      <Field label="Description *">
+        <textarea
+          rows={6}
+          className="inp"
+          value={p.description}
+          maxLength={DESC_MAX}
+          onChange={(e) => p.setDescription(e.target.value.slice(0, DESC_MAX))}
+          placeholder="What's in this book? Who is it for?"
+        />
+        <DescriptionCounter value={p.description} />
       </Field>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Category">
           <select className="inp" value={p.category} onChange={(e) => p.setCategory(e.target.value as typeof p.category)}>
@@ -733,14 +930,20 @@ function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium
       <h2 className="font-display text-2xl text-navy">Pricing & royalties</h2>
       <Field label="List price (USD) *">
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-mute">$</span>
+          <span
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-mute font-medium"
+            aria-hidden="true"
+          >
+            $
+          </span>
           <input
             type="number" min="1" step="0.01"
             value={price} onChange={(e) => setPrice(e.target.value)}
-            className="inp pl-8" placeholder="9.99"
+            className="inp" style={{ paddingLeft: 28 }} placeholder="9.99"
           />
         </div>
       </Field>
+
 
       <div
         className="rounded-2xl p-5 text-white transition-colors duration-300"
@@ -965,3 +1168,152 @@ function CoverLightbox({ src, fileName, onClose }: { src: string; fileName?: str
     </div>
   );
 }
+
+/* ---------- Description live counter ---------- */
+function DescriptionCounter({ value }: { value: string }) {
+  const len = value.length;
+  const trimmed = value.trim().length;
+  const tooShort = trimmed > 0 && trimmed < DESC_MIN;
+  const warn = len >= DESC_WARN && len < DESC_MAX;
+  const max = len >= DESC_MAX;
+  const color = max ? "text-red-600" : warn ? "text-amber-700" : tooShort ? "text-amber-700" : "text-mute";
+  return (
+    <div className="mt-1 flex items-center justify-between text-xs">
+      <span className={color}>
+        {tooShort && <>{DESC_MIN - trimmed} more characters needed (min {DESC_MIN}).</>}
+        {!tooShort && warn && <>Approaching limit.</>}
+        {!tooShort && max && <>Maximum reached — please shorten before publishing.</>}
+        {!tooShort && !warn && !max && <>Min {DESC_MIN} · Max {DESC_MAX} characters.</>}
+      </span>
+      <span className={`tabular-nums ${color}`}>{len} / {DESC_MAX}</span>
+    </div>
+  );
+}
+
+/* ---------- Pre-publish preview modal ---------- */
+function PrePublishPreview(props: {
+  accent: PublisherAccent;
+  onClose: () => void;
+  onGoToStep: (s: StepNum) => void;
+  onConfirm: () => void;
+  checklist: Array<{ id: string; label: string; ok: boolean; gotoStep: StepNum }>;
+  checklistPass: boolean;
+  submitting: boolean;
+  cover: string | null;
+  title: string; subtitle: string; author: string; description: string;
+  price: number; royalty: number;
+  fileName: string | null; fileSize: number | null;
+  category: string; territory: string;
+}) {
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") props.onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+  }, [props]);
+  const sizeLabel = props.fileSize != null
+    ? props.fileSize > 1024 * 1024
+      ? `${(props.fileSize / (1024 * 1024)).toFixed(2)} MB`
+      : `${Math.max(1, Math.round(props.fileSize / 1024))} KB`
+    : "—";
+  return (
+    <div role="dialog" aria-modal="true" aria-label="Pre-publish preview"
+      className="fixed inset-0 z-50 bg-navy/80 flex items-start md:items-center justify-center p-4 overflow-y-auto"
+      onClick={props.onClose}>
+      <div
+        className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl my-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button onClick={props.onClose}
+          className="absolute top-3 right-3 h-9 w-9 rounded-full inline-flex items-center justify-center text-mute hover:bg-ink/5"
+          aria-label="Close preview">
+          <X size={18} />
+        </button>
+        <div className="p-6 md:p-8 border-b border-ink/10">
+          <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: props.accent.color }}>
+            Final preview
+          </p>
+          <h2 className="font-display text-2xl text-navy mt-1">Review before publishing</h2>
+          <p className="text-sm text-mute mt-1">This is exactly how shoppers will see your title.</p>
+        </div>
+
+        <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6">
+          <div className="mx-auto md:mx-0 w-[220px] aspect-[1/1.6] rounded-md bg-gradient-to-br from-navy to-[#22335A] shadow-xl overflow-hidden">
+            {props.cover ? (
+              <img src={props.cover} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">No cover</div>
+            )}
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-display text-2xl text-navy break-words">{props.title || "Untitled"}</h3>
+            {props.subtitle && <p className="text-sm italic text-mute mt-0.5">{props.subtitle}</p>}
+            <p className="text-sm text-mute mt-1">by <span className="text-navy font-medium">{props.author || "—"}</span></p>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              <span className="px-2 py-1 rounded-full bg-navy/5 text-navy">{props.category || "Uncategorized"}</span>
+              <span className="px-2 py-1 rounded-full bg-navy/5 text-navy inline-flex items-center gap-1"><Globe size={11}/> {props.territory}</span>
+            </div>
+            <div className="mt-4 flex items-baseline gap-3">
+              <span className="font-display text-3xl text-navy tabular-nums">${props.price.toFixed(2)}</span>
+              <span className="text-xs text-mute">Royalty estimate: <strong className="text-navy">${props.royalty.toFixed(2)}</strong></span>
+            </div>
+            <div className="mt-4 rounded-lg border border-ink/10 bg-paper/40 p-3 text-xs text-mute">
+              <div className="flex items-center gap-2 text-navy font-medium"><FileText size={14}/> Manuscript</div>
+              <div className="mt-1 break-all">{props.fileName ?? "No file uploaded"} · {sizeLabel}</div>
+            </div>
+            <div className="mt-4">
+              <p className="text-[11px] uppercase tracking-wider font-semibold text-mute">Description</p>
+              <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed">
+                {props.description || <span className="text-mute italic">No description provided.</span>}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 md:p-8 border-t border-ink/10 bg-paper/30 rounded-b-2xl">
+          <p className="text-[11px] uppercase tracking-wider font-semibold text-mute">Pre-publish checklist</p>
+          <ul className="mt-3 space-y-2">
+            {props.checklist.map((c) => (
+              <li key={c.id} className="flex items-center gap-2 text-sm">
+                {c.ok ? (
+                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertCircle size={16} className="text-red-600 shrink-0" />
+                )}
+                <span className={c.ok ? "text-navy" : "text-red-700 font-medium"}>{c.label}</span>
+                {!c.ok && (
+                  <button
+                    type="button"
+                    onClick={() => props.onGoToStep(c.gotoStep)}
+                    className="ml-auto text-xs text-red-700 underline hover:no-underline"
+                  >
+                    Fix this →
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+            <button
+              type="button" onClick={props.onClose}
+              className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5"
+            >
+              Keep editing
+            </button>
+            <button
+              type="button" onClick={props.onConfirm}
+              disabled={!props.checklistPass || props.submitting}
+              className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: props.accent.color }}
+            >
+              <ShieldCheck size={16} />
+              {props.submitting ? "Publishing…" : "Publish to Vault"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

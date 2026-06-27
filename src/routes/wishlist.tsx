@@ -8,11 +8,16 @@ import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { useAuth } from "@/hooks/use-auth";
 import { listWishlist, removeWishlist } from "@/lib/wishlist.functions";
+import { RouteErrorFallback } from "@/components/RouteErrorFallback";
 
 export const Route = createFileRoute("/wishlist")({
   head: () => ({ meta: [{ title: "Your Wishlist — AurumVault" }] }),
   component: WishlistPage,
+  errorComponent: ({ error, reset }) => (
+    <RouteErrorFallback error={error} reset={reset} title="Wishlist isn't loading" />
+  ),
 });
+
 
 function WishlistPage() {
   const { user, loading } = useAuth();
@@ -114,9 +119,10 @@ function WishlistPage() {
                   <span className="mt-1 text-xs uppercase tracking-caps text-gold">
                     {p.category}
                   </span>
-                  <span className="mt-auto font-display text-lg font-bold text-gold">
+                  <span className="mt-auto font-display text-lg font-bold text-gold tabular-nums whitespace-nowrap">
                     ${(p.price_cents / 100).toFixed(2)}
                   </span>
+
                 </div>
                 <button
                   type="button"
