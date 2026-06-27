@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Star, ThumbsUp, BadgeCheck, PenSquare, Trash2 } from "lucide-react";
 import { listReviews, createReview, toggleHelpful, deleteReview, type ReviewSummary } from "@/lib/reviews.functions";
