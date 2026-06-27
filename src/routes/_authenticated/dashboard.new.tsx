@@ -1205,45 +1205,109 @@ function PrePublishPreview(props: {
   fileName: string | null; fileSize: number | null;
   category: string; territory: string;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const publishBtnRef = useRef<HTMLButtonElement>(null);
+  const firstFixBtnRef = useRef<HTMLButtonElement>(null);
+  const titleId = "prepublish-title";
+  const descId = "prepublish-desc";
+
   useEffect(() => {
-    const prev = document.body.style.overflow;
+    const prevOverflow = document.body.style.overflow;
+    const prevActive = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") props.onClose(); };
+
+    const initial =
+      (!props.checklistPass && firstFixBtnRef.current) ||
+      (props.checklistPass && publishBtnRef.current) ||
+      closeBtnRef.current;
+    initial?.focus();
+
+    const getFocusable = (): HTMLElement[] => {
+      if (!dialogRef.current) return [];
+      const nodes = dialogRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+      );
+      return Array.from(nodes).filter((el) => el.offsetParent !== null);
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        props.onClose();
+        return;
+      }
+      if (e.key === "Tab") {
+        const focusable = getFocusable();
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+        if (e.shiftKey && (active === first || !dialogRef.current?.contains(active))) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && props.checklistPass && !props.submitting) {
+        e.preventDefault();
+        props.onConfirm();
+      }
+    };
     window.addEventListener("keydown", onKey);
-    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+      prevActive?.focus?.();
+    };
   }, [props]);
+
   const sizeLabel = props.fileSize != null
     ? props.fileSize > 1024 * 1024
       ? `${(props.fileSize / (1024 * 1024)).toFixed(2)} MB`
       : `${Math.max(1, Math.round(props.fileSize / 1024))} KB`
     : "—";
+
+  const failingCount = props.checklist.filter((c) => !c.ok).length;
+  let firstFixAssigned = false;
+
   return (
-    <div role="dialog" aria-modal="true" aria-label="Pre-publish preview"
+    <div
+      role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={descId}
       className="fixed inset-0 z-50 bg-navy/80 flex items-start md:items-center justify-center p-4 overflow-y-auto"
-      onClick={props.onClose}>
+      onClick={props.onClose}
+    >
       <div
-        className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl my-6"
+        ref={dialogRef}
+        className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl my-6 focus:outline-none"
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={props.onClose}
-          className="absolute top-3 right-3 h-9 w-9 rounded-full inline-flex items-center justify-center text-mute hover:bg-ink/5"
-          aria-label="Close preview">
-          <X size={18} />
+        <button
+          ref={closeBtnRef}
+          onClick={props.onClose}
+          className="absolute top-3 right-3 h-9 w-9 rounded-full inline-flex items-center justify-center text-mute hover:bg-ink/5 focus-visible:ring-2 focus-visible:ring-navy focus-visible:outline-none"
+          aria-label="Close preview and return to editor"
+        >
+          <X size={18} aria-hidden="true" />
         </button>
         <div className="p-6 md:p-8 border-b border-ink/10">
           <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: props.accent.color }}>
             Final preview
           </p>
-          <h2 className="font-display text-2xl text-navy mt-1">Review before publishing</h2>
-          <p className="text-sm text-mute mt-1">This is exactly how shoppers will see your title.</p>
+          <h2 id={titleId} className="font-display text-2xl text-navy mt-1">Review before publishing</h2>
+          <p id={descId} className="text-sm text-mute mt-1">
+            This is exactly how shoppers will see your title. Press Escape to close, Tab to navigate, or Ctrl/Cmd+Enter to publish when ready.
+          </p>
         </div>
 
         <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6">
           <div className="mx-auto md:mx-0 w-[220px] aspect-[1/1.6] rounded-md bg-gradient-to-br from-navy to-[#22335A] shadow-xl overflow-hidden">
             {props.cover ? (
-              <img src={props.cover} alt="" className="w-full h-full object-cover" />
+              <img src={props.cover} alt={`Cover for ${props.title || "untitled product"}`} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">No cover</div>
+              <div className="w-full h-full flex items-center justify-center text-white/40 text-xs" role="img" aria-label="No cover uploaded">No cover</div>
             )}
           </div>
           <div className="min-w-0">
@@ -1252,19 +1316,21 @@ function PrePublishPreview(props: {
             <p className="text-sm text-mute mt-1">by <span className="text-navy font-medium">{props.author || "—"}</span></p>
             <div className="mt-3 flex flex-wrap gap-2 text-xs">
               <span className="px-2 py-1 rounded-full bg-navy/5 text-navy">{props.category || "Uncategorized"}</span>
-              <span className="px-2 py-1 rounded-full bg-navy/5 text-navy inline-flex items-center gap-1"><Globe size={11}/> {props.territory}</span>
+              <span className="px-2 py-1 rounded-full bg-navy/5 text-navy inline-flex items-center gap-1">
+                <Globe size={11} aria-hidden="true" /> <span><span className="sr-only">Territory: </span>{props.territory}</span>
+              </span>
             </div>
             <div className="mt-4 flex items-baseline gap-3">
-              <span className="font-display text-3xl text-navy tabular-nums">${props.price.toFixed(2)}</span>
+              <span className="font-display text-3xl text-navy tabular-nums" aria-label={`Price ${props.price.toFixed(2)} dollars`}>${props.price.toFixed(2)}</span>
               <span className="text-xs text-mute">Royalty estimate: <strong className="text-navy">${props.royalty.toFixed(2)}</strong></span>
             </div>
             <div className="mt-4 rounded-lg border border-ink/10 bg-paper/40 p-3 text-xs text-mute">
-              <div className="flex items-center gap-2 text-navy font-medium"><FileText size={14}/> Manuscript</div>
+              <div className="flex items-center gap-2 text-navy font-medium"><FileText size={14} aria-hidden="true"/> Manuscript</div>
               <div className="mt-1 break-all">{props.fileName ?? "No file uploaded"} · {sizeLabel}</div>
             </div>
             <div className="mt-4">
-              <p className="text-[11px] uppercase tracking-wider font-semibold text-mute">Description</p>
-              <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed">
+              <p className="text-[11px] uppercase tracking-wider font-semibold text-mute" id="prepublish-desc-heading">Description</p>
+              <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed" aria-labelledby="prepublish-desc-heading">
                 {props.description || <span className="text-mute italic">No description provided.</span>}
               </p>
             </div>
@@ -1272,42 +1338,55 @@ function PrePublishPreview(props: {
         </div>
 
         <div className="p-6 md:p-8 border-t border-ink/10 bg-paper/30 rounded-b-2xl">
-          <p className="text-[11px] uppercase tracking-wider font-semibold text-mute">Pre-publish checklist</p>
-          <ul className="mt-3 space-y-2">
-            {props.checklist.map((c) => (
-              <li key={c.id} className="flex items-center gap-2 text-sm">
-                {c.ok ? (
-                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                ) : (
-                  <AlertCircle size={16} className="text-red-600 shrink-0" />
-                )}
-                <span className={c.ok ? "text-navy" : "text-red-700 font-medium"}>{c.label}</span>
-                {!c.ok && (
-                  <button
-                    type="button"
-                    onClick={() => props.onGoToStep(c.gotoStep)}
-                    className="ml-auto text-xs text-red-700 underline hover:no-underline"
-                  >
-                    Fix this →
-                  </button>
-                )}
-              </li>
-            ))}
+          <p className="text-[11px] uppercase tracking-wider font-semibold text-mute" id="checklist-heading">
+            Pre-publish checklist {failingCount > 0 && <span className="text-red-700 normal-case tracking-normal">({failingCount} to fix)</span>}
+          </p>
+          <ul className="mt-3 space-y-2" aria-labelledby="checklist-heading">
+            {props.checklist.map((c) => {
+              const assignRef = !c.ok && !firstFixAssigned;
+              if (assignRef) firstFixAssigned = true;
+              return (
+                <li key={c.id} className="flex items-center gap-2 text-sm">
+                  {c.ok ? (
+                    <CheckCircle2 size={16} className="text-emerald-600 shrink-0" aria-hidden="true" />
+                  ) : (
+                    <AlertCircle size={16} className="text-red-600 shrink-0" aria-hidden="true" />
+                  )}
+                  <span className={c.ok ? "text-navy" : "text-red-700 font-medium"}>
+                    <span className="sr-only">{c.ok ? "Passed: " : "Needs fix: "}</span>{c.label}
+                  </span>
+                  {!c.ok && (
+                    <button
+                      ref={assignRef ? firstFixBtnRef : undefined}
+                      type="button"
+                      onClick={() => props.onGoToStep(c.gotoStep)}
+                      className="ml-auto text-xs text-red-700 underline hover:no-underline focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:outline-none rounded px-1"
+                      aria-label={`Fix ${c.label} — go to step ${c.gotoStep}`}
+                    >
+                      Fix this →
+                    </button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
           <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
             <button
               type="button" onClick={props.onClose}
-              className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5"
+              className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5 focus-visible:ring-2 focus-visible:ring-navy focus-visible:outline-none"
             >
               Keep editing
             </button>
             <button
+              ref={publishBtnRef}
               type="button" onClick={props.onConfirm}
               disabled={!props.checklistPass || props.submitting}
-              className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-navy focus-visible:outline-none"
               style={{ background: props.accent.color }}
+              aria-describedby={!props.checklistPass ? "checklist-heading" : undefined}
+              aria-label={props.checklistPass ? "Publish to Vault (Ctrl+Enter)" : "Publish to Vault — resolve checklist first"}
             >
-              <ShieldCheck size={16} />
+              <ShieldCheck size={16} aria-hidden="true" />
               {props.submitting ? "Publishing…" : "Publish to Vault"}
             </button>
           </div>
