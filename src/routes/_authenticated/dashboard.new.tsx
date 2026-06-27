@@ -581,6 +581,10 @@ function PublishFlow() {
               onZoomCover={() => setCoverLightbox(true)}
               existingCoverUrl={existingCoverUrl}
               existingFilePath={existingFilePath}
+              coverUploadError={coverUploadError}
+              fileUploadError={fileUploadError}
+              onRetryUpload={() => uploadAndSave(lastPublishAttempt)}
+              retryDisabled={submitting}
             />
           )}
           {step === 3 && (
