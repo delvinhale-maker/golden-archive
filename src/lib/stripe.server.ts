@@ -60,7 +60,7 @@ export async function detectTaxMode(
   if (cached && Date.now() - cached.at < TAX_MODE_TTL_MS) return cached.mode;
   let mode: TaxMode = "automatic";
   try {
-    const account = (await stripe.accounts.retrieve()) as unknown as {
+    const account = (await stripe.accounts.retrieve("account")) as unknown as {
       capabilities?: Record<string, string | undefined>;
       controller?: { managed_payments?: { enabled?: boolean } };
     };
