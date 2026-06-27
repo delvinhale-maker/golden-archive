@@ -43,20 +43,27 @@ export const Route = createFileRoute("/products/")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Browse the Vault — AurumVault" },
+      { title: "Browse the Vault | AurumVault — Gold Standard Digital Commerce" },
       {
         name: "description",
         content:
           "Filter and discover purpose-driven eBooks, courses, templates, and tools from verified creators.",
       },
-      { property: "og:title", content: "Browse the Vault — AurumVault" },
+      { property: "og:title", content: "Browse the Vault | AurumVault" },
       {
         property: "og:description",
         content:
           "Filter and discover purpose-driven digital products from verified creators.",
       },
+      { property: "og:url", content: "https://www.aurumvault.store/products" },
+      { name: "twitter:title", content: "Browse the Vault | AurumVault" },
+      {
+        name: "twitter:description",
+        content:
+          "Filter and discover purpose-driven digital products from verified creators.",
+      },
     ],
-    links: [{ rel: "canonical", href: "/products" }],
+    links: [{ rel: "canonical", href: "https://www.aurumvault.store/products" }],
   }),
   component: ProductsPage,
 });
