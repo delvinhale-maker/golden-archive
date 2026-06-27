@@ -334,3 +334,30 @@ function FilterBlock({ title, children }: { title: string; children: React.React
     </div>
   );
 }
+
+function applyClientFilters(
+  items: Product[],
+  s: z.infer<typeof searchSchema>,
+): Product[] {
+  let out = items.slice();
+  if (typeof s.maxPrice === "number") out = out.filter((p) => p.price <= s.maxPrice!);
+  if (typeof s.minPrice === "number") out = out.filter((p) => p.price >= s.minPrice!);
+  if (typeof s.rating === "number" && s.rating > 0) {
+    out = out.filter((p) => (p.rating ?? 0) >= s.rating!);
+  }
+  switch (s.sort) {
+    case "price-asc":
+      out.sort((a, b) => a.price - b.price);
+      break;
+    case "price-desc":
+      out.sort((a, b) => b.price - a.price);
+      break;
+    case "rating":
+      out.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+      break;
+    case "newest":
+      // server already returns newest-first
+      break;
+  }
+  return out;
+}
