@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   BadgeCheck,
   Check,
+  EyeOff,
   Heart,
   Lock,
   Share2,
@@ -22,17 +23,18 @@ import { QASection } from "@/components/marketplace/QASection";
 import { FrequentlyBoughtTogether } from "@/components/marketplace/FrequentlyBoughtTogether";
 import { ShareButtons, ReportIssueLink } from "@/components/marketplace/ShareButtons";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
-import { getProduct, type Product } from "@/lib/marketplace.functions";
+import { getProduct, type Product, type ProductDetailResult } from "@/lib/marketplace.functions";
 
 const productQ = (id: string) =>
   queryOptions({
     queryKey: ["mp", "product", id],
     queryFn: async () => {
-      const p = await getProduct({ data: { id } });
-      if (!p) throw notFound();
-      return p;
+      const res = await getProduct({ data: { id } });
+      if (res.kind === "notFound") throw notFound();
+      return res;
     },
   });
+
 
 const SITE_URL = "https://www.aurumvault.store";
 
@@ -40,7 +42,9 @@ export const Route = createFileRoute("/products/$id")({
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(productQ(params.id)),
   head: ({ params, loaderData }) => {
-    const p = loaderData as Product | null | undefined;
+    const res = loaderData as ProductDetailResult | undefined;
+    const p = res?.kind === "published" ? res.product : undefined;
+    const isUnpublished = res?.kind === "unpublished";
     const url = `${SITE_URL}/products/${params.id}`;
     const baseTitle = p?.title
       ? `${p.title} | AurumVault — Gold Standard Digital Commerce`
@@ -55,7 +59,7 @@ export const Route = createFileRoute("/products/$id")({
     const meta: Array<Record<string, string>> = [
       { title: baseTitle },
       { name: "description", content: desc },
-      { name: "robots", content: "index, follow" },
+      { name: "robots", content: isUnpublished ? "noindex, follow" : "index, follow" },
       { property: "og:type", content: "product" },
       { property: "og:title", content: baseTitle },
       { property: "og:description", content: desc },
@@ -130,7 +134,7 @@ export const Route = createFileRoute("/products/$id")({
     <MarketShell>
       <div className="mx-auto max-w-2xl px-4 py-20 text-center">
         <h1 className="font-display text-2xl font-bold text-ink">Product not found</h1>
-        <p className="mt-3 text-mute">It may have been unpublished or removed.</p>
+        <p className="mt-3 text-mute">It may have been removed.</p>
         <Link to="/products" className="mt-6 inline-block rounded-full bg-gold px-6 py-3 text-sm font-bold text-navy">
           Browse products
         </Link>
@@ -141,7 +145,30 @@ export const Route = createFileRoute("/products/$id")({
 
 function ProductPage() {
   const { id } = Route.useParams();
-  const { data: product } = useSuspenseQuery(productQ(id)) as { data: Product };
+  const { data: result } = useSuspenseQuery(productQ(id));
+
+  if (result.kind === "unpublished") {
+    return (
+      <MarketShell>
+        <div className="mx-auto max-w-2xl px-4 py-20 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold/10">
+            <EyeOff size={32} className="text-gold" />
+          </div>
+          <h1 className="mt-6 font-display text-2xl font-bold text-ink">
+            {result.title ? `“${result.title}” is not yet available` : "This product is not yet available"}
+          </h1>
+          <p className="mt-3 text-mute">
+            This title is currently being reviewed or has been unpublished. Check back soon, or browse available products.
+          </p>
+          <Link to="/products" className="mt-6 inline-block rounded-full bg-gold px-6 py-3 text-sm font-bold text-navy">
+            Browse products
+          </Link>
+        </div>
+      </MarketShell>
+    );
+  }
+
+  const product = result.product;
   const wishlist = useWishlist();
   const cart = useCart();
   const liked = wishlist.has(product.id);
