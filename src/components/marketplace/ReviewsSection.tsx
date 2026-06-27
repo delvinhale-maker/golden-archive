@@ -158,13 +158,24 @@ function ReviewCard({ review, queryKey, canVote, currentUserId }: {
         <div className="mt-3 text-sm font-bold text-ink">{review.title}</div>
       )}
       <p className="mt-2 text-sm leading-relaxed text-ink">{review.body}</p>
-      <button
-        onClick={onVote}
-        disabled={busy}
-        className="mt-3 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-mute hover:border-gold hover:text-ink disabled:opacity-50"
-      >
-        <ThumbsUp size={12} /> Helpful ({review.helpful_count})
-      </button>
+      <div className="mt-3 flex items-center gap-2">
+        <button
+          onClick={onVote}
+          disabled={busy}
+          className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-mute hover:border-gold hover:text-ink disabled:opacity-50"
+        >
+          <ThumbsUp size={12} /> Helpful ({review.helpful_count})
+        </button>
+        {isAuthor && (
+          <button
+            onClick={onDelete}
+            disabled={busy}
+            className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-mute hover:border-red-500 hover:text-red-600 disabled:opacity-50"
+          >
+            <Trash2 size={12} /> Delete
+          </button>
+        )}
+      </div>
     </div>
   );
 }
