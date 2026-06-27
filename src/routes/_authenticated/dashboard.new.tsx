@@ -501,7 +501,15 @@ function PublishFlow() {
       if (!ownsRights) return toast.error("You must confirm you own the rights to this content.");
       return toast.error(isEditing ? "Cover or manuscript is invalid." : "Upload a valid cover and manuscript.");
     }
-    if (step === 3 && !step3Valid) return toast.error("Enter a price greater than $0.00.");
+    if (step === 3 && !step3Valid) {
+      toast.error("Enter a price greater than $0.00.");
+      const el = document.getElementById("list-price-input") as HTMLInputElement | null;
+      if (el) {
+        el.focus();
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
     setStep((step + 1) as StepNum);
   }
 
