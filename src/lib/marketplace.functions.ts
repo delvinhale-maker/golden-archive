@@ -472,9 +472,13 @@ export const getHomeHighlights = createServerFn({ method: "GET" }).handler(
           .eq("status", "approved")
           .eq("published", true),
       ]);
-      const heroProduct = heroRes.data
+      let heroProduct = heroRes.data
         ? dbRowToProduct(heroRes.data as DbProductRow)
         : null;
+      if (heroProduct) {
+        const agg = await fetchReviewAggregates(supa, [heroProduct.id]);
+        heroProduct = applyAggregates([heroProduct], agg)[0];
+      }
       return {
         heroProduct,
         illustriousProductCount: countRes.count ?? 0,
