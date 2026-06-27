@@ -3,6 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 
+export type ReviewSort = "helpful" | "recent" | "top";
+
 export type ReviewRow = {
   id: string;
   product_id: string;
@@ -14,6 +16,7 @@ export type ReviewRow = {
   body: string;
   verified_purchase: boolean;
   helpful_count: number;
+  photo_url: string | null;
   created_at: string;
 };
 
@@ -32,19 +35,54 @@ function publicClient() {
   );
 }
 
+async function signPhotos(rows: ReviewRow[]): Promise<ReviewRow[]> {
+  const withPhotos = rows.filter((r) => r.photo_url);
+  if (withPhotos.length === 0) return rows;
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const out = await Promise.all(
+      rows.map(async (r) => {
+        if (!r.photo_url) return r;
+        // already a full URL? keep it
+        if (/^https?:\/\//.test(r.photo_url)) return r;
+        const { data } = await supabaseAdmin.storage
+          .from("review-photos")
+          .createSignedUrl(r.photo_url, 60 * 60 * 24 * 7);
+        return { ...r, photo_url: data?.signedUrl ?? null };
+      }),
+    );
+    return out;
+  } catch {
+    return rows.map((r) => ({ ...r, photo_url: null }));
+  }
+}
+
 export const listReviews = createServerFn({ method: "GET" })
-  .inputValidator((input: { productId: string }) => input)
+  .inputValidator((input: { productId: string; sort?: ReviewSort }) => input)
   .handler(async ({ data }): Promise<ReviewSummary> => {
     const sb = publicClient();
-    const { data: rows, error } = await sb
+    const sort = data.sort ?? "helpful";
+    let query = sb
       .from("product_reviews")
-      .select("id,product_id,user_id,reviewer_name,reviewer_avatar,rating,title,body,verified_purchase,helpful_count,created_at")
+      .select(
+        "id,product_id,user_id,reviewer_name,reviewer_avatar,rating,title,body,verified_purchase,helpful_count,photo_url,created_at",
+      )
       .eq("product_id", data.productId)
-      .order("helpful_count", { ascending: false })
-      .order("created_at", { ascending: false })
       .limit(50);
+    if (sort === "recent") {
+      query = query.order("created_at", { ascending: false });
+    } else if (sort === "top") {
+      query = query
+        .order("rating", { ascending: false })
+        .order("created_at", { ascending: false });
+    } else {
+      query = query
+        .order("helpful_count", { ascending: false })
+        .order("created_at", { ascending: false });
+    }
+    const { data: rows, error } = await query;
     if (error) throw error;
-    const reviews = (rows ?? []) as ReviewRow[];
+    const reviews = await signPhotos((rows ?? []) as ReviewRow[]);
     const breakdown: Record<1 | 2 | 3 | 4 | 5, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     let sum = 0;
     for (const r of reviews) {
@@ -61,18 +99,24 @@ export const listReviews = createServerFn({ method: "GET" })
 
 export const createReview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { productId: string; rating: number; title?: string; body: string }) => input)
+  .inputValidator(
+    (input: {
+      productId: string;
+      rating: number;
+      title?: string;
+      body: string;
+      photoPath?: string;
+    }) => input,
+  )
   .handler(async ({ data, context }) => {
     if (data.rating < 1 || data.rating > 5) throw new Error("Invalid rating");
     if (!data.body || data.body.trim().length < 4) throw new Error("Review too short");
     const { supabase, userId } = context;
-    // Pull display info
     const { data: profile } = await supabase
       .from("profiles")
       .select("display_name,avatar_url")
       .eq("id", userId)
       .maybeSingle();
-    // Verified purchase?
     const { data: purchase } = await supabase
       .from("order_items")
       .select("id, orders!inner(buyer_user_id,status)")
@@ -89,6 +133,7 @@ export const createReview = createServerFn({ method: "POST" })
       title: data.title ?? null,
       body: data.body.trim(),
       verified_purchase: verified,
+      photo_url: data.photoPath ?? null,
     });
     if (error) throw error;
     return { ok: true, verified };
@@ -120,12 +165,16 @@ export const toggleHelpful = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .maybeSingle();
     if (existing) {
-      await supabase.from("review_helpful_votes").delete()
-        .eq("review_id", data.reviewId).eq("user_id", userId);
+      await supabase
+        .from("review_helpful_votes")
+        .delete()
+        .eq("review_id", data.reviewId)
+        .eq("user_id", userId);
       return { helpful: false };
     }
     await supabase.from("review_helpful_votes").insert({
-      review_id: data.reviewId, user_id: userId,
+      review_id: data.reviewId,
+      user_id: userId,
     });
     return { helpful: true };
   });

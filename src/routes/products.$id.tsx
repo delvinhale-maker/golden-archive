@@ -18,6 +18,9 @@ import { CustomersAlsoBought } from "@/components/marketplace/CustomersAlsoBough
 import { ImageZoom } from "@/components/marketplace/ImageZoom";
 import { TrustBadges, KingdomGuarantee, FormatSelector } from "@/components/marketplace/TrustBadges";
 import { ReviewsSection } from "@/components/marketplace/ReviewsSection";
+import { QASection } from "@/components/marketplace/QASection";
+import { FrequentlyBoughtTogether } from "@/components/marketplace/FrequentlyBoughtTogether";
+import { ShareButtons, ReportIssueLink } from "@/components/marketplace/ShareButtons";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { getProduct, type Product } from "@/lib/marketplace.functions";
 
@@ -354,14 +357,26 @@ function ProductPage() {
           </div>
         </div>
 
+        <ShareButtons
+          title={product.title}
+          url={`${SITE_URL}/products/${product.id}`}
+        />
+
+        <FrequentlyBoughtTogether product={product} />
+
         <ReviewsSection
           productId={product.id}
           fallbackRating={product.rating}
           fallbackCount={product.reviewCount}
         />
 
+        <QASection productId={product.id} />
+
         <CustomersAlsoBought category={product.category} excludeId={product.id} />
+
+        <ReportIssueLink title={product.title} />
       </div>
+
 
 
       <AnimatePresence>
