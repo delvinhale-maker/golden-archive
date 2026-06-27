@@ -105,6 +105,10 @@ function PublishFlow() {
   const [submitting, setSubmitting] = useState(false);
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
   const [fileUploadError, setFileUploadError] = useState<string | null>(null);
+  // Track uploads that already succeeded in this session so a retry of the
+  // other asset doesn't re-upload (and potentially fail) a completed one.
+  const [uploadedCoverUrl, setUploadedCoverUrl] = useState<string | null>(null);
+  const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
   const [lastPublishAttempt, setLastPublishAttempt] = useState<boolean>(false);
   const [publishedId, setPublishedId] = useState<string | null>(null);
   const [canSell, setCanSell] = useState<boolean | null>(null);
