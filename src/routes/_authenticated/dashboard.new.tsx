@@ -580,13 +580,14 @@ function PublishFlow() {
               format="eBook" territory={territory}
               uploading={uploading} uploadProgress={uploadProgress}
               submitting={submitting} disabled={canSell === false}
-              onDraft={() => uploadAndSave(false)} onPublish={() => uploadAndSave(true)}
+              onDraft={() => uploadAndSave(false)}
+              onPublish={() => setShowPreview(true)}
               onZoomCover={() => setCoverLightbox(true)}
             />
           )}
 
           {step < 4 ? (
-            <div className="flex justify-between mt-8 pt-5 border-t border-ink/10">
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-8 pt-5 border-t border-ink/10">
               <button
                 type="button" disabled={step === 1}
                 onClick={() => setStep((step - 1) as StepNum)}
@@ -594,18 +595,33 @@ function PublishFlow() {
               >
                 <ArrowLeft size={16} /> Back
               </button>
-              <button
-                type="button" onClick={next}
-                className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-1.5 transition-colors duration-300"
-                style={{ background: accent.color }}
-              >
-                Continue <ArrowRight size={16} />
-              </button>
+              <div className="flex gap-2 ml-auto">
+                <button
+                  type="button" onClick={() => uploadAndSave(false)} disabled={submitting || !title.trim()}
+                  className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50"
+                  title="Save progress as a draft in your bookshelf"
+                >
+                  <Save size={14} /> Save Progress
+                </button>
+                <button
+                  type="button" onClick={next}
+                  className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-1.5 transition-colors duration-300"
+                  style={{ background: accent.color }}
+                >
+                  Continue <ArrowRight size={16} />
+                </button>
+              </div>
             </div>
           ) : (
-            <div className="mt-6">
+            <div className="mt-6 flex items-center justify-between">
               <button onClick={() => setStep(3)} className="text-sm text-mute hover:text-navy inline-flex items-center gap-1.5">
                 <ArrowLeft size={14} /> Back to pricing
+              </button>
+              <button
+                type="button" onClick={() => uploadAndSave(false)} disabled={submitting || !title.trim()}
+                className="h-10 px-4 rounded-full border border-navy/20 text-navy text-sm font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <Save size={14} /> Save Progress
               </button>
             </div>
           )}
@@ -632,6 +648,7 @@ function PublishFlow() {
             </div>
           </div>
         </aside>
+
       </div>
       {coverLightbox && coverPreview && (
         <CoverLightbox src={coverPreview} fileName={cover?.name} onClose={() => setCoverLightbox(false)} />
