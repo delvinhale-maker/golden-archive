@@ -88,9 +88,18 @@ function DownloadPage() {
               We couldn't open this link
             </h1>
             <p className="mt-3 text-sm text-mute">{state.message}</p>
-            <p className="mt-6 text-xs text-mute">
-              Reply to your order email and we'll re-send your download.
-            </p>
+            {state.needsAuth ? (
+              <Link
+                to="/auth"
+                className="mt-6 inline-flex h-12 items-center justify-center rounded-full bg-gold px-8 text-sm font-bold text-navy"
+              >
+                Sign in
+              </Link>
+            ) : (
+              <p className="mt-6 text-xs text-mute">
+                Reply to your order email and we'll re-send your download.
+              </p>
+            )}
           </>
         )}
       </div>
