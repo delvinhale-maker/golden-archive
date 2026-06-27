@@ -102,6 +102,7 @@ export function StripeEmbeddedProductCheckout({ productId, returnUrl }: ProductP
           returnUrl ??
           `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
         environment: getStripeEnvironment(),
+        referralCode: getStoredRef() ?? undefined,
       },
     });
     if ("error" in result) throw new Error(result.error);
