@@ -324,10 +324,16 @@ function ProductPage() {
                 />
               )}
               <div className="flex-1">
-                <div className="flex items-center gap-1 text-sm font-bold text-ink">
+                <div className="flex items-center gap-2 text-sm font-bold text-ink">
                   {product.creator.name}
                   {product.creator.verified && (
-                    <BadgeCheck size={14} className="text-emerald" />
+                    <span
+                      className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold"
+                      title="Verified creator"
+                      aria-label="Verified creator"
+                    >
+                      <BadgeCheck size={12} className="text-gold" /> Verified
+                    </span>
                   )}
                 </div>
                 <p className="mt-1 text-xs text-mute">
