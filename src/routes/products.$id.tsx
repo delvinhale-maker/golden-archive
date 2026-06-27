@@ -44,6 +44,7 @@ export const Route = createFileRoute("/products/$id")({
   head: ({ params, loaderData }) => {
     const res = loaderData as ProductDetailResult | undefined;
     const p = res?.kind === "published" ? res.product : undefined;
+    const isUnpublished = res?.kind === "unpublished";
     const url = `${SITE_URL}/products/${params.id}`;
     const baseTitle = p?.title
       ? `${p.title} | AurumVault — Gold Standard Digital Commerce`
@@ -58,7 +59,7 @@ export const Route = createFileRoute("/products/$id")({
     const meta: Array<Record<string, string>> = [
       { title: baseTitle },
       { name: "description", content: desc },
-      { name: "robots", content: "index, follow" },
+      { name: "robots", content: isUnpublished ? "noindex, follow" : "index, follow" },
       { property: "og:type", content: "product" },
       { property: "og:title", content: baseTitle },
       { property: "og:description", content: desc },
