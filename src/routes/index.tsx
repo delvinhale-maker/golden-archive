@@ -108,6 +108,7 @@ function Home() {
       <HighlightsBoundary fallback={<CreatorSkeleton />} errorLabel="featured creator">
         <IllustriousCreator />
       </HighlightsBoundary>
+      <EmailCaptureBanner />
     </MarketShell>
   );
 }
