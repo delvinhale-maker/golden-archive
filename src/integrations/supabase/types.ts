@@ -427,6 +427,59 @@ export type Database = {
         }
         Relationships: []
       }
+      product_qa: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          answered_by_admin: boolean
+          answerer_name: string | null
+          answerer_user_id: string | null
+          asker_name: string
+          asker_user_id: string | null
+          created_at: string
+          id: string
+          product_id: string
+          question: string
+          updated_at: string
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by_admin?: boolean
+          answerer_name?: string | null
+          answerer_user_id?: string | null
+          asker_name: string
+          asker_user_id?: string | null
+          created_at?: string
+          id?: string
+          product_id: string
+          question: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by_admin?: boolean
+          answerer_name?: string | null
+          answerer_user_id?: string | null
+          asker_name?: string
+          asker_user_id?: string | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          question?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_qa_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_reviews: {
         Row: {
           body: string
@@ -434,6 +487,7 @@ export type Database = {
           helpful_count: number
           id: string
           is_seed: boolean
+          photo_url: string | null
           product_id: string
           rating: number
           reviewer_avatar: string | null
@@ -449,6 +503,7 @@ export type Database = {
           helpful_count?: number
           id?: string
           is_seed?: boolean
+          photo_url?: string | null
           product_id: string
           rating: number
           reviewer_avatar?: string | null
@@ -464,6 +519,7 @@ export type Database = {
           helpful_count?: number
           id?: string
           is_seed?: boolean
+          photo_url?: string | null
           product_id?: string
           rating?: number
           reviewer_avatar?: string | null
