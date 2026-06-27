@@ -1,0 +1,1 @@
+REVOKE SELECT (file_path) ON public.marketplace_products FROM anon;
