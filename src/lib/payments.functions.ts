@@ -189,23 +189,34 @@ export const createCartCheckout = createServerFn({ method: "POST" })
     }
   });
 
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 export const getDownloadInfo = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: { token: string }) => {
     if (!/^[a-f0-9]{32,128}$/.test(data.token)) throw new Error("Invalid token");
     return data;
   })
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const buyerEmail = (context.claims as { email?: string })?.email?.toLowerCase();
+    if (!buyerEmail) return { error: "Sign in to access your download" } as const;
 
     const { data: dl, error } = await supabaseAdmin
       .from("order_downloads")
       .select(
-        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,product:marketplace_products(file_path))",
+        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,product:marketplace_products(file_path),order:orders(buyer_email))",
       )
       .eq("token", data.token)
       .maybeSingle();
 
     if (error || !dl) return { error: "Download link not found" } as const;
+
+    const orderBuyerEmail: string | undefined = (dl as any).order_item?.order?.buyer_email;
+    if (!orderBuyerEmail || orderBuyerEmail.toLowerCase() !== buyerEmail) {
+      return { error: "This download link belongs to a different account" } as const;
+    }
     const expired = new Date(dl.expires_at).getTime() < Date.now();
     if (expired) return { error: "This download link has expired" } as const;
     if (dl.download_count >= dl.max_downloads) {
