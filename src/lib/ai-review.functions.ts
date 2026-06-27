@@ -5,13 +5,15 @@ import { generateText, Output } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
+// Keep schema minimal — Gemini constrained decoding rejects schemas with
+// numeric bounds, enum-heavy nesting, or array max items ("too many states").
 const ReviewSchema = z.object({
-  score: z.number().min(0).max(100),
+  score: z.number(),
   status: z.enum(["pass", "warn", "fail"]),
   issues: z.array(
     z.object({
-      severity: z.enum(["low", "medium", "high"]),
-      area: z.enum(["title", "description", "cover", "policy", "category", "other"]),
+      severity: z.string(),
+      area: z.string(),
       message: z.string(),
     }),
   ),
@@ -21,7 +23,7 @@ const ReviewSchema = z.object({
   }),
   suggested_seo_title: z.string(),
   suggested_blurb: z.string(),
-  suggested_tags: z.array(z.string()).max(8),
+  suggested_tags: z.array(z.string()),
 });
 
 export type AIReviewResult = z.infer<typeof ReviewSchema>;
