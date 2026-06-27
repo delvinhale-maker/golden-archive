@@ -738,13 +738,17 @@ function PublishFlow() {
               cover={coverPreview} title={title} subtitle={subtitle} author={author}
               price={priceNum} royalty={royalty}
               format="eBook" territory={territory}
+              category={category}
               uploading={uploading} uploadProgress={uploadProgress}
               submitting={submitting} disabled={canSell === false}
+              checklist={checklist} checklistPass={checklistPass}
+              onGoToStep={(s: StepNum) => setStep(s)}
               onDraft={() => uploadAndSave(false)}
-              onPublish={() => setShowPreview(true)}
+              onPublish={() => uploadAndSave(true)}
               onZoomCover={() => setCoverLightbox(true)}
             />
           )}
+
 
           {step < 4 ? (
             <div className="flex flex-wrap items-center justify-between gap-3 mt-8 pt-5 border-t border-ink/10">
