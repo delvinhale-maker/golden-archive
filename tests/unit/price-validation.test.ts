@@ -68,10 +68,8 @@ describe("validateListPrice — Continue must block", () => {
   it("blocks NaN and Infinity", () => {
     expect(validateListPrice("NaN").valid).toBe(false);
     expect(validateListPrice(NaN).valid).toBe(false);
-    expect(validateListPrice(Infinity).valid).toBe(true); // finite check
-    // Infinity actually fails Number.isFinite, so:
-    expect(Number.isFinite(Infinity)).toBe(false);
     expect(validateListPrice(Infinity).valid).toBe(false);
+    expect(validateListPrice(-Infinity).valid).toBe(false);
   });
 });
 
