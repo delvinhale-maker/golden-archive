@@ -24,7 +24,7 @@ function ConfirmPage() {
       return;
     }
     (async () => {
-      const { data, error } = await supabase.rpc("confirm_subscriber", { _token: token });
+      const { data, error } = await (supabase.rpc as any)("confirm_subscriber", { _token: token });
       if (error || !data || (data as any).ok === false) {
         setStatus("invalid");
         return;
