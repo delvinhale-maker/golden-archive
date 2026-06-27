@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Download, AlertTriangle, Loader2 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getDownloadInfo } from "@/lib/payments.functions";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/download/$token")({
   head: () => ({ meta: [{ title: "Your download · AurumVault" }] }),
@@ -11,13 +12,23 @@ export const Route = createFileRoute("/download/$token")({
 
 function DownloadPage() {
   const { token } = Route.useParams();
+  const { user, loading: authLoading } = useAuth();
   const [state, setState] = useState<
     | { kind: "loading" }
     | { kind: "ready"; url: string; title: string; remaining: number }
-    | { kind: "error"; message: string }
+    | { kind: "error"; message: string; needsAuth?: boolean }
   >({ kind: "loading" });
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setState({
+        kind: "error",
+        message: "Sign in with the email you used at checkout to access this download.",
+        needsAuth: true,
+      });
+      return;
+    }
     let cancelled = false;
     getDownloadInfo({ data: { token } })
       .then((res) => {
@@ -26,7 +37,6 @@ function DownloadPage() {
           setState({ kind: "error", message: res.error ?? "Download unavailable" });
         } else {
           setState({ kind: "ready", url: res.url, title: res.title, remaining: res.remaining });
-          // auto-trigger
           window.location.href = res.url;
         }
       })
@@ -36,7 +46,7 @@ function DownloadPage() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, user, authLoading]);
 
   return (
     <MarketShell>
@@ -78,9 +88,18 @@ function DownloadPage() {
               We couldn't open this link
             </h1>
             <p className="mt-3 text-sm text-mute">{state.message}</p>
-            <p className="mt-6 text-xs text-mute">
-              Reply to your order email and we'll re-send your download.
-            </p>
+            {state.needsAuth ? (
+              <Link
+                to="/auth"
+                className="mt-6 inline-flex h-12 items-center justify-center rounded-full bg-gold px-8 text-sm font-bold text-navy"
+              >
+                Sign in
+              </Link>
+            ) : (
+              <p className="mt-6 text-xs text-mute">
+                Reply to your order email and we'll re-send your download.
+              </p>
+            )}
           </>
         )}
       </div>
