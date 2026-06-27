@@ -166,23 +166,34 @@ function CreatorSkeleton() {
 }
 
 function FeaturedHero() {
-  const { data } = useSuspenseQuery(highlightsQ);
+  const { data, isFetching } = useSuspenseQuery(highlightsQ);
   const hp = data.heroProduct;
   return (
-    <HeroCarousel
-      heroProduct={
-        hp
-          ? {
-              id: hp.id,
-              title: hp.title,
-              category: hp.category,
-              price: hp.price,
-              coverUrl:
-                hp.image && hp.image.startsWith("http") ? hp.image : null,
-            }
-          : null
-      }
-    />
+    <div className="relative">
+      {isFetching && (
+        <div
+          className="absolute left-0 right-0 top-0 z-20 h-0.5 overflow-hidden bg-white/10"
+          aria-live="polite"
+          aria-label="Refreshing hero"
+        >
+          <div className="h-full w-1/3 animate-[shimmer_1.2s_ease-in-out_infinite] bg-gold" />
+        </div>
+      )}
+      <HeroCarousel
+        heroProduct={
+          hp
+            ? {
+                id: hp.id,
+                title: hp.title,
+                category: hp.category,
+                price: hp.price,
+                coverUrl:
+                  hp.image && hp.image.startsWith("http") ? hp.image : null,
+              }
+            : null
+        }
+      />
+    </div>
   );
 }
 
