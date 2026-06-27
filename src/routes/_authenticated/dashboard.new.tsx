@@ -501,7 +501,15 @@ function PublishFlow() {
       if (!ownsRights) return toast.error("You must confirm you own the rights to this content.");
       return toast.error(isEditing ? "Cover or manuscript is invalid." : "Upload a valid cover and manuscript.");
     }
-    if (step === 3 && !step3Valid) return toast.error("Enter a price greater than $0.00.");
+    if (step === 3 && !step3Valid) {
+      toast.error("Enter a price greater than $0.00.");
+      const el = document.getElementById("list-price-input") as HTMLInputElement | null;
+      if (el) {
+        el.focus();
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
     setStep((step + 1) as StepNum);
   }
 
@@ -1228,11 +1236,15 @@ function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium
             $
           </span>
           <input
-            type="number" min="1" step="0.01"
+            id="list-price-input"
+            type="number" min="1" step="0.01" inputMode="decimal"
             value={price} onChange={(e) => setPrice(e.target.value)}
             className="inp" style={{ paddingLeft: 28 }} placeholder="9.99"
           />
         </div>
+        {(!price || parseFloat(price) <= 0) && (
+          <p className="mt-2 text-sm text-red-600">Enter a list price greater than $0.00 to continue.</p>
+        )}
       </Field>
 
 
