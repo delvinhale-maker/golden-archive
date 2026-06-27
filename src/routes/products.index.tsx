@@ -9,7 +9,9 @@ import {
   ProductCard,
   ProductCardSkeleton,
 } from "@/components/marketplace/ProductCard";
-import { getProducts } from "@/lib/marketplace.functions";
+import { getProducts, type Product } from "@/lib/marketplace.functions";
+import { CategoryHero } from "@/components/marketplace/CategoryHero";
+import { getCategoryTheme } from "@/lib/category-theme";
 
 const searchSchema = z.object({
   category: z.string().optional(),
@@ -87,7 +89,9 @@ function ProductsPage() {
     placeholderData: keepPreviousData,
   });
 
-  const products = query.data?.items ?? [];
+  const raw = (query.data?.items ?? []) as Product[];
+  const products = applyClientFilters(raw, search);
+  const theme = getCategoryTheme(search.category);
 
   const updateSearch = (patch: Record<string, unknown>) => {
     navigate({
@@ -102,12 +106,17 @@ function ProductsPage() {
 
   return (
     <MarketShell>
+      <CategoryHero
+        category={search.category}
+        query={search.q}
+        resultCount={products.length}
+      />
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="font-display text-3xl font-bold text-ink md:text-4xl">
-              {search.category ?? "All products"}
-            </h1>
+          <div className="min-w-0">
+            <h2 className="font-display text-xl font-bold text-ink">
+              {search.category ? `${search.category} titles` : "All products"}
+            </h2>
             {search.q && (
               <p className="mt-1 text-sm text-mute">
                 Results for <span className="font-semibold text-ink">"{search.q}"</span>
@@ -124,7 +133,8 @@ function ProductsPage() {
             <select
               value={search.sort ?? "featured"}
               onChange={(e) => updateSearch({ sort: e.target.value })}
-              className="h-10 rounded-full border border-line bg-white px-4 text-sm font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-[var(--gold)]"
+              className="h-10 rounded-full border bg-white px-4 text-sm font-semibold text-ink focus:outline-none focus:ring-2"
+              style={{ borderColor: theme.border, boxShadow: `0 0 0 0 ${theme.accent}` }}
             >
               {SORTS.map((s) => (
                 <option key={s.v} value={s.v}>
@@ -134,6 +144,7 @@ function ProductsPage() {
             </select>
           </div>
         </div>
+
 
         <div className="grid gap-8 md:grid-cols-[260px_1fr]">
           {/* Sidebar */}
@@ -322,4 +333,31 @@ function FilterBlock({ title, children }: { title: string; children: React.React
       {children}
     </div>
   );
+}
+
+function applyClientFilters(
+  items: Product[],
+  s: z.infer<typeof searchSchema>,
+): Product[] {
+  let out = items.slice();
+  if (typeof s.maxPrice === "number") out = out.filter((p) => p.price <= s.maxPrice!);
+  if (typeof s.minPrice === "number") out = out.filter((p) => p.price >= s.minPrice!);
+  if (typeof s.rating === "number" && s.rating > 0) {
+    out = out.filter((p) => (p.rating ?? 0) >= s.rating!);
+  }
+  switch (s.sort) {
+    case "price-asc":
+      out.sort((a, b) => a.price - b.price);
+      break;
+    case "price-desc":
+      out.sort((a, b) => b.price - a.price);
+      break;
+    case "rating":
+      out.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+      break;
+    case "newest":
+      // server already returns newest-first
+      break;
+  }
+  return out;
 }
