@@ -76,22 +76,120 @@ export async function detectTaxMode(
 }
 
 /**
+ * Thrown when the caller hands `applyTaxMode` (or `assertTaxModeInvariant`)
+ * a params object whose existing tax fields contradict the resolved tax mode.
+ * Surfacing this as a typed, server-side error lets us catch
+ * misconfigurations in our own checkout builders BEFORE Stripe rejects the
+ * session with an opaque 400.
+ */
+export class TaxModeConflictError extends Error {
+  constructor(
+    public readonly mode: TaxMode,
+    public readonly offendingFields: string[],
+    public readonly details: Record<string, unknown>,
+  ) {
+    super(
+      `Tax mode conflict: resolved mode is "${mode}" but session params already set ` +
+        `${offendingFields.join(", ")}. Stripe rejects sessions that mix managed_payments ` +
+        `with automatic_tax. Fix the checkout builder so it does not set these fields manually.`,
+    );
+    this.name = "TaxModeConflictError";
+  }
+}
+
+/**
  * Mutates a Checkout Session params object to apply exactly one tax mode.
  * Guarantees `managed_payments` and `automatic_tax` are never set together,
  * which the Stripe API rejects.
+ *
+ * If the incoming params already set a tax field that conflicts with the
+ * resolved mode, throws `TaxModeConflictError` and logs the offending input
+ * instead of silently deleting it — silent deletion has historically hidden
+ * real bugs where one code path set `automatic_tax` and another set
+ * `managed_payments` on the same session.
  */
 export function applyTaxMode<T extends Record<string, any>>(
   params: T,
   mode: TaxMode,
 ): T {
+  const hasManaged = params.managed_payments !== undefined;
+  const hasAutomatic = params.automatic_tax !== undefined;
+
+  // Loud conflict: both fields set on input.
+  if (hasManaged && hasAutomatic) {
+    const err = new TaxModeConflictError(mode, ["managed_payments", "automatic_tax"], {
+      managed_payments: params.managed_payments,
+      automatic_tax: params.automatic_tax,
+    });
+    console.error("[stripe] applyTaxMode received conflicting tax fields", {
+      mode,
+      managed_payments: params.managed_payments,
+      automatic_tax: params.automatic_tax,
+    });
+    throw err;
+  }
+
+  // Loud conflict: caller pre-set the OPPOSITE field from the resolved mode.
+  if (mode === "managed" && hasAutomatic) {
+    console.error(
+      "[stripe] applyTaxMode: resolved mode=managed but caller set automatic_tax",
+      { automatic_tax: params.automatic_tax },
+    );
+    throw new TaxModeConflictError(mode, ["automatic_tax"], {
+      automatic_tax: params.automatic_tax,
+    });
+  }
+  if (mode === "automatic" && hasManaged) {
+    console.error(
+      "[stripe] applyTaxMode: resolved mode=automatic but caller set managed_payments",
+      { managed_payments: params.managed_payments },
+    );
+    throw new TaxModeConflictError(mode, ["managed_payments"], {
+      managed_payments: params.managed_payments,
+    });
+  }
+
   if (mode === "managed") {
-    delete (params as any).automatic_tax;
     (params as any).managed_payments = { enabled: true };
   } else {
-    delete (params as any).managed_payments;
     (params as any).automatic_tax = { enabled: true };
   }
+
+  assertTaxModeInvariant(params, mode);
   return params;
+}
+
+/**
+ * Final pre-flight check: a fully-built session params object must carry
+ * exactly one of `managed_payments` / `automatic_tax`, matching `mode`.
+ * Call this immediately before `stripe.checkout.sessions.create(...)` in
+ * every checkout flow so we fail fast with a clear stack trace instead of
+ * relying on Stripe's opaque rejection.
+ */
+export function assertTaxModeInvariant(
+  params: Record<string, any>,
+  mode: TaxMode,
+): void {
+  const hasManaged = params.managed_payments !== undefined;
+  const hasAutomatic = params.automatic_tax !== undefined;
+
+  if (hasManaged && hasAutomatic) {
+    console.error("[stripe] tax-mode invariant violated: both fields present", {
+      mode,
+      managed_payments: params.managed_payments,
+      automatic_tax: params.automatic_tax,
+    });
+    throw new TaxModeConflictError(mode, ["managed_payments", "automatic_tax"], {
+      managed_payments: params.managed_payments,
+      automatic_tax: params.automatic_tax,
+    });
+  }
+  if (mode === "managed" && !hasManaged) {
+    throw new TaxModeConflictError(mode, ["managed_payments(missing)"], {});
+  }
+  if (mode === "automatic" && !hasAutomatic) {
+    throw new TaxModeConflictError(mode, ["automatic_tax(missing)"], {});
+  }
 }
 
 export function getStripeErrorMessage(error: unknown): string {
