@@ -115,6 +115,19 @@ function ReviewCard({ review, queryKey, canVote, currentUserId }: {
       toast.error(e instanceof Error ? e.message : "Could not record vote");
     } finally { setBusy(false); }
   };
+  const isAuthor = currentUserId && review.user_id === currentUserId;
+  const onDelete = async () => {
+    if (!isAuthor) return;
+    if (!window.confirm("Delete your review? This cannot be undone.")) return;
+    setBusy(true);
+    try {
+      await remove({ data: { reviewId: review.id } });
+      toast.success("Review deleted");
+      qc.invalidateQueries({ queryKey });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not delete review");
+    } finally { setBusy(false); }
+  };
   const date = new Date(review.created_at).toLocaleDateString(undefined, {
     year: "numeric", month: "short", day: "numeric",
   });
