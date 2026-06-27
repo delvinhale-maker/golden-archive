@@ -116,6 +116,7 @@ export const createCartCheckout = createServerFn({ method: "POST" })
     (data: {
       items: { id: string; title: string; priceCents: number; qty: number }[];
       promoCode?: string;
+      referralCode?: string;
       returnUrl: string;
       environment: StripeEnv;
     }) => {
