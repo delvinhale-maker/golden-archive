@@ -144,8 +144,11 @@ export type Product = {
   description?: string;
   included?: string[];
   aiReviewStatus?: "pass" | "warn" | "fail" | "pending" | null;
-  aiReviewScore?: number | null;
-};
+export type ProductDetailResult =
+  | { kind: "published"; product: Product }
+  | { kind: "unpublished"; title: string | null }
+  | { kind: "notFound" };
+
 
 
 const CATEGORIES = [
