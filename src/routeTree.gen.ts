@@ -12,8 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SellRouteImport } from './routes/sell'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AccountRouteImport } from './routes/account'
@@ -55,6 +57,11 @@ const UnsubscribeRoute = UnsubscribeRouteImport.update({
   path: '/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SellRoute = SellRouteImport.update({
   id: '/sell',
   path: '/sell',
@@ -63,6 +70,11 @@ const SellRoute = SellRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsRoute = ProductsRouteImport.update({
@@ -208,8 +220,10 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/products': typeof ProductsRouteWithChildren
+  '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
@@ -238,8 +252,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
@@ -271,8 +287,10 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/products': typeof ProductsRouteWithChildren
+  '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
@@ -304,8 +322,10 @@ export interface FileRouteTypes {
     | '/account'
     | '/auth'
     | '/products'
+    | '/robots.txt'
     | '/search'
     | '/sell'
+    | '/sitemap.xml'
     | '/unsubscribe'
     | '/vault'
     | '/wishlist'
@@ -334,8 +354,10 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/auth'
+    | '/robots.txt'
     | '/search'
     | '/sell'
+    | '/sitemap.xml'
     | '/unsubscribe'
     | '/vault'
     | '/wishlist'
@@ -366,8 +388,10 @@ export interface FileRouteTypes {
     | '/account'
     | '/auth'
     | '/products'
+    | '/robots.txt'
     | '/search'
     | '/sell'
+    | '/sitemap.xml'
     | '/unsubscribe'
     | '/vault'
     | '/wishlist'
@@ -399,8 +423,10 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   AuthRoute: typeof AuthRoute
   ProductsRoute: typeof ProductsRouteWithChildren
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   SearchRoute: typeof SearchRoute
   SellRoute: typeof SellRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   VaultRoute: typeof VaultRoute
   WishlistRoute: typeof WishlistRoute
@@ -439,6 +465,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sell': {
       id: '/sell'
       path: '/sell'
@@ -451,6 +484,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products': {
@@ -699,8 +739,10 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   AuthRoute: AuthRoute,
   ProductsRoute: ProductsRouteWithChildren,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   SearchRoute: SearchRoute,
   SellRoute: SellRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   VaultRoute: VaultRoute,
   WishlistRoute: WishlistRoute,

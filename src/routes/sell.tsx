@@ -11,9 +11,15 @@ export const Route = createFileRoute("/sell")({
   component: SellPage,
   head: () => ({
     meta: [
-      { title: "Sell on AurumVault — Apply to Become a Creator" },
+      { title: "Sell on AurumVault | Apply to Become a Creator" },
       { name: "description", content: "Join AurumVault's curated marketplace. Keep 91% of every sale. Apply in 2 minutes." },
+      { property: "og:title", content: "Sell on AurumVault | Apply to Become a Creator" },
+      { property: "og:description", content: "Join AurumVault's curated marketplace. Keep 91% of every sale. Apply in 2 minutes." },
+      { property: "og:url", content: "https://www.aurumvault.store/sell" },
+      { name: "twitter:title", content: "Sell on AurumVault | Apply to Become a Creator" },
+      { name: "twitter:description", content: "Join AurumVault's curated marketplace. Keep 91% of every sale. Apply in 2 minutes." },
     ],
+    links: [{ rel: "canonical", href: "https://www.aurumvault.store/sell" }],
   }),
 });
 
