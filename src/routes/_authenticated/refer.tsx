@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Share2, Gift, Mail, Twitter, MessageCircle, Sparkles } from "lucide-react";
+import { Copy, Share2, Gift, Mail, Twitter, MessageCircle, Sparkles, Users, CheckCircle2, DollarSign } from "lucide-react";
+import { getReferralStats } from "@/lib/referrals.stats.functions";
 
 export const Route = createFileRoute("/_authenticated/refer")({
   component: ReferPage,
