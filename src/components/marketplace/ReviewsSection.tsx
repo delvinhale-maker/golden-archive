@@ -1,11 +1,28 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Star, ThumbsUp, BadgeCheck, PenSquare, Trash2, LogIn } from "lucide-react";
-import { listReviews, createReview, toggleHelpful, deleteReview, type ReviewSummary } from "@/lib/reviews.functions";
+import {
+  Star,
+  ThumbsUp,
+  BadgeCheck,
+  PenSquare,
+  Trash2,
+  LogIn,
+  ImagePlus,
+  X as XIcon,
+} from "lucide-react";
+import {
+  listReviews,
+  createReview,
+  toggleHelpful,
+  deleteReview,
+  type ReviewSort,
+  type ReviewSummary,
+} from "@/lib/reviews.functions";
 import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 function StarRow({ value, size = 14 }: { value: number; size?: number }) {
@@ -23,35 +40,47 @@ function StarRow({ value, size = 14 }: { value: number; size?: number }) {
   );
 }
 
-export function ReviewsSection({ productId, fallbackRating, fallbackCount }: {
+const SORT_LABELS: Record<ReviewSort, string> = {
+  helpful: "Most Helpful",
+  recent: "Most Recent",
+  top: "Top Rated",
+};
+
+export function ReviewsSection({
+  productId,
+  fallbackRating,
+  fallbackCount,
+}: {
   productId: string;
   fallbackRating: number;
   fallbackCount: number;
 }) {
   const list = useServerFn(listReviews);
-  const qc = useQueryClient();
   const { user } = useAuth();
-  const queryKey = ["reviews", productId];
+  const [sort, setSort] = useState<ReviewSort>("helpful");
+  const queryKey = ["reviews", productId, sort];
   const { data } = useQuery({
     queryKey,
-    queryFn: () => list({ data: { productId } }),
+    queryFn: () => list({ data: { productId, sort } }),
     staleTime: 30_000,
   });
 
   const summary: ReviewSummary = data ?? {
-    count: 0, average: fallbackRating,
-    breakdown: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }, reviews: [],
+    count: 0,
+    average: fallbackRating,
+    breakdown: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    reviews: [],
   };
 
   const displayAvg = summary.count > 0 ? summary.average : fallbackRating;
   const displayCount = summary.count > 0 ? summary.count : fallbackCount;
-  const maxBar = Math.max(1, ...Object.values(summary.breakdown));
+  const total = Math.max(1, summary.count);
 
   return (
     <section className="mt-16">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h2 className="font-display text-2xl font-bold text-ink md:text-3xl">
-          Reviews
+          Customer Reviews
         </h2>
         {user ? (
           <WriteReviewButton productId={productId} queryKey={queryKey} />
@@ -71,19 +100,26 @@ export function ReviewsSection({ productId, fallbackRating, fallbackCount }: {
           <div className="font-display text-5xl font-bold text-ink">
             {displayAvg.toFixed(1)}
           </div>
-          <div className="mt-2"><StarRow value={displayAvg} size={16} /></div>
+          <div className="mt-2">
+            <StarRow value={displayAvg} size={16} />
+          </div>
           <div className="mt-1 text-xs text-mute">{displayCount} reviews</div>
           <div className="mt-5 space-y-1.5">
             {([5, 4, 3, 2, 1] as const).map((s) => {
               const c = summary.breakdown[s];
-              const pct = (c / maxBar) * 100;
+              const pct = Math.round((c / total) * 100);
               return (
                 <div key={s} className="flex items-center gap-2 text-xs">
-                  <span className="w-3 text-mute">{s}</span>
-                  <div className="h-1.5 flex-1 rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-gold" style={{ width: `${pct}%` }} />
+                  <span className="w-6 text-mute">{s}★</span>
+                  <div className="h-2 flex-1 rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-gold transition-all duration-300"
+                      style={{ width: `${pct}%` }}
+                    />
                   </div>
-                  <span className="w-6 text-right text-mute">{c}</span>
+                  <span className="w-10 text-right tabular-nums text-mute">
+                    {pct}%
+                  </span>
                 </div>
               );
             })}
@@ -91,13 +127,41 @@ export function ReviewsSection({ productId, fallbackRating, fallbackCount }: {
         </div>
 
         <div className="space-y-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-mute">
+              {summary.count} {summary.count === 1 ? "review" : "reviews"}
+            </p>
+            <label className="flex items-center gap-2 text-xs text-mute">
+              Sort by
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as ReviewSort)}
+                className="rounded-md border border-line bg-white px-2 py-1 text-xs font-semibold text-ink focus:border-gold focus:outline-none"
+              >
+                {(["helpful", "recent", "top"] as ReviewSort[]).map((s) => (
+                  <option key={s} value={s}>
+                    {SORT_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
           {summary.reviews.length === 0 ? (
             <div className="rounded-lg border border-dashed border-line bg-white p-10 text-center">
-              <p className="text-sm text-mute">No reviews yet. Be the first to share your thoughts.</p>
+              <p className="text-sm text-mute">
+                No reviews yet. Be the first to share your thoughts.
+              </p>
             </div>
           ) : (
             summary.reviews.map((r) => (
-              <ReviewCard key={r.id} review={r} queryKey={queryKey} canVote={!!user} currentUserId={user?.id ?? null} />
+              <ReviewCard
+                key={r.id}
+                review={r}
+                queryKey={queryKey}
+                canVote={!!user}
+                currentUserId={user?.id ?? null}
+              />
             ))
           )}
         </div>
@@ -106,7 +170,12 @@ export function ReviewsSection({ productId, fallbackRating, fallbackCount }: {
   );
 }
 
-function ReviewCard({ review, queryKey, canVote, currentUserId }: {
+function ReviewCard({
+  review,
+  queryKey,
+  canVote,
+  currentUserId,
+}: {
   review: ReviewSummary["reviews"][number];
   queryKey: readonly unknown[];
   canVote: boolean;
@@ -116,15 +185,22 @@ function ReviewCard({ review, queryKey, canVote, currentUserId }: {
   const remove = useServerFn(deleteReview);
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const [lightbox, setLightbox] = useState(false);
+
   const onVote = async () => {
-    if (!canVote) { toast("Sign in to vote"); return; }
+    if (!canVote) {
+      toast("Sign in to vote");
+      return;
+    }
     setBusy(true);
     try {
       await vote({ data: { reviewId: review.id } });
       qc.invalidateQueries({ queryKey });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not record vote");
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   };
   const isAuthor = currentUserId && review.user_id === currentUserId;
   const onDelete = async () => {
@@ -137,10 +213,14 @@ function ReviewCard({ review, queryKey, canVote, currentUserId }: {
       qc.invalidateQueries({ queryKey });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not delete review");
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   };
   const date = new Date(review.created_at).toLocaleDateString(undefined, {
-    year: "numeric", month: "short", day: "numeric",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
   return (
     <div className="rounded-lg border border-line bg-white p-5">
@@ -151,7 +231,7 @@ function ReviewCard({ review, queryKey, canVote, currentUserId }: {
           className="h-9 w-9 rounded-full object-cover"
         />
         <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm font-bold text-ink">
+          <div className="flex flex-wrap items-center gap-2 text-sm font-bold text-ink">
             {review.reviewer_name}
             {review.verified_purchase && (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald/10 px-2 py-0.5 text-[10px] font-semibold text-emerald">
@@ -168,7 +248,23 @@ function ReviewCard({ review, queryKey, canVote, currentUserId }: {
       {review.title && (
         <div className="mt-3 text-sm font-bold text-ink">{review.title}</div>
       )}
-      <p className="mt-2 text-sm leading-relaxed text-ink">{review.body}</p>
+      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-ink">
+        {review.body}
+      </p>
+      {review.photo_url && (
+        <button
+          type="button"
+          onClick={() => setLightbox(true)}
+          className="mt-3 block overflow-hidden rounded-md border border-line hover:border-gold"
+          aria-label="View review photo"
+        >
+          <img
+            src={review.photo_url}
+            alt="Review attachment"
+            className="h-32 w-32 object-cover"
+          />
+        </button>
+      )}
       <div className="mt-3 flex items-center gap-2">
         <button
           onClick={onVote}
@@ -187,23 +283,96 @@ function ReviewCard({ review, queryKey, canVote, currentUserId }: {
           </button>
         )}
       </div>
+
+      {lightbox && review.photo_url && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4"
+          onClick={() => setLightbox(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            type="button"
+            onClick={() => setLightbox(false)}
+            aria-label="Close"
+            className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+          >
+            <XIcon size={18} />
+          </button>
+          <img
+            src={review.photo_url}
+            alt="Review attachment"
+            className="max-h-[85vh] max-w-full rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
 
-function WriteReviewButton({ productId, queryKey }: { productId: string; queryKey: readonly unknown[] }) {
+function WriteReviewButton({
+  productId,
+  queryKey,
+}: {
+  productId: string;
+  queryKey: readonly unknown[];
+}) {
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(5);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const submit = useServerFn(createReview);
   const qc = useQueryClient();
+  const { user } = useAuth();
+
+  const reset = () => {
+    setOpen(false);
+    setTitle("");
+    setBody("");
+    setRating(5);
+    setPhotoFile(null);
+    setPhotoPreview(null);
+  };
+
   const m = useMutation({
-    mutationFn: () => submit({ data: { productId, rating, title: title || undefined, body } }),
+    mutationFn: async () => {
+      let photoPath: string | undefined;
+      if (photoFile && user) {
+        setUploading(true);
+        const ext = photoFile.name.split(".").pop()?.toLowerCase() ?? "jpg";
+        const path = `${user.id}/${productId}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("review-photos")
+          .upload(path, photoFile, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: photoFile.type || "image/jpeg",
+          });
+        setUploading(false);
+        if (upErr) throw new Error(`Photo upload failed: ${upErr.message}`);
+        photoPath = path;
+      }
+      return submit({
+        data: {
+          productId,
+          rating,
+          title: title || undefined,
+          body,
+          photoPath,
+        },
+      });
+    },
     onSuccess: (res) => {
-      toast.success(res.verified ? "Review posted as verified purchase" : "Review posted");
+      toast.success(
+        res.verified ? "Review posted as verified purchase" : "Review posted",
+      );
       qc.invalidateQueries({ queryKey });
-      setOpen(false); setTitle(""); setBody(""); setRating(5);
+      reset();
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to post"),
   });
@@ -218,15 +387,44 @@ function WriteReviewButton({ productId, queryKey }: { productId: string; queryKe
       </button>
     );
   }
+
+  const onPickPhoto = (file: File | null) => {
+    if (!file) {
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      return;
+    }
+    if (!/^image\/(jpe?g|png|webp)$/i.test(file.type)) {
+      toast.error("JPG, PNG, or WebP only");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Photo must be under 5MB");
+      return;
+    }
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
       className="w-full rounded-lg border border-line bg-white p-5"
     >
       <div className="mb-3 flex items-center gap-2">
         {([1, 2, 3, 4, 5] as const).map((s) => (
-          <button key={s} type="button" onClick={() => setRating(s)} aria-label={`${s} stars`}>
-            <Star size={22} fill={s <= rating ? "var(--gold)" : "none"} stroke="var(--gold)" />
+          <button
+            key={s}
+            type="button"
+            onClick={() => setRating(s)}
+            aria-label={`${s} stars`}
+          >
+            <Star
+              size={22}
+              fill={s <= rating ? "var(--gold)" : "none"}
+              stroke="var(--gold)"
+            />
           </button>
         ))}
       </div>
@@ -243,16 +441,59 @@ function WriteReviewButton({ productId, queryKey }: { productId: string; queryKe
         placeholder="What did you think?"
         className="mt-2 w-full rounded-md border border-line px-3 py-2 text-sm"
       />
+
+      <div className="mt-3 flex items-center gap-3">
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="sr-only"
+          onChange={(e) => onPickPhoto(e.target.files?.[0] ?? null)}
+        />
+        {photoPreview ? (
+          <div className="relative">
+            <img
+              src={photoPreview}
+              alt="Photo preview"
+              className="h-16 w-16 rounded-md border border-line object-cover"
+            />
+            <button
+              type="button"
+              onClick={() => onPickPhoto(null)}
+              aria-label="Remove photo"
+              className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-navy text-white"
+            >
+              <XIcon size={11} />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-mute hover:border-gold hover:text-ink"
+          >
+            <ImagePlus size={12} /> Add a photo (optional)
+          </button>
+        )}
+      </div>
+
       <div className="mt-3 flex justify-end gap-2">
-        <button onClick={() => setOpen(false)} className="rounded-full px-4 py-2 text-sm font-semibold text-mute hover:text-ink">
+        <button
+          onClick={reset}
+          className="rounded-full px-4 py-2 text-sm font-semibold text-mute hover:text-ink"
+        >
           Cancel
         </button>
         <button
           onClick={() => m.mutate()}
-          disabled={m.isPending || body.trim().length < 4}
+          disabled={m.isPending || uploading || body.trim().length < 4}
           className="rounded-full bg-gold px-5 py-2 text-sm font-bold text-navy disabled:opacity-50"
         >
-          {m.isPending ? "Posting…" : "Post review"}
+          {uploading
+            ? "Uploading photo…"
+            : m.isPending
+              ? "Posting…"
+              : "Post review"}
         </button>
       </div>
     </motion.div>

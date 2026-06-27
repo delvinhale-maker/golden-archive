@@ -82,8 +82,7 @@ function QACard({
   const answer$ = useServerFn(answerQuestion);
   const del$ = useServerFn(deleteQuestion);
   const qc = useQueryClient();
-  const { user } = useAuth();
-  const isAdmin = useAuth().isAdmin ?? false;
+  const { isAdmin } = useAuth();
   const isAsker = currentUserId && q.asker_user_id === currentUserId;
 
   const m = useMutation({
