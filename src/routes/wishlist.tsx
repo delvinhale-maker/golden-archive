@@ -119,9 +119,10 @@ function WishlistPage() {
                   <span className="mt-1 text-xs uppercase tracking-caps text-gold">
                     {p.category}
                   </span>
-                  <span className="mt-auto font-display text-lg font-bold text-gold">
+                  <span className="mt-auto font-display text-lg font-bold text-gold tabular-nums whitespace-nowrap">
                     ${(p.price_cents / 100).toFixed(2)}
                   </span>
+
                 </div>
                 <button
                   type="button"
