@@ -131,6 +131,7 @@ export function StripeEmbeddedCartCheckout({ items, promoCode, returnUrl }: Cart
           qty: i.qty,
         })),
         promoCode: promoCode ?? undefined,
+        referralCode: getStoredRef() ?? undefined,
         returnUrl:
           returnUrl ??
           `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
