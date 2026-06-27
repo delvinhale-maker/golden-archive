@@ -405,3 +405,41 @@ export const getFeaturedCreators = createServerFn({ method: "GET" }).handler(asy
   const data = await safeFetch<unknown>("/creators/featured", fallback as unknown);
   return (Array.isArray(data) && data.length ? (data as Creator[]) : fallback) as Creator[];
 });
+
+export type HomeHighlights = {
+  heroProduct: Product | null;
+  illustriousProductCount: number;
+};
+
+export const getHomeHighlights = createServerFn({ method: "GET" }).handler(
+  async (): Promise<HomeHighlights> => {
+    try {
+      const supa = serverSupabase();
+      const [heroRes, countRes] = await Promise.all([
+        supa
+          .from("marketplace_products")
+          .select(
+            "id,title,category,price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score",
+          )
+          .eq("status", "approved")
+          .eq("published", true)
+          .ilike("title", "Kingdom Mind")
+          .maybeSingle(),
+        supa
+          .from("marketplace_products")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "approved")
+          .eq("published", true),
+      ]);
+      const heroProduct = heroRes.data
+        ? dbRowToProduct(heroRes.data as DbProductRow)
+        : null;
+      return {
+        heroProduct,
+        illustriousProductCount: countRes.count ?? 0,
+      };
+    } catch {
+      return { heroProduct: null, illustriousProductCount: 0 };
+    }
+  },
+);
