@@ -103,7 +103,9 @@ function Home() {
       <Suspense fallback={null}>
         <DealsAndBestsellers />
       </Suspense>
+      <ContinueBrowsingRow />
       <CategoriesSection />
+      <HomeContentRows />
       <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProducts />
       </Suspense>
