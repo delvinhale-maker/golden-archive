@@ -1,15 +1,22 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS, type PublisherAccent } from "@/components/marketplace/PublisherShell";
 import {
   ArrowLeft, ArrowRight, Check, Image as ImageIcon, FileText, X,
   CheckCircle2, AlertCircle, Maximize2, Plus, Sparkles, ShieldCheck, Globe,
+  Save, Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
+
+const DRAFT_KEY = "av:publish-draft:v2";
+const DESC_MIN = 50;
+const DESC_MAX = 1900;
+const DESC_WARN = 1800;
+
 
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
   validateSearch: (s: Record<string, unknown>) => ({
