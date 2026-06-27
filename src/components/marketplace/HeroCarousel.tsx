@@ -156,11 +156,19 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
               className="absolute right-0 top-4 w-80 overflow-hidden rounded-xl bg-white shadow-card-hover"
             >
               <div className="h-52 bg-[#f5f4ef]">
-                <ProductCover
-                  title={slide.card.title}
-                  category={slide.card.cat}
-                  className="h-full w-full object-cover"
-                />
+                {slide.card.coverUrl ? (
+                  <img
+                    src={slide.card.coverUrl}
+                    alt={slide.card.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <ProductCover
+                    title={slide.card.title}
+                    category={slide.card.cat}
+                    className="h-full w-full object-cover"
+                  />
+                )}
               </div>
               <div className="p-5">
                 <div className="text-[10px] font-semibold tracking-caps text-gold">
