@@ -1168,3 +1168,152 @@ function CoverLightbox({ src, fileName, onClose }: { src: string; fileName?: str
     </div>
   );
 }
+
+/* ---------- Description live counter ---------- */
+function DescriptionCounter({ value }: { value: string }) {
+  const len = value.length;
+  const trimmed = value.trim().length;
+  const tooShort = trimmed > 0 && trimmed < DESC_MIN;
+  const warn = len >= DESC_WARN && len < DESC_MAX;
+  const max = len >= DESC_MAX;
+  const color = max ? "text-red-600" : warn ? "text-amber-700" : tooShort ? "text-amber-700" : "text-mute";
+  return (
+    <div className="mt-1 flex items-center justify-between text-xs">
+      <span className={color}>
+        {tooShort && <>{DESC_MIN - trimmed} more characters needed (min {DESC_MIN}).</>}
+        {!tooShort && warn && <>Approaching limit.</>}
+        {!tooShort && max && <>Maximum reached — please shorten before publishing.</>}
+        {!tooShort && !warn && !max && <>Min {DESC_MIN} · Max {DESC_MAX} characters.</>}
+      </span>
+      <span className={`tabular-nums ${color}`}>{len} / {DESC_MAX}</span>
+    </div>
+  );
+}
+
+/* ---------- Pre-publish preview modal ---------- */
+function PrePublishPreview(props: {
+  accent: PublisherAccent;
+  onClose: () => void;
+  onGoToStep: (s: StepNum) => void;
+  onConfirm: () => void;
+  checklist: Array<{ id: string; label: string; ok: boolean; gotoStep: StepNum }>;
+  checklistPass: boolean;
+  submitting: boolean;
+  cover: string | null;
+  title: string; subtitle: string; author: string; description: string;
+  price: number; royalty: number;
+  fileName: string | null; fileSize: number | null;
+  category: string; territory: string;
+}) {
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") props.onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+  }, [props]);
+  const sizeLabel = props.fileSize != null
+    ? props.fileSize > 1024 * 1024
+      ? `${(props.fileSize / (1024 * 1024)).toFixed(2)} MB`
+      : `${Math.max(1, Math.round(props.fileSize / 1024))} KB`
+    : "—";
+  return (
+    <div role="dialog" aria-modal="true" aria-label="Pre-publish preview"
+      className="fixed inset-0 z-50 bg-navy/80 flex items-start md:items-center justify-center p-4 overflow-y-auto"
+      onClick={props.onClose}>
+      <div
+        className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl my-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button onClick={props.onClose}
+          className="absolute top-3 right-3 h-9 w-9 rounded-full inline-flex items-center justify-center text-mute hover:bg-ink/5"
+          aria-label="Close preview">
+          <X size={18} />
+        </button>
+        <div className="p-6 md:p-8 border-b border-ink/10">
+          <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: props.accent.color }}>
+            Final preview
+          </p>
+          <h2 className="font-display text-2xl text-navy mt-1">Review before publishing</h2>
+          <p className="text-sm text-mute mt-1">This is exactly how shoppers will see your title.</p>
+        </div>
+
+        <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6">
+          <div className="mx-auto md:mx-0 w-[220px] aspect-[1/1.6] rounded-md bg-gradient-to-br from-navy to-[#22335A] shadow-xl overflow-hidden">
+            {props.cover ? (
+              <img src={props.cover} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">No cover</div>
+            )}
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-display text-2xl text-navy break-words">{props.title || "Untitled"}</h3>
+            {props.subtitle && <p className="text-sm italic text-mute mt-0.5">{props.subtitle}</p>}
+            <p className="text-sm text-mute mt-1">by <span className="text-navy font-medium">{props.author || "—"}</span></p>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              <span className="px-2 py-1 rounded-full bg-navy/5 text-navy">{props.category || "Uncategorized"}</span>
+              <span className="px-2 py-1 rounded-full bg-navy/5 text-navy inline-flex items-center gap-1"><Globe size={11}/> {props.territory}</span>
+            </div>
+            <div className="mt-4 flex items-baseline gap-3">
+              <span className="font-display text-3xl text-navy tabular-nums">${props.price.toFixed(2)}</span>
+              <span className="text-xs text-mute">Royalty estimate: <strong className="text-navy">${props.royalty.toFixed(2)}</strong></span>
+            </div>
+            <div className="mt-4 rounded-lg border border-ink/10 bg-paper/40 p-3 text-xs text-mute">
+              <div className="flex items-center gap-2 text-navy font-medium"><FileText size={14}/> Manuscript</div>
+              <div className="mt-1 break-all">{props.fileName ?? "No file uploaded"} · {sizeLabel}</div>
+            </div>
+            <div className="mt-4">
+              <p className="text-[11px] uppercase tracking-wider font-semibold text-mute">Description</p>
+              <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed">
+                {props.description || <span className="text-mute italic">No description provided.</span>}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 md:p-8 border-t border-ink/10 bg-paper/30 rounded-b-2xl">
+          <p className="text-[11px] uppercase tracking-wider font-semibold text-mute">Pre-publish checklist</p>
+          <ul className="mt-3 space-y-2">
+            {props.checklist.map((c) => (
+              <li key={c.id} className="flex items-center gap-2 text-sm">
+                {c.ok ? (
+                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertCircle size={16} className="text-red-600 shrink-0" />
+                )}
+                <span className={c.ok ? "text-navy" : "text-red-700 font-medium"}>{c.label}</span>
+                {!c.ok && (
+                  <button
+                    type="button"
+                    onClick={() => props.onGoToStep(c.gotoStep)}
+                    className="ml-auto text-xs text-red-700 underline hover:no-underline"
+                  >
+                    Fix this →
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+            <button
+              type="button" onClick={props.onClose}
+              className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5"
+            >
+              Keep editing
+            </button>
+            <button
+              type="button" onClick={props.onConfirm}
+              disabled={!props.checklistPass || props.submitting}
+              className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: props.accent.color }}
+            >
+              <ShieldCheck size={16} />
+              {props.submitting ? "Publishing…" : "Publish to Vault"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
