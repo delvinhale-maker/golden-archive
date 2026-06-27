@@ -434,8 +434,10 @@ export const getProduct = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ id: z.string() }).parse(input))
   .handler(async ({ data }) => {
     if (!UUID_RE.test(data.id)) return { kind: "notFound" } as ProductDetailResult;
-    const supa = serverSupabase();
-    const { data: row } = await supa
+    // Use service-role client so we can distinguish "does not exist" from
+    // "exists but is not yet published/approved" despite RLS policies.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
       .from("marketplace_products")
       .select(
         "id,title,category,price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published",
@@ -447,9 +449,10 @@ export const getProduct = createServerFn({ method: "GET" })
       return { kind: "unpublished", title: row.title } as ProductDetailResult;
     }
     const product = dbRowToProduct(row as DbProductRow);
-    const agg = await fetchReviewAggregates(supa, [product.id]);
+    const agg = await fetchReviewAggregates(supabaseAdmin, [product.id]);
     return { kind: "published", product: applyAggregates([product], agg)[0] } as ProductDetailResult;
   });
+
 
 
 export const getFeaturedCreators = createServerFn({ method: "GET" }).handler(async () => {
