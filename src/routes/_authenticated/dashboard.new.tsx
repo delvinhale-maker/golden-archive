@@ -905,7 +905,7 @@ function StepContent(p: {
               <p className="text-xs mt-0.5 break-words">{p.fileUploadError}</p>
               <button
                 type="button"
-                onClick={p.onRetryUpload}
+                onClick={p.onRetryFile}
                 disabled={p.retryDisabled}
                 data-testid="manuscript-retry-upload"
                 className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5"
@@ -951,7 +951,7 @@ function StepContent(p: {
               <p className="text-xs mt-0.5 break-words">{p.coverUploadError}</p>
               <button
                 type="button"
-                onClick={p.onRetryUpload}
+                onClick={p.onRetryCover}
                 disabled={p.retryDisabled}
                 data-testid="cover-retry-upload"
                 className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5"
