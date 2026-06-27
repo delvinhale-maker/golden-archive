@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 import { LogOut } from "lucide-react";
 import { AVLogo } from "./AVLogo";
+import { UploadFab } from "./UploadFab";
 import { useAuth } from "@/hooks/use-auth";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
@@ -125,6 +126,7 @@ export function PublisherShell({
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 md:px-8 py-8 md:py-10">{children}</main>
+      <UploadFab />
     </div>
   );
 }

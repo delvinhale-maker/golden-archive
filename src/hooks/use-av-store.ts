@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const WISHLIST_KEY = "av:wishlist";
 const CART_KEY = "av:cart:v2";
@@ -22,15 +23,46 @@ function writeSet(key: string, s: Set<string>) {
   window.dispatchEvent(new CustomEvent(`av:storage:${key}`));
 }
 
-function useLocalSet(key: string) {
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function useWishlist() {
+  const key = WISHLIST_KEY;
   const [set, setSet] = useState<Set<string>>(() => new Set());
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    setSet(readSet(key));
+    let cancelled = false;
+    const hydrate = async (uid: string | null) => {
+      if (cancelled) return;
+      setUserId(uid);
+      if (!uid) {
+        setSet(readSet(key));
+        return;
+      }
+      const { data } = await supabase.from("wishlists").select("product_id");
+      if (cancelled) return;
+      const ids = new Set((data ?? []).map((r) => r.product_id as string));
+      const local = readSet(key);
+      const toUpload = [...local].filter((id) => !ids.has(id) && UUID_RE.test(id));
+      if (toUpload.length) {
+        await supabase
+          .from("wishlists")
+          .insert(toUpload.map((pid) => ({ user_id: uid, product_id: pid })));
+        toUpload.forEach((id) => ids.add(id));
+      }
+      writeSet(key, ids);
+      setSet(ids);
+    };
+    supabase.auth.getUser().then(({ data }) => hydrate(data.user?.id ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      hydrate(session?.user?.id ?? null);
+    });
     const handler = () => setSet(readSet(key));
     window.addEventListener(`av:storage:${key}`, handler);
     window.addEventListener("storage", handler);
     return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
       window.removeEventListener(`av:storage:${key}`, handler);
       window.removeEventListener("storage", handler);
     };
@@ -39,19 +71,32 @@ function useLocalSet(key: string) {
   const toggle = useCallback(
     (id: string) => {
       const next = new Set(readSet(key));
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      const adding = !next.has(id);
+      if (adding) next.add(id);
+      else next.delete(id);
       writeSet(key, next);
+      setSet(next);
+      if (userId && UUID_RE.test(id)) {
+        if (adding) {
+          void supabase
+            .from("wishlists")
+            .insert({ user_id: userId, product_id: id });
+        } else {
+          void supabase
+            .from("wishlists")
+            .delete()
+            .eq("user_id", userId)
+            .eq("product_id", id);
+        }
+      }
     },
-    [key],
+    [key, userId],
   );
 
   const has = useCallback((id: string) => set.has(id), [set]);
 
   return { count: set.size, has, toggle };
 }
-
-export const useWishlist = () => useLocalSet(WISHLIST_KEY);
 
 /* ------------------------------ Cart (items + qty) ------------------------------ */
 

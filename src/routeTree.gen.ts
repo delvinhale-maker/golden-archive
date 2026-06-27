@@ -9,11 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as SellRouteImport } from './routes/sell'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
@@ -37,6 +40,11 @@ import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/publ
 import { Route as AuthenticatedAdminHealthCoversRouteImport } from './routes/_authenticated/admin.health.covers'
 import { Route as AuthenticatedAdminHealthCoversAlertsRouteImport } from './routes/_authenticated/admin.health.covers.alerts'
 
+const WishlistRoute = WishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VaultRoute = VaultRouteImport.update({
   id: '/vault',
   path: '/vault',
@@ -52,6 +60,11 @@ const SellRoute = SellRouteImport.update({
   path: '/sell',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -60,6 +73,11 @@ const ProductsRoute = ProductsRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -187,11 +205,14 @@ const AuthenticatedAdminHealthCoversAlertsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/products': typeof ProductsRouteWithChildren
+  '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
+  '/wishlist': typeof WishlistRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -215,10 +236,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
+  '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
+  '/wishlist': typeof WishlistRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -244,11 +268,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/products': typeof ProductsRouteWithChildren
+  '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
+  '/wishlist': typeof WishlistRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -274,11 +301,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account'
     | '/auth'
     | '/products'
+    | '/search'
     | '/sell'
     | '/unsubscribe'
     | '/vault'
+    | '/wishlist'
     | '/admin'
     | '/checkout/return'
     | '/download/$token'
@@ -302,10 +332,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account'
     | '/auth'
+    | '/search'
     | '/sell'
     | '/unsubscribe'
     | '/vault'
+    | '/wishlist'
     | '/admin'
     | '/checkout/return'
     | '/download/$token'
@@ -330,11 +363,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/account'
     | '/auth'
     | '/products'
+    | '/search'
     | '/sell'
     | '/unsubscribe'
     | '/vault'
+    | '/wishlist'
     | '/_authenticated/admin'
     | '/checkout/return'
     | '/download/$token'
@@ -360,11 +396,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AccountRoute: typeof AccountRoute
   AuthRoute: typeof AuthRoute
   ProductsRoute: typeof ProductsRouteWithChildren
+  SearchRoute: typeof SearchRoute
   SellRoute: typeof SellRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   VaultRoute: typeof VaultRoute
+  WishlistRoute: typeof WishlistRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
@@ -379,6 +418,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wishlist': {
+      id: '/wishlist'
+      path: '/wishlist'
+      fullPath: '/wishlist'
+      preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vault': {
       id: '/vault'
       path: '/vault'
@@ -400,6 +446,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SellRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products': {
       id: '/products'
       path: '/products'
@@ -412,6 +465,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -636,11 +696,14 @@ const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AccountRoute: AccountRoute,
   AuthRoute: AuthRoute,
   ProductsRoute: ProductsRouteWithChildren,
+  SearchRoute: SearchRoute,
   SellRoute: SellRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   VaultRoute: VaultRoute,
+  WishlistRoute: WishlistRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
