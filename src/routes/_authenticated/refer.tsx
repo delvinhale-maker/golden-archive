@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Share2, Gift, Mail, Twitter, MessageCircle, Sparkles } from "lucide-react";
+import { Copy, Share2, Gift, Mail, Twitter, MessageCircle, Sparkles, Users, CheckCircle2, DollarSign } from "lucide-react";
+import { getReferralStats } from "@/lib/referrals.stats.functions";
 
 export const Route = createFileRoute("/_authenticated/refer")({
   component: ReferPage,
@@ -169,6 +172,9 @@ function ReferPage() {
           </div>
         </section>
 
+        <ReferralStatusSection />
+
+
         <section className="mt-6 grid gap-4 sm:grid-cols-3">
           {[
             { step: "1", title: "Share your link", body: "Send it to friends, post it, or text it — it works anywhere." },
@@ -205,3 +211,117 @@ function ReferPage() {
     </div>
   );
 }
+
+function ReferralStatusSection() {
+  const fetchStats = useServerFn(getReferralStats);
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+    queryKey: ["referral-stats"],
+    queryFn: () => fetchStats(),
+    staleTime: 30_000,
+  });
+
+  const fmtMoney = (cents: number, currency = "usd") =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase() }).format(cents / 100);
+  const fmtDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+
+  return (
+    <section className="mt-6 rounded-3xl border border-[#0F1E35]/10 bg-white p-6 shadow-sm sm:p-8">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-bold sm:text-xl">Referral status</h2>
+          <p className="mt-1 text-sm text-[#0F1E35]/70">Live attribution from your invite link.</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => void refetch()}
+          className="rounded-full border border-[#0F1E35]/15 bg-white px-3 py-1.5 text-xs font-semibold text-[#0F1E35] hover:bg-[#F5F0E8] disabled:opacity-60"
+          disabled={isFetching}
+        >
+          {isFetching ? "Refreshing…" : "Refresh"}
+        </button>
+      </div>
+
+      {isError ? (
+        <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Couldn't load your referral stats. <button className="underline" onClick={() => void refetch()}>Try again</button>.
+        </div>
+      ) : null}
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <StatCard
+          icon={<Users className="h-4 w-4" />}
+          label="Your code"
+          value={isLoading ? "—" : (data?.code ?? "—")}
+          mono
+        />
+        <StatCard
+          icon={<CheckCircle2 className="h-4 w-4" />}
+          label="Successful referrals"
+          value={isLoading ? "—" : String(data?.signups ?? 0)}
+          hint="Friends who signed up with your link"
+        />
+        <StatCard
+          icon={<DollarSign className="h-4 w-4" />}
+          label="Credited first orders"
+          value={isLoading ? "—" : String(data?.creditedFirstOrders ?? 0)}
+          hint={data ? `${fmtMoney(data.creditedRevenueCents)} attributed revenue` : undefined}
+        />
+      </div>
+
+      <div className="mt-6">
+        <h3 className="text-sm font-bold text-[#0F1E35]">Recent attributed orders</h3>
+        {isLoading ? (
+          <div className="mt-2 h-12 animate-pulse rounded-xl bg-[#F5F0E8]" />
+        ) : !data?.recent.length ? (
+          <p className="mt-2 text-sm text-[#0F1E35]/60">No referred orders yet — share your link to get started.</p>
+        ) : (
+          <ul className="mt-2 divide-y divide-[#0F1E35]/10 rounded-2xl border border-[#0F1E35]/10">
+            {data.recent.map((o) => (
+              <li key={o.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <div className="min-w-0">
+                  <div className="font-mono text-xs text-[#0F1E35]/60 truncate">#{o.id.slice(0, 8)}</div>
+                  <div className="text-[#0F1E35]/80">{fmtDate(o.created_at)}</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="rounded-full bg-[#F5F0E8] px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-[#0F1E35]/70">
+                    {o.status || "pending"}
+                  </span>
+                  <span className="font-bold text-[#0F1E35]">{fmtMoney(o.amount_cents, o.currency)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function StatCard({
+  icon,
+  label,
+  value,
+  hint,
+  mono,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  hint?: string;
+  mono?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#0F1E35]/10 bg-[#F5F0E8]/60 p-4">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#0F1E35]/60">
+        <span className="grid h-6 w-6 place-items-center rounded-full bg-[#0F1E35] text-[#F5C76E]">{icon}</span>
+        {label}
+      </div>
+      <div className={`mt-2 text-2xl font-black text-[#0F1E35] ${mono ? "font-mono tracking-widest" : ""}`}>
+        {value}
+      </div>
+      {hint ? <div className="mt-1 text-xs text-[#0F1E35]/60">{hint}</div> : null}
+    </div>
+  );
+}
+
