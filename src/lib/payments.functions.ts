@@ -75,6 +75,7 @@ export const createProductCheckout = createServerFn({ method: "POST" })
         taxMode,
       );
 
+      assertTaxModeInvariant(sessionParams, taxMode);
       const session = await stripe.checkout.sessions.create(sessionParams as any);
 
       return { clientSecret: session.client_secret ?? "" };
