@@ -1236,11 +1236,15 @@ function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium
             $
           </span>
           <input
-            type="number" min="1" step="0.01"
+            id="list-price-input"
+            type="number" min="1" step="0.01" inputMode="decimal"
             value={price} onChange={(e) => setPrice(e.target.value)}
             className="inp" style={{ paddingLeft: 28 }} placeholder="9.99"
           />
         </div>
+        {(!price || parseFloat(price) <= 0) && (
+          <p className="mt-2 text-sm text-red-600">Enter a list price greater than $0.00 to continue.</p>
+        )}
       </Field>
 
 
