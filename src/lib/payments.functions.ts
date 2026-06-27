@@ -7,6 +7,7 @@ import {
   getStripeErrorMessage,
   detectTaxMode,
   applyTaxMode,
+  assertTaxModeInvariant,
 } from "@/lib/stripe.server";
 
 type CheckoutResult = { clientSecret: string } | { error: string };
