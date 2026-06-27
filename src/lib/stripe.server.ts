@@ -188,6 +188,7 @@ export function applyTaxMode<T extends Record<string, any>>(
       mode,
       managed_payments: params.managed_payments,
       automatic_tax: params.automatic_tax,
+      session_shape: summarizeSessionShape(params),
     });
     throw err;
   }
@@ -196,7 +197,7 @@ export function applyTaxMode<T extends Record<string, any>>(
   if (mode === "managed" && hasAutomatic) {
     console.error(
       "[stripe] applyTaxMode: resolved mode=managed but caller set automatic_tax",
-      { automatic_tax: params.automatic_tax },
+      { automatic_tax: params.automatic_tax, session_shape: summarizeSessionShape(params) },
     );
     throw new TaxModeConflictError(mode, ["automatic_tax"], {
       automatic_tax: params.automatic_tax,
@@ -205,7 +206,7 @@ export function applyTaxMode<T extends Record<string, any>>(
   if (mode === "automatic" && hasManaged) {
     console.error(
       "[stripe] applyTaxMode: resolved mode=automatic but caller set managed_payments",
-      { managed_payments: params.managed_payments },
+      { managed_payments: params.managed_payments, session_shape: summarizeSessionShape(params) },
     );
     throw new TaxModeConflictError(mode, ["managed_payments"], {
       managed_payments: params.managed_payments,
