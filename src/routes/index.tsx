@@ -65,8 +65,15 @@ export const Route = createFileRoute("/")({
         content:
           "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
       },
+      { property: "og:url", content: "https://www.aurumvault.store/" },
+      { name: "twitter:title", content: "AurumVault — Gold Standard Digital Commerce" },
+      {
+        name: "twitter:description",
+        content:
+          "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
+      },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [{ rel: "canonical", href: "https://www.aurumvault.store/" }],
   }),
   component: Home,
 });
