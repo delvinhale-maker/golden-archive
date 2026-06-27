@@ -45,6 +45,7 @@ export const createProductCheckout = createServerFn({ method: "POST" })
               currency: "usd",
               product_data: {
                 name: product.title,
+                tax_code: "txcd_10000000",
                 ...(product.description && {
                   description: product.description.slice(0, 500),
                 }),
@@ -152,7 +153,10 @@ export const createCartCheckout = createServerFn({ method: "POST" })
         return {
           price_data: {
             currency: "usd",
-            product_data: { name: authoritative?.title ?? it.title },
+            product_data: {
+              name: authoritative?.title ?? it.title,
+              tax_code: "txcd_10000000",
+            },
             unit_amount: adjusted,
             tax_behavior: "exclusive",
           },
