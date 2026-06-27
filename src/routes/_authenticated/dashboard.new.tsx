@@ -238,25 +238,69 @@ function PublishFlow() {
     setKwInput("");
   }
 
-  const step1Valid = title.trim() && author.trim() && description.trim().length >= 150;
+  const descLen = description.length;
+  const descTrimLen = description.trim().length;
+  const step1Valid =
+    !!title.trim() &&
+    !!author.trim() &&
+    descTrimLen >= DESC_MIN &&
+    descLen <= DESC_MAX;
   const hasCover = (!!cover && !coverError && !!coverDims) || (!cover && !!existingCoverUrl);
   const hasFile = (!!file && !fileError) || (!file && !!existingFilePath);
   const step2Valid = ownsRights && hasCover && hasFile;
-  const step3Valid = !!price && parseFloat(price) >= 1;
+  const step3Valid = !!price && parseFloat(price) > 0;
 
   const priceNum = parseFloat(price || "0");
   const royaltyPct = 0.7;
   const royalty = priceNum * royaltyPct;
 
   function next() {
-    if (step === 1 && !step1Valid) return toast.error("Fill all required fields (description ≥ 150 chars).");
+    if (step === 1 && !step1Valid) {
+      if (descTrimLen < DESC_MIN) return toast.error(`Description needs at least ${DESC_MIN} characters.`);
+      if (descLen > DESC_MAX) return toast.error(`Description exceeds ${DESC_MAX} characters.`);
+      return toast.error("Fill all required fields.");
+    }
     if (step === 2 && !step2Valid) {
       if (!ownsRights) return toast.error("You must confirm you own the rights to this content.");
       return toast.error(isEditing ? "Cover or manuscript is invalid." : "Upload a valid cover and manuscript.");
     }
-    if (step === 3 && !step3Valid) return toast.error("Enter a price of at least $1.");
+    if (step === 3 && !step3Valid) return toast.error("Enter a price greater than $0.00.");
     setStep((step + 1) as StepNum);
   }
+
+  // Publish checklist (used by review modal)
+  const checklist = useMemo(() => {
+    const items = [
+      {
+        id: "cover",
+        label: `Cover uploaded (min ${MIN_COVER_W}×${MIN_COVER_H}px)`,
+        ok: hasCover && !coverError,
+        gotoStep: 2 as StepNum,
+      },
+      {
+        id: "manuscript",
+        label: "Manuscript uploaded",
+        ok: hasFile && !fileError,
+        gotoStep: 2 as StepNum,
+      },
+      { id: "title", label: "Title not empty", ok: !!title.trim(), gotoStep: 1 as StepNum },
+      {
+        id: "description",
+        label: `Description ≥ ${DESC_MIN} characters & ≤ ${DESC_MAX}`,
+        ok: descTrimLen >= DESC_MIN && descLen <= DESC_MAX,
+        gotoStep: 1 as StepNum,
+      },
+      {
+        id: "price",
+        label: "Price greater than $0.00",
+        ok: !!price && parseFloat(price) > 0,
+        gotoStep: 3 as StepNum,
+      },
+    ];
+    return items;
+  }, [hasCover, coverError, hasFile, fileError, title, descTrimLen, descLen, price]);
+  const checklistPass = checklist.every((c) => c.ok);
+
 
   async function uploadAndSave(publish: boolean) {
     if (!user) return;
