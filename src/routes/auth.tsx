@@ -10,9 +10,16 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
   head: () => ({
     meta: [
-      { title: "Sign in — AurumVault" },
-      { name: "description", content: "Sign in or create your AurumVault account." },
+      { title: "Sign in | AurumVault" },
+      { name: "description", content: "Sign in or create your AurumVault account to buy and sell purpose-driven digital products." },
+      { name: "robots", content: "noindex, follow" },
+      { property: "og:title", content: "Sign in | AurumVault" },
+      { property: "og:description", content: "Sign in or create your AurumVault account." },
+      { property: "og:url", content: "https://www.aurumvault.store/auth" },
+      { name: "twitter:title", content: "Sign in | AurumVault" },
+      { name: "twitter:description", content: "Sign in or create your AurumVault account." },
     ],
+    links: [{ rel: "canonical", href: "https://www.aurumvault.store/auth" }],
   }),
 });
 
