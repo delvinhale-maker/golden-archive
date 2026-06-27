@@ -94,19 +94,27 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             <BadgeCheck size={13} className="text-emerald" />
           )}
         </div>
-        <div className="mt-2 flex items-center gap-1.5 text-[12px] text-mute">
-          <div className="flex">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                size={12}
-                fill={i < Math.round(product.rating) ? "var(--gold)" : "none"}
-                stroke="var(--gold)"
-              />
-            ))}
+        {product.reviewCount > 0 ? (
+          <div
+            className="mt-2 flex items-center gap-1.5 text-[12px] text-mute"
+            aria-label={`Rated ${product.rating.toFixed(1)} out of 5 from ${product.reviewCount} review${product.reviewCount === 1 ? "" : "s"}`}
+          >
+            <div className="flex">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  size={12}
+                  fill={i < Math.round(product.rating) ? "var(--gold)" : "none"}
+                  stroke="var(--gold)"
+                />
+              ))}
+            </div>
+            <span className="tabular-nums">{product.rating.toFixed(1)}</span>
+            <span>({product.reviewCount})</span>
           </div>
-          <span>({product.reviewCount})</span>
-        </div>
+        ) : (
+          <div className="mt-2 text-[11px] italic text-mute">No reviews yet</div>
+        )}
         <div className="mt-3 flex items-baseline gap-2">
           <span className="font-display text-[18px] font-bold text-gold">
             ${product.price}
