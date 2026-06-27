@@ -1226,46 +1226,91 @@ function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium
 
 /* ---------- Step 4: Review ---------- */
 
-function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, uploading, uploadProgress, submitting, disabled, onDraft, onPublish, onZoomCover }: {
+function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover }: {
   accent: PublisherAccent;
   cover: string | null; title: string; subtitle: string; author: string;
   price: number; royalty: number; format: string; territory: string;
+  category: string;
   uploading: boolean; uploadProgress: number; submitting: boolean; disabled: boolean;
+  checklist: Array<{ id: string; label: string; ok: boolean; gotoStep: StepNum }>;
+  checklistPass: boolean;
+  onGoToStep: (s: StepNum) => void;
   onDraft: () => void; onPublish: () => void; onZoomCover: () => void;
 }) {
   return (
     <div className="space-y-6">
       <h2 className="font-display text-2xl text-navy">Review & publish</h2>
 
-      <div
-        className="rounded-2xl p-5 md:p-6 flex flex-col sm:flex-row gap-5"
-        style={{ background: `linear-gradient(135deg, ${accent.tint} 0%, white 100%)`, border: `1px solid ${accent.color}30` }}
-      >
-        {cover ? (
-          <button type="button" onClick={onZoomCover} className="group shrink-0 self-start relative">
-            <img src={cover} alt="" className="w-40 h-auto aspect-[1/1.6] object-cover rounded-md shadow-lg border border-ink/10" />
-            <span className="absolute inset-0 rounded-md bg-navy/0 group-hover:bg-navy/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
-              <Maximize2 size={20} className="text-white" />
-            </span>
-          </button>
-        ) : <div className="w-40 aspect-[1/1.6] bg-ink/5 rounded-md" />}
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: accent.color }}>Final summary</p>
-          <div className="mt-1 font-display text-2xl text-navy leading-tight">{title || "Untitled"}</div>
-          {subtitle && <div className="text-mute italic">{subtitle}</div>}
-          <div className="mt-2 text-sm text-ink">by <strong>{author}</strong></div>
-          <dl className="mt-4 grid grid-cols-2 gap-y-2 text-sm">
-            <dt className="text-mute">Format</dt><dd className="text-navy">{format}</dd>
-            <dt className="text-mute">List price</dt><dd className="text-navy font-mono">${price.toFixed(2)}</dd>
-            <dt className="text-mute">Your royalty</dt><dd className="text-navy font-mono">${royalty.toFixed(2)}</dd>
-            <dt className="text-mute">Territory</dt><dd className="text-navy">{territory}</dd>
-          </dl>
+      {/* KDP-style storefront preview card */}
+      <div className="rounded-2xl border border-ink/10 bg-gradient-to-br from-paper to-white p-5">
+        <p className="text-[11px] uppercase tracking-wider font-semibold text-mute">
+          Preview — This is how your product will appear in the Vault
+        </p>
+        <div className="mt-4 mx-auto max-w-[260px]">
+          <div className="rounded-xl bg-white border border-ink/10 shadow-sm overflow-hidden">
+            <button type="button" onClick={onZoomCover} className="block w-full aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A] overflow-hidden">
+              {cover ? (
+                <img src={cover} alt={`Cover for ${title || "untitled"}`} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">No cover</div>
+              )}
+            </button>
+            <div className="p-3">
+              <span className="inline-block text-[10px] uppercase tracking-wider font-semibold rounded-full px-2 py-0.5"
+                style={{ background: `${accent.color}22`, color: accent.color }}>
+                {category}
+              </span>
+              <p className="mt-1.5 font-display text-base text-navy leading-tight line-clamp-2">{title || "Untitled"}</p>
+              <p className="text-xs text-mute mt-0.5 truncate">by {author || "—"}</p>
+              <div className="mt-1.5 flex items-center gap-0.5" aria-label="0 of 5 stars, no reviews yet">
+                {[0,1,2,3,4].map((i) => (
+                  <svg key={i} viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-ink/15"><path d="M12 17.3 5.8 21l1.6-7L2 9.3l7.1-.6L12 2l2.9 6.7 7.1.6-5.4 4.7 1.6 7z"/></svg>
+                ))}
+                <span className="ml-1 text-[10px] text-mute">(0)</span>
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="font-mono text-navy font-semibold">${price.toFixed(2)}</span>
+                <button type="button" disabled className="text-[11px] rounded-full bg-ink/10 text-mute px-3 py-1.5 cursor-not-allowed">Add to Cart</button>
+              </div>
+            </div>
+          </div>
         </div>
+        <dl className="mt-5 grid grid-cols-2 gap-y-1.5 text-xs text-mute max-w-md mx-auto">
+          <dt>Format</dt><dd className="text-navy text-right">{format}</dd>
+          <dt>List price</dt><dd className="text-navy font-mono text-right">${price.toFixed(2)}</dd>
+          <dt>Your royalty</dt><dd className="text-navy font-mono text-right">${royalty.toFixed(2)}</dd>
+          <dt>Territory</dt><dd className="text-navy text-right">{territory}</dd>
+        </dl>
+      </div>
+
+      {/* Pre-publish checklist */}
+      <div className="rounded-2xl border border-ink/10 bg-white p-5">
+        <p className="text-[11px] uppercase tracking-wider font-semibold text-mute">Pre-publish checklist</p>
+        <ul className="mt-3 space-y-2">
+          {checklist.map((c) => (
+            <li key={c.id} className="flex items-center gap-2 text-sm">
+              {c.ok ? (
+                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" aria-hidden="true" />
+              ) : (
+                <AlertCircle size={16} className="text-red-600 shrink-0" aria-hidden="true" />
+              )}
+              <span className={c.ok ? "text-navy" : "text-red-700 font-medium"}>{c.label}</span>
+              {!c.ok && (
+                <button
+                  type="button" onClick={() => onGoToStep(c.gotoStep)}
+                  className="ml-auto text-xs text-red-700 underline hover:no-underline"
+                >
+                  Fix this →
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
 
       {uploading && (
         <div>
-          <div className="flex justify-between text-xs text-mute mb-1"><span>Uploading…</span><span>{uploadProgress}%</span></div>
+          <div className="flex justify-between text-xs text-mute mb-1"><span>Publishing…</span><span>{uploadProgress}%</span></div>
           <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
             <div className="h-full transition-all" style={{ width: `${uploadProgress}%`, background: accent.color }} />
           </div>
@@ -1280,9 +1325,10 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
           Save as Draft
         </button>
         <button
-          type="button" disabled={submitting || disabled} onClick={onPublish}
-          className="flex-1 h-12 rounded-full text-white font-semibold disabled:opacity-60 inline-flex items-center justify-center gap-2 transition-colors duration-300"
+          type="button" disabled={submitting || disabled || !checklistPass} onClick={onPublish}
+          className="flex-1 h-12 rounded-full text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 transition-colors duration-300"
           style={{ background: accent.color }}
+          title={!checklistPass ? "Resolve checklist items above" : undefined}
         >
           <ShieldCheck size={16} /> {submitting ? "Publishing…" : "Publish to Vault"}
         </button>
@@ -1290,6 +1336,7 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
     </div>
   );
 }
+
 
 /* ---------- Success ---------- */
 
