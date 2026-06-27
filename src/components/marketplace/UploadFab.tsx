@@ -17,6 +17,8 @@ export function UploadFab() {
   }, [open]);
 
   if (loading || (!isAdmin && !isSeller)) return null;
+  // Hide on publish/edit flow to avoid covering form controls on mobile.
+  if (pathname.startsWith("/dashboard/new") || pathname.startsWith("/publish")) return null;
 
   return (
     <>
