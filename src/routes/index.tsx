@@ -28,6 +28,7 @@ import { ProductCover } from "@/components/marketplace/ProductCover";
 import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
 import { DealsStrip } from "@/components/marketplace/DealsStrip";
 import { BestsellersRow } from "@/components/marketplace/BestsellersRow";
+import { EmailCaptureBanner } from "@/components/EmailCaptureBanner";
 import {
   getFeaturedProducts,
   getHomeHighlights,
