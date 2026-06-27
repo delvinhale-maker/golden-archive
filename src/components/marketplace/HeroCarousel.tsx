@@ -12,25 +12,26 @@ type Slide = {
   ctaTo: string;
   secondaryLabel?: string;
   secondaryHref?: string;
-  card: { title: string; cat: string; price: number };
+  card: { title: string; cat: string; price: number; coverUrl?: string | null };
   bgClass?: string;
 };
 
-const SLIDES: Slide[] = [
-  {
-    kicker: "AURUMVAULT — GOLD STANDARD COMMERCE",
-    title: (
-      <>
-        Discover <span className="gold-gradient">premium</span> digital resources.
-      </>
-    ),
-    body: "Curated eBooks, courses, templates, and tools from verified purpose-driven creators.",
-    ctaLabel: "Shop Now →",
-    ctaTo: "/products",
-    secondaryLabel: "Browse Categories →",
-    secondaryHref: "#categories",
-    card: { title: "The Stewardship Codex", cat: "eBook", price: 49 },
-  },
+const DEFAULT_HERO_SLIDE: Slide = {
+  kicker: "FEATURED — ILLUSTRIOUS CAPITAL™",
+  title: (
+    <>
+      Renew your mind. <span className="gold-gradient">Kingdom Mind</span> is here.
+    </>
+  ),
+  body: "A purpose-driven eBook from Illustrious Capital™ — built to elevate operators, leaders, and creators walking in their calling.",
+  ctaLabel: "Shop Now →",
+  ctaTo: "/products",
+  secondaryLabel: "Browse Categories →",
+  secondaryHref: "#categories",
+  card: { title: "Kingdom Mind", cat: "eBook", price: 14.99 },
+};
+
+const SECONDARY_SLIDES: Slide[] = [
   {
     kicker: "NEW THIS WEEK",
     title: (
@@ -61,8 +62,27 @@ const SLIDES: Slide[] = [
   },
 ];
 
-export function HeroCarousel() {
-  const [i, setI] = useState(0);
+export type HeroProduct = {
+  id: string;
+  title: string;
+  category: string;
+  price: number;
+  coverUrl?: string | null;
+};
+
+export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null }) {
+  const heroSlide: Slide = heroProduct
+    ? {
+        ...DEFAULT_HERO_SLIDE,
+        card: {
+          title: heroProduct.title,
+          cat: heroProduct.category,
+          price: heroProduct.price,
+          coverUrl: heroProduct.coverUrl ?? null,
+        },
+      }
+    : DEFAULT_HERO_SLIDE;
+  const SLIDES: Slide[] = [heroSlide, ...SECONDARY_SLIDES];
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
