@@ -1340,7 +1340,7 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
 
 /* ---------- Success ---------- */
 
-function SuccessScreen({ productId, title, accent }: { productId: string; title: string; accent: PublisherAccent }) {
+function SuccessScreen({ productId, title, accent, cover }: { productId: string; title: string; accent: PublisherAccent; cover: string | null }) {
   return (
     <div className="max-w-2xl mx-auto mt-12 text-center">
       <div
@@ -1349,7 +1349,14 @@ function SuccessScreen({ productId, title, accent }: { productId: string; title:
       >
         <CheckCircle2 size={42} />
       </div>
+      {cover && (
+        <img
+          src={cover} alt={`Cover for ${title}`}
+          className="mx-auto mt-6 w-32 aspect-[1/1.6] object-cover rounded-md shadow-lg border border-ink/10"
+        />
+      )}
       <h1 className="mt-6 font-display text-3xl md:text-4xl text-navy">Your title is live on AurumVault!</h1>
+
       <p className="mt-2 text-mute">"{title}" was successfully published and is now available in the storefront.</p>
       <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
         <Link
