@@ -88,10 +88,16 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         >
           {product.title}
         </Link>
-        <div className="mt-1.5 flex items-center gap-1 text-[12px] text-mute">
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[12px] text-mute">
           <span>{product.creator.name}</span>
           {product.creator.verified && (
-            <BadgeCheck size={13} className="text-emerald" />
+            <span
+              title="Verified creator"
+              aria-label="Verified creator"
+              className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold"
+            >
+              <BadgeCheck size={11} className="text-gold" /> Verified
+            </span>
           )}
         </div>
         {product.reviewCount > 0 ? (
