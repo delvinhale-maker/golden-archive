@@ -52,6 +52,64 @@ type CachedMode = { mode: TaxMode; at: number };
 const TAX_MODE_TTL_MS = 5 * 60_000;
 const taxModeCache = new Map<StripeEnv, CachedMode>();
 
+/**
+ * Pull Stripe's request/response identifiers off any error-shaped value.
+ * `requestId` (`req_...`) is what Stripe support needs to look up a call;
+ * `statusCode` + `code`/`type` narrow the failure class. Returns only
+ * non-PII identifiers safe to log.
+ */
+export function extractStripeIds(error: unknown): {
+  requestId?: string;
+  statusCode?: number;
+  code?: string;
+  type?: string;
+  message?: string;
+} {
+  if (!error || typeof error !== "object") return {};
+  const e = error as {
+    requestId?: string;
+    statusCode?: number;
+    code?: string;
+    type?: string;
+    message?: string;
+    raw?: { requestId?: string; code?: string; type?: string; message?: string };
+    headers?: Record<string, string>;
+  };
+  return {
+    requestId: e.requestId ?? e.raw?.requestId ?? e.headers?.["request-id"],
+    statusCode: e.statusCode,
+    code: e.code ?? e.raw?.code,
+    type: e.type ?? e.raw?.type,
+    message: e.raw?.message ?? e.message,
+  };
+}
+
+/**
+ * Compact, PII-safe summary of a Checkout Session params object: top-level
+ * keys, line-item count + currencies, mode/ui_mode, and which tax fields are
+ * present. Use in error logs so we can trace which builder produced a
+ * malformed payload without dumping customer data.
+ */
+export function summarizeSessionShape(
+  params: Record<string, any> | undefined,
+): Record<string, unknown> {
+  if (!params || typeof params !== "object") return { present: false };
+  const li = Array.isArray(params.line_items) ? params.line_items : [];
+  const currencies = Array.from(
+    new Set(li.map((i: any) => i?.price_data?.currency).filter(Boolean)),
+  );
+  return {
+    topLevelKeys: Object.keys(params).sort(),
+    mode: params.mode,
+    ui_mode: params.ui_mode,
+    line_items_count: li.length,
+    line_items_currencies: currencies,
+    has_managed_payments: params.managed_payments !== undefined,
+    has_automatic_tax: params.automatic_tax !== undefined,
+    metadata_keys: params.metadata ? Object.keys(params.metadata).sort() : [],
+  };
+}
+
 export async function detectTaxMode(
   stripe: Stripe,
   env: StripeEnv,
@@ -67,8 +125,13 @@ export async function detectTaxMode(
     const cap = account.capabilities?.managed_payments;
     const controllerEnabled = account.controller?.managed_payments?.enabled;
     if (cap === "active" || controllerEnabled === true) mode = "managed";
-  } catch {
+  } catch (err) {
     // Fall back to automatic_tax if capability lookup fails — never both.
+    // Log the Stripe request id so we can correlate with Stripe dashboard logs.
+    console.error(
+      "[stripe] detectTaxMode: accounts.retrieve failed, defaulting to automatic_tax",
+      { env, stripe: extractStripeIds(err) },
+    );
     mode = "automatic";
   }
   taxModeCache.set(env, { mode, at: Date.now() });
