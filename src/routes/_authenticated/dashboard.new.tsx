@@ -653,6 +653,24 @@ function PublishFlow() {
       {coverLightbox && coverPreview && (
         <CoverLightbox src={coverPreview} fileName={cover?.name} onClose={() => setCoverLightbox(false)} />
       )}
+      {showPreview && (
+        <PrePublishPreview
+          accent={accent}
+          onClose={() => setShowPreview(false)}
+          onGoToStep={(s) => { setShowPreview(false); setStep(s); }}
+          onConfirm={() => { setShowPreview(false); uploadAndSave(true); }}
+          checklist={checklist}
+          checklistPass={checklistPass}
+          submitting={submitting}
+          cover={coverPreview}
+          title={title} subtitle={subtitle} author={author} description={description}
+          price={priceNum} royalty={royalty}
+          fileName={file?.name ?? (existingFilePath ? existingFilePath.split("/").pop() ?? "Existing manuscript" : null)}
+          fileSize={file?.size ?? null}
+          category={category} territory={territory}
+        />
+      )}
+
       <style>{`.inp{display:block;width:100%;min-height:44px;border-radius:12px;border:1px solid rgb(0 0 0 / 0.12);padding:10px 14px;font-size:14px;background:white;color:#0F1A33;transition:border-color .2s,box-shadow .2s}.inp:focus{outline:none;border-color:var(--page-accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--page-accent) 20%,transparent)}`}</style>
     </PublisherShell>
   );
