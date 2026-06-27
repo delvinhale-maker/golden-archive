@@ -51,7 +51,7 @@ export function EmailCaptureBanner() {
         </p>
         {done ? (
           <p className="mt-6 inline-block rounded-full bg-[#d4af37]/15 px-5 py-3 text-[#f4d56b]">
-            You're in! Check your inbox for a welcome gift.
+            Almost there — check your inbox and click the confirm link to activate your subscription.
           </p>
         ) : (
           <form
