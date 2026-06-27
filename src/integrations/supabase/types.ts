@@ -441,6 +441,8 @@ export type Database = {
           currency: string
           environment: string
           id: string
+          referral_code: string | null
+          referrer_user_id: string | null
           status: string
           stripe_payment_intent: string | null
           stripe_session_id: string | null
@@ -453,6 +455,8 @@ export type Database = {
           currency?: string
           environment?: string
           id?: string
+          referral_code?: string | null
+          referrer_user_id?: string | null
           status?: string
           stripe_payment_intent?: string | null
           stripe_session_id?: string | null
@@ -465,6 +469,8 @@ export type Database = {
           currency?: string
           environment?: string
           id?: string
+          referral_code?: string | null
+          referrer_user_id?: string | null
           status?: string
           stripe_payment_intent?: string | null
           stripe_session_id?: string | null
@@ -610,6 +616,42 @@ export type Database = {
           display_name?: string | null
           id?: string
           is_seller?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          first_order_at: string | null
+          first_order_id: string | null
+          id: string
+          referral_code: string
+          referred_user_id: string | null
+          referrer_user_id: string
+          source: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_order_at?: string | null
+          first_order_id?: string | null
+          id?: string
+          referral_code: string
+          referred_user_id?: string | null
+          referrer_user_id: string
+          source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_order_at?: string | null
+          first_order_id?: string | null
+          id?: string
+          referral_code?: string
+          referred_user_id?: string | null
+          referrer_user_id?: string
+          source?: string | null
           updated_at?: string
         }
         Relationships: []

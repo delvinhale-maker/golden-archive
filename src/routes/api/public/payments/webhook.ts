@@ -57,6 +57,18 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   const platformFee = Math.round((unitAmount * PLATFORM_FEE_PCT) / 100);
   const sellerAmount = unitAmount - platformFee;
 
+  // Resolve referral attribution if a code was carried on the session.
+  const referralCode: string | undefined = session.metadata?.referral_code;
+  let referrerUserId: string | null = null;
+  if (referralCode) {
+    try {
+      const { resolveReferralCode } = await import("@/lib/referrals.functions");
+      referrerUserId = await resolveReferralCode(referralCode, null);
+    } catch (e) {
+      console.error("Failed to resolve referral code", e);
+    }
+  }
+
   // Insert order
   const { data: order, error: orderErr } = await supabaseAdmin
     .from("orders")
@@ -68,12 +80,27 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       currency: session.currency ?? "usd",
       status: "paid",
       environment: env,
-    })
+      referral_code: referralCode ?? null,
+      referrer_user_id: referrerUserId,
+    } as any)
     .select("id")
     .single();
   if (orderErr || !order) {
     console.error("Failed to insert order", orderErr);
     return;
+  }
+
+  // Backfill first_order on referrals row so the referrer's dashboard credits it.
+  if (referrerUserId) {
+    try {
+      await (supabaseAdmin as any)
+        .from("referrals")
+        .update({ first_order_id: order.id, first_order_at: new Date().toISOString() })
+        .eq("referrer_user_id", referrerUserId)
+        .is("first_order_id", null);
+    } catch (e) {
+      console.error("Failed to backfill referral first_order", e);
+    }
   }
 
   // Insert order_item

@@ -48,9 +48,25 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: returnTo });
+      if (data.session) {
+        void tryAttachReferral();
+        navigate({ to: returnTo });
+      }
     });
   }, [navigate, returnTo]);
+
+  async function tryAttachReferral() {
+    try {
+      const { getStoredRef, getStoredRefSource, clearStoredRef } = await import("@/lib/referral");
+      const code = getStoredRef();
+      if (!code) return;
+      const { attachReferral } = await import("@/lib/referrals.functions");
+      const res = await attachReferral({ data: { code, source: getStoredRefSource() ?? undefined } });
+      if (res?.ok) clearStoredRef();
+    } catch {
+      /* non-fatal */
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -79,6 +95,7 @@ function AuthPage() {
           return;
         }
         toast.success("Account created — welcome to AurumVault");
+        await tryAttachReferral();
         navigate({ to: returnTo });
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -95,6 +112,7 @@ function AuthPage() {
           return;
         }
         toast.success("Welcome back");
+        await tryAttachReferral();
         navigate({ to: returnTo });
       }
     } catch (err) {

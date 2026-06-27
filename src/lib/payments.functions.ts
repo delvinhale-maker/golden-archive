@@ -16,10 +16,13 @@ type CheckoutResult = { clientSecret: string } | { error: string };
 
 export const createProductCheckout = createServerFn({ method: "POST" })
   .inputValidator(
-    (data: { productId: string; returnUrl: string; environment: StripeEnv }) => {
+    (data: { productId: string; returnUrl: string; environment: StripeEnv; referralCode?: string }) => {
       if (!/^[a-f0-9-]{36}$/.test(data.productId)) throw new Error("Invalid productId");
       if (data.environment !== "sandbox" && data.environment !== "live") {
         throw new Error("Invalid environment");
+      }
+      if (data.referralCode && !/^[A-Z0-9]{6,16}$/.test(data.referralCode.toUpperCase())) {
+        delete data.referralCode;
       }
       return data;
     },
@@ -72,6 +75,7 @@ export const createProductCheckout = createServerFn({ method: "POST" })
             seller_id: product.seller_id,
             environment: data.environment,
             tax_mode: taxMode,
+            ...(data.referralCode ? { referral_code: data.referralCode.toUpperCase() } : {}),
           },
         },
         taxMode,
@@ -112,6 +116,7 @@ export const createCartCheckout = createServerFn({ method: "POST" })
     (data: {
       items: { id: string; title: string; priceCents: number; qty: number }[];
       promoCode?: string;
+      referralCode?: string;
       returnUrl: string;
       environment: StripeEnv;
     }) => {
@@ -212,6 +217,7 @@ export const createCartCheckout = createServerFn({ method: "POST" })
             product_ids: dbIds.join(",").slice(0, 500),
             seller_ids: sellerIds.join(",").slice(0, 500),
             tax_mode: taxMode,
+            ...(data.referralCode ? { referral_code: data.referralCode.toUpperCase() } : {}),
           },
         },
         taxMode,

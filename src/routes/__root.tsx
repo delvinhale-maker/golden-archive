@@ -168,6 +168,11 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    // Capture ?ref=CODE into localStorage so signups & checkouts can attribute.
+    import("@/lib/referral").then((m) => m.captureRefFromUrl()).catch(() => {});
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}

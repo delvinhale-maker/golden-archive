@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { createProductCheckout, createCartCheckout } from "@/lib/payments.functions";
+import { getStoredRef } from "@/lib/referral";
 import type { CartItem } from "@/hooks/use-av-store";
 import { AlertCircle, Loader2 } from "lucide-react";
 
@@ -101,6 +102,7 @@ export function StripeEmbeddedProductCheckout({ productId, returnUrl }: ProductP
           returnUrl ??
           `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
         environment: getStripeEnvironment(),
+        referralCode: getStoredRef() ?? undefined,
       },
     });
     if ("error" in result) throw new Error(result.error);
@@ -129,6 +131,7 @@ export function StripeEmbeddedCartCheckout({ items, promoCode, returnUrl }: Cart
           qty: i.qty,
         })),
         promoCode: promoCode ?? undefined,
+        referralCode: getStoredRef() ?? undefined,
         returnUrl:
           returnUrl ??
           `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
