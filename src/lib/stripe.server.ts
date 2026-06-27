@@ -41,6 +41,59 @@ export function createStripeClient(env: StripeEnv): Stripe {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Managed Payments capability detection
+// ---------------------------------------------------------------------------
+// Cache the account's managed_payments capability per environment so we don't
+// hit `accounts.retrieve` on every checkout. TTL keeps it fresh if the user
+// toggles capabilities in the Stripe dashboard.
+type TaxMode = "managed" | "automatic";
+type CachedMode = { mode: TaxMode; at: number };
+const TAX_MODE_TTL_MS = 5 * 60_000;
+const taxModeCache = new Map<StripeEnv, CachedMode>();
+
+export async function detectTaxMode(
+  stripe: Stripe,
+  env: StripeEnv,
+): Promise<TaxMode> {
+  const cached = taxModeCache.get(env);
+  if (cached && Date.now() - cached.at < TAX_MODE_TTL_MS) return cached.mode;
+  let mode: TaxMode = "automatic";
+  try {
+    const account = (await stripe.accounts.retrieve()) as unknown as {
+      capabilities?: Record<string, string | undefined>;
+      controller?: { managed_payments?: { enabled?: boolean } };
+    };
+    const cap = account.capabilities?.managed_payments;
+    const controllerEnabled = account.controller?.managed_payments?.enabled;
+    if (cap === "active" || controllerEnabled === true) mode = "managed";
+  } catch {
+    // Fall back to automatic_tax if capability lookup fails — never both.
+    mode = "automatic";
+  }
+  taxModeCache.set(env, { mode, at: Date.now() });
+  return mode;
+}
+
+/**
+ * Mutates a Checkout Session params object to apply exactly one tax mode.
+ * Guarantees `managed_payments` and `automatic_tax` are never set together,
+ * which the Stripe API rejects.
+ */
+export function applyTaxMode<T extends Record<string, any>>(
+  params: T,
+  mode: TaxMode,
+): T {
+  if (mode === "managed") {
+    delete (params as any).automatic_tax;
+    (params as any).managed_payments = { enabled: true };
+  } else {
+    delete (params as any).managed_payments;
+    (params as any).automatic_tax = { enabled: true };
+  }
+  return params;
+}
+
 export function getStripeErrorMessage(error: unknown): string {
   if (error && typeof error === "object") {
     const e = error as { message?: string; raw?: { message?: string } };
