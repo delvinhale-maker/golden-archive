@@ -125,6 +125,7 @@ export function PublisherShell({
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 md:px-8 py-8 md:py-10">{children}</main>
+      <UploadFab />
     </div>
   );
 }
