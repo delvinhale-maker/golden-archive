@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -27,7 +27,11 @@ import { getProduct, type Product } from "@/lib/marketplace.functions";
 const productQ = (id: string) =>
   queryOptions({
     queryKey: ["mp", "product", id],
-    queryFn: () => getProduct({ data: { id } }),
+    queryFn: async () => {
+      const p = await getProduct({ data: { id } });
+      if (!p) throw notFound();
+      return p;
+    },
   });
 
 const SITE_URL = "https://www.aurumvault.store";
@@ -105,6 +109,34 @@ export const Route = createFileRoute("/products/$id")({
     };
   },
   component: ProductPage,
+  errorComponent: ({ reset }) => {
+    const router = useRouter();
+    return (
+      <MarketShell>
+        <div className="mx-auto max-w-2xl px-4 py-20 text-center">
+          <h1 className="font-display text-2xl font-bold text-ink">We couldn't load this product</h1>
+          <p className="mt-3 text-mute">Please try again in a moment.</p>
+          <button
+            onClick={() => { router.invalidate(); reset(); }}
+            className="mt-6 rounded-full bg-gold px-6 py-3 text-sm font-bold text-navy"
+          >
+            Try again
+          </button>
+        </div>
+      </MarketShell>
+    );
+  },
+  notFoundComponent: () => (
+    <MarketShell>
+      <div className="mx-auto max-w-2xl px-4 py-20 text-center">
+        <h1 className="font-display text-2xl font-bold text-ink">Product not found</h1>
+        <p className="mt-3 text-mute">It may have been unpublished or removed.</p>
+        <Link to="/products" className="mt-6 inline-block rounded-full bg-gold px-6 py-3 text-sm font-bold text-navy">
+          Browse products
+        </Link>
+      </div>
+    </MarketShell>
+  ),
 });
 
 function ProductPage() {
