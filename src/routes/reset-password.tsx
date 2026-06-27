@@ -41,10 +41,26 @@ function ResetPasswordPage() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  const rules = [
+    { id: "len", label: "At least 8 characters", ok: password.length >= 8 },
+    { id: "upper", label: "One uppercase letter (A–Z)", ok: /[A-Z]/.test(password) },
+    { id: "lower", label: "One lowercase letter (a–z)", ok: /[a-z]/.test(password) },
+    { id: "num", label: "One number (0–9)", ok: /[0-9]/.test(password) },
+    { id: "sym", label: "One symbol (!@#$…)", ok: /[^A-Za-z0-9]/.test(password) },
+  ];
+  const passedCount = rules.filter((r) => r.ok).length;
+  const allPassed = passedCount === rules.length;
+  const matches = confirm.length > 0 && password === confirm;
+  const canSubmit = allPassed && matches && !busy;
+  const strengthLabel =
+    passedCount <= 2 ? "Weak" : passedCount === 3 ? "Fair" : passedCount === 4 ? "Strong" : "Excellent";
+  const strengthColor =
+    passedCount <= 2 ? "bg-red-500" : passedCount === 3 ? "bg-amber-500" : passedCount === 4 ? "bg-emerald-500" : "bg-emerald-600";
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters.");
+    if (!allPassed) {
+      toast.error("Password doesn't meet all requirements yet.");
       return;
     }
     if (password !== confirm) {
@@ -95,24 +111,59 @@ function ResetPasswordPage() {
               </Link>
             </div>
           ) : (
-            <form onSubmit={submit} className="mt-6 space-y-3">
+            <form onSubmit={submit} className="mt-6 space-y-3" noValidate>
               <Field label="New password">
                 <input
-                  type="password" required minLength={6} autoFocus
+                  type="password" required minLength={8} autoFocus
                   value={password} onChange={(e) => setPassword(e.target.value)}
-                  className="auth-input" placeholder="At least 6 characters"
+                  className="auth-input" placeholder="At least 8 characters"
+                  aria-describedby="pw-rules"
                 />
               </Field>
+
+              {password.length > 0 && (
+                <div id="pw-rules" className="rounded-xl border border-black/10 bg-black/[0.02] p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-ink/60">
+                      Password strength
+                    </span>
+                    <span className="text-[11px] font-semibold text-ink/80">{strengthLabel}</span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-black/10 overflow-hidden">
+                    <div
+                      className={`h-full ${strengthColor} transition-all`}
+                      style={{ width: `${(passedCount / rules.length) * 100}%` }}
+                    />
+                  </div>
+                  <ul className="mt-3 space-y-1">
+                    {rules.map((r) => (
+                      <li
+                        key={r.id}
+                        className={`text-[12px] flex items-center gap-2 ${r.ok ? "text-emerald-700" : "text-ink/60"}`}
+                      >
+                        <span aria-hidden>{r.ok ? "✓" : "○"}</span>
+                        <span>{r.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <Field label="Confirm new password">
                 <input
-                  type="password" required minLength={6}
+                  type="password" required minLength={8}
                   value={confirm} onChange={(e) => setConfirm(e.target.value)}
                   className="auth-input" placeholder="Re-enter password"
+                  aria-invalid={confirm.length > 0 && !matches}
                 />
               </Field>
+              {confirm.length > 0 && !matches && (
+                <p role="alert" className="text-[12px] text-red-600">Passwords don't match.</p>
+              )}
+
               <button
-                type="submit" disabled={busy}
-                className="mt-2 w-full h-11 rounded-full bg-navy text-white font-semibold text-sm hover:bg-navy/90 disabled:opacity-60"
+                type="submit" disabled={!canSubmit}
+                className="mt-2 w-full h-11 rounded-full bg-navy text-white font-semibold text-sm hover:bg-navy/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {busy ? "Updating…" : "Update password"}
               </button>
