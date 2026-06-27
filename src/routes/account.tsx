@@ -122,10 +122,16 @@ function AccountPage() {
           <h2 className="font-display text-xl font-bold text-ink">My Downloads</h2>
           {ordersQ.isLoading ? (
             <Loader2 className="mt-4 animate-spin text-gold" />
+          ) : ordersFailed ? (
+            <p className="mt-3 text-sm text-red-700">
+              We couldn't load your downloads right now.{" "}
+              <button type="button" onClick={() => ordersQ.refetch()} className="underline">Try again</button>
+            </p>
           ) : downloads.length === 0 ? (
             <p className="mt-3 text-sm text-mute">
               No purchases yet. Items you buy will appear here for download.
             </p>
+
           ) : (
             <ul className="mt-3 divide-y divide-line rounded-2xl border border-line bg-white">
               {downloads.map((d) => (
