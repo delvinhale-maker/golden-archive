@@ -433,20 +433,24 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export const getProduct = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ id: z.string() }).parse(input))
   .handler(async ({ data }) => {
-    if (!UUID_RE.test(data.id)) return null as unknown as Product;
+    if (!UUID_RE.test(data.id)) return { kind: "notFound" } as ProductDetailResult;
     const supa = serverSupabase();
     const { data: row } = await supa
       .from("marketplace_products")
-      .select("id,title,category,price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score")
+      .select(
+        "id,title,category,price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published",
+      )
       .eq("id", data.id)
-      .eq("status", "approved")
-      .eq("published", true)
       .maybeSingle();
-    if (!row) return null as unknown as Product;
+    if (!row) return { kind: "notFound" } as ProductDetailResult;
+    if (row.status !== "approved" || !row.published) {
+      return { kind: "unpublished", title: row.title } as ProductDetailResult;
+    }
     const product = dbRowToProduct(row as DbProductRow);
     const agg = await fetchReviewAggregates(supa, [product.id]);
-    return applyAggregates([product], agg)[0];
+    return { kind: "published", product: applyAggregates([product], agg)[0] } as ProductDetailResult;
   });
+
 
 export const getFeaturedCreators = createServerFn({ method: "GET" }).handler(async () => {
   const fallback = mockCreators(6);
