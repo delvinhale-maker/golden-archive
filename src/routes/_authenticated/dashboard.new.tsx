@@ -11,6 +11,7 @@ import {
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
+import { isListPriceValid } from "@/lib/publish-validation";
 
 // (legacy localStorage draft key removed — drafts now live in the database)
 const DESC_MIN = 50;
@@ -485,7 +486,7 @@ function PublishFlow() {
   const hasCover = (!!cover && !coverError && !!coverDims) || (!cover && !!existingCoverUrl);
   const hasFile = (!!file && !fileError) || (!file && !!existingFilePath);
   const step2Valid = ownsRights && hasCover && hasFile;
-  const step3Valid = !!price && parseFloat(price) > 0;
+  const step3Valid = isListPriceValid(price);
 
   const priceNum = parseFloat(price || "0");
   const royaltyPct = 0.7;
