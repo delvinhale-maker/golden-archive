@@ -106,11 +106,19 @@ function PublishFlow() {
   const [publishedId, setPublishedId] = useState<string | null>(null);
   const [canSell, setCanSell] = useState<boolean | null>(null);
 
+  // Pre-publish preview modal
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Draft banner (offer to resume previous unsaved draft)
+  const [draftBanner, setDraftBanner] = useState<{ savedAt: number } | null>(null);
+  const draftHydrated = useRef(false);
+
   useEffect(() => {
     if (!user) return;
     supabase.from("seller_applications").select("status").eq("user_id", user.id).maybeSingle()
       .then(({ data }) => setCanSell(data?.status === "approved"));
   }, [user]);
+
 
   // Load product for editing
   useEffect(() => {
