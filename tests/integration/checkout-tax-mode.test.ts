@@ -44,13 +44,25 @@ function fakeStripe() {
 // Mock stripe.server.ts — substitute createStripeClient with the fake,
 // but keep the real applyTaxMode/detectTaxMode logic under test.
 mock.module("@/lib/stripe.server", () => {
-  // Re-implement detectTaxMode + applyTaxMode locally so we test the same
-  // contract used by payments.functions.ts.
   const taxModeCache = new Map<string, { mode: "managed" | "automatic"; at: number }>();
+  class TaxModeConflictError extends Error {
+    constructor(public mode: any, public offendingFields: any, public details: any) {
+      super(`Tax mode conflict: ${mode} vs ${offendingFields.join(",")}`);
+    }
+  }
+  const assertTaxModeInvariant = (params: any, mode: "managed" | "automatic") => {
+    const hm = params.managed_payments !== undefined;
+    const ha = params.automatic_tax !== undefined;
+    if (hm && ha) throw new TaxModeConflictError(mode, ["both"], {});
+    if (mode === "managed" && !hm) throw new TaxModeConflictError(mode, ["m-missing"], {});
+    if (mode === "automatic" && !ha) throw new TaxModeConflictError(mode, ["a-missing"], {});
+  };
   return {
     createStripeClient: () => fakeStripe(),
     getConnectionApiKey: () => "fake",
     getStripeErrorMessage: (e: any) => e?.message ?? "err",
+    TaxModeConflictError,
+    assertTaxModeInvariant,
     detectTaxMode: async (stripe: any, env: string) => {
       const cached = taxModeCache.get(env);
       if (cached && false) return cached.mode;
@@ -64,13 +76,13 @@ mock.module("@/lib/stripe.server", () => {
       return mode;
     },
     applyTaxMode: (params: any, mode: "managed" | "automatic") => {
-      if (mode === "managed") {
-        delete params.automatic_tax;
-        params.managed_payments = { enabled: true };
-      } else {
-        delete params.managed_payments;
-        params.automatic_tax = { enabled: true };
-      }
+      const hm = params.managed_payments !== undefined;
+      const ha = params.automatic_tax !== undefined;
+      if (hm && ha) throw new TaxModeConflictError(mode, ["both"], {});
+      if (mode === "managed" && ha) throw new TaxModeConflictError(mode, ["automatic_tax"], {});
+      if (mode === "automatic" && hm) throw new TaxModeConflictError(mode, ["managed_payments"], {});
+      if (mode === "managed") params.managed_payments = { enabled: true };
+      else params.automatic_tax = { enabled: true };
       return params;
     },
   };
