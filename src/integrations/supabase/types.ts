@@ -607,22 +607,34 @@ export type Database = {
       }
       subscribers: {
         Row: {
+          confirmation_sent_at: string | null
+          confirmation_token: string | null
+          confirmed_at: string | null
           created_at: string
           email: string
           id: string
           source: string
+          status: string
         }
         Insert: {
+          confirmation_sent_at?: string | null
+          confirmation_token?: string | null
+          confirmed_at?: string | null
           created_at?: string
           email: string
           id?: string
           source?: string
+          status?: string
         }
         Update: {
+          confirmation_sent_at?: string | null
+          confirmation_token?: string | null
+          confirmed_at?: string | null
           created_at?: string
           email?: string
           id?: string
           source?: string
+          status?: string
         }
         Relationships: []
       }
@@ -705,6 +717,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      confirm_subscriber: { Args: { _token: string }; Returns: Json }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
