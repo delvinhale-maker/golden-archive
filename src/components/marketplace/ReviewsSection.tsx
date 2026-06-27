@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { Star, ThumbsUp, BadgeCheck, PenSquare } from "lucide-react";
-import { listReviews, createReview, toggleHelpful, type ReviewSummary } from "@/lib/reviews.functions";
+import { Star, ThumbsUp, BadgeCheck, PenSquare, Trash2 } from "lucide-react";
+import { listReviews, createReview, toggleHelpful, deleteReview, type ReviewSummary } from "@/lib/reviews.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
@@ -86,7 +86,7 @@ export function ReviewsSection({ productId, fallbackRating, fallbackCount }: {
             </div>
           ) : (
             summary.reviews.map((r) => (
-              <ReviewCard key={r.id} review={r} queryKey={queryKey} canVote={!!user} />
+              <ReviewCard key={r.id} review={r} queryKey={queryKey} canVote={!!user} currentUserId={user?.id ?? null} />
             ))
           )}
         </div>
@@ -95,12 +95,14 @@ export function ReviewsSection({ productId, fallbackRating, fallbackCount }: {
   );
 }
 
-function ReviewCard({ review, queryKey, canVote }: {
+function ReviewCard({ review, queryKey, canVote, currentUserId }: {
   review: ReviewSummary["reviews"][number];
   queryKey: readonly unknown[];
   canVote: boolean;
+  currentUserId: string | null;
 }) {
   const vote = useServerFn(toggleHelpful);
+  const remove = useServerFn(deleteReview);
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
   const onVote = async () => {
@@ -111,6 +113,19 @@ function ReviewCard({ review, queryKey, canVote }: {
       qc.invalidateQueries({ queryKey });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not record vote");
+    } finally { setBusy(false); }
+  };
+  const isAuthor = currentUserId && review.user_id === currentUserId;
+  const onDelete = async () => {
+    if (!isAuthor) return;
+    if (!window.confirm("Delete your review? This cannot be undone.")) return;
+    setBusy(true);
+    try {
+      await remove({ data: { reviewId: review.id } });
+      toast.success("Review deleted");
+      qc.invalidateQueries({ queryKey });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not delete review");
     } finally { setBusy(false); }
   };
   const date = new Date(review.created_at).toLocaleDateString(undefined, {
@@ -143,13 +158,24 @@ function ReviewCard({ review, queryKey, canVote }: {
         <div className="mt-3 text-sm font-bold text-ink">{review.title}</div>
       )}
       <p className="mt-2 text-sm leading-relaxed text-ink">{review.body}</p>
-      <button
-        onClick={onVote}
-        disabled={busy}
-        className="mt-3 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-mute hover:border-gold hover:text-ink disabled:opacity-50"
-      >
-        <ThumbsUp size={12} /> Helpful ({review.helpful_count})
-      </button>
+      <div className="mt-3 flex items-center gap-2">
+        <button
+          onClick={onVote}
+          disabled={busy}
+          className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-mute hover:border-gold hover:text-ink disabled:opacity-50"
+        >
+          <ThumbsUp size={12} /> Helpful ({review.helpful_count})
+        </button>
+        {isAuthor && (
+          <button
+            onClick={onDelete}
+            disabled={busy}
+            className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-mute hover:border-red-500 hover:text-red-600 disabled:opacity-50"
+          >
+            <Trash2 size={12} /> Delete
+          </button>
+        )}
+      </div>
     </div>
   );
 }

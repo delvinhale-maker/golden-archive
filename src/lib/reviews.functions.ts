@@ -94,6 +94,20 @@ export const createReview = createServerFn({ method: "POST" })
     return { ok: true, verified };
   });
 
+export const deleteReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { reviewId: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("product_reviews")
+      .delete()
+      .eq("id", data.reviewId)
+      .eq("user_id", userId);
+    if (error) throw error;
+    return { ok: true };
+  });
+
 export const toggleHelpful = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { reviewId: string }) => input)
