@@ -1350,7 +1350,7 @@ function PrePublishPreview(props: {
           </p>
           <h2 id={titleId} className="font-display text-2xl text-navy mt-1">Review before publishing</h2>
           <p id={descId} className="text-sm text-mute mt-1">
-            This is exactly how shoppers will see your title. Press Escape to close, Tab to navigate, or Ctrl/Cmd+Enter to publish when ready.
+            This is exactly how shoppers will see your title. Shortcuts: <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">J</kbd>/<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">K</kbd> or <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Alt</kbd>+<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">↓</kbd>/<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">↑</kbd> next/previous fix, <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">F</kbd> first fix, <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">P</kbd> publish button, <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Ctrl</kbd>/<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">⌘</kbd>+<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Enter</kbd> to publish, <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Esc</kbd> to close.
           </p>
         </div>
 
