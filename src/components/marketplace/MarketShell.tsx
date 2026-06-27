@@ -23,6 +23,7 @@ export function MarketShell({ children }: { children: ReactNode }) {
       <MobileTabBar />
       <CartDrawer />
       <UploadFab />
+      <AbandonedCartTracker />
     </div>
   );
 }
