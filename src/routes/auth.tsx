@@ -122,16 +122,76 @@ function AuthPage() {
     if (redirect) {
       sessionStorage.setItem("av_oauth_redirect", redirect);
     }
-    const res = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (res.error) {
-      toast.error("Google sign-in failed");
-      setBusy(false);
-    } else if (!res.redirected) {
-      const saved = sessionStorage.getItem("av_oauth_redirect");
+    try {
+      const res = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (res.error) {
+        const raw =
+          (res.error as { message?: string } | null)?.message?.toLowerCase() ?? "";
+        if (
+          raw.includes("popup") ||
+          raw.includes("blocked") ||
+          raw.includes("window") ||
+          raw.includes("closed")
+        ) {
+          toast.error("Popup blocked", {
+            description:
+              "Allow popups for aurumvault.store in your browser settings, then tap Continue with Google again. On iOS Safari, also disable Cross-Site Tracking Prevention.",
+            duration: 9000,
+          });
+        } else if (raw.includes("network") || raw.includes("fetch")) {
+          toast.error("Network error", {
+            description: "Check your connection and try again.",
+          });
+        } else if (raw.includes("cancel") || raw.includes("denied") || raw.includes("access_denied")) {
+          toast.error("Sign-in cancelled", {
+            description: "You closed the Google window before finishing. Tap Continue with Google to retry.",
+          });
+        } else {
+          toast.error("Google sign-in failed", {
+            description:
+              (res.error as { message?: string } | null)?.message ||
+              "Please try again, or use email and password below.",
+            duration: 8000,
+          });
+        }
+        sessionStorage.removeItem("av_oauth_redirect");
+        setBusy(false);
+        return;
+      }
+      if (!res.redirected) {
+        // Confirm a session actually landed before navigating.
+        const { data: sess } = await supabase.auth.getSession();
+        if (!sess.session) {
+          toast.error("Google sign-in didn't complete", {
+            description: "We didn't receive a session back from Google. Please try again or sign in with email.",
+            duration: 8000,
+          });
+          sessionStorage.removeItem("av_oauth_redirect");
+          setBusy(false);
+          return;
+        }
+        const saved = sessionStorage.getItem("av_oauth_redirect");
+        sessionStorage.removeItem("av_oauth_redirect");
+        navigate({ to: saved || "/dashboard" });
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message.toLowerCase() : "";
+      if (msg.includes("popup") || msg.includes("blocked") || msg.includes("window")) {
+        toast.error("Popup blocked", {
+          description:
+            "Your browser blocked the Google popup. Allow popups for this site and try again.",
+          duration: 9000,
+        });
+      } else {
+        toast.error("Couldn't reach Google", {
+          description: err instanceof Error ? err.message : "Unexpected error. Please try again.",
+          duration: 8000,
+        });
+      }
       sessionStorage.removeItem("av_oauth_redirect");
-      navigate({ to: saved || "/dashboard" });
+      setBusy(false);
     }
   }
 
