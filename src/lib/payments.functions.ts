@@ -5,6 +5,8 @@ import {
   type StripeEnv,
   createStripeClient,
   getStripeErrorMessage,
+  detectTaxMode,
+  applyTaxMode,
 } from "@/lib/stripe.server";
 
 type CheckoutResult = { clientSecret: string } | { error: string };
