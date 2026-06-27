@@ -77,47 +77,55 @@ mock.module("@/lib/stripe.server", () => {
 });
 
 // Mock Supabase client used by payments.functions.ts for product lookup.
+const cartRows = [
+  {
+    id: "11111111-1111-1111-1111-111111111111",
+    title: "Cart Item A",
+    price_cents: 1999,
+    seller_id: "seller-1",
+    status: "approved",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222222",
+    title: "Cart Item B",
+    price_cents: 2999,
+    seller_id: "seller-2",
+    status: "approved",
+  },
+];
+const singleRow = {
+  id: "11111111-1111-1111-1111-111111111111",
+  title: "Single Product",
+  price_cents: 999,
+  seller_id: "seller-1",
+  status: "approved",
+  description: "desc",
+};
+
 mock.module("@supabase/supabase-js", () => ({
   createClient: () => ({
-    from: (_t: string) => ({
-      select: () => ({
-        eq: function () {
-          return this;
+    from: (_t: string) => {
+      const q: any = {
+        _data: null as any,
+        select() {
+          return q;
         },
-        in: function () {
-          return Promise.resolve({
-            data: [
-              {
-                id: "11111111-1111-1111-1111-111111111111",
-                title: "Cart Item A",
-                price_cents: 1999,
-                seller_id: "seller-1",
-                status: "approved",
-              },
-              {
-                id: "22222222-2222-2222-2222-222222222222",
-                title: "Cart Item B",
-                price_cents: 2999,
-                seller_id: "seller-2",
-                status: "approved",
-              },
-            ],
-          });
+        eq() {
+          return q;
         },
-        maybeSingle: () =>
-          Promise.resolve({
-            data: {
-              id: "11111111-1111-1111-1111-111111111111",
-              title: "Single Product",
-              price_cents: 999,
-              seller_id: "seller-1",
-              status: "approved",
-              description: "desc",
-            },
-            error: null,
-          }),
-      }),
-    }),
+        in() {
+          q._data = cartRows;
+          return q;
+        },
+        maybeSingle() {
+          return Promise.resolve({ data: singleRow, error: null });
+        },
+        then(resolve: any, reject: any) {
+          return Promise.resolve({ data: q._data, error: null }).then(resolve, reject);
+        },
+      };
+      return q;
+    },
   }),
 }));
 
