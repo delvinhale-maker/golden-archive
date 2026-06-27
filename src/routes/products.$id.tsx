@@ -27,25 +27,80 @@ const productQ = (id: string) =>
     queryFn: () => getProduct({ data: { id } }),
   });
 
+const SITE_URL = "https://www.aurumvault.store";
+
 export const Route = createFileRoute("/products/$id")({
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(productQ(params.id)),
-  head: ({ params }) => ({
-    meta: [
-      { title: `Product · AurumVault` },
-      {
-        name: "description",
-        content:
-          "A premium digital resource from a verified AurumVault creator.",
-      },
-      { property: "og:title", content: "Product · AurumVault" },
-      {
-        property: "og:description",
-        content: "A premium digital resource from a verified AurumVault creator.",
-      },
-    ],
-    links: [{ rel: "canonical", href: `/products/${params.id}` }],
-  }),
+  head: ({ params, loaderData }) => {
+    const p = loaderData as Product | null | undefined;
+    const url = `${SITE_URL}/products/${params.id}`;
+    const baseTitle = p?.title
+      ? `${p.title} | AurumVault — Gold Standard Digital Commerce`
+      : "Product | AurumVault — Gold Standard Digital Commerce";
+    const rawDesc = p?.description?.trim()
+      ? p.description.replace(/\s+/g, " ").trim()
+      : "A premium digital resource from a verified AurumVault creator.";
+    const desc = rawDesc.length > 160 ? `${rawDesc.slice(0, 157)}…` : rawDesc;
+    const image =
+      p?.image && /^https?:\/\//.test(p.image) ? p.image : undefined;
+
+    const meta: Array<Record<string, string>> = [
+      { title: baseTitle },
+      { name: "description", content: desc },
+      { name: "robots", content: "index, follow" },
+      { property: "og:type", content: "product" },
+      { property: "og:title", content: baseTitle },
+      { property: "og:description", content: desc },
+      { property: "og:url", content: url },
+      { name: "twitter:title", content: baseTitle },
+      { name: "twitter:description", content: desc },
+    ];
+    if (image) {
+      meta.push({ property: "og:image", content: image });
+      meta.push({ name: "twitter:image", content: image });
+    }
+
+    const scripts: Array<{ type: string; children: string }> = [];
+    if (p) {
+      scripts.push({
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: p.title,
+          description: rawDesc,
+          ...(image ? { image } : {}),
+          brand: { "@type": "Brand", name: "Illustrious Capital™" },
+          ...(p.creator?.name
+            ? { offers: undefined, manufacturer: { "@type": "Organization", name: p.creator.name } }
+            : {}),
+          offers: {
+            "@type": "Offer",
+            price: Number(p.price).toFixed(2),
+            priceCurrency: "USD",
+            availability: "https://schema.org/InStock",
+            url,
+          },
+          ...(p.rating && p.reviewCount
+            ? {
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: Number(p.rating).toFixed(1),
+                  reviewCount: p.reviewCount,
+                },
+              }
+            : {}),
+        }),
+      });
+    }
+
+    return {
+      meta,
+      links: [{ rel: "canonical", href: url }],
+      scripts,
+    };
+  },
   component: ProductPage,
 });
 
