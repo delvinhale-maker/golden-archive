@@ -347,9 +347,10 @@ export function PremiumProductCard({
         </div>
 
         {/* Price */}
-        <div className="mt-3 text-[18px] font-bold" style={{ color: GOLD }}>
+        <div className="mt-3 text-[18px] font-bold tabular-nums whitespace-nowrap" style={{ color: GOLD }}>
           ${price.toFixed(2)}
         </div>
+
 
         {/* CTA */}
         <button
