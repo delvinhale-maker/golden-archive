@@ -12,11 +12,16 @@ import {
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { useAuth } from "@/hooks/use-auth";
 import { getMyOrders } from "@/lib/account.functions";
+import { RouteErrorFallback } from "@/components/RouteErrorFallback";
 
 export const Route = createFileRoute("/account")({
   head: () => ({ meta: [{ title: "Your Account — AurumVault" }] }),
   component: AccountPage,
+  errorComponent: ({ error, reset }) => (
+    <RouteErrorFallback error={error} reset={reset} title="Your account isn't loading" />
+  ),
 });
+
 
 function AccountPage() {
   const { user, loading, signOut, isAdmin, isSeller } = useAuth();
