@@ -217,6 +217,7 @@ export const createCartCheckout = createServerFn({ method: "POST" })
             product_ids: dbIds.join(",").slice(0, 500),
             seller_ids: sellerIds.join(",").slice(0, 500),
             tax_mode: taxMode,
+            ...(data.referralCode ? { referral_code: data.referralCode.toUpperCase() } : {}),
           },
         },
         taxMode,
