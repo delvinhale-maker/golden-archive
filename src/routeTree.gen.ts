@@ -42,6 +42,7 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicSubscribersSubscribeRouteImport } from './routes/api/public/subscribers/subscribe'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicHooksAutoReleaseReviewsRouteImport } from './routes/api/public/hooks/auto-release-reviews'
 import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/public/hooks/audit-covers'
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
 import { Route as AuthenticatedAdminHealthCoversRouteImport } from './routes/_authenticated/admin.health.covers'
@@ -221,6 +222,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksAutoReleaseReviewsRoute =
+  ApiPublicHooksAutoReleaseReviewsRouteImport.update({
+    id: '/api/public/hooks/auto-release-reviews',
+    path: '/api/public/hooks/auto-release-reviews',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksAuditCoversRoute =
   ApiPublicHooksAuditCoversRouteImport.update({
     id: '/api/public/hooks/audit-covers',
@@ -277,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
+  '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -314,6 +322,7 @@ export interface FileRoutesByTo {
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
+  '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -354,6 +363,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
+  '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -394,6 +404,7 @@ export interface FileRouteTypes {
     | '/admin/health/covers'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
+    | '/api/public/hooks/auto-release-reviews'
     | '/api/public/payments/webhook'
     | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
@@ -431,6 +442,7 @@ export interface FileRouteTypes {
     | '/admin/health/covers'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
+    | '/api/public/hooks/auto-release-reviews'
     | '/api/public/payments/webhook'
     | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
@@ -470,6 +482,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/health/covers'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
+    | '/api/public/hooks/auto-release-reviews'
     | '/api/public/payments/webhook'
     | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
@@ -500,6 +513,7 @@ export interface RootRouteChildren {
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
   ApiPublicHooksAuditCoversRoute: typeof ApiPublicHooksAuditCoversRoute
+  ApiPublicHooksAutoReleaseReviewsRoute: typeof ApiPublicHooksAutoReleaseReviewsRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicSubscribersSubscribeRoute: typeof ApiPublicSubscribersSubscribeRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -740,6 +754,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/auto-release-reviews': {
+      id: '/api/public/hooks/auto-release-reviews'
+      path: '/api/public/hooks/auto-release-reviews'
+      fullPath: '/api/public/hooks/auto-release-reviews'
+      preLoaderRoute: typeof ApiPublicHooksAutoReleaseReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/audit-covers': {
       id: '/api/public/hooks/audit-covers'
       path: '/api/public/hooks/audit-covers'
@@ -857,6 +878,7 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
   ApiPublicHooksAuditCoversRoute: ApiPublicHooksAuditCoversRoute,
+  ApiPublicHooksAutoReleaseReviewsRoute: ApiPublicHooksAutoReleaseReviewsRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicSubscribersSubscribeRoute: ApiPublicSubscribersSubscribeRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,

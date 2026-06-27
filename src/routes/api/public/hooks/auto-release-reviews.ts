@@ -64,7 +64,7 @@ export const Route = createFileRoute("/api/public/hooks/auto-release-reviews")({
               user_id: p.seller_id,
               title: "Your product is live",
               body: `"${p.title}" was auto-released after the 24-hour review window.`,
-              kind: "product_auto_released",
+              type: "product_auto_released",
             })),
           );
         } catch {
