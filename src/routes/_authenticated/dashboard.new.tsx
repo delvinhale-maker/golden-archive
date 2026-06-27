@@ -1410,6 +1410,7 @@ function PrePublishPreview(props: {
                   {!c.ok && (
                     <button
                       ref={assignRef ? firstFixBtnRef : undefined}
+                      data-fix-btn
                       type="button"
                       onClick={() => props.onGoToStep(c.gotoStep)}
                       className="ml-auto text-xs text-red-700 underline hover:no-underline focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:outline-none rounded px-1"
