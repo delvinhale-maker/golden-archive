@@ -64,16 +64,42 @@ function AdminProductsPage() {
   ), [items, filter, q]);
 
   async function setStatus(p: Prod, status: Status) {
-    const patch: { status: Status; approved_at?: string; rejected_reason?: string } = { status };
-    if (status === "approved") patch.approved_at = new Date().toISOString();
+    const patch: {
+      status: Status;
+      approved_at?: string;
+      rejected_reason?: string;
+      published?: boolean;
+    } = { status };
+    if (status === "approved") {
+      patch.approved_at = new Date().toISOString();
+      patch.published = true;
+    }
     if (status === "rejected") {
       const reason = window.prompt("Reason for rejection:", "Does not meet our quality guidelines.");
       if (!reason) return;
       patch.rejected_reason = reason;
+      patch.published = false;
     }
     const { error } = await supabase.from("marketplace_products").update(patch).eq("id", p.id);
     if (error) return toast.error(error.message);
     toast.success(`"${p.title}" → ${status}`);
+    refresh();
+  }
+
+  async function releaseStaleNow() {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const stale = items.filter((p) => p.status === "pending" && p.created_at < cutoff);
+    if (stale.length === 0) {
+      toast.info("No pending products older than 24h.");
+      return;
+    }
+    if (!window.confirm(`Auto-release ${stale.length} pending product(s) older than 24h?`)) return;
+    const { error } = await supabase
+      .from("marketplace_products")
+      .update({ status: "approved", published: true, approved_at: new Date().toISOString() })
+      .in("id", stale.map((p) => p.id));
+    if (error) return toast.error(error.message);
+    toast.success(`Released ${stale.length} product(s).`);
     refresh();
   }
 
@@ -123,7 +149,18 @@ function AdminProductsPage() {
               <option value="all">All ({items.length})</option>
               {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
+            <button
+              onClick={releaseStaleNow}
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md bg-gold text-navy text-sm font-medium hover:bg-gold/90"
+              title="Approve & publish any pending product older than 24h"
+            >
+              <CheckCircle2 size={14} /> Release stale (24h)
+            </button>
           </div>
+        </div>
+
+        <div className="rounded-xl border border-gold/30 bg-gold/5 px-4 py-3 text-sm text-navy">
+          <strong className="font-semibold">Auto-release:</strong> pending products are automatically approved and published 24 hours after submission. Use <em>Reject</em> before then to block a listing, or click <em>Release stale</em> to run the audit now.
         </div>
 
         {visible.length === 0 ? (
