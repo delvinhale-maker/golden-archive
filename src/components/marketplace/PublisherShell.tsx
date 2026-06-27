@@ -55,6 +55,7 @@ export function PublisherShell({
         background: `linear-gradient(180deg, ${accent.tint} 0%, #fafaf7 280px)`,
       }}
     >
+      <PaymentTestModeBanner />
       <header className="bg-navy text-white shadow-sm">
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 flex items-center gap-6">
           <AVLogo />
