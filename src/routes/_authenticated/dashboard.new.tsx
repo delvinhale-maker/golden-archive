@@ -105,6 +105,10 @@ function PublishFlow() {
   const [submitting, setSubmitting] = useState(false);
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
   const [fileUploadError, setFileUploadError] = useState<string | null>(null);
+  // Track uploads that already succeeded in this session so a retry of the
+  // other asset doesn't re-upload (and potentially fail) a completed one.
+  const [uploadedCoverUrl, setUploadedCoverUrl] = useState<string | null>(null);
+  const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
   const [lastPublishAttempt, setLastPublishAttempt] = useState<boolean>(false);
   const [publishedId, setPublishedId] = useState<string | null>(null);
   const [canSell, setCanSell] = useState<boolean | null>(null);
@@ -283,6 +287,8 @@ function PublishFlow() {
 
   function handleCoverChange(f: File | null) {
     setCoverError(null);
+    setCoverUploadError(null);
+    setUploadedCoverUrl(null);
     if (!f) { setCover(null); return; }
     if (!["image/jpeg", "image/png"].includes(f.type)) return setCoverError("Cover must be JPG or PNG.");
     if (f.size > MAX_COVER_MB * 1024 * 1024) return setCoverError(`Cover must be under ${MAX_COVER_MB} MB.`);
@@ -291,6 +297,8 @@ function PublishFlow() {
 
   function handleFileChange(f: File | null) {
     setFileError(null);
+    setFileUploadError(null);
+    setUploadedFilePath(null);
     if (!f) { setFile(null); return; }
     if (f.size === 0) return setFileError("File is empty.");
     const ext = f.name.toLowerCase().split(".").pop() ?? "";
@@ -380,16 +388,20 @@ function PublishFlow() {
     if (publish && !isEditing && (!cover || !file)) return;
 
     setLastPublishAttempt(publish);
-    setCoverUploadError(null);
-    setFileUploadError(null);
+    // Only reset the per-asset error for assets we're actually about to
+    // attempt — preserves the other asset's error/success state.
+    const willUploadCover = !!cover && !uploadedCoverUrl;
+    const willUploadFile = !!file && !uploadedFilePath;
+    if (willUploadCover) setCoverUploadError(null);
+    if (willUploadFile) setFileUploadError(null);
     setSubmitting(true); setUploading(true); setUploadProgress(5);
     try {
       const ts = Date.now();
-      let coverUrl: string | null = existingCoverUrl;
-      let storedFilePath: string | null = existingFilePath;
+      let coverUrl: string | null = uploadedCoverUrl ?? existingCoverUrl;
+      let storedFilePath: string | null = uploadedFilePath ?? existingFilePath;
       let fileSize: number | undefined;
 
-      if (cover) {
+      if (willUploadCover && cover) {
         try {
           const coverPath = `${user.id}/${ts}-${cover.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
           const coverUp = await supabase.storage.from("product-covers").upload(coverPath, cover, { upsert: false });
@@ -397,6 +409,7 @@ function PublishFlow() {
           const { data: signed } = await supabase.storage.from("product-covers")
             .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
           coverUrl = signed?.signedUrl ?? null;
+          setUploadedCoverUrl(coverUrl);
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Cover upload failed. Check your connection and try again.";
           setCoverUploadError(msg);
@@ -405,7 +418,7 @@ function PublishFlow() {
       }
       setUploadProgress(40);
 
-      if (file) {
+      if (willUploadFile && file) {
         const newFilePath = `${user.id}/${ts}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
         const t = setInterval(() => setUploadProgress((p) => (p < 90 ? p + 3 : p)), 400);
         try {
@@ -413,6 +426,7 @@ function PublishFlow() {
           if (fileUp.error) throw fileUp.error;
           storedFilePath = newFilePath;
           fileSize = file.size;
+          setUploadedFilePath(newFilePath);
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Manuscript upload failed. Check your connection and try again.";
           setFileUploadError(msg);
@@ -583,7 +597,8 @@ function PublishFlow() {
               existingFilePath={existingFilePath}
               coverUploadError={coverUploadError}
               fileUploadError={fileUploadError}
-              onRetryUpload={() => uploadAndSave(lastPublishAttempt)}
+              onRetryCover={() => { setCoverUploadError(null); uploadAndSave(lastPublishAttempt); }}
+              onRetryFile={() => { setFileUploadError(null); uploadAndSave(lastPublishAttempt); }}
               retryDisabled={submitting}
             />
           )}
@@ -831,7 +846,8 @@ function StepContent(p: {
   existingFilePath: string | null;
   coverUploadError: string | null;
   fileUploadError: string | null;
-  onRetryUpload: () => void;
+  onRetryCover: () => void;
+  onRetryFile: () => void;
   retryDisabled: boolean;
 }) {
   return (
@@ -889,7 +905,7 @@ function StepContent(p: {
               <p className="text-xs mt-0.5 break-words">{p.fileUploadError}</p>
               <button
                 type="button"
-                onClick={p.onRetryUpload}
+                onClick={p.onRetryFile}
                 disabled={p.retryDisabled}
                 data-testid="manuscript-retry-upload"
                 className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5"
@@ -935,7 +951,7 @@ function StepContent(p: {
               <p className="text-xs mt-0.5 break-words">{p.coverUploadError}</p>
               <button
                 type="button"
-                onClick={p.onRetryUpload}
+                onClick={p.onRetryCover}
                 disabled={p.retryDisabled}
                 data-testid="cover-retry-upload"
                 className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5"
