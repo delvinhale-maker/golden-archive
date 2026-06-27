@@ -89,7 +89,9 @@ function ProductsPage() {
     placeholderData: keepPreviousData,
   });
 
-  const products = query.data?.items ?? [];
+  const raw = (query.data?.items ?? []) as Product[];
+  const products = applyClientFilters(raw, search);
+  const theme = getCategoryTheme(search.category);
 
   const updateSearch = (patch: Record<string, unknown>) => {
     navigate({
