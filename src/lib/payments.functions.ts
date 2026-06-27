@@ -5,6 +5,8 @@ import {
   type StripeEnv,
   createStripeClient,
   getStripeErrorMessage,
+  detectTaxMode,
+  applyTaxMode,
 } from "@/lib/stripe.server";
 
 type CheckoutResult = { clientSecret: string } | { error: string };
@@ -37,36 +39,42 @@ export const createProductCheckout = createServerFn({ method: "POST" })
       if (error || !product) return { error: "Product not available" };
 
       const stripe = createStripeClient(data.environment);
+      const taxMode = await detectTaxMode(stripe, data.environment);
 
-      const session = await stripe.checkout.sessions.create({
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-              product_data: {
-                name: product.title,
-                tax_code: "txcd_10000000",
-                ...(product.description && {
-                  description: product.description.slice(0, 500),
-                }),
+      const sessionParams = applyTaxMode(
+        {
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                product_data: {
+                  name: product.title,
+                  tax_code: "txcd_10000000",
+                  ...(product.description && {
+                    description: product.description.slice(0, 500),
+                  }),
+                },
+                unit_amount: product.price_cents,
+                tax_behavior: "exclusive",
               },
-              unit_amount: product.price_cents,
-              tax_behavior: "exclusive",
+              quantity: 1,
             },
-            quantity: 1,
+          ],
+          mode: "payment",
+          ui_mode: "embedded_page",
+          return_url: data.returnUrl,
+          payment_intent_data: { description: product.title },
+          metadata: {
+            product_id: product.id,
+            seller_id: product.seller_id,
+            environment: data.environment,
+            tax_mode: taxMode,
           },
-        ],
-        mode: "payment",
-        ui_mode: "embedded_page",
-        return_url: data.returnUrl,
-        payment_intent_data: { description: product.title },
-        metadata: {
-          product_id: product.id,
-          seller_id: product.seller_id,
-          environment: data.environment,
         },
-        managed_payments: { enabled: true },
-      } as any);
+        taxMode,
+      );
+
+      const session = await stripe.checkout.sessions.create(sessionParams as any);
 
       return { clientSecret: session.client_secret ?? "" };
     } catch (error) {
@@ -168,24 +176,29 @@ export const createCartCheckout = createServerFn({ method: "POST" })
         new Set(Object.values(dbMap).map((d) => d.seller_id).filter(Boolean)),
       );
 
-      const session = await stripe.checkout.sessions.create({
-        line_items,
-        mode: "payment",
-        ui_mode: "embedded_page",
-        return_url: data.returnUrl,
-        payment_intent_data: {
-          description: `AurumVault order · ${data.items.length} item${data.items.length > 1 ? "s" : ""}`,
+      const taxMode = await detectTaxMode(stripe, data.environment);
+      const sessionParams = applyTaxMode(
+        {
+          line_items,
+          mode: "payment",
+          ui_mode: "embedded_page",
+          return_url: data.returnUrl,
+          payment_intent_data: {
+            description: `AurumVault order · ${data.items.length} item${data.items.length > 1 ? "s" : ""}`,
+          },
+          metadata: {
+            cart: "true",
+            environment: data.environment,
+            item_count: String(data.items.length),
+            promo_code: data.promoCode ?? "",
+            product_ids: dbIds.join(",").slice(0, 500),
+            seller_ids: sellerIds.join(",").slice(0, 500),
+            tax_mode: taxMode,
+          },
         },
-        metadata: {
-          cart: "true",
-          environment: data.environment,
-          item_count: String(data.items.length),
-          promo_code: data.promoCode ?? "",
-          product_ids: dbIds.join(",").slice(0, 500),
-          seller_ids: sellerIds.join(",").slice(0, 500),
-        },
-        managed_payments: { enabled: true },
-      } as any);
+        taxMode,
+      );
+      const session = await stripe.checkout.sessions.create(sessionParams as any);
 
       return { clientSecret: session.client_secret ?? "" };
     } catch (error) {
