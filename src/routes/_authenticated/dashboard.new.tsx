@@ -1231,6 +1231,29 @@ function PrePublishPreview(props: {
       return Array.from(nodes).filter((el) => el.offsetParent !== null);
     };
 
+    const getFixButtons = (): HTMLButtonElement[] =>
+      dialogRef.current
+        ? Array.from(dialogRef.current.querySelectorAll<HTMLButtonElement>('[data-fix-btn]'))
+        : [];
+
+    const focusFixByOffset = (offset: 1 | -1) => {
+      const fixes = getFixButtons();
+      if (fixes.length === 0) return;
+      const active = document.activeElement as HTMLElement | null;
+      const idx = fixes.findIndex((b) => b === active);
+      const next = idx === -1
+        ? (offset === 1 ? 0 : fixes.length - 1)
+        : (idx + offset + fixes.length) % fixes.length;
+      fixes[next].focus();
+    };
+
+    const isTypingTarget = (t: EventTarget | null) => {
+      const el = t as HTMLElement | null;
+      if (!el) return false;
+      const tag = el.tagName;
+      return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+    };
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
@@ -1254,6 +1277,35 @@ function PrePublishPreview(props: {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && props.checklistPass && !props.submitting) {
         e.preventDefault();
         props.onConfirm();
+        return;
+      }
+
+      // Single-key shortcuts (skip when user is typing)
+      if (e.ctrlKey || e.metaKey || e.altKey || isTypingTarget(e.target)) {
+        // Alt+Arrow shortcuts still allowed below
+      }
+      if (!isTypingTarget(e.target)) {
+        if ((e.altKey && e.key === "ArrowDown") || (!e.altKey && !e.metaKey && !e.ctrlKey && (e.key === "j" || e.key === "J"))) {
+          e.preventDefault();
+          focusFixByOffset(1);
+          return;
+        }
+        if ((e.altKey && e.key === "ArrowUp") || (!e.altKey && !e.metaKey && !e.ctrlKey && (e.key === "k" || e.key === "K"))) {
+          e.preventDefault();
+          focusFixByOffset(-1);
+          return;
+        }
+        if (!e.altKey && (e.key === "f" || e.key === "F")) {
+          const fixes = getFixButtons();
+          if (fixes.length) { e.preventDefault(); fixes[0].focus(); return; }
+        }
+        if (!e.altKey && (e.key === "p" || e.key === "P")) {
+          if (props.checklistPass && !props.submitting && publishBtnRef.current) {
+            e.preventDefault();
+            publishBtnRef.current.focus();
+            return;
+          }
+        }
       }
     };
     window.addEventListener("keydown", onKey);
