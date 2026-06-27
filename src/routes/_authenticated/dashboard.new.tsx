@@ -846,7 +846,8 @@ function StepContent(p: {
   existingFilePath: string | null;
   coverUploadError: string | null;
   fileUploadError: string | null;
-  onRetryUpload: () => void;
+  onRetryCover: () => void;
+  onRetryFile: () => void;
   retryDisabled: boolean;
 }) {
   return (
