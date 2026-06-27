@@ -77,23 +77,39 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "theme-color", content: "#0F1E35" },
+      { name: "robots", content: "index, follow" },
+      { name: "author", content: "Illustrious Capital™" },
+      {
+        name: "keywords",
+        content:
+          "digital products, ebooks, Kingdom resources, faith-based books, purpose-driven, Illustrious Capital",
+      },
       { title: "AurumVault — Gold Standard Digital Commerce" },
       {
         name: "description",
         content:
           "Discover premium eBooks, courses, templates, and digital resources from verified purpose-driven creators. Powered by Illustrious Capital™.",
       },
-      { name: "author", content: "Illustrious Capital" },
+      // Google Search Console verification (placeholder)
+      // Replace content value with your Search Console verification code
+      { name: "google-site-verification", content: "REPLACE_WITH_GOOGLE_SEARCH_CONSOLE_CODE" },
+      { property: "og:site_name", content: "AurumVault" },
+      { property: "og:type", content: "website" },
       { property: "og:title", content: "AurumVault — Gold Standard Digital Commerce" },
       {
         property: "og:description",
         content:
           "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
       },
-      { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "AurumVault" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@AurumVault" },
+      { name: "twitter:title", content: "AurumVault — Gold Standard Digital Commerce" },
+      {
+        name: "twitter:description",
+        content:
+          "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -112,9 +128,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@type": "OnlineStore",
           name: "AurumVault",
           alternateName: "Aurum Vault",
+          url: "https://www.aurumvault.store",
           slogan: "Gold Standard Digital Commerce",
           parentOrganization: { "@type": "Organization", name: "Illustrious Capital" },
         }),
+      },
+      // Google Analytics 4 (placeholder)
+      // Replace G-XXXXXXXXXX with your GA4 Measurement ID
+      {
+        src: "https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX",
+        async: true,
+      },
+      {
+        children:
+          "window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-XXXXXXXXXX');",
       },
     ],
   }),
