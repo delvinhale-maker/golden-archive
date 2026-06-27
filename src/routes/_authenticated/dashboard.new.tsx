@@ -344,6 +344,7 @@ function PublishFlow() {
     setCoverError(null);
     setCoverUploadError(null);
     setUploadedCoverUrl(null);
+    setCoverProgress(0);
     if (!f) { setCover(null); return; }
     if (!["image/jpeg", "image/png"].includes(f.type)) return setCoverError("Cover must be JPG or PNG.");
     if (f.size > MAX_COVER_MB * 1024 * 1024) return setCoverError(`Cover must be under ${MAX_COVER_MB} MB.`);
@@ -354,6 +355,8 @@ function PublishFlow() {
     setFileError(null);
     setFileUploadError(null);
     setUploadedFilePath(null);
+    setUploadedFileMeta(null);
+    setFileProgress(0);
     if (!f) { setFile(null); return; }
     if (f.size === 0) return setFileError("File is empty.");
     const ext = f.name.toLowerCase().split(".").pop() ?? "";
@@ -361,7 +364,66 @@ function PublishFlow() {
     if (f.type && !FILE_MIMES.includes(f.type)) return setFileError(`File content (${f.type}) doesn't match a manuscript.`);
     if (f.size > MAX_FILE_MB * 1024 * 1024) return setFileError(`File exceeds ${MAX_FILE_MB} MB limit.`);
     setFile(f);
+    // Kick off the upload immediately so each zone operates independently.
+    void uploadManuscript(f);
   }
+
+  // Upload helpers — independent per-zone uploads triggered on file select.
+  async function uploadCoverNow(f: File) {
+    if (!user) return;
+    setCoverUploading(true); setCoverProgress(8); setCoverUploadError(null);
+    const tick = setInterval(() => setCoverProgress((p) => (p < 88 ? p + 6 : p)), 250);
+    try {
+      const ts = Date.now();
+      const coverPath = `${user.id}/${ts}-${f.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      const up = await supabase.storage.from("product-covers").upload(coverPath, f, { upsert: false });
+      if (up.error) throw up.error;
+      const { data: signed } = await supabase.storage.from("product-covers")
+        .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
+      const url = signed?.signedUrl ?? null;
+      setUploadedCoverUrl(url);
+      setCoverProgress(100);
+      await autosaveDraftToDB({ coverUrl: url });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Cover upload failed. Check your connection and try again.";
+      setCoverUploadError(msg);
+    } finally {
+      clearInterval(tick);
+      setCoverUploading(false);
+    }
+  }
+
+  async function uploadManuscript(f: File) {
+    if (!user) return;
+    setFileUploading(true); setFileProgress(8); setFileUploadError(null);
+    const tick = setInterval(() => setFileProgress((p) => (p < 88 ? p + 4 : p)), 300);
+    try {
+      const ts = Date.now();
+      const path = `${user.id}/${ts}-${f.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      const up = await supabase.storage.from("product-files").upload(path, f, { upsert: false });
+      if (up.error) throw up.error;
+      setUploadedFilePath(path);
+      setUploadedFileMeta({ name: f.name, size: f.size });
+      setFileProgress(100);
+      await autosaveDraftToDB({ filePath: path, fileSize: f.size });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Manuscript upload failed. Check your connection and try again.";
+      setFileUploadError(msg);
+    } finally {
+      clearInterval(tick);
+      setFileUploading(false);
+    }
+  }
+
+  // Trigger cover upload once the image has been validated (dims OK, no error)
+  useEffect(() => {
+    if (!cover) return;
+    if (coverError || coverChecking || !coverDims) return;
+    if (uploadedCoverUrl || coverUploading) return;
+    void uploadCoverNow(cover);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cover, coverError, coverChecking, coverDims]);
+
 
   function addKeyword() {
     const k = kwInput.trim();
