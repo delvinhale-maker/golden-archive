@@ -138,6 +138,7 @@ function AdminPage() {
 
   return (
     <div className="min-h-screen bg-paper">
+      <PaymentTestModeBanner />
       <header className="bg-navy text-white">
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 flex items-center gap-4">
           <Link to="/"><AVLogo /></Link>
