@@ -23,4 +23,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'order-delivery': orderDelivery,
   'cover-audit-alert': coverAuditAlert,
   'product-review-update': productReviewUpdate,
+  'subscriber-confirmation': subscriberConfirmation,
 }
