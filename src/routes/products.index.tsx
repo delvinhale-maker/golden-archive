@@ -106,12 +106,17 @@ function ProductsPage() {
 
   return (
     <MarketShell>
+      <CategoryHero
+        category={search.category}
+        query={search.q}
+        resultCount={products.length}
+      />
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="font-display text-3xl font-bold text-ink md:text-4xl">
-              {search.category ?? "All products"}
-            </h1>
+          <div className="min-w-0">
+            <h2 className="font-display text-xl font-bold text-ink">
+              {search.category ? `${search.category} titles` : "All products"}
+            </h2>
             {search.q && (
               <p className="mt-1 text-sm text-mute">
                 Results for <span className="font-semibold text-ink">"{search.q}"</span>
@@ -128,7 +133,8 @@ function ProductsPage() {
             <select
               value={search.sort ?? "featured"}
               onChange={(e) => updateSearch({ sort: e.target.value })}
-              className="h-10 rounded-full border border-line bg-white px-4 text-sm font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-[var(--gold)]"
+              className="h-10 rounded-full border bg-white px-4 text-sm font-semibold text-ink focus:outline-none focus:ring-2"
+              style={{ borderColor: theme.border, boxShadow: `0 0 0 0 ${theme.accent}` }}
             >
               {SORTS.map((s) => (
                 <option key={s.v} value={s.v}>
@@ -138,6 +144,7 @@ function ProductsPage() {
             </select>
           </div>
         </div>
+
 
         <div className="grid gap-8 md:grid-cols-[260px_1fr]">
           {/* Sidebar */}
