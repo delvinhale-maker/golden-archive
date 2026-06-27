@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
 
-const DRAFT_KEY = "av:publish-draft:v2";
+// (legacy localStorage draft key removed — drafts now live in the database)
 const DESC_MIN = 50;
 const DESC_MAX = 1900;
 const DESC_WARN = 1800;
