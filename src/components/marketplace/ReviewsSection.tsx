@@ -86,7 +86,7 @@ export function ReviewsSection({ productId, fallbackRating, fallbackCount }: {
             </div>
           ) : (
             summary.reviews.map((r) => (
-              <ReviewCard key={r.id} review={r} queryKey={queryKey} canVote={!!user} />
+              <ReviewCard key={r.id} review={r} queryKey={queryKey} canVote={!!user} currentUserId={user?.id ?? null} />
             ))
           )}
         </div>
