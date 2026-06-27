@@ -1342,7 +1342,7 @@ function useDropZone(onFile: (f: File | null) => void) {
   return { isOver, handlers };
 }
 
-function CoverInput({ file, preview, onFile, acceptedHint, onZoom }: { file: File | null; preview: string | null; onFile: (f: File | null) => void; acceptedHint: string; onZoom?: () => void }) {
+function CoverInput({ file, preview, onFile, acceptedHint, onZoom, uploaded }: { file: File | null; preview: string | null; onFile: (f: File | null) => void; acceptedHint: string; onZoom?: () => void; uploaded?: boolean }) {
   const ref = useRef<HTMLInputElement>(null);
   const { isOver, handlers } = useDropZone(onFile);
   const openPicker = () => {
