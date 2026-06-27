@@ -88,25 +88,39 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         >
           {product.title}
         </Link>
-        <div className="mt-1.5 flex items-center gap-1 text-[12px] text-mute">
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[12px] text-mute">
           <span>{product.creator.name}</span>
           {product.creator.verified && (
-            <BadgeCheck size={13} className="text-emerald" />
+            <span
+              title="Verified creator"
+              aria-label="Verified creator"
+              className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold"
+            >
+              <BadgeCheck size={11} className="text-gold" /> Verified
+            </span>
           )}
         </div>
-        <div className="mt-2 flex items-center gap-1.5 text-[12px] text-mute">
-          <div className="flex">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                size={12}
-                fill={i < Math.round(product.rating) ? "var(--gold)" : "none"}
-                stroke="var(--gold)"
-              />
-            ))}
+        {product.reviewCount > 0 ? (
+          <div
+            className="mt-2 flex items-center gap-1.5 text-[12px] text-mute"
+            aria-label={`Rated ${product.rating.toFixed(1)} out of 5 from ${product.reviewCount} review${product.reviewCount === 1 ? "" : "s"}`}
+          >
+            <div className="flex">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  size={12}
+                  fill={i < Math.round(product.rating) ? "var(--gold)" : "none"}
+                  stroke="var(--gold)"
+                />
+              ))}
+            </div>
+            <span className="tabular-nums">{product.rating.toFixed(1)}</span>
+            <span>({product.reviewCount})</span>
           </div>
-          <span>({product.reviewCount})</span>
-        </div>
+        ) : (
+          <div className="mt-2 text-[11px] italic text-mute">No reviews yet</div>
+        )}
         <div className="mt-3 flex items-baseline gap-2">
           <span className="font-display text-[18px] font-bold text-gold">
             ${product.price}

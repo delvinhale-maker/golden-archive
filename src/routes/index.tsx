@@ -96,6 +96,7 @@ function Home() {
         <FeaturedHero />
       </HighlightsBoundary>
       <HeroStatsBar />
+      <TrustBar />
       <RefreshHighlightsBar />
       <Suspense fallback={null}>
         <DealsAndBestsellers />
@@ -107,7 +108,6 @@ function Home() {
       <HighlightsBoundary fallback={<CreatorSkeleton />} errorLabel="featured creator">
         <IllustriousCreator />
       </HighlightsBoundary>
-      <TrustBar />
     </MarketShell>
   );
 }

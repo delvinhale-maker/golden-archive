@@ -189,10 +189,16 @@ function ProductPage() {
                   className="h-8 w-8 rounded-full object-cover"
                 />
               )}
-              <div className="flex items-center gap-1 text-sm font-semibold text-ink">
+              <div className="flex items-center gap-2 text-sm font-semibold text-ink">
                 {product.creator.name}
                 {product.creator.verified && (
-                  <BadgeCheck size={14} className="text-emerald" />
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold"
+                    title="Verified creator"
+                    aria-label="Verified creator"
+                  >
+                    <BadgeCheck size={12} className="text-gold" /> Verified
+                  </span>
                 )}
               </div>
               <button className="text-sm font-semibold text-gold hover:underline">
@@ -200,20 +206,31 @@ function ProductPage() {
               </button>
             </div>
 
-            <div className="mt-3 flex items-center gap-2 text-sm text-mute">
-              <div className="flex">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    size={14}
-                    fill={i < Math.round(product.rating) ? "var(--gold)" : "none"}
-                    stroke="var(--gold)"
-                  />
-                ))}
+            {product.reviewCount > 0 ? (
+              <div
+                className="mt-3 flex items-center gap-2 text-sm text-mute"
+                aria-label={`Rated ${product.rating.toFixed(1)} out of 5 from ${product.reviewCount} review${product.reviewCount === 1 ? "" : "s"}`}
+              >
+                <div className="flex">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      size={14}
+                      fill={i < Math.round(product.rating) ? "var(--gold)" : "none"}
+                      stroke="var(--gold)"
+                    />
+                  ))}
+                </div>
+                <span className="font-semibold text-ink tabular-nums">{product.rating.toFixed(1)}</span>
+                <span>
+                  ({product.reviewCount} {product.reviewCount === 1 ? "review" : "reviews"})
+                </span>
               </div>
-              <span className="font-semibold text-ink">{product.rating.toFixed(1)}</span>
-              <span>({product.reviewCount} reviews)</span>
-            </div>
+            ) : (
+              <div className="mt-3 text-sm italic text-mute">
+                No reviews yet — be the first to review.
+              </div>
+            )}
 
             <div className="mt-5 flex items-baseline gap-3">
               <span className="font-display text-3xl font-bold text-gold">
@@ -307,10 +324,16 @@ function ProductPage() {
                 />
               )}
               <div className="flex-1">
-                <div className="flex items-center gap-1 text-sm font-bold text-ink">
+                <div className="flex items-center gap-2 text-sm font-bold text-ink">
                   {product.creator.name}
                   {product.creator.verified && (
-                    <BadgeCheck size={14} className="text-emerald" />
+                    <span
+                      className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold"
+                      title="Verified creator"
+                      aria-label="Verified creator"
+                    >
+                      <BadgeCheck size={12} className="text-gold" /> Verified
+                    </span>
                   )}
                 </div>
                 <p className="mt-1 text-xs text-mute">
