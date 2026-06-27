@@ -124,7 +124,7 @@ function PublishFlow() {
 
   // Draft banner (offer to resume previous unsaved draft from DB)
   const [draftBanner, setDraftBanner] = useState<{ savedAt: string; productId: string; title: string } | null>(null);
-  const draftHydrated = useRef(false);
+  
 
 
   useEffect(() => {
