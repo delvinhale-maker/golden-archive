@@ -8,6 +8,8 @@ import {
   detectTaxMode,
   applyTaxMode,
   assertTaxModeInvariant,
+  extractStripeIds,
+  summarizeSessionShape,
 } from "@/lib/stripe.server";
 
 type CheckoutResult = { clientSecret: string } | { error: string };
