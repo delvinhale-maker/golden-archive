@@ -287,6 +287,8 @@ function PublishFlow() {
 
   function handleCoverChange(f: File | null) {
     setCoverError(null);
+    setCoverUploadError(null);
+    setUploadedCoverUrl(null);
     if (!f) { setCover(null); return; }
     if (!["image/jpeg", "image/png"].includes(f.type)) return setCoverError("Cover must be JPG or PNG.");
     if (f.size > MAX_COVER_MB * 1024 * 1024) return setCoverError(`Cover must be under ${MAX_COVER_MB} MB.`);
@@ -295,6 +297,8 @@ function PublishFlow() {
 
   function handleFileChange(f: File | null) {
     setFileError(null);
+    setFileUploadError(null);
+    setUploadedFilePath(null);
     if (!f) { setFile(null); return; }
     if (f.size === 0) return setFileError("File is empty.");
     const ext = f.name.toLowerCase().split(".").pop() ?? "";
