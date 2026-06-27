@@ -564,8 +564,9 @@ function PublishFlow() {
         ownsRights, drm, premium, territory,
       });
 
-      let savedId: string | null = editingId ?? null;
-      if (isEditing && editingId) {
+      const existingRowId = editingId ?? draftProductId;
+      let savedId: string | null = existingRowId;
+      if (existingRowId) {
         const update = {
           title: title.trim(),
           subtitle: subtitle.trim() || null,
@@ -581,7 +582,7 @@ function PublishFlow() {
           admin_notes: notes,
           ...(fileSize !== undefined ? { file_size_bytes: fileSize } : {}),
         };
-        const { error } = await supabase.from("marketplace_products").update(update).eq("id", editingId);
+        const { error } = await supabase.from("marketplace_products").update(update).eq("id", existingRowId);
         if (error) throw error;
       } else {
         const { data: inserted, error } = await supabase.from("marketplace_products").insert({
@@ -602,6 +603,7 @@ function PublishFlow() {
         if (error) throw error;
         savedId = inserted?.id ?? null;
       }
+
       setUploadProgress(100);
 
       if (publish) {
