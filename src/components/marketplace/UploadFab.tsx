@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookPlus, Package, Plus, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export function UploadFab() {
   const { isAdmin, isSeller, loading } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -16,6 +17,8 @@ export function UploadFab() {
   }, [open]);
 
   if (loading || (!isAdmin && !isSeller)) return null;
+  // Hide on publish/edit flow to avoid covering form controls on mobile.
+  if (pathname.startsWith("/dashboard/new") || pathname.startsWith("/publish")) return null;
 
   return (
     <>

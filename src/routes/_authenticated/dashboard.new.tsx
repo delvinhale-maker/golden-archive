@@ -1101,9 +1101,23 @@ function useDropZone(onFile: (f: File | null) => void) {
 function CoverInput({ file, preview, onFile, acceptedHint, onZoom }: { file: File | null; preview: string | null; onFile: (f: File | null) => void; acceptedHint: string; onZoom?: () => void }) {
   const ref = useRef<HTMLInputElement>(null);
   const { isOver, handlers } = useDropZone(onFile);
+  const openPicker = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.value = "";
+    el.click();
+  };
   return (
     <div className="space-y-2">
-      <input ref={ref} type="file" accept="image/png,image/jpeg" className="hidden" onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
+      <input
+        ref={ref}
+        type="file"
+        accept=".jpg,.jpeg,.png,image/png,image/jpeg"
+        style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", overflow: "hidden" }}
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={(e) => onFile(e.target.files?.[0] ?? null)}
+      />
       {preview ? (
         <div className="relative rounded-xl border border-ink/10 bg-paper overflow-hidden" {...handlers}>
           <div className="relative mx-auto bg-white group" style={{ aspectRatio: "1 / 1.6", maxWidth: "300px" }}>
@@ -1118,16 +1132,17 @@ function CoverInput({ file, preview, onFile, acceptedHint, onZoom }: { file: Fil
           <div className="flex items-center justify-between px-3 py-2 bg-white border-t border-ink/10">
             <span className="text-xs text-mute truncate">{file?.name} {file ? `· ${(file.size / 1024 / 1024).toFixed(2)} MB` : ""}</span>
             <div className="flex gap-2">
-              <button type="button" onClick={() => ref.current?.click()} className="text-xs font-medium text-navy hover:underline">Replace</button>
+              <button type="button" onClick={openPicker} className="text-xs font-medium text-navy hover:underline">Replace</button>
               <button type="button" onClick={() => onFile(null)} className="text-xs text-red-600 hover:underline inline-flex items-center gap-1"><X size={12} />Remove</button>
             </div>
           </div>
         </div>
       ) : (
-        <button type="button" onClick={() => ref.current?.click()} {...handlers}
-          className={`w-full flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition ${isOver ? "border-gold bg-gold/10" : "border-ink/20 bg-paper hover:border-navy/30"}`}>
+        <button type="button" onClick={openPicker} {...handlers}
+          aria-label="Upload cover image"
+          className={`w-full min-h-[160px] flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition active:scale-[0.99] ${isOver ? "border-gold bg-gold/10" : "border-ink/20 bg-paper hover:border-navy/30"}`}>
           <ImageIcon size={28} className={isOver ? "text-gold" : "text-mute"} />
-          <span className="text-sm font-medium text-ink/80">{isOver ? "Drop image here" : "Drag & drop a cover, or tap to browse"}</span>
+          <span className="text-sm font-medium text-ink/80">{isOver ? "Drop image here" : "Tap to choose a cover"}</span>
           <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
         </button>
       )}
@@ -1138,11 +1153,26 @@ function CoverInput({ file, preview, onFile, acceptedHint, onZoom }: { file: Fil
 function FileInput({ file, onFile, accept, hint, acceptedHint }: { file: File | null; onFile: (f: File | null) => void; accept: string; hint: string; acceptedHint: string }) {
   const ref = useRef<HTMLInputElement>(null);
   const { isOver, handlers } = useDropZone(onFile);
+  const openPicker = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.value = "";
+    el.click();
+  };
   return (
     <div>
-      <input ref={ref} type="file" accept={accept} className="hidden" onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
-      <button type="button" onClick={() => ref.current?.click()} {...handlers}
-        className={`w-full flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-7 text-center transition ${isOver ? "border-gold bg-gold/10" : file ? "border-emerald-300 bg-emerald-50/40" : "border-ink/20 bg-paper hover:border-navy/30"}`}>
+      <input
+        ref={ref}
+        type="file"
+        accept={accept}
+        style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", overflow: "hidden" }}
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={(e) => onFile(e.target.files?.[0] ?? null)}
+      />
+      <button type="button" onClick={openPicker} {...handlers}
+        aria-label="Upload manuscript file"
+        className={`w-full min-h-[160px] flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-7 text-center transition active:scale-[0.99] ${isOver ? "border-gold bg-gold/10" : file ? "border-emerald-300 bg-emerald-50/40" : "border-ink/20 bg-paper hover:border-navy/30"}`}>
         {file ? <FileText size={26} className="text-emerald-700" /> : <Plus size={26} className={isOver ? "text-gold" : "text-mute"} />}
         <span className="text-sm font-medium text-ink/80">{file ? file.name : isOver ? "Drop file here" : hint}</span>
         <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
