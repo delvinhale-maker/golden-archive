@@ -3,6 +3,7 @@ import { type ReactNode } from "react";
 import { LogOut } from "lucide-react";
 import { AVLogo } from "./AVLogo";
 import { useAuth } from "@/hooks/use-auth";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 export type PublisherAccent = {
   /** Hex accent color for this page. */
@@ -54,6 +55,7 @@ export function PublisherShell({
         background: `linear-gradient(180deg, ${accent.tint} 0%, #fafaf7 280px)`,
       }}
     >
+      <PaymentTestModeBanner />
       <header className="bg-navy text-white shadow-sm">
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 flex items-center gap-6">
           <AVLogo />

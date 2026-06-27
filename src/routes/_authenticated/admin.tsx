@@ -9,6 +9,7 @@ import { sendTransactionalEmail } from "@/lib/email/send";
 import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
 import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -138,6 +139,7 @@ function AdminPage() {
 
   return (
     <div className="min-h-screen bg-paper">
+      <PaymentTestModeBanner />
       <header className="bg-navy text-white">
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 flex items-center gap-4">
           <Link to="/"><AVLogo /></Link>

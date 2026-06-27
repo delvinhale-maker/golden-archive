@@ -28,24 +28,23 @@ import { DealsStrip } from "@/components/marketplace/DealsStrip";
 import { BestsellersRow } from "@/components/marketplace/BestsellersRow";
 import {
   getFeaturedProducts,
-  getFeaturedCreators,
+  getHomeHighlights,
   type Product,
-  type Creator,
 } from "@/lib/marketplace.functions";
 
 const featuredQ = queryOptions({
   queryKey: ["mp", "featured"],
   queryFn: () => getFeaturedProducts(),
 });
-const creatorsQ = queryOptions({
-  queryKey: ["mp", "creators"],
-  queryFn: () => getFeaturedCreators(),
+const highlightsQ = queryOptions({
+  queryKey: ["mp", "home-highlights"],
+  queryFn: () => getHomeHighlights(),
 });
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(featuredQ);
-    context.queryClient.ensureQueryData(creatorsQ);
+    context.queryClient.ensureQueryData(highlightsQ);
   },
   head: () => ({
     meta: [
@@ -81,7 +80,9 @@ const CATS = [
 function Home() {
   return (
     <MarketShell>
-      <HeroCarousel />
+      <Suspense fallback={<HeroCarousel />}>
+        <FeaturedHero />
+      </Suspense>
       <HeroStatsBar />
       <Suspense fallback={null}>
         <DealsAndBestsellers />
@@ -91,10 +92,31 @@ function Home() {
         <FeaturedProducts />
       </Suspense>
       <Suspense fallback={null}>
-        <FeaturedCreators />
+        <IllustriousCreator />
       </Suspense>
       <TrustBar />
     </MarketShell>
+  );
+}
+
+function FeaturedHero() {
+  const { data } = useSuspenseQuery(highlightsQ);
+  const hp = data.heroProduct;
+  return (
+    <HeroCarousel
+      heroProduct={
+        hp
+          ? {
+              id: hp.id,
+              title: hp.title,
+              category: hp.category,
+              price: hp.price,
+              coverUrl:
+                hp.image && hp.image.startsWith("http") ? hp.image : null,
+            }
+          : null
+      }
+    />
   );
 }
 
@@ -352,63 +374,59 @@ function FeaturedSkeleton() {
   );
 }
 
-function FeaturedCreators() {
-  const { data } = useSuspenseQuery(creatorsQ);
+function IllustriousCreator() {
+  const { data } = useSuspenseQuery(highlightsQ);
+  const count = data.illustriousProductCount;
   return (
     <section className="bg-[#f9fafb] py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <SectionHeader title="Featured Creators" />
-        <div className="flex gap-5 overflow-x-auto pb-3 md:grid md:grid-cols-3 md:overflow-visible">
-          {(data as Creator[]).slice(0, 6).map((c, i) => (
-            <motion.div
-              key={c.id}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.06 }}
-              whileHover={{ y: -4 }}
-              className="av-card min-w-[280px] overflow-hidden"
-            >
+        <SectionHeader kicker="OUR FOUNDING PUBLISHER" title="Illustrious Capital™" />
+        <div className="mx-auto max-w-md">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4 }}
+            whileHover={{ y: -4 }}
+            className="av-card overflow-hidden"
+          >
+            <div
+              className="h-[120px]"
+              style={{
+                background:
+                  "linear-gradient(135deg, #0f1629 0%, #1a2744 50%, #c9a227 130%)",
+              }}
+            />
+            <div className="px-6 pb-6">
               <div
-                className="h-[120px]"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #0f1629 0%, #1a2744 50%, #c9a227 130%)",
-                }}
-              />
-              <div className="px-5 pb-5">
-                <img
-                  src={c.avatar}
-                  alt={c.name}
-                  className="-mt-7 h-14 w-14 rounded-full border-[3px] border-white object-cover"
-                />
-                <div className="mt-3 flex items-center gap-1.5">
-                  <div className="font-display text-base font-bold text-ink">
-                    {c.name}
-                  </div>
-                  {c.verified && (
-                    <BadgeCheck size={15} className="text-emerald" />
-                  )}
-                </div>
-                <div className="text-[13px] text-mute">{c.tagline}</div>
-                <div className="mt-4 flex items-center gap-6 text-[13px]">
-                  <div>
-                    <div className="font-bold text-ink">{c.productsCount}</div>
-                    <div className="text-[11px] text-mute">Products</div>
-                  </div>
-                  <div>
-                    <div className="font-bold text-ink">
-                      {c.salesCount.toLocaleString()}
-                    </div>
-                    <div className="text-[11px] text-mute">Sales</div>
-                  </div>
-                </div>
-                <button className="mt-4 inline-flex items-center text-sm font-bold text-gold hover:underline">
-                  View Store →
-                </button>
+                className="-mt-8 grid h-16 w-16 place-items-center rounded-full border-[3px] border-white bg-navy text-gold font-display text-xl font-bold"
+                aria-hidden
+              >
+                IC
               </div>
-            </motion.div>
-          ))}
+              <div className="mt-3 flex items-center gap-1.5">
+                <div className="font-display text-lg font-bold text-ink">
+                  Illustrious Capital™
+                </div>
+                <BadgeCheck size={16} className="text-emerald" />
+              </div>
+              <div className="text-[13px] text-mute">
+                Kingdom-centered digital resources
+              </div>
+              <div className="mt-4 flex items-center gap-6 text-[13px]">
+                <div>
+                  <div className="font-bold text-ink">{count}</div>
+                  <div className="text-[11px] text-mute">Products</div>
+                </div>
+              </div>
+              <Link
+                to="/products"
+                className="mt-4 inline-flex items-center text-sm font-bold text-gold hover:underline"
+              >
+                View Store →
+              </Link>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>
