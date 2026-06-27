@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookPlus, Package, Plus, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
