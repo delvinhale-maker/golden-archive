@@ -29,11 +29,12 @@ const productQ = (id: string) =>
   queryOptions({
     queryKey: ["mp", "product", id],
     queryFn: async () => {
-      const p = await getProduct({ data: { id } });
-      if (!p) throw notFound();
-      return p;
+      const res = await getProduct({ data: { id } });
+      if (res.kind === "notFound") throw notFound();
+      return res;
     },
   });
+
 
 const SITE_URL = "https://www.aurumvault.store";
 
