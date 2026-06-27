@@ -118,11 +118,18 @@ export function MarketHeader() {
                 <User size={20} />
               </Link>
             )}
-            <HeaderIcon
-              label="Wishlist"
-              icon={<Heart size={20} />}
-              badge={wishlist.count}
-            />
+            <Link
+              to="/wishlist"
+              aria-label="Wishlist"
+              className="relative flex h-11 w-11 items-center justify-center rounded-full text-white hover:bg-white/10"
+            >
+              <Heart size={20} />
+              {wishlist.count > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold text-navy">
+                  {wishlist.count}
+                </span>
+              )}
+            </Link>
             <HeaderIcon
               label="Cart"
               icon={<ShoppingBag size={20} />}
