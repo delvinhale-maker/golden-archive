@@ -6,6 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { AVLogo } from "@/components/marketplace/AVLogo";
 import { toast } from "sonner";
+import {
+  beginOAuthAttempt,
+  clearOAuthCorrelationId,
+  logOAuthEvent,
+  logOAuthFailure,
+  sessionMarker,
+} from "@/lib/oauth-telemetry";
 
 const authSearchSchema = z.object({
   redirect: z.string().optional(),
@@ -119,9 +126,15 @@ function AuthPage() {
 
   async function google() {
     setBusy(true);
+    const correlationId = beginOAuthAttempt("google");
     if (redirect) {
       sessionStorage.setItem("av_oauth_redirect", redirect);
     }
+    const finish = () => {
+      sessionStorage.removeItem("av_oauth_redirect");
+      clearOAuthCorrelationId();
+      setBusy(false);
+    };
     try {
       const res = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
@@ -135,63 +148,92 @@ function AuthPage() {
           raw.includes("window") ||
           raw.includes("closed")
         ) {
+          logOAuthFailure({ provider: "google", reason: "popupBlocked", rawMessage: raw });
           toast.error("Popup blocked", {
             description:
-              "Allow popups for aurumvault.store in your browser settings, then tap Continue with Google again. On iOS Safari, also disable Cross-Site Tracking Prevention.",
+              `Allow popups for aurumvault.store in your browser settings, then tap Continue with Google again. On iOS Safari, also disable Cross-Site Tracking Prevention. (ref ${correlationId.slice(0, 8)})`,
             duration: 9000,
           });
         } else if (raw.includes("network") || raw.includes("fetch")) {
+          logOAuthFailure({ provider: "google", reason: "network", rawMessage: raw });
           toast.error("Network error", {
-            description: "Check your connection and try again.",
+            description: `Check your connection and try again. (ref ${correlationId.slice(0, 8)})`,
           });
         } else if (raw.includes("cancel") || raw.includes("denied") || raw.includes("access_denied")) {
+          logOAuthFailure({ provider: "google", reason: "cancelled", rawMessage: raw });
           toast.error("Sign-in cancelled", {
             description: "You closed the Google window before finishing. Tap Continue with Google to retry.",
           });
         } else {
+          logOAuthFailure({ provider: "google", reason: "unknown", rawMessage: raw });
           toast.error("Google sign-in failed", {
             description:
-              (res.error as { message?: string } | null)?.message ||
-              "Please try again, or use email and password below.",
+              ((res.error as { message?: string } | null)?.message ||
+                "Please try again, or use email and password below.") +
+              ` (ref ${correlationId.slice(0, 8)})`,
             duration: 8000,
           });
         }
-        sessionStorage.removeItem("av_oauth_redirect");
-        setBusy(false);
+        finish();
         return;
       }
       if (!res.redirected) {
         // Confirm a session actually landed before navigating.
         const { data: sess } = await supabase.auth.getSession();
         if (!sess.session) {
+          logOAuthFailure({ provider: "google", reason: "noSession" });
           toast.error("Google sign-in didn't complete", {
-            description: "We didn't receive a session back from Google. Please try again or sign in with email.",
+            description:
+              `We didn't receive a session back from Google. Please try again or sign in with email. (ref ${correlationId.slice(0, 8)})`,
             duration: 8000,
           });
-          sessionStorage.removeItem("av_oauth_redirect");
-          setBusy(false);
+          finish();
           return;
         }
+        logOAuthEvent({
+          level: "info",
+          provider: "google",
+          correlationId,
+          event: "oauth.success",
+          meta: { session: sessionMarker(sess.session.access_token) },
+        });
         const saved = sessionStorage.getItem("av_oauth_redirect");
         sessionStorage.removeItem("av_oauth_redirect");
+        clearOAuthCorrelationId();
         navigate({ to: saved || "/dashboard" });
+      } else {
+        logOAuthEvent({
+          level: "info",
+          provider: "google",
+          correlationId,
+          event: "oauth.redirected",
+        });
+        // Browser is navigating to Google; keep correlation id in sessionStorage.
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message.toLowerCase() : "";
       if (msg.includes("popup") || msg.includes("blocked") || msg.includes("window")) {
+        logOAuthFailure({ provider: "google", reason: "popupBlocked", rawMessage: msg });
         toast.error("Popup blocked", {
           description:
-            "Your browser blocked the Google popup. Allow popups for this site and try again.",
+            `Your browser blocked the Google popup. Allow popups for this site and try again. (ref ${correlationId.slice(0, 8)})`,
           duration: 9000,
         });
+      } else if (msg.includes("network") || msg.includes("fetch")) {
+        logOAuthFailure({ provider: "google", reason: "network", rawMessage: msg });
+        toast.error("Network error", {
+          description: `Check your connection and try again. (ref ${correlationId.slice(0, 8)})`,
+        });
       } else {
+        logOAuthFailure({ provider: "google", reason: "unknown", rawMessage: msg });
         toast.error("Couldn't reach Google", {
-          description: err instanceof Error ? err.message : "Unexpected error. Please try again.",
+          description:
+            (err instanceof Error ? err.message : "Unexpected error. Please try again.") +
+            ` (ref ${correlationId.slice(0, 8)})`,
           duration: 8000,
         });
       }
-      sessionStorage.removeItem("av_oauth_redirect");
-      setBusy(false);
+      finish();
     }
   }
 
