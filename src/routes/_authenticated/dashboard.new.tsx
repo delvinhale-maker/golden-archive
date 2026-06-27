@@ -103,6 +103,9 @@ function PublishFlow() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
+  const [fileUploadError, setFileUploadError] = useState<string | null>(null);
+  const [lastPublishAttempt, setLastPublishAttempt] = useState<boolean>(false);
   const [publishedId, setPublishedId] = useState<string | null>(null);
   const [canSell, setCanSell] = useState<boolean | null>(null);
 
@@ -376,6 +379,9 @@ function PublishFlow() {
     // partial data — the bookshelf can resume the title later.
     if (publish && !isEditing && (!cover || !file)) return;
 
+    setLastPublishAttempt(publish);
+    setCoverUploadError(null);
+    setFileUploadError(null);
     setSubmitting(true); setUploading(true); setUploadProgress(5);
     try {
       const ts = Date.now();
@@ -384,23 +390,36 @@ function PublishFlow() {
       let fileSize: number | undefined;
 
       if (cover) {
-        const coverPath = `${user.id}/${ts}-${cover.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-        const coverUp = await supabase.storage.from("product-covers").upload(coverPath, cover, { upsert: false });
-        if (coverUp.error) throw coverUp.error;
-        const { data: signed } = await supabase.storage.from("product-covers")
-          .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
-        coverUrl = signed?.signedUrl ?? null;
+        try {
+          const coverPath = `${user.id}/${ts}-${cover.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+          const coverUp = await supabase.storage.from("product-covers").upload(coverPath, cover, { upsert: false });
+          if (coverUp.error) throw coverUp.error;
+          const { data: signed } = await supabase.storage.from("product-covers")
+            .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
+          coverUrl = signed?.signedUrl ?? null;
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Cover upload failed. Check your connection and try again.";
+          setCoverUploadError(msg);
+          throw e;
+        }
       }
       setUploadProgress(40);
 
       if (file) {
         const newFilePath = `${user.id}/${ts}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
         const t = setInterval(() => setUploadProgress((p) => (p < 90 ? p + 3 : p)), 400);
-        const fileUp = await supabase.storage.from("product-files").upload(newFilePath, file, { upsert: false });
-        clearInterval(t);
-        if (fileUp.error) throw fileUp.error;
-        storedFilePath = newFilePath;
-        fileSize = file.size;
+        try {
+          const fileUp = await supabase.storage.from("product-files").upload(newFilePath, file, { upsert: false });
+          if (fileUp.error) throw fileUp.error;
+          storedFilePath = newFilePath;
+          fileSize = file.size;
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Manuscript upload failed. Check your connection and try again.";
+          setFileUploadError(msg);
+          throw e;
+        } finally {
+          clearInterval(t);
+        }
       }
       setUploadProgress(95);
 
@@ -562,6 +581,10 @@ function PublishFlow() {
               onZoomCover={() => setCoverLightbox(true)}
               existingCoverUrl={existingCoverUrl}
               existingFilePath={existingFilePath}
+              coverUploadError={coverUploadError}
+              fileUploadError={fileUploadError}
+              onRetryUpload={() => uploadAndSave(lastPublishAttempt)}
+              retryDisabled={submitting}
             />
           )}
           {step === 3 && (
@@ -806,6 +829,10 @@ function StepContent(p: {
   onZoomCover: () => void;
   existingCoverUrl: string | null;
   existingFilePath: string | null;
+  coverUploadError: string | null;
+  fileUploadError: string | null;
+  onRetryUpload: () => void;
+  retryDisabled: boolean;
 }) {
   return (
     <div className="space-y-6">
@@ -854,6 +881,24 @@ function StepContent(p: {
             </div>
           </div>
         )}
+        {p.fileUploadError && (
+          <div role="alert" data-testid="manuscript-upload-error" className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold">Manuscript upload failed</p>
+              <p className="text-xs mt-0.5 break-words">{p.fileUploadError}</p>
+              <button
+                type="button"
+                onClick={p.onRetryUpload}
+                disabled={p.retryDisabled}
+                data-testid="manuscript-retry-upload"
+                className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5"
+              >
+                Retry upload
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div>
@@ -880,6 +925,24 @@ function StepContent(p: {
           <div className="mt-2 flex items-center gap-2 text-sm text-navy bg-paper border border-ink/10 rounded-lg p-3">
             <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
             <span className="truncate">Current cover shown above. Drop a new image to replace it.</span>
+          </div>
+        )}
+        {p.coverUploadError && (
+          <div role="alert" data-testid="cover-upload-error" className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold">Cover upload failed</p>
+              <p className="text-xs mt-0.5 break-words">{p.coverUploadError}</p>
+              <button
+                type="button"
+                onClick={p.onRetryUpload}
+                disabled={p.retryDisabled}
+                data-testid="cover-retry-upload"
+                className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5"
+              >
+                Retry upload
+              </button>
+            </div>
           </div>
         )}
       </div>
