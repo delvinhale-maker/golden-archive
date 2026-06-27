@@ -657,7 +657,7 @@ function PublishFlow() {
         <PrePublishPreview
           accent={accent}
           onClose={() => setShowPreview(false)}
-          onGoToStep={(s) => { setShowPreview(false); setStep(s); }}
+          onGoToStep={(s: StepNum) => { setShowPreview(false); setStep(s); }}
           onConfirm={() => { setShowPreview(false); uploadAndSave(true); }}
           checklist={checklist}
           checklistPass={checklistPass}
