@@ -39,11 +39,14 @@ const featuredQ = queryOptions({
 const highlightsQ = queryOptions({
   queryKey: ["mp", "home-highlights"],
   queryFn: () => getHomeHighlights(),
+  staleTime: 0,
+  refetchOnMount: "always",
 });
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(featuredQ);
+    context.queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] });
     context.queryClient.ensureQueryData(highlightsQ);
   },
   head: () => ({
