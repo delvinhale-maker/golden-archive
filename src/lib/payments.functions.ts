@@ -75,6 +75,7 @@ export const createProductCheckout = createServerFn({ method: "POST" })
             seller_id: product.seller_id,
             environment: data.environment,
             tax_mode: taxMode,
+            ...(data.referralCode ? { referral_code: data.referralCode.toUpperCase() } : {}),
           },
         },
         taxMode,
