@@ -4,6 +4,7 @@ import { MarketFooter } from "./MarketFooter";
 import { MobileTabBar } from "./MobileTabBar";
 import { CartDrawer } from "./CartDrawer";
 import { UploadFab } from "./UploadFab";
+import { AbandonedCartTracker } from "./AbandonedCartTracker";
 import { motion } from "framer-motion";
 
 export function MarketShell({ children }: { children: ReactNode }) {
