@@ -42,7 +42,8 @@ export const Route = createFileRoute("/products/$id")({
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(productQ(params.id)),
   head: ({ params, loaderData }) => {
-    const p = loaderData as Product | null | undefined;
+    const res = loaderData as ProductDetailResult | undefined;
+    const p = res?.kind === "published" ? res.product : undefined;
     const url = `${SITE_URL}/products/${params.id}`;
     const baseTitle = p?.title
       ? `${p.title} | AurumVault — Gold Standard Digital Commerce`
