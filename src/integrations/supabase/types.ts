@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      abandoned_carts: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          item_count: number
+          items: Json
+          recovered: boolean
+          recovered_at: string | null
+          reminder_sent_at: string | null
+          session_id: string
+          subtotal: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          item_count?: number
+          items?: Json
+          recovered?: boolean
+          recovered_at?: string | null
+          reminder_sent_at?: string | null
+          session_id: string
+          subtotal?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          item_count?: number
+          items?: Json
+          recovered?: boolean
+          recovered_at?: string | null
+          reminder_sent_at?: string | null
+          session_id?: string
+          subtotal?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       cover_audit_alert_config: {
         Row: {
           cooldown_minutes: number

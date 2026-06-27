@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, Minus, Plus, ShoppingBag, Tag, Trash2, X } from "lucide-react";
+import { ExternalLink, Loader2, Minus, Plus, ShoppingBag, Tag, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCart } from "@/hooks/use-av-store";
 import { ProductCover } from "./ProductCover";
@@ -78,13 +78,22 @@ export function CartDrawer() {
                 <ShoppingBag size={18} className="text-gold" />
                 {step === "cart" ? `Your Cart (${cart.count})` : "Secure Checkout"}
               </div>
-              <button
-                onClick={() => setOpen(false)}
-                aria-label="Close cart"
-                className="flex h-9 w-9 items-center justify-center rounded-full text-mute hover:bg-muted"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-1">
+                <Link
+                  to="/cart"
+                  onClick={() => setOpen(false)}
+                  className="hidden items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-caps text-mute hover:bg-muted hover:text-ink sm:inline-flex"
+                >
+                  Full cart <ExternalLink size={11} />
+                </Link>
+                <button
+                  onClick={() => setOpen(false)}
+                  aria-label="Close cart"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-mute hover:bg-muted"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Progress steps */}
