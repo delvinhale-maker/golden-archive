@@ -210,7 +210,7 @@ describe("checkout tax-mode invariants", () => {
           },
         ],
         returnUrl: "https://x/return",
-        environment: "sandbox",
+        environment: "live",
       },
     });
     const p = capturedParams[0];
@@ -234,7 +234,7 @@ describe("checkout tax-mode invariants", () => {
           },
         ],
         returnUrl: "https://x/return",
-        environment: "sandbox",
+        environment: "live",
       },
     });
     const p = capturedParams[0];
