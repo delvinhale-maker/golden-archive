@@ -27,7 +27,11 @@ import { getProduct, type Product } from "@/lib/marketplace.functions";
 const productQ = (id: string) =>
   queryOptions({
     queryKey: ["mp", "product", id],
-    queryFn: () => getProduct({ data: { id } }),
+    queryFn: async () => {
+      const p = await getProduct({ data: { id } });
+      if (!p) throw notFound();
+      return p;
+    },
   });
 
 const SITE_URL = "https://www.aurumvault.store";
