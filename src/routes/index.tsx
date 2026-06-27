@@ -13,6 +13,7 @@ import {
   Headphones,
   LayoutTemplate,
   Lock,
+  RefreshCw,
   ShieldCheck,
   Star,
   Swords,
