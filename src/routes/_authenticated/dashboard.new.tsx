@@ -1231,6 +1231,29 @@ function PrePublishPreview(props: {
       return Array.from(nodes).filter((el) => el.offsetParent !== null);
     };
 
+    const getFixButtons = (): HTMLButtonElement[] =>
+      dialogRef.current
+        ? Array.from(dialogRef.current.querySelectorAll<HTMLButtonElement>('[data-fix-btn]'))
+        : [];
+
+    const focusFixByOffset = (offset: 1 | -1) => {
+      const fixes = getFixButtons();
+      if (fixes.length === 0) return;
+      const active = document.activeElement as HTMLElement | null;
+      const idx = fixes.findIndex((b) => b === active);
+      const next = idx === -1
+        ? (offset === 1 ? 0 : fixes.length - 1)
+        : (idx + offset + fixes.length) % fixes.length;
+      fixes[next].focus();
+    };
+
+    const isTypingTarget = (t: EventTarget | null) => {
+      const el = t as HTMLElement | null;
+      if (!el) return false;
+      const tag = el.tagName;
+      return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+    };
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
@@ -1254,6 +1277,35 @@ function PrePublishPreview(props: {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && props.checklistPass && !props.submitting) {
         e.preventDefault();
         props.onConfirm();
+        return;
+      }
+
+      // Single-key shortcuts (skip when user is typing)
+      if (e.ctrlKey || e.metaKey || e.altKey || isTypingTarget(e.target)) {
+        // Alt+Arrow shortcuts still allowed below
+      }
+      if (!isTypingTarget(e.target)) {
+        if ((e.altKey && e.key === "ArrowDown") || (!e.altKey && !e.metaKey && !e.ctrlKey && (e.key === "j" || e.key === "J"))) {
+          e.preventDefault();
+          focusFixByOffset(1);
+          return;
+        }
+        if ((e.altKey && e.key === "ArrowUp") || (!e.altKey && !e.metaKey && !e.ctrlKey && (e.key === "k" || e.key === "K"))) {
+          e.preventDefault();
+          focusFixByOffset(-1);
+          return;
+        }
+        if (!e.altKey && (e.key === "f" || e.key === "F")) {
+          const fixes = getFixButtons();
+          if (fixes.length) { e.preventDefault(); fixes[0].focus(); return; }
+        }
+        if (!e.altKey && (e.key === "p" || e.key === "P")) {
+          if (props.checklistPass && !props.submitting && publishBtnRef.current) {
+            e.preventDefault();
+            publishBtnRef.current.focus();
+            return;
+          }
+        }
       }
     };
     window.addEventListener("keydown", onKey);
@@ -1298,7 +1350,7 @@ function PrePublishPreview(props: {
           </p>
           <h2 id={titleId} className="font-display text-2xl text-navy mt-1">Review before publishing</h2>
           <p id={descId} className="text-sm text-mute mt-1">
-            This is exactly how shoppers will see your title. Press Escape to close, Tab to navigate, or Ctrl/Cmd+Enter to publish when ready.
+            This is exactly how shoppers will see your title. Shortcuts: <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">J</kbd>/<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">K</kbd> or <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Alt</kbd>+<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">↓</kbd>/<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">↑</kbd> next/previous fix, <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">F</kbd> first fix, <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">P</kbd> publish button, <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Ctrl</kbd>/<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">⌘</kbd>+<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Enter</kbd> to publish, <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Esc</kbd> to close.
           </p>
         </div>
 
@@ -1358,6 +1410,7 @@ function PrePublishPreview(props: {
                   {!c.ok && (
                     <button
                       ref={assignRef ? firstFixBtnRef : undefined}
+                      data-fix-btn
                       type="button"
                       onClick={() => props.onGoToStep(c.gotoStep)}
                       className="ml-auto text-xs text-red-700 underline hover:no-underline focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:outline-none rounded px-1"
