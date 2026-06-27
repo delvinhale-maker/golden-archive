@@ -379,6 +379,9 @@ function PublishFlow() {
     // partial data — the bookshelf can resume the title later.
     if (publish && !isEditing && (!cover || !file)) return;
 
+    setLastPublishAttempt(publish);
+    setCoverUploadError(null);
+    setFileUploadError(null);
     setSubmitting(true); setUploading(true); setUploadProgress(5);
     try {
       const ts = Date.now();
@@ -387,23 +390,36 @@ function PublishFlow() {
       let fileSize: number | undefined;
 
       if (cover) {
-        const coverPath = `${user.id}/${ts}-${cover.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-        const coverUp = await supabase.storage.from("product-covers").upload(coverPath, cover, { upsert: false });
-        if (coverUp.error) throw coverUp.error;
-        const { data: signed } = await supabase.storage.from("product-covers")
-          .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
-        coverUrl = signed?.signedUrl ?? null;
+        try {
+          const coverPath = `${user.id}/${ts}-${cover.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+          const coverUp = await supabase.storage.from("product-covers").upload(coverPath, cover, { upsert: false });
+          if (coverUp.error) throw coverUp.error;
+          const { data: signed } = await supabase.storage.from("product-covers")
+            .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
+          coverUrl = signed?.signedUrl ?? null;
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Cover upload failed. Check your connection and try again.";
+          setCoverUploadError(msg);
+          throw e;
+        }
       }
       setUploadProgress(40);
 
       if (file) {
         const newFilePath = `${user.id}/${ts}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
         const t = setInterval(() => setUploadProgress((p) => (p < 90 ? p + 3 : p)), 400);
-        const fileUp = await supabase.storage.from("product-files").upload(newFilePath, file, { upsert: false });
-        clearInterval(t);
-        if (fileUp.error) throw fileUp.error;
-        storedFilePath = newFilePath;
-        fileSize = file.size;
+        try {
+          const fileUp = await supabase.storage.from("product-files").upload(newFilePath, file, { upsert: false });
+          if (fileUp.error) throw fileUp.error;
+          storedFilePath = newFilePath;
+          fileSize = file.size;
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Manuscript upload failed. Check your connection and try again.";
+          setFileUploadError(msg);
+          throw e;
+        } finally {
+          clearInterval(t);
+        }
       }
       setUploadProgress(95);
 
