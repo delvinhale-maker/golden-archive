@@ -6,6 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { AVLogo } from "@/components/marketplace/AVLogo";
 import { toast } from "sonner";
+import {
+  beginOAuthAttempt,
+  clearOAuthCorrelationId,
+  logOAuthEvent,
+  logOAuthFailure,
+  sessionMarker,
+} from "@/lib/oauth-telemetry";
 
 const authSearchSchema = z.object({
   redirect: z.string().optional(),
