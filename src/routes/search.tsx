@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { Search as SearchIcon, X, Clock, Flame } from "lucide-react";
+import { Search as SearchIcon, X, Clock, Flame, Crown } from "lucide-react";
 import { z } from "zod";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCard, ProductCardSkeleton } from "@/components/marketplace/ProductCard";
+import { AffiliateCard } from "@/components/marketplace/AffiliateCard";
 import { getProducts } from "@/lib/marketplace.functions";
+import { fetchAffiliateProducts } from "@/lib/affiliate";
 import { RouteErrorFallback } from "@/components/RouteErrorFallback";
 
 export const Route = createFileRoute("/search")({
@@ -77,7 +79,21 @@ function SearchPage() {
     enabled: q.trim().length > 0,
   });
 
+  const affiliateQuery = useQuery({
+    queryKey: ["affiliate", "search-pool"],
+    queryFn: () => fetchAffiliateProducts({ activeOnly: true, featuredFirst: true }),
+    staleTime: 5 * 60_000,
+    enabled: q.trim().length > 0,
+  });
+
   const results = query.data?.items ?? [];
+  const affiliateMatches = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return [];
+    return (affiliateQuery.data ?? []).filter((p) =>
+      `${p.title} ${p.description} ${p.category}`.toLowerCase().includes(needle),
+    );
+  }, [q, affiliateQuery.data]);
   const hasQuery = q.trim().length > 0;
 
   // Persist on successful results
