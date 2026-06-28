@@ -25,4 +25,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'cover-audit-alert': coverAuditAlert,
   'product-review-update': productReviewUpdate,
   'subscriber-confirmation': subscriberConfirmation,
+  'contact-message-received': contactMessageReceived,
 }
