@@ -1,0 +1,104 @@
+name: Android Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  EXPECTED_GRADLE_VERSION: 8.14.3
+  JAVA_VERSION: "21"
+  NODE_VERSION: "20"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          if [ -f bun.lockb ] || [ -f bun.lock ]; then
+            npm i -g bun && bun install --frozen-lockfile
+          elif [ -f pnpm-lock.yaml ]; then
+            npm i -g pnpm && pnpm install --frozen-lockfile
+          else
+            npm ci
+          fi
+
+      - name: Build web assets
+        run: |
+          if command -v bun >/dev/null 2>&1 && [ -f bun.lockb -o -f bun.lock ]; then
+            bun run build
+          else
+            npm run build
+          fi
+
+      - name: Sync Capacitor (if configured)
+        run: |
+          if [ -f capacitor.config.ts ] || [ -f capacitor.config.json ]; then
+            npx cap sync android
+          else
+            echo "No Capacitor config found, skipping cap sync"
+          fi
+
+      - name: Pin & verify Gradle wrapper version
+        working-directory: android
+        run: |
+          PROPS=gradle/wrapper/gradle-wrapper.properties
+          sed -i -E "s|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-${EXPECTED_GRADLE_VERSION}-all.zip|" "$PROPS"
+          grep -F "gradle-${EXPECTED_GRADLE_VERSION}-all.zip" "$PROPS" \
+            || (echo "Wrapper not pinned to ${EXPECTED_GRADLE_VERSION}"; cat "$PROPS"; exit 1)
+          chmod +x ./gradlew
+          ./gradlew --version | tee /tmp/gv.txt
+          grep -E "^Gradle ${EXPECTED_GRADLE_VERSION}$" /tmp/gv.txt \
+            || (echo "Resolved Gradle version mismatch"; exit 1)
+
+      - name: Decode signing keystore
+        id: keystore
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/release.keystore
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Build signed AAB
+        if: ${{ steps.keystore.outputs.signed == 'true' }}
+        working-directory: android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          ./gradlew bundleRelease \
+            -Pandroid.injected.signing.store.file=$(pwd)/app/release.keystore \
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
+
+      - name: Build debug APK (no signing secrets)
+        if: ${{ steps.keystore.outputs.signed != 'true' }}
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build
+          path: |
+            android/app/build/outputs/bundle/release/*.aab
+            android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: ignore
