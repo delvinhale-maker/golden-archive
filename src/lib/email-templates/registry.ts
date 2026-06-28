@@ -6,6 +6,7 @@ import { template as orderDelivery } from './order-delivery'
 import { template as coverAuditAlert } from './cover-audit-alert'
 import { template as productReviewUpdate } from './product-review-update'
 import { template as subscriberConfirmation } from './subscriber-confirmation'
+import { template as contactMessageReceived } from './contact-message-received'
 
 export interface TemplateEntry {
   component: ComponentType<any>
