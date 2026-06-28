@@ -39,6 +39,7 @@ import { Route as AuthenticatedReferRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
 import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authenticated/dashboard.new'
 import { Route as AuthenticatedDashboardHelpRouteImport } from './routes/_authenticated/dashboard.help'
 import { Route as AuthenticatedDashboardEarnRouteImport } from './routes/_authenticated/dashboard.earn'
@@ -205,6 +206,11 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicContactRoute = ApiPublicContactRouteImport.update({
+  id: '/api/public/contact',
+  path: '/api/public/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedDashboardNewRoute =
   AuthenticatedDashboardNewRouteImport.update({
     id: '/dashboard/new',
@@ -329,6 +335,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
+  '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
@@ -374,6 +381,7 @@ export interface FileRoutesByTo {
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
+  '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
@@ -422,6 +430,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/_authenticated/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
+  '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
@@ -470,6 +479,7 @@ export interface FileRouteTypes {
     | '/dashboard/earn'
     | '/dashboard/help'
     | '/dashboard/new'
+    | '/api/public/contact'
     | '/lovable/email/suppression'
     | '/dashboard/'
     | '/admin/health/covers'
@@ -515,6 +525,7 @@ export interface FileRouteTypes {
     | '/dashboard/earn'
     | '/dashboard/help'
     | '/dashboard/new'
+    | '/api/public/contact'
     | '/lovable/email/suppression'
     | '/dashboard'
     | '/admin/health/covers'
@@ -562,6 +573,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/earn'
     | '/_authenticated/dashboard/help'
     | '/_authenticated/dashboard/new'
+    | '/api/public/contact'
     | '/lovable/email/suppression'
     | '/_authenticated/dashboard/'
     | '/_authenticated/admin/health/covers'
@@ -601,6 +613,7 @@ export interface RootRouteChildren {
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
+  ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
   ApiPublicHooksAuditCoversRoute: typeof ApiPublicHooksAuditCoversRoute
@@ -824,6 +837,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/contact': {
+      id: '/api/public/contact'
+      path: '/api/public/contact'
+      fullPath: '/api/public/contact'
+      preLoaderRoute: typeof ApiPublicContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/dashboard/new': {
       id: '/_authenticated/dashboard/new'
       path: '/dashboard/new'
@@ -1023,6 +1043,7 @@ const rootRouteChildren: RootRouteChildren = {
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   SubscribeConfirmRoute: SubscribeConfirmRoute,
+  ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
   ApiPublicHooksAuditCoversRoute: ApiPublicHooksAuditCoversRoute,
