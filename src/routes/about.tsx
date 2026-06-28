@@ -1,0 +1,77 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { MarketShell } from "@/components/marketplace/MarketShell";
+
+export const Route = createFileRoute("/about")({
+  head: () => ({
+    meta: [
+      { title: "About AurumVault — The Gold Standard Digital Marketplace" },
+      {
+        name: "description",
+        content:
+          "AurumVault is the curated marketplace for purpose-driven digital products from verified creators, powered by Illustrious Capital™.",
+      },
+      { property: "og:title", content: "About AurumVault" },
+      {
+        property: "og:description",
+        content:
+          "Curated digital products from verified creators. Powered by Illustrious Capital™.",
+      },
+      { property: "og:type", content: "website" },
+      { rel: "canonical", href: "https://www.aurumvault.store/about" } as never,
+    ],
+  }),
+  component: AboutPage,
+});
+
+function AboutPage() {
+  return (
+    <MarketShell>
+      <main className="mx-auto max-w-3xl px-6 py-16 lg:px-8">
+        <p className="text-[11px] font-semibold uppercase tracking-caps text-gold">
+          About
+        </p>
+        <h1 className="mt-2 font-display text-4xl text-navy md:text-5xl">
+          The gold standard for digital products.
+        </h1>
+        <div className="mt-8 space-y-6 text-ink/80 leading-relaxed">
+          <p>
+            AurumVault is a curated marketplace built for creators who treat
+            their craft as a calling. Every title is reviewed for quality,
+            originality, and clarity before it reaches the storefront — so
+            readers and buyers can trust what they find here.
+          </p>
+          <p>
+            We're powered by{" "}
+            <span className="font-semibold text-navy">Illustrious Capital™</span>
+            , a family of brands committed to purpose-driven publishing and
+            sustainable creator economics. Sellers keep 91% of every sale; we
+            keep the remaining 9% to maintain the platform, fight fraud, and
+            invest in distribution.
+          </p>
+          <p>
+            Whether you're publishing your first ebook, launching a prompt
+            pack, or building a course library, AurumVault gives your work the
+            premium home it deserves.
+          </p>
+        </div>
+
+        <div className="mt-12 grid gap-4 md:grid-cols-3">
+          <Stat label="Creator royalty" value="91%" />
+          <Stat label="AI-reviewed titles" value="100%" />
+          <Stat label="Verified creators" value="Curated" />
+        </div>
+      </main>
+    </MarketShell>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-ink/10 bg-white p-5">
+      <div className="font-display text-3xl text-navy">{value}</div>
+      <div className="mt-1 text-xs uppercase tracking-caps text-mute">
+        {label}
+      </div>
+    </div>
+  );
+}
