@@ -41,14 +41,21 @@ export const Route = createFileRoute("/api/public/hooks/auto-release-reviews")({
         const ids = stale.map((p) => p.id);
         const nowIso = new Date().toISOString();
 
-        const { error: updErr } = await supabaseAdmin
+        // Idempotent update: only flip rows that are STILL pending.
+        // Concurrent runs / retries won't re-approve already-approved rows,
+        // and `approved_at` is preserved for prior approvals because the
+        // WHERE clause excludes them. `.select()` returns only rows actually
+        // updated by THIS call, so notifications fire exactly once per release.
+        const { data: released, error: updErr } = await supabaseAdmin
           .from("marketplace_products")
           .update({
             status: "approved",
             published: true,
             approved_at: nowIso,
           })
-          .in("id", ids);
+          .in("id", ids)
+          .eq("status", "pending")
+          .select("id,title,seller_id");
 
         if (updErr) {
           return new Response(JSON.stringify({ error: updErr.message }), {
@@ -57,10 +64,18 @@ export const Route = createFileRoute("/api/public/hooks/auto-release-reviews")({
           });
         }
 
-        // Best-effort notifications to sellers
+        const releasedRows = released ?? [];
+        const releasedIds = releasedRows.map((r) => r.id);
+
+        if (releasedRows.length === 0) {
+          console.log("[auto-release] no rows released (already processed by a concurrent run)");
+          return Response.json({ released: 0, ids: [] });
+        }
+
+        // Best-effort notifications to sellers — only for rows we actually released.
         try {
           await supabaseAdmin.from("notifications").insert(
-            stale.map((p) => ({
+            releasedRows.map((p) => ({
               user_id: p.seller_id,
               title: "Your product is live",
               body: `"${p.title}" was auto-released after the 24-hour review window.`,
@@ -71,9 +86,10 @@ export const Route = createFileRoute("/api/public/hooks/auto-release-reviews")({
           // notifications table may have different shape; ignore
         }
 
-        console.log(`[auto-release] released ${ids.length} products`, ids);
+        console.log(`[auto-release] released ${releasedIds.length} products`, releasedIds);
 
-        return Response.json({ released: ids.length, ids });
+        return Response.json({ released: releasedIds.length, ids: releasedIds });
+
       },
     },
   },
