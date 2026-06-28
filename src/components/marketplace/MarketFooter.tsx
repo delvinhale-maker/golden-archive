@@ -1,4 +1,21 @@
+import { Link } from "@tanstack/react-router";
 import { AVLogo } from "./AVLogo";
+
+type FooterLink = { label: string; to: string; search?: Record<string, string> };
+
+const SHOP_LINKS: FooterLink[] = [
+  { label: "Shop eBooks", to: "/products", search: { category: "eBooks" } },
+  { label: "Bestsellers", to: "/products", search: { sort: "bestsellers" } },
+  { label: "New Releases", to: "/products", search: { sort: "new" } },
+  { label: "Browse All", to: "/products" },
+];
+
+const COMPANY_LINKS: FooterLink[] = [
+  { label: "Sell on AurumVault", to: "/sell" },
+  { label: "About", to: "/about" },
+  { label: "Contact", to: "/contact" },
+  { label: "Support", to: "/dashboard/help" },
+];
 
 export function MarketFooter() {
   return (
@@ -12,22 +29,22 @@ export function MarketFooter() {
             Illustrious Capital™.
           </p>
         </div>
-        <FooterCol title="Marketplace" links={["Browse", "Bestsellers", "New Releases", "Creators"]} />
-        <FooterCol title="Company" links={["About", "Become a Creator", "Affiliate", "Support"]} />
+        <FooterCol title="Marketplace" links={SHOP_LINKS} />
+        <FooterCol title="Company" links={COMPANY_LINKS} />
       </div>
       <div className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-3 border-t border-white/10 px-6 pt-6 text-xs text-white/50 md:flex-row lg:px-8">
         <span>© {new Date().getFullYear()} Illustrious Capital™. All rights reserved.</span>
         <div className="flex gap-6">
-          <a href="#" className="hover:text-white">Terms</a>
-          <a href="#" className="hover:text-white">Privacy</a>
-          <a href="#" className="hover:text-white">Creator Agreement</a>
+          <a href="/terms" className="hover:text-white">Terms</a>
+          <a href="/privacy" className="hover:text-white">Privacy</a>
+          <a href="/creator-agreement" className="hover:text-white">Creator Agreement</a>
         </div>
       </div>
     </footer>
   );
 }
 
-function FooterCol({ title, links }: { title: string; links: string[] }) {
+function FooterCol({ title, links }: { title: string; links: FooterLink[] }) {
   return (
     <div>
       <div className="mb-4 text-[11px] font-semibold tracking-caps text-gold">
@@ -35,11 +52,19 @@ function FooterCol({ title, links }: { title: string; links: string[] }) {
       </div>
       <ul className="space-y-2 text-sm text-white/80">
         {links.map((l) => (
-          <li key={l}>
-            <a href="#" className="hover:text-white">{l}</a>
+          <li key={l.label}>
+            <a href={buildHref(l)} className="hover:text-white">
+              {l.label}
+            </a>
           </li>
         ))}
       </ul>
     </div>
   );
+}
+
+function buildHref(l: FooterLink): string {
+  if (!l.search) return l.to;
+  const qs = new URLSearchParams(l.search).toString();
+  return qs ? `${l.to}?${qs}` : l.to;
 }
