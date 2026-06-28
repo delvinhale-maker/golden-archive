@@ -44,6 +44,7 @@ import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authent
 import { Route as AuthenticatedDashboardHelpRouteImport } from './routes/_authenticated/dashboard.help'
 import { Route as AuthenticatedDashboardEarnRouteImport } from './routes/_authenticated/dashboard.earn'
 import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authenticated/admin.products'
+import { Route as AuthenticatedAdminMessagesRouteImport } from './routes/_authenticated/admin.messages'
 import { Route as AuthenticatedAdminAutoReleaseRouteImport } from './routes/_authenticated/admin.auto-release'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -235,6 +236,12 @@ const AuthenticatedAdminProductsRoute =
     path: '/products',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminMessagesRoute =
+  AuthenticatedAdminMessagesRouteImport.update({
+    id: '/messages',
+    path: '/messages',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminAutoReleaseRoute =
   AuthenticatedAdminAutoReleaseRouteImport.update({
     id: '/auto-release',
@@ -331,6 +338,7 @@ export interface FileRoutesByFullPath {
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products/': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
+  '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
@@ -377,6 +385,7 @@ export interface FileRoutesByTo {
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
+  '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
@@ -426,6 +435,7 @@ export interface FileRoutesById {
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
+  '/_authenticated/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
   '/_authenticated/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/_authenticated/dashboard/help': typeof AuthenticatedDashboardHelpRoute
@@ -475,6 +485,7 @@ export interface FileRouteTypes {
     | '/subscribe/confirm'
     | '/products/'
     | '/admin/auto-release'
+    | '/admin/messages'
     | '/admin/products'
     | '/dashboard/earn'
     | '/dashboard/help'
@@ -521,6 +532,7 @@ export interface FileRouteTypes {
     | '/subscribe/confirm'
     | '/products'
     | '/admin/auto-release'
+    | '/admin/messages'
     | '/admin/products'
     | '/dashboard/earn'
     | '/dashboard/help'
@@ -569,6 +581,7 @@ export interface FileRouteTypes {
     | '/subscribe/confirm'
     | '/products/'
     | '/_authenticated/admin/auto-release'
+    | '/_authenticated/admin/messages'
     | '/_authenticated/admin/products'
     | '/_authenticated/dashboard/earn'
     | '/_authenticated/dashboard/help'
@@ -872,6 +885,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminProductsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/messages': {
+      id: '/_authenticated/admin/messages'
+      path: '/messages'
+      fullPath: '/admin/messages'
+      preLoaderRoute: typeof AuthenticatedAdminMessagesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/auto-release': {
       id: '/_authenticated/admin/auto-release'
       path: '/auto-release'
@@ -969,12 +989,14 @@ const AuthenticatedAdminHealthCoversRouteWithChildren =
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAutoReleaseRoute: typeof AuthenticatedAdminAutoReleaseRoute
+  AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
   AuthenticatedAdminProductsRoute: typeof AuthenticatedAdminProductsRoute
   AuthenticatedAdminHealthCoversRoute: typeof AuthenticatedAdminHealthCoversRouteWithChildren
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAutoReleaseRoute: AuthenticatedAdminAutoReleaseRoute,
+  AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
   AuthenticatedAdminProductsRoute: AuthenticatedAdminProductsRoute,
   AuthenticatedAdminHealthCoversRoute:
     AuthenticatedAdminHealthCoversRouteWithChildren,
