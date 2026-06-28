@@ -214,7 +214,7 @@ function SearchPage() {
               </div>
             )}
 
-            {!query.isLoading && results.length === 0 && (
+            {!query.isLoading && results.length === 0 && affiliateMatches.length === 0 && (
               <div className="py-16 text-center">
                 <p className="font-display text-xl font-bold text-ink">
                   No results for "{q}"
@@ -243,6 +243,25 @@ function SearchPage() {
                   ))}
                 </div>
               </>
+            )}
+
+            {affiliateMatches.length > 0 && (
+              <section className="mt-10">
+                <div className="mb-3 flex items-center gap-2">
+                  <Crown size={14} className="text-gold" />
+                  <h2 className="text-[11px] font-bold uppercase tracking-caps text-gold">
+                    Kingdom Picks — Partner Resources
+                  </h2>
+                </div>
+                <p className="mb-4 text-xs text-mute">
+                  Curated from Amazon &amp; Walmart. AurumVault earns a commission on qualifying purchases.
+                </p>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5">
+                  {affiliateMatches.map((p) => (
+                    <AffiliateCard key={p.id} product={p} />
+                  ))}
+                </div>
+              </section>
             )}
           </div>
         )}
