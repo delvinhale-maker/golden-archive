@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { Search as SearchIcon, X, Clock, Flame } from "lucide-react";
+import { Search as SearchIcon, X, Clock, Flame, Crown } from "lucide-react";
 import { z } from "zod";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCard, ProductCardSkeleton } from "@/components/marketplace/ProductCard";
+import { AffiliateCard } from "@/components/marketplace/AffiliateCard";
 import { getProducts } from "@/lib/marketplace.functions";
+import { fetchAffiliateProducts } from "@/lib/affiliate";
 import { RouteErrorFallback } from "@/components/RouteErrorFallback";
 
 export const Route = createFileRoute("/search")({
@@ -77,7 +79,21 @@ function SearchPage() {
     enabled: q.trim().length > 0,
   });
 
+  const affiliateQuery = useQuery({
+    queryKey: ["affiliate", "search-pool"],
+    queryFn: () => fetchAffiliateProducts({ activeOnly: true, featuredFirst: true }),
+    staleTime: 5 * 60_000,
+    enabled: q.trim().length > 0,
+  });
+
   const results = query.data?.items ?? [];
+  const affiliateMatches = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return [];
+    return (affiliateQuery.data ?? []).filter((p) =>
+      `${p.title} ${p.description} ${p.category}`.toLowerCase().includes(needle),
+    );
+  }, [q, affiliateQuery.data]);
   const hasQuery = q.trim().length > 0;
 
   // Persist on successful results
@@ -198,7 +214,7 @@ function SearchPage() {
               </div>
             )}
 
-            {!query.isLoading && results.length === 0 && (
+            {!query.isLoading && results.length === 0 && affiliateMatches.length === 0 && (
               <div className="py-16 text-center">
                 <p className="font-display text-xl font-bold text-ink">
                   No results for "{q}"
@@ -227,6 +243,25 @@ function SearchPage() {
                   ))}
                 </div>
               </>
+            )}
+
+            {affiliateMatches.length > 0 && (
+              <section className="mt-10">
+                <div className="mb-3 flex items-center gap-2">
+                  <Crown size={14} className="text-gold" />
+                  <h2 className="text-[11px] font-bold uppercase tracking-caps text-gold">
+                    Kingdom Picks — Partner Resources
+                  </h2>
+                </div>
+                <p className="mb-4 text-xs text-mute">
+                  Curated from Amazon &amp; Walmart. AurumVault earns a commission on qualifying purchases.
+                </p>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5">
+                  {affiliateMatches.map((p) => (
+                    <AffiliateCard key={p.id} product={p} />
+                  ))}
+                </div>
+              </section>
             )}
           </div>
         )}

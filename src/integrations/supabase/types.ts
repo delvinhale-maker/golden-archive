@@ -59,6 +59,92 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_clicks: {
+        Row: {
+          affiliate_url: string
+          clicked_at: string
+          id: string
+          product_id: string
+          source: string
+          user_id: string | null
+        }
+        Insert: {
+          affiliate_url: string
+          clicked_at?: string
+          id?: string
+          product_id: string
+          source: string
+          user_id?: string | null
+        }
+        Update: {
+          affiliate_url?: string
+          clicked_at?: string
+          id?: string
+          product_id?: string
+          source?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_clicks_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_products: {
+        Row: {
+          active: boolean
+          affiliate_url: string
+          badge: string | null
+          category: string
+          created_at: string
+          description: string
+          featured: boolean
+          id: string
+          image_url: string
+          original_price: number | null
+          price: number
+          source: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          affiliate_url: string
+          badge?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          featured?: boolean
+          id?: string
+          image_url: string
+          original_price?: number | null
+          price?: number
+          source: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          affiliate_url?: string
+          badge?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          featured?: boolean
+          id?: string
+          image_url?: string
+          original_price?: number | null
+          price?: number
+          source?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       auto_release_runs: {
         Row: {
           candidate_count: number

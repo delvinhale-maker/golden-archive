@@ -34,9 +34,10 @@ export function MarketFooter() {
       </div>
       <div className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-3 border-t border-white/10 px-6 pt-6 text-xs text-white/50 md:flex-row lg:px-8">
         <span>© {new Date().getFullYear()} Illustrious Capital™. All rights reserved.</span>
-        <div className="flex gap-6">
+        <div className="flex gap-6 flex-wrap justify-center">
           <a href="/terms" className="hover:text-white">Terms</a>
           <a href="/privacy" className="hover:text-white">Privacy</a>
+          <a href="/affiliate-disclosure" className="hover:text-white">Affiliate Disclosure</a>
           <a href="/creator-agreement" className="hover:text-white">Creator Agreement</a>
         </div>
       </div>

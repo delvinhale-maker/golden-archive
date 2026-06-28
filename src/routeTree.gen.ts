@@ -21,10 +21,12 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as KingdomPicksRouteImport } from './routes/kingdom-picks'
 import { Route as CreatorAgreementRouteImport } from './routes/creator-agreement'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AffiliateDisclosureRouteImport } from './routes/affiliate-disclosure'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -41,6 +43,7 @@ import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authe
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
 import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authenticated/dashboard.new'
+import { Route as AuthenticatedDashboardKingdomPicksRouteImport } from './routes/_authenticated/dashboard.kingdom-picks'
 import { Route as AuthenticatedDashboardHelpRouteImport } from './routes/_authenticated/dashboard.help'
 import { Route as AuthenticatedDashboardEarnRouteImport } from './routes/_authenticated/dashboard.earn'
 import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authenticated/admin.products'
@@ -117,6 +120,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KingdomPicksRoute = KingdomPicksRouteImport.update({
+  id: '/kingdom-picks',
+  path: '/kingdom-picks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CreatorAgreementRoute = CreatorAgreementRouteImport.update({
   id: '/creator-agreement',
   path: '/creator-agreement',
@@ -135,6 +143,11 @@ const CartRoute = CartRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AffiliateDisclosureRoute = AffiliateDisclosureRouteImport.update({
+  id: '/affiliate-disclosure',
+  path: '/affiliate-disclosure',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRoute = AccountRouteImport.update({
@@ -216,6 +229,12 @@ const AuthenticatedDashboardNewRoute =
   AuthenticatedDashboardNewRouteImport.update({
     id: '/dashboard/new',
     path: '/dashboard/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardKingdomPicksRoute =
+  AuthenticatedDashboardKingdomPicksRouteImport.update({
+    id: '/dashboard/kingdom-picks',
+    path: '/dashboard/kingdom-picks',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedDashboardHelpRoute =
@@ -313,10 +332,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/kingdom-picks': typeof KingdomPicksRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
@@ -342,6 +363,7 @@ export interface FileRoutesByFullPath {
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
+  '/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -361,10 +383,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/kingdom-picks': typeof KingdomPicksRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -389,6 +413,7 @@ export interface FileRoutesByTo {
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
+  '/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -410,10 +435,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/kingdom-picks': typeof KingdomPicksRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
@@ -439,6 +466,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
   '/_authenticated/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/_authenticated/dashboard/help': typeof AuthenticatedDashboardHelpRoute
+  '/_authenticated/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -460,10 +488,12 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/affiliate-disclosure'
     | '/auth'
     | '/cart'
     | '/contact'
     | '/creator-agreement'
+    | '/kingdom-picks'
     | '/privacy'
     | '/products'
     | '/reset-password'
@@ -489,6 +519,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/dashboard/earn'
     | '/dashboard/help'
+    | '/dashboard/kingdom-picks'
     | '/dashboard/new'
     | '/api/public/contact'
     | '/lovable/email/suppression'
@@ -508,10 +539,12 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/affiliate-disclosure'
     | '/auth'
     | '/cart'
     | '/contact'
     | '/creator-agreement'
+    | '/kingdom-picks'
     | '/privacy'
     | '/reset-password'
     | '/robots.txt'
@@ -536,6 +569,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/dashboard/earn'
     | '/dashboard/help'
+    | '/dashboard/kingdom-picks'
     | '/dashboard/new'
     | '/api/public/contact'
     | '/lovable/email/suppression'
@@ -556,10 +590,12 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/about'
     | '/account'
+    | '/affiliate-disclosure'
     | '/auth'
     | '/cart'
     | '/contact'
     | '/creator-agreement'
+    | '/kingdom-picks'
     | '/privacy'
     | '/products'
     | '/reset-password'
@@ -585,6 +621,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/products'
     | '/_authenticated/dashboard/earn'
     | '/_authenticated/dashboard/help'
+    | '/_authenticated/dashboard/kingdom-picks'
     | '/_authenticated/dashboard/new'
     | '/api/public/contact'
     | '/lovable/email/suppression'
@@ -606,10 +643,12 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRoute
+  AffiliateDisclosureRoute: typeof AffiliateDisclosureRoute
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
   ContactRoute: typeof ContactRoute
   CreatorAgreementRoute: typeof CreatorAgreementRoute
+  KingdomPicksRoute: typeof KingdomPicksRoute
   PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -724,6 +763,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kingdom-picks': {
+      id: '/kingdom-picks'
+      path: '/kingdom-picks'
+      fullPath: '/kingdom-picks'
+      preLoaderRoute: typeof KingdomPicksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/creator-agreement': {
       id: '/creator-agreement'
       path: '/creator-agreement'
@@ -750,6 +796,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/affiliate-disclosure': {
+      id: '/affiliate-disclosure'
+      path: '/affiliate-disclosure'
+      fullPath: '/affiliate-disclosure'
+      preLoaderRoute: typeof AffiliateDisclosureRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account': {
@@ -862,6 +915,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard/new'
       fullPath: '/dashboard/new'
       preLoaderRoute: typeof AuthenticatedDashboardNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/kingdom-picks': {
+      id: '/_authenticated/dashboard/kingdom-picks'
+      path: '/dashboard/kingdom-picks'
+      fullPath: '/dashboard/kingdom-picks'
+      preLoaderRoute: typeof AuthenticatedDashboardKingdomPicksRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard/help': {
@@ -1010,6 +1070,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReferRoute: typeof AuthenticatedReferRoute
   AuthenticatedDashboardEarnRoute: typeof AuthenticatedDashboardEarnRoute
   AuthenticatedDashboardHelpRoute: typeof AuthenticatedDashboardHelpRoute
+  AuthenticatedDashboardKingdomPicksRoute: typeof AuthenticatedDashboardKingdomPicksRoute
   AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
@@ -1019,6 +1080,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReferRoute: AuthenticatedReferRoute,
   AuthenticatedDashboardEarnRoute: AuthenticatedDashboardEarnRoute,
   AuthenticatedDashboardHelpRoute: AuthenticatedDashboardHelpRoute,
+  AuthenticatedDashboardKingdomPicksRoute:
+    AuthenticatedDashboardKingdomPicksRoute,
   AuthenticatedDashboardNewRoute: AuthenticatedDashboardNewRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
 }
@@ -1045,10 +1108,12 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AccountRoute: AccountRoute,
+  AffiliateDisclosureRoute: AffiliateDisclosureRoute,
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
   ContactRoute: ContactRoute,
   CreatorAgreementRoute: CreatorAgreementRoute,
+  KingdomPicksRoute: KingdomPicksRoute,
   PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
