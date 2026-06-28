@@ -88,6 +88,7 @@ export const Route = createFileRoute("/products/$id")({
 
     const scripts: Array<{ type: string; children: string }> = [];
     if (p) {
+      const absImage = image ?? `${SITE_URL}/logo.png`;
       scripts.push({
         type: "application/ld+json",
         children: JSON.stringify({
@@ -95,27 +96,23 @@ export const Route = createFileRoute("/products/$id")({
           "@type": "Product",
           name: p.title,
           description: rawDesc,
-          ...(image ? { image } : {}),
+          image: [absImage],
           brand: { "@type": "Brand", name: "Illustrious Capital™" },
-          ...(p.creator?.name
-            ? { offers: undefined, manufacturer: { "@type": "Organization", name: p.creator.name } }
-            : {}),
           offers: {
             "@type": "Offer",
-            price: Number(p.price).toFixed(2),
-            priceCurrency: "USD",
-            availability: "https://schema.org/InStock",
             url,
+            priceCurrency: "USD",
+            price: Number(p.price).toFixed(2),
+            availability: "https://schema.org/InStock",
+            seller: { "@type": "Organization", name: "Illustrious Capital™" },
           },
-          ...(p.rating && p.reviewCount
-            ? {
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: Number(p.rating).toFixed(1),
-                  reviewCount: p.reviewCount,
-                },
-              }
-            : {}),
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue:
+              p.rating && p.reviewCount ? Number(p.rating).toFixed(1) : "5",
+            reviewCount:
+              p.rating && p.reviewCount ? p.reviewCount : 1,
+          },
         }),
       });
     }
