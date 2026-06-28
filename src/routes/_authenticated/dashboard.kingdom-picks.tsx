@@ -86,10 +86,9 @@ function KingdomPicksAdminPage() {
   }
 
   async function toggle(id: string, field: "featured" | "active", value: boolean) {
-    const { error } = await supabase
-      .from("affiliate_products")
-      .update({ [field]: value })
-      .eq("id", id);
+    const patch: { featured?: boolean; active?: boolean } =
+      field === "featured" ? { featured: value } : { active: value };
+    const { error } = await supabase.from("affiliate_products").update(patch).eq("id", id);
     if (error) return toast.error(error.message);
     setRows((r) => r.map((x) => (x.id === id ? { ...x, [field]: value } : x)));
   }
