@@ -76,6 +76,22 @@ export const Route = createFileRoute("/")({
       },
     ],
     links: [{ rel: "canonical", href: "https://www.aurumvault.store/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "AurumVault",
+          alternateName: "Illustrious Capital™",
+          url: "https://www.aurumvault.store",
+          logo: "https://www.aurumvault.store/logo.png",
+          description:
+            "AurumVault is the gold-standard marketplace for purpose-driven digital products — curated from verified creators and powered by Illustrious Capital™.",
+          sameAs: [],
+        }),
+      },
+    ],
   }),
   component: Home,
 });
