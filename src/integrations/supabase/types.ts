@@ -59,6 +59,42 @@ export type Database = {
         }
         Relationships: []
       }
+      auto_release_runs: {
+        Row: {
+          candidate_count: number
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          id: string
+          released_count: number
+          released_ids: string[]
+          status: string
+          triggered_by: string
+        }
+        Insert: {
+          candidate_count?: number
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          released_count?: number
+          released_ids?: string[]
+          status: string
+          triggered_by?: string
+        }
+        Update: {
+          candidate_count?: number
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          released_count?: number
+          released_ids?: string[]
+          status?: string
+          triggered_by?: string
+        }
+        Relationships: []
+      }
       cover_audit_alert_config: {
         Row: {
           cooldown_minutes: number
