@@ -28,6 +28,7 @@ import { ProductCover } from "@/components/marketplace/ProductCover";
 import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
 import { DealsStrip } from "@/components/marketplace/DealsStrip";
 import { BestsellersRow } from "@/components/marketplace/BestsellersRow";
+import { KingdomPicksRow } from "@/components/marketplace/KingdomPicksRow";
 import { ContinueBrowsingRow, HomeContentRows } from "@/components/marketplace/HomeRows";
 import { EmailCaptureBanner } from "@/components/EmailCaptureBanner";
 import {
@@ -120,7 +121,9 @@ function Home() {
         <DealsAndBestsellers />
       </Suspense>
       <ContinueBrowsingRow />
+      <KingdomPicksRow />
       <CategoriesSection />
+
       <HomeContentRows />
       <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProducts />
