@@ -43,31 +43,37 @@ const idx = psql(`
 if (idx === "0") fail("Partial unique index on (seller_id, slug) WHERE status <> 'rejected' is missing");
 
 // 3. Duplicate insert must fail (rolled back via SAVEPOINT)
-const seller = psql(
-  "SELECT seller_id::text FROM public.marketplace_products WHERE status <> 'rejected' LIMIT 1;"
-);
-const slug = psql(
-  `SELECT slug FROM public.marketplace_products WHERE seller_id='${seller}' AND status <> 'rejected' LIMIT 1;`
-);
-if (!seller || !slug) {
-  console.log("[slug-check] No non-rejected rows to test duplicate insert; structural checks passed.");
+const row = psql(`
+  SELECT seller_id::text || '|' || slug || '|' || category::text
+  FROM public.marketplace_products
+  WHERE status <> 'rejected'
+  LIMIT 1;
+`);
+if (!row) {
+  console.log("[slug-check] No non-rejected rows to probe; structural checks passed.");
   process.exit(0);
 }
+const [seller, slug, category] = row.split("|");
 
-let duplicateRejected = false;
+let stderr = "";
 try {
-  psql(`
-    BEGIN;
-    SAVEPOINT sp;
-    INSERT INTO public.marketplace_products
-      (seller_id, title, slug, status, price_cents, description, category)
-    VALUES
-      ('${seller}', 'slug-check duplicate probe', '${slug}', 'pending', 100, 'probe', 'probe');
-    ROLLBACK;
-  `);
-} catch {
-  duplicateRejected = true;
+  execFileSync(
+    "psql",
+    ["-At", "-v", "ON_ERROR_STOP=1", "-c",
+      `BEGIN;
+       INSERT INTO public.marketplace_products
+         (seller_id, title, slug, status, price_cents, description, category)
+       VALUES
+         ('${seller}', 'slug-check duplicate probe', '${slug}', 'pending', 100, 'probe', '${category}');
+       ROLLBACK;`],
+    { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
+  );
+  fail("Duplicate (seller_id, slug) insert was NOT rejected by the unique index");
+} catch (e) {
+  stderr = (e.stderr || "").toString();
+  if (!/duplicate key value|unique constraint|23505/i.test(stderr)) {
+    fail(`Duplicate insert failed for an unexpected reason:\n${stderr}`);
+  }
 }
-if (!duplicateRejected) fail("Duplicate (seller_id, slug) insert was NOT rejected by the unique index");
 
 console.log("[slug-check] OK — slugs backfilled, unique index enforced, duplicate insert rejected.");
