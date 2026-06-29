@@ -217,7 +217,12 @@ function KingdomPicksAdminPage() {
               <th className="p-3">Source</th>
               <th className="p-3">Category</th>
               <th className="p-3">Price</th>
-              <th className="p-3">Clicks</th>
+              <th className="p-3">
+                <span className="inline-flex items-center gap-1">
+                  Clicks
+                  {refreshingClicks && <RefreshCw size={10} className="animate-spin text-gold" />}
+                </span>
+              </th>
               <th className="p-3">Featured</th>
               <th className="p-3">Active</th>
               <th className="p-3 text-right">Actions</th>
