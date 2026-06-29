@@ -480,7 +480,7 @@ function CategoriesSection() {
 function FeaturedProducts() {
   const { data } = useSuspenseQuery(featuredQ);
   return (
-    <section className="bg-white pb-16 pt-4 md:pb-24">
+    <section className="bg-bg-page pb-16 pt-4 md:pb-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader title="Featured Products" />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-4">
@@ -491,7 +491,7 @@ function FeaturedProducts() {
         <div className="mt-10 text-center">
           <Link
             to="/products"
-            className="inline-flex h-11 items-center rounded-full border border-navy px-6 text-sm font-bold text-navy hover:bg-navy hover:text-white"
+            className="inline-flex h-11 items-center rounded-full border border-gold px-6 text-sm font-bold text-gold hover:bg-gold hover:text-navy"
           >
             See all products →
           </Link>
@@ -500,6 +500,7 @@ function FeaturedProducts() {
     </section>
   );
 }
+
 
 function FeaturedSkeleton() {
   return (
