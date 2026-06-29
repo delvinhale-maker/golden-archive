@@ -121,6 +121,7 @@ function Home() {
       <Suspense fallback={null}>
         <DealsAndBestsellers />
       </Suspense>
+      <KingdomBibleAppBanner />
       <ContinueBrowsingRow />
       <KingdomPicksRow />
       <CategoriesSection />
