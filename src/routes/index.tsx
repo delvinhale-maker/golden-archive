@@ -438,9 +438,10 @@ function SectionHeader({ kicker, title }: { kicker?: string; title: string }) {
           {kicker}
         </div>
       )}
-      <h2 className="mt-2 font-display text-3xl font-bold text-ink md:text-4xl">
+      <h2 className="mt-2 font-display text-3xl font-bold md:text-4xl" style={{ color: "#ffffff" }}>
         {title}
       </h2>
+
       <span className="mt-3 block h-[2px] w-10 bg-gold" />
     </div>
   );
