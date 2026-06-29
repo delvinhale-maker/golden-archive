@@ -10,6 +10,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
 import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { runSlugIntegrityCheck, listSlugIntegrityAlerts } from "@/lib/slug-integrity.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
