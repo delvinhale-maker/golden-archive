@@ -279,9 +279,8 @@ function HeroStatsBar() {
   ];
   return (
     <section
-      className="border-t"
+      className="border-t bg-bg-page"
       style={{
-        background: "#22335A",
         borderTopColor: "rgba(201,168,76,0.55)",
       }}
     >

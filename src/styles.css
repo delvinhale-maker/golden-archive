@@ -46,6 +46,7 @@
   --color-mute: var(--mute);
   --color-line: var(--line);
   --color-onyx: var(--onyx);
+  --color-bg-page: var(--bg-page);
 }
 
 /* MARKETPLACE (default / light) */
@@ -65,6 +66,7 @@
   --mute: #6b7280;
   --line: #e5e7eb;
   --onyx: #0f1629;
+  --bg-page: #0F1E35;
 
   --card: #ffffff;
   --card-foreground: #1a1a2e;
