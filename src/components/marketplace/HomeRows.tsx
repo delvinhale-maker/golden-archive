@@ -57,7 +57,7 @@ function Row({
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="rounded-xl border border-line bg-[#fafaf7] p-6 text-center text-sm text-mute">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-center text-sm text-white/70">
             {empty}
           </div>
         ) : (
