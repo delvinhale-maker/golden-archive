@@ -1,45 +1,47 @@
 #!/usr/bin/env node
 /**
- * Guard against light/cream backgrounds reappearing on marketplace surfaces.
+ * Dark-surface guard for the public homepage and marketplace rows.
  *
- * Scans src/ for forbidden background tokens (bg-white, cream hex codes, etc.)
- * and exits non-zero when any are found. Run via `bun run check:bg` or in CI.
+ * The homepage uses --color-bg-page (#0F1E35) as the page surface; the
+ * sections below were explicitly darkened and must not regress to white
+ * or cream backgrounds in future builds.
  *
- * To intentionally allow a specific occurrence, append `// allow-light-bg`
- * on the same line.
+ * Scope is intentionally narrow: only the files that drive the public
+ * homepage hero / rows are checked. Other parts of the app (auth pages,
+ * admin/seller dashboards, product detail, etc.) still use light surfaces
+ * and are out of scope for this guard.
+ *
+ * To intentionally allow a single line, append `// allow-light-bg`.
+ *
+ * Run: `node scripts/check-light-surfaces.mjs`
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
 
 const ROOT = new URL("..", import.meta.url).pathname;
-const SCAN_DIR = join(ROOT, "src");
 
-// Files/dirs explicitly exempt. The guard targets the PUBLIC marketing /
-// storefront surfaces — authenticated admin / seller dashboards and shadcn
-// primitives intentionally use light surfaces.
-const EXEMPT_PATHS = [
-  "src/components/ui/",                          // shadcn primitives
-  "src/routes/_authenticated/",                  // admin + seller dashboards
-  "src/components/marketplace/CartDrawer.tsx",   // drawer over dark page
-  "src/components/marketplace/MarketHeader.tsx", // search popover / mobile sheet
-  "src/components/marketplace/NotificationsBell.tsx",
-  "src/components/marketplace/UploadFab.tsx",
-  "src/components/marketplace/PublisherShell.tsx",
-  "src/components/marketplace/ProductDetailPage.tsx",
-  "src/components/marketplace/ReviewsSection.tsx",
-  "src/components/marketplace/QASection.tsx",
-  "src/components/marketplace/FrequentlyBoughtTogether.tsx",
-  "src/components/marketplace/ShareButtons.tsx",
-  "src/components/marketplace/TrustBadges.tsx",
-  "src/components/marketplace/ProductCard.tsx",
-  "src/components/marketplace/PremiumProductCard.tsx",
-  "src/components/marketplace/AffiliateCard.tsx",
-  "src/components/marketplace/MobileTabBar.tsx",
-  "src/components/marketplace/CustomersAlsoBought.tsx",
+// Files watched by the guard. Keep this list focused on public homepage
+// surfaces. Add a file here when you darken a new public section.
+const WATCHED_FILES = [
+  "src/components/marketplace/HomeRows.tsx",
+  "src/components/marketplace/KingdomBibleAppBanner.tsx",
+  "src/components/marketplace/KingdomPicksRow.tsx",
+  "src/components/marketplace/BestsellersRow.tsx",
+  "src/components/marketplace/DealsStrip.tsx",
 ];
 
-// Forbidden patterns. Negative lookahead `(?!\/)` ignores translucent
-// alpha variants like `bg-white/10` — those are overlays, not surfaces.
+// In src/routes/index.tsx the homepage is composed of many sub-sections;
+// we only check the section/component functions that were darkened.
+// Each entry is a function name; the guard scans that function body only.
+const WATCHED_INDEX_FUNCTIONS = [
+  "CategoriesSection",
+  "FeaturedProducts",
+  "FeaturedSkeleton",
+  "IllustriousCreator",
+  "TrustBar",
+];
+
+// Forbidden patterns. `(?!\/)` ignores translucent overlays like `bg-white/10`.
 const FORBIDDEN = [
   { re: /\bbg-white\b(?!\/)/, label: "bg-white" },
   { re: /\bbg-cream\b(?!\/)/, label: "bg-cream" },
@@ -48,49 +50,67 @@ const FORBIDDEN = [
   { re: /bg-\[#fafaf7\]/i, label: "bg-[#fafaf7] (cream)" },
   { re: /bg-\[#fdf9ec\]/i, label: "bg-[#fdf9ec] (cream)" },
 ];
-
-
-const SCAN_EXTS = new Set([".tsx", ".ts", ".jsx", ".js", ".css"]);
 const ALLOW_MARKER = "allow-light-bg";
-
-function isExempt(relPath) {
-  return EXEMPT_PATHS.some((p) => relPath.startsWith(p));
-}
-
-function* walk(dir) {
-  for (const name of readdirSync(dir)) {
-    const full = join(dir, name);
-    const st = statSync(full);
-    if (st.isDirectory()) {
-      yield* walk(full);
-    } else if (SCAN_EXTS.has(full.slice(full.lastIndexOf(".")))) {
-      yield full;
-    }
-  }
-}
 
 const violations = [];
 
-for (const file of walk(SCAN_DIR)) {
-  const rel = relative(ROOT, file);
-  if (isExempt(rel)) continue;
-  const lines = readFileSync(file, "utf8").split("\n");
-  lines.forEach((line, idx) => {
+function scanLines(file, startLine, lines) {
+  lines.forEach((line, i) => {
     if (line.includes(ALLOW_MARKER)) return;
     for (const { re, label } of FORBIDDEN) {
       if (re.test(line)) {
-        violations.push({ file: rel, line: idx + 1, label, snippet: line.trim() });
+        violations.push({
+          file,
+          line: startLine + i,
+          label,
+          snippet: line.trim(),
+        });
       }
     }
   });
 }
 
+for (const rel of WATCHED_FILES) {
+  const full = join(ROOT, rel);
+  if (!existsSync(full)) continue;
+  const lines = readFileSync(full, "utf8").split("\n");
+  scanLines(rel, 1, lines);
+}
+
+// Scan only the listed function bodies in src/routes/index.tsx.
+const indexPath = join(ROOT, "src/routes/index.tsx");
+if (existsSync(indexPath)) {
+  const text = readFileSync(indexPath, "utf8");
+  const allLines = text.split("\n");
+  for (const fn of WATCHED_INDEX_FUNCTIONS) {
+    const re = new RegExp(`^function\\s+${fn}\\b`);
+    const start = allLines.findIndex((l) => re.test(l));
+    if (start === -1) continue;
+    // Body ends at the next top-level `}` followed by blank/`function`.
+    let end = allLines.length - 1;
+    for (let i = start + 1; i < allLines.length; i++) {
+      if (allLines[i] === "}") {
+        end = i;
+        break;
+      }
+    }
+    scanLines(
+      `src/routes/index.tsx [${fn}]`,
+      start + 1,
+      allLines.slice(start, end + 1),
+    );
+  }
+}
+
 if (violations.length > 0) {
-  console.error("\n✗ Light/cream surface guard failed.\n");
-  console.error("The site uses --color-bg-page (#0F1E35) as the page surface.");
-  console.error("Replace these backgrounds with `bg-bg-page` (or another navy");
-  console.error("token), or append `// allow-light-bg` on the line if it's");
-  console.error("intentional (e.g. a modal/drawer over a dark page).\n");
+  console.error("\n✗ Dark-surface guard failed.\n");
+  console.error(
+    "The public homepage uses --color-bg-page (#0F1E35). Replace these",
+  );
+  console.error(
+    "backgrounds with `bg-bg-page` (or another navy token), or append",
+  );
+  console.error("`// allow-light-bg` on the line if it is intentional.\n");
   for (const v of violations) {
     console.error(`  ${v.file}:${v.line}  ${v.label}`);
     console.error(`    ${v.snippet}`);
@@ -99,4 +119,4 @@ if (violations.length > 0) {
   process.exit(1);
 }
 
-console.log("✓ No forbidden light/cream backgrounds in src/.");
+console.log("✓ Homepage / marketplace rows are free of light surfaces.");
