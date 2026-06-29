@@ -39,19 +39,19 @@ export function DealsStrip({ products }: { products: Product[] }) {
   if (!deals.length) return null;
 
   return (
-    <section className="bg-[#fff8e6] py-12 md:py-16">
+    <section className="bg-bg-page py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold">
               <Flame size={14} /> DEALS OF THE DAY
             </div>
-            <h2 className="mt-1 font-display text-3xl font-bold text-ink md:text-4xl">
+            <h2 className="mt-1 font-display text-3xl font-bold text-white md:text-4xl">
               Today's gold picks
             </h2>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[12px] font-semibold text-mute">Ends in</span>
+            <span className="text-[12px] font-semibold text-white/70">Ends in</span>
             <div className="flex items-center gap-1 font-mono text-sm font-bold text-navy">
               <TimeBox v={pad(h)} />
               <span>:</span>

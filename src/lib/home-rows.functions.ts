@@ -60,6 +60,30 @@ export type HomeRows = {
   sponsored: Product[];
 };
 
+async function attachRatings(
+  supa: ReturnType<typeof serverSupabase>,
+  products: Product[],
+): Promise<Product[]> {
+  const ids = products.map((p) => p.id);
+  if (ids.length === 0) return products;
+  const { data } = await supa
+    .from("product_reviews")
+    .select("product_id,rating")
+    .in("product_id", ids);
+  const buckets = new Map<string, { sum: number; n: number }>();
+  for (const row of (data ?? []) as Array<{ product_id: string; rating: number }>) {
+    const cur = buckets.get(row.product_id) ?? { sum: 0, n: 0 };
+    cur.sum += row.rating;
+    cur.n += 1;
+    buckets.set(row.product_id, cur);
+  }
+  return products.map((p) => {
+    const b = buckets.get(p.id);
+    if (!b || b.n === 0) return p;
+    return { ...p, rating: Math.round((b.sum / b.n) * 10) / 10, reviewCount: b.n };
+  });
+}
+
 export const getHomeRows = createServerFn({ method: "GET" }).handler(
   async (): Promise<HomeRows> => {
     try {
@@ -98,7 +122,12 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
         .slice(0, 3)
         .map((r) => toProduct(r));
-      return { newReleases, recommended, sponsored };
+      const [nrR, spR, recR] = await Promise.all([
+        attachRatings(supa, newReleases),
+        attachRatings(supa, sponsored),
+        attachRatings(supa, recommended),
+      ]);
+      return { newReleases: nrR, recommended: recR, sponsored: spR };
     } catch {
       return { newReleases: [], recommended: [], sponsored: [] };
     }
@@ -121,7 +150,8 @@ export const getProductsByIds = createServerFn({ method: "GET" })
         .eq("published", true);
       const byId = new Map(((rows ?? []) as Row[]).map((r) => [r.id, toProduct(r)]));
       // Preserve requested order
-      return data.ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
+      const ordered = data.ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
+      return await attachRatings(supa, ordered);
     } catch {
       return [];
     }
