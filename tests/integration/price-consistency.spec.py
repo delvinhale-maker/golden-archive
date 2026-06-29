@@ -33,7 +33,8 @@ def fetch_products():
     assert SUPABASE_URL and SUPABASE_KEY, "Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY"
     url = (
         f"{SUPABASE_URL}/rest/v1/marketplace_products"
-        "?select=id,title,price_cents&published=eq.true&status=eq.approved"
+        "?select=id,title,price_cents,compare_at_price_cents"
+        "&published=eq.true&status=eq.approved"
     )
     req = urllib.request.Request(
         url,
@@ -83,20 +84,39 @@ async def main() -> int:
 
         for prod in products:
             cents = prod["price_cents"]
+            compare_cents = prod.get("compare_at_price_cents")
             title = prod["title"]
             expected = price_variants(cents)[0]
+            compare_expected = (
+                price_variants(compare_cents)[0]
+                if compare_cents and compare_cents > cents
+                else None
+            )
+
+            def check(scope: str, text: str, *, title_gated: bool = False):
+                title_visible = title in text
+                if not title_gated and not price_present(text, cents):
+                    failures.append(f"{scope} '{title}': expected {expected}")
+                if title_gated and title_visible and not price_present(text, cents):
+                    failures.append(f"{scope} '{title}': expected {expected}")
+                if compare_cents and compare_cents > cents:
+                    # Compare-at must render alongside the sale price wherever the
+                    # product card/detail is visible.
+                    needs_compare = (not title_gated) or title_visible
+                    if needs_compare and not price_present(text, compare_cents):
+                        failures.append(
+                            f"{scope} '{title}': expected compare-at {compare_expected}"
+                        )
 
             pdp_text = await page_text(page, f"/products/{prod['id']}")
-            if not price_present(pdp_text, cents):
-                failures.append(f"PDP '{title}': expected {expected}")
+            check("PDP", pdp_text)
+            check("Browse", browse_text, title_gated=False)
+            check("Home", home_text, title_gated=True)
 
-            if not price_present(browse_text, cents):
-                failures.append(f"Browse '{title}': expected {expected}")
-
-            if title in home_text and not price_present(home_text, cents):
-                failures.append(f"Home '{title}': expected {expected}")
-
-            print(f"checked {title} ({expected})")
+            label = f"{expected}"
+            if compare_expected:
+                label += f" (was {compare_expected})"
+            print(f"checked {title} ({label})")
 
         await browser.close()
 
