@@ -16,6 +16,8 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
 
   return (
     <motion.article
+      data-testid="product-tile"
+      data-product-id={product.id}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
