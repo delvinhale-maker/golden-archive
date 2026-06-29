@@ -176,6 +176,8 @@ function RootComponent() {
   useEffect(() => {
     // Capture ?ref=CODE into localStorage so signups & checkouts can attribute.
     import("@/lib/referral").then((m) => m.captureRefFromUrl()).catch(() => {});
+    // Forward uncaught errors and unhandled rejections to the production error log.
+    installGlobalErrorHandlers();
   }, []);
 
   return (
