@@ -39,14 +39,17 @@ async def section_titles(page, heading: str) -> list[str]:
     sec = page.locator(f"section:has(h2:has-text('{heading}'))").first
     await sec.scroll_into_view_if_needed()
     await sec.wait_for(state="visible", timeout=5000)
-    # ProductCard renders the title as a <Link to="/products/$id">{title}</Link>.
-    titles = await sec.locator("a[href^='/products/']").all_inner_texts()
-    return [t.strip() for t in titles if t.strip()]
+    # Each card renders two /products/$id links: the cover (which also
+    # contains category + creator text) and the title-only link. Keep the
+    # single-line entries that aren't the category metadata block.
+    raw = await sec.locator("a[href^='/products/']").all_inner_texts()
+    return [t.strip() for t in raw if t.strip() and "\n" not in t.strip()]
 
 
 async def section_badges(page, heading: str) -> list[str]:
     sec = page.locator(f"section:has(h2:has-text('{heading}'))").first
-    badges = await sec.get_by_text("BESTSELLER", exact=True).all_inner_texts()
+    # Badge text is "Bestseller", visually uppercased via CSS tracking-caps.
+    badges = await sec.locator("span:has-text('Bestseller')").all_inner_texts()
     return [b.strip() for b in badges]
 
 
