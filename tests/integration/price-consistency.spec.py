@@ -1,26 +1,34 @@
 """
 Price consistency + formatting check.
 
-Verifies every published product renders the same formatted money string
-(currency symbol, decimals, rounding) across:
-  - Homepage (/)
-  - Browse page (/products)
-  - Product detail page (/products/:id)
+Uses stable data-testid selectors instead of full-body text scraping so
+layout/copy changes don't break the test.
 
-Canonical format: `$X.XX` (USD symbol, always 2 decimals, no trailing
-rounding drift). Also checks compare-at prices when present.
+Selectors (must stay in sync with the components):
+  Product tiles (home, browse, search, rows):
+    [data-testid="product-tile"][data-product-id="<id>"]
+      [data-testid="product-price"]
+      [data-testid="product-compare-at"]   (optional)
+  Product detail page:
+    [data-testid="pdp-price-block"]
+      [data-testid="pdp-price"]
+      [data-testid="pdp-compare-at"]       (optional)
+
+Canonical format: `$X.XX` (USD, always 2 decimals). Verifies the same
+formatted string renders on home, browse, and PDP for both sale and
+compare-at prices.
 
 Usage:
-  PRICE_CHECK_BASE_URL=http://localhost:8080 python3 tests/integration/price-consistency.spec.py
+  PRICE_CHECK_BASE_URL=http://localhost:8080 \\
+    python3 tests/integration/price-consistency.spec.py
 """
 import asyncio
 import os
-import re
 import sys
 import urllib.request
 import json
 
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, Page
 
 BASE_URL = os.environ.get("PRICE_CHECK_BASE_URL", "https://www.aurumvault.store").rstrip("/")
 SUPABASE_URL = os.environ.get("SUPABASE_URL") or os.environ.get("VITE_SUPABASE_URL")
@@ -28,6 +36,12 @@ SUPABASE_KEY = (
     os.environ.get("SUPABASE_PUBLISHABLE_KEY")
     or os.environ.get("VITE_SUPABASE_PUBLISHABLE_KEY")
 )
+
+TILE = '[data-testid="product-tile"]'
+PRICE = '[data-testid="product-price"]'
+COMPARE = '[data-testid="product-compare-at"]'
+PDP_PRICE = '[data-testid="pdp-price"]'
+PDP_COMPARE = '[data-testid="pdp-compare-at"]'
 
 
 def fetch_products():
@@ -46,40 +60,44 @@ def fetch_products():
 
 
 def canonical(cents: int) -> str:
-    """Canonical formatted money: $X.XX with 2 decimals, banker-safe rounding."""
-    # round half to even isn't critical here — cents are already integers
-    dollars = cents / 100
-    return f"${dollars:,.2f}"
+    return f"${cents / 100:,.2f}"
 
 
-# Matches $1, $1.5, $1.50, $1,234, $1,234.5, $1,234.56 — i.e. any USD-looking token.
-MONEY_RE = re.compile(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?")
-
-
-def parse_money_to_cents(token: str) -> int | None:
-    try:
-        n = float(token.replace("$", "").replace(",", ""))
-    except ValueError:
-        return None
-    return round(n * 100)
-
-
-def find_renderings(text: str, cents: int) -> list[str]:
-    """All distinct money tokens in `text` whose value equals `cents`."""
-    seen: list[str] = []
-    for tok in MONEY_RE.findall(text):
-        if parse_money_to_cents(tok) == cents and tok not in seen:
-            seen.append(tok)
-    return seen
-
-
-async def page_text(page, path: str) -> str:
+async def goto(page: Page, path: str) -> None:
     await page.goto(f"{BASE_URL}{path}", wait_until="networkidle")
     try:
-        await page.wait_for_load_state("networkidle", timeout=5000)
+        # Wait for at least one tile / price block to mount on listing pages.
+        await page.wait_for_selector(f"{TILE}, {PDP_PRICE}", timeout=8000)
     except Exception:
         pass
-    return await page.locator("body").inner_text()
+
+
+async def tile_prices(page: Page, product_id: str) -> tuple[str | None, str | None]:
+    """Returns (price_text, compare_text) for the tile matching product_id, or (None, None) if not on page."""
+    tile = page.locator(f'{TILE}[data-product-id="{product_id}"]').first
+    if await tile.count() == 0:
+        return None, None
+    try:
+        price = (await tile.locator(PRICE).first.inner_text()).strip()
+    except Exception:
+        price = None
+    compare = None
+    cmp_loc = tile.locator(COMPARE)
+    if await cmp_loc.count() > 0:
+        compare = (await cmp_loc.first.inner_text()).strip()
+    return price, compare
+
+
+async def pdp_prices(page: Page) -> tuple[str | None, str | None]:
+    price_loc = page.locator(PDP_PRICE).first
+    if await price_loc.count() == 0:
+        return None, None
+    price = (await price_loc.inner_text()).strip()
+    compare = None
+    cmp_loc = page.locator(PDP_COMPARE)
+    if await cmp_loc.count() > 0:
+        compare = (await cmp_loc.first.inner_text()).strip()
+    return price, compare
 
 
 async def main() -> int:
@@ -95,76 +113,78 @@ async def main() -> int:
         ctx = await browser.new_context(viewport={"width": 1280, "height": 1800})
         page = await ctx.new_page()
 
-        home_text = await page_text(page, "/")
-        browse_text = await page_text(page, "/products")
+        # Snapshot listing pages once
+        await goto(page, "/")
+        home_tiles: dict[str, tuple[str | None, str | None]] = {}
+        for prod in products:
+            home_tiles[prod["id"]] = await tile_prices(page, prod["id"])
+
+        await goto(page, "/products")
+        browse_tiles: dict[str, tuple[str | None, str | None]] = {}
+        for prod in products:
+            browse_tiles[prod["id"]] = await tile_prices(page, prod["id"])
 
         for prod in products:
+            pid = prod["id"]
+            title = prod["title"]
             cents = prod["price_cents"]
             compare_cents = prod.get("compare_at_price_cents")
-            title = prod["title"]
-            expected = canonical(cents)
-            compare_expected = (
+            expected_price = canonical(cents)
+            expected_compare = (
                 canonical(compare_cents)
                 if compare_cents and compare_cents > cents
                 else None
             )
 
-            pdp_text = await page_text(page, f"/products/{prod['id']}")
+            await goto(page, f"/products/{pid}")
+            pdp_price, pdp_compare = await pdp_prices(page)
 
-            scopes = {
-                "PDP": (pdp_text, True),
-                "Browse": (browse_text, title in browse_text),
-                "Home": (home_text, title in home_text),
+            scopes: dict[str, tuple[str | None, str | None]] = {
+                "PDP": (pdp_price, pdp_compare),
+                "Browse": browse_tiles.get(pid, (None, None)),
+                "Home": home_tiles.get(pid, (None, None)),
             }
 
-            # Sale price
-            sale_renderings: dict[str, list[str]] = {}
-            for scope, (text, should_appear) in scopes.items():
-                if not should_appear:
+            # Sale price assertions (PDP always required; tiles only if present)
+            sale_seen: dict[str, str] = {}
+            for scope, (price_text, _) in scopes.items():
+                if price_text is None:
+                    if scope == "PDP":
+                        failures.append(f"{scope} '{title}': price element missing")
                     continue
-                renders = find_renderings(text, cents)
-                if not renders:
-                    failures.append(f"{scope} '{title}': missing price (expected {expected})")
-                    continue
-                sale_renderings[scope] = renders
-                # Strict format check: every rendering must be canonical $X.XX
-                bad = [r for r in renders if r != expected]
-                if bad:
+                sale_seen[scope] = price_text
+                if price_text != expected_price:
                     failures.append(
-                        f"{scope} '{title}': format drift {bad} — expected {expected}"
+                        f"{scope} '{title}': price '{price_text}' != expected '{expected_price}'"
                     )
-
-            # Cross-page consistency: same formatted string everywhere it appears
-            formats = {scope: rs[0] for scope, rs in sale_renderings.items()}
-            if len(set(formats.values())) > 1:
+            if len(set(sale_seen.values())) > 1:
                 failures.append(
-                    f"'{title}': sale price format differs across pages {formats}"
+                    f"'{title}': sale price differs across pages {sale_seen}"
                 )
 
-            # Compare-at price
-            if compare_expected:
-                compare_renderings: dict[str, str] = {}
-                for scope, (text, should_appear) in scopes.items():
-                    if not should_appear:
+            # Compare-at assertions (only enforced when DB has one)
+            if expected_compare:
+                compare_seen: dict[str, str] = {}
+                for scope, (_, compare_text) in scopes.items():
+                    # Only require compare-at where the tile/PDP is actually rendered
+                    if scopes[scope][0] is None:
                         continue
-                    renders = find_renderings(text, compare_cents)
-                    if not renders:
+                    if compare_text is None:
                         failures.append(
-                            f"{scope} '{title}': missing compare-at (expected {compare_expected})"
+                            f"{scope} '{title}': compare-at missing (expected {expected_compare})"
                         )
                         continue
-                    compare_renderings[scope] = renders[0]
-                    bad = [r for r in renders if r != compare_expected]
-                    if bad:
+                    compare_seen[scope] = compare_text
+                    if compare_text != expected_compare:
                         failures.append(
-                            f"{scope} '{title}': compare-at format drift {bad} — expected {compare_expected}"
+                            f"{scope} '{title}': compare-at '{compare_text}' != expected '{expected_compare}'"
                         )
-                if len(set(compare_renderings.values())) > 1:
+                if len(set(compare_seen.values())) > 1:
                     failures.append(
-                        f"'{title}': compare-at format differs across pages {compare_renderings}"
+                        f"'{title}': compare-at differs across pages {compare_seen}"
                     )
 
-            label = expected + (f" (was {compare_expected})" if compare_expected else "")
+            label = expected_price + (f" (was {expected_compare})" if expected_compare else "")
             print(f"checked {title} ({label})")
 
         await browser.close()
@@ -175,7 +195,7 @@ async def main() -> int:
             print(f"  - {f}")
         return 1
 
-    print(f"\n✅ All {len(products)} products: consistent formatted prices across pages.")
+    print(f"\n✅ All {len(products)} products: consistent formatted prices via stable selectors.")
     return 0
 
 
