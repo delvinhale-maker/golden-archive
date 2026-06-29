@@ -5,7 +5,7 @@ export function KingdomBibleAppBanner() {
     <section className="bg-white py-6 md:py-8">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <a
-          href="https://kingdombibleapp.com"
+          href="https://www.kingdombibleapp.com"
           target="_blank"
           rel="noopener noreferrer"
           className="group flex flex-col items-center justify-between gap-4 rounded-2xl border-2 border-gold/60 bg-navy px-5 py-4 text-gold shadow-card-hover transition hover:border-gold hover:shadow-lg md:flex-row md:px-8 md:py-5"
