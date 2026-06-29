@@ -76,6 +76,9 @@ async def main() -> int:
         all_titles = {t.strip() for t in raw_all if t.strip() and "\n" not in t.strip()}
 
         # --- New Releases --------------------------------------------------
+        nr_kicker = await section_kicker(page, "New Releases")
+        if nr_kicker != "JUST IN":
+            failures.append(f"New Releases: kicker must be 'JUST IN', got {nr_kicker!r}")
         new_releases = await section_titles(page, "New Releases")
         if len(new_releases) != NEW_RELEASES_COUNT:
             failures.append(
@@ -85,14 +88,20 @@ async def main() -> int:
         for t in new_releases:
             if t not in all_titles:
                 failures.append(f"New Releases: unknown product title {t!r}")
-        # No BESTSELLER badge expected on New Releases.
+        # New Releases must NEVER show a Bestseller badge.
         nr_badges = await section_badges(page, "New Releases")
         if nr_badges:
             failures.append(
-                f"New Releases: unexpected BESTSELLER badge(s): {nr_badges}"
+                f"New Releases: unexpected Bestseller badge(s): {nr_badges}"
             )
 
         # --- Promoted Picks (Sponsored) -----------------------------------
+        promo_kicker = await section_kicker(page, "Promoted Picks")
+        expected_kicker = "SPONSORED — ILLUSTRIOUS CAPITAL™"
+        if promo_kicker != expected_kicker:
+            failures.append(
+                f"Promoted Picks: kicker must be {expected_kicker!r}, got {promo_kicker!r}"
+            )
         promoted = await section_titles(page, "Promoted Picks")
         for expected in EXPECTED_SPONSORED:
             if expected not in promoted:
@@ -101,11 +110,17 @@ async def main() -> int:
                     f"(got {promoted})"
                 )
         promoted_badges = await section_badges(page, "Promoted Picks")
+        # Every sponsored card must carry the exact 'Bestseller' badge.
         if len(promoted_badges) < len(EXPECTED_SPONSORED):
             failures.append(
                 f"Promoted Picks: expected ≥{len(EXPECTED_SPONSORED)} "
-                f"BESTSELLER badges, got {len(promoted_badges)}"
+                f"Bestseller badges, got {len(promoted_badges)} → {promoted_badges}"
             )
+        for b in promoted_badges:
+            if b != "Bestseller":
+                failures.append(
+                    f"Promoted Picks: badge text must be exactly 'Bestseller', got {b!r}"
+                )
 
         # --- You May Also Like (Recommended) ------------------------------
         recommended = await section_titles(page, "You May Also Like")
