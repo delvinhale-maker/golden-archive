@@ -155,6 +155,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
                 name: "Illustrious Capital",
               },
               sameAs: [
+                "https://x.com/AurumVault",
                 "https://twitter.com/AurumVault",
               ],
               contactPoint: {
