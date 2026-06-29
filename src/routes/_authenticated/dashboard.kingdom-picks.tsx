@@ -182,14 +182,31 @@ function KingdomPicksAdminPage() {
           <h1 className="mt-1 font-display text-3xl md:text-4xl text-navy">Kingdom Picks</h1>
           <p className="mt-1 text-mute text-sm">Curate Amazon &amp; Walmart partner products and track click-through performance.</p>
         </div>
-        <button
-          onClick={startCreate}
-          className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 text-white shadow-md hover:shadow-lg"
-          style={{ background: "var(--page-accent)" }}
-        >
-          <Plus size={16} /> Add Kingdom Pick
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => refreshClicks(true)}
+            disabled={refreshingClicks}
+            className="inline-flex items-center gap-2 rounded-full border border-navy/20 px-4 py-2.5 text-sm font-medium text-navy hover:bg-navy/5 disabled:opacity-60"
+            aria-label="Refresh click counts"
+            title={clicksUpdatedAt ? `Last updated ${clicksUpdatedAt.toLocaleTimeString()}` : "Refresh click counts"}
+          >
+            <RefreshCw size={14} className={refreshingClicks ? "animate-spin" : ""} />
+            {refreshingClicks ? "Refreshing…" : "Refresh clicks"}
+          </button>
+          <button
+            onClick={startCreate}
+            className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 text-white shadow-md hover:shadow-lg"
+            style={{ background: "var(--page-accent)" }}
+          >
+            <Plus size={16} /> Add Kingdom Pick
+          </button>
+        </div>
       </div>
+      {clicksUpdatedAt && (
+        <p className="mt-2 text-[11px] text-mute">
+          Click counts updated {clicksUpdatedAt.toLocaleTimeString()}
+        </p>
+      )}
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
         <table className="w-full text-sm">
