@@ -158,6 +158,9 @@ function AdminPage() {
       <main className="mx-auto max-w-6xl px-4 md:px-8 py-8 space-y-6">
         <h1 className="font-display text-3xl md:text-4xl text-navy">Approval queue</h1>
 
+        <SlugIntegrityPanel />
+
+
         <div className="flex gap-2 border-b border-ink/10">
           {(["products", "applications"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
