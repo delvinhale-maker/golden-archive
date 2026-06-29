@@ -92,28 +92,33 @@ def _truncate(body: str, limits: dict[str, int]) -> str:
 
 async def install_stub(page, limits: dict[str, int]) -> None:
     async def handler(route: Route, request: Request) -> None:
-        if HOME_ROWS_FN_MARKER not in request.url and "/_serverFn/" not in request.url:
-            await route.continue_()
-            return
-        # Only intercept the RPC call (POST/GET to /_serverFn/<id>). The
-        # marker check above filters out unrelated server fns.
+        # Only intercept the home-rows RPC; let other server fns pass through.
+        import base64
+        try:
+            b64 = request.url.split("/_serverFn/")[1].split("?")[0]
+            fn_id = json.loads(base64.b64decode(b64 + "==").decode("utf-8", "ignore"))
+            if HOME_ROWS_FN_MARKER not in fn_id.get("file", "") or "getHomeRows" not in fn_id.get("export", ""):
+                return await route.continue_()
+        except Exception:
+            return await route.continue_()
+
         try:
             response = await route.fetch()
             body = await response.text()
             mutated = _truncate(body, limits)
-            await route.fulfill(
-                status=response.status,
-                headers={
-                    "content-type": response.headers.get("content-type", "application/json"),
-                },
-                body=mutated,
-            )
+            # Preserve TanStack's serialization markers. Without
+            # `x-tss-serialized: true` the client decoder returns undefined
+            # and React Query reports "data is undefined".
+            headers = {
+                "content-type": response.headers.get("content-type", "application/json"),
+                "x-tss-serialized": response.headers.get("x-tss-serialized", "true"),
+            }
+            await route.fulfill(status=response.status, headers=headers, body=mutated)
         except Exception as exc:
             print(f"  ! stub failed, passing through: {exc}", file=sys.stderr)
             await route.continue_()
 
-    # Match the home-rows server fn URL — base64 in the path includes the file name.
-    await page.route(f"**/_serverFn/**", handler)
+    await page.route("**/_serverFn/**", handler)
 
 
 # --------------------------------------------------------------------------- #
