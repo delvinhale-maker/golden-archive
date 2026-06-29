@@ -435,7 +435,7 @@ export type Database = {
           published?: boolean
           rejected_reason?: string | null
           seller_id: string
-          slug: string
+          slug?: string
           status?: Database["public"]["Enums"]["product_status"]
           subtitle?: string | null
           title: string
