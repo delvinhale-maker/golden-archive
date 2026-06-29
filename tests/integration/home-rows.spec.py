@@ -39,8 +39,8 @@ async def section_titles(page, heading: str) -> list[str]:
     sec = page.locator(f"section:has(h2:has-text('{heading}'))").first
     await sec.scroll_into_view_if_needed()
     await sec.wait_for(state="visible", timeout=5000)
-    # Product titles live in card <h3> elements rendered by ProductCard.
-    titles = await sec.locator("h3").all_inner_texts()
+    # ProductCard renders the title as a <Link to="/products/$id">{title}</Link>.
+    titles = await sec.locator("a[href^='/products/']").all_inner_texts()
     return [t.strip() for t in titles if t.strip()]
 
 
