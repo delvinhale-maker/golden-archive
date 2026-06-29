@@ -83,9 +83,19 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         .map((t) => rows.find((r) => r.title === t))
         .filter((r): r is Row => Boolean(r))
         .map((r) => toProduct(r, true));
-      // Recommended: top 3 bestsellers (proxy: oldest approved = most established)
+      // Recommended: top 3 by paid sales count (order_items joined to paid orders)
+      const ids = rows.map((r) => r.id);
+      const { data: itemRows } = await supa
+        .from("order_items")
+        .select("product_id, orders!inner(status)")
+        .in("product_id", ids)
+        .eq("orders.status", "paid");
+      const counts = new Map<string, number>();
+      for (const it of (itemRows ?? []) as Array<{ product_id: string }>) {
+        counts.set(it.product_id, (counts.get(it.product_id) ?? 0) + 1);
+      }
       const recommended = [...rows]
-        .sort((a, b) => (a.created_at < b.created_at ? -1 : 1))
+        .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
         .slice(0, 3)
         .map((r) => toProduct(r));
       return { newReleases, recommended, sponsored };
