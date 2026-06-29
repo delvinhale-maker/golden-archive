@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
@@ -10,7 +10,7 @@ import {
   type AffiliateProduct,
   type AffiliateSource,
 } from "@/lib/affiliate";
-import { Crown, Plus, Pencil, Trash2, ExternalLink, ShieldAlert, RefreshCw } from "lucide-react";
+import { Crown, Plus, Pencil, Trash2, ExternalLink, ShieldAlert, RefreshCw, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/kingdom-picks")({
