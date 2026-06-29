@@ -25,7 +25,7 @@ function Row({
 }) {
   if (!loading && products.length === 0 && !empty) return null;
   return (
-    <section className="bg-white py-10 md:py-14">
+    <section className="bg-bg-page py-10 md:py-14">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
