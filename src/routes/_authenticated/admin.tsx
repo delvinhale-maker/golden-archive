@@ -10,6 +10,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
 import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { runSlugIntegrityCheck, listSlugIntegrityAlerts } from "@/lib/slug-integrity.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -157,6 +158,9 @@ function AdminPage() {
       <main className="mx-auto max-w-6xl px-4 md:px-8 py-8 space-y-6">
         <h1 className="font-display text-3xl md:text-4xl text-navy">Approval queue</h1>
 
+        <SlugIntegrityPanel />
+
+
         <div className="flex gap-2 border-b border-ink/10">
           {(["products", "applications"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
@@ -266,6 +270,120 @@ function AIBadge({ p }: { p: Prod }) {
     />
   );
 }
+
+type SlugAlert = {
+  id: string;
+  ran_at: string;
+  status: "ok" | "warn" | "fail";
+  missing_slug_count: number;
+  duplicate_group_count: number;
+  index_present: boolean;
+  details: { duplicates?: Array<{ seller_id: string; slug: string; count: number }> };
+};
+
+function SlugIntegrityPanel() {
+  const runCheck = useServerFn(runSlugIntegrityCheck);
+  const listAlerts = useServerFn(listSlugIntegrityAlerts);
+  const [alerts, setAlerts] = useState<SlugAlert[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  async function load() {
+    try {
+      const rows = await listAlerts({ data: undefined });
+      setAlerts(rows as SlugAlert[]);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load alerts");
+    } finally {
+      setLoaded(true);
+    }
+  }
+
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
+  async function run() {
+    setBusy(true);
+    try {
+      const row = await runCheck({ data: undefined });
+      const r = row as SlugAlert;
+      if (r.status === "ok") toast.success("Slug check passed");
+      else if (r.status === "warn") toast.warning(`Slug check warning · ${r.missing_slug_count} missing`);
+      else toast.error(`Slug check failed · ${r.duplicate_group_count} dup group(s), index ${r.index_present ? "present" : "missing"}`);
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Check failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const latest = alerts[0];
+  const dot = (s: SlugAlert["status"]) =>
+    s === "ok" ? "bg-emerald-500" : s === "warn" ? "bg-amber-500" : "bg-red-500";
+
+  return (
+    <section className="bg-white border border-ink/10 rounded-2xl p-4">
+      <div className="flex items-center gap-3 flex-wrap">
+        <ShieldCheck size={16} className="text-navy" />
+        <p className="font-display text-lg text-navy">Slug integrity</p>
+        {latest && (
+          <span className="inline-flex items-center gap-1.5 text-xs text-mute">
+            <span className={`inline-block w-2 h-2 rounded-full ${dot(latest.status)}`} />
+            Last run {new Date(latest.ran_at).toLocaleString()} · {latest.status.toUpperCase()}
+          </span>
+        )}
+        <button
+          onClick={run}
+          disabled={busy}
+          className="ml-auto inline-flex items-center gap-1.5 text-sm rounded-full bg-navy text-white px-3 py-1.5 hover:bg-navy/90 disabled:opacity-50"
+        >
+          {busy ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+          Run check now
+        </button>
+      </div>
+
+      {!loaded ? null : alerts.length === 0 ? (
+        <p className="text-xs text-mute mt-3">No runs recorded yet.</p>
+      ) : (
+        <div className="mt-3 space-y-2">
+          {latest && (latest.missing_slug_count > 0 || latest.duplicate_group_count > 0 || !latest.index_present) && (
+            <div className="rounded-xl bg-paper/60 border border-ink/10 p-3 text-xs space-y-1">
+              <p className="font-medium text-navy">Issues from latest run</p>
+              <ul className="space-y-0.5 text-ink/80">
+                <li>Missing/empty slugs: <span className="font-medium">{latest.missing_slug_count}</span></li>
+                <li>Duplicate (seller, slug) groups: <span className="font-medium">{latest.duplicate_group_count}</span></li>
+                <li>Partial unique index present: <span className="font-medium">{latest.index_present ? "yes" : "no"}</span></li>
+              </ul>
+              {latest.details?.duplicates && latest.details.duplicates.length > 0 && (
+                <details className="mt-1">
+                  <summary className="cursor-pointer text-navy">Duplicate examples</summary>
+                  <ul className="mt-1 space-y-0.5 font-mono text-[11px]">
+                    {latest.details.duplicates.slice(0, 10).map((d, i) => (
+                      <li key={i}>{d.slug} · seller {d.seller_id.slice(0, 8)}… ×{d.count}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </div>
+          )}
+          <details>
+            <summary className="cursor-pointer text-xs text-mute">Recent runs ({alerts.length})</summary>
+            <ul className="mt-2 space-y-1">
+              {alerts.map((a) => (
+                <li key={a.id} className="text-xs flex items-center gap-2">
+                  <span className={`inline-block w-1.5 h-1.5 rounded-full ${dot(a.status)}`} />
+                  <span className="text-mute">{new Date(a.ran_at).toLocaleString()}</span>
+                  <span className="text-ink/80">missing {a.missing_slug_count} · dup {a.duplicate_group_count} · idx {a.index_present ? "✓" : "✗"}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        </div>
+      )}
+    </section>
+  );
+}
+
 
 
 function Empty({ msg }: { msg: string }) {
