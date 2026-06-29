@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
@@ -10,7 +10,7 @@ import {
   type AffiliateProduct,
   type AffiliateSource,
 } from "@/lib/affiliate";
-import { Crown, Plus, Pencil, Trash2, ExternalLink, ShieldAlert, RefreshCw } from "lucide-react";
+import { Crown, Plus, Pencil, Trash2, ExternalLink, ShieldAlert, RefreshCw, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/kingdom-picks")({
@@ -55,6 +55,9 @@ function KingdomPicksAdminPage() {
   const [busy, setBusy] = useState(false);
   const [refreshingClicks, setRefreshingClicks] = useState(false);
   const [clicksUpdatedAt, setClicksUpdatedAt] = useState<Date | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [autoRefreshSeconds, setAutoRefreshSeconds] = useState(30);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   async function refreshClicks(showToast = false) {
     setRefreshingClicks(true);
@@ -83,6 +86,24 @@ function KingdomPicksAdminPage() {
   useEffect(() => {
     if (isAdmin) refresh();
   }, [isAdmin]);
+
+  useEffect(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (autoRefresh && isAdmin) {
+      timerRef.current = setInterval(() => {
+        refreshClicks(false);
+      }, Math.max(5, autoRefreshSeconds) * 1000);
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [autoRefresh, autoRefreshSeconds, isAdmin]);
 
   if (loading) return null;
   if (!isAdmin) {
@@ -202,11 +223,35 @@ function KingdomPicksAdminPage() {
           </button>
         </div>
       </div>
-      {clicksUpdatedAt && (
-        <p className="mt-2 text-[11px] text-mute">
-          Click counts updated {clicksUpdatedAt.toLocaleTimeString()}
-        </p>
-      )}
+      <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-mute">
+        {clicksUpdatedAt && (
+          <span>Click counts updated {clicksUpdatedAt.toLocaleTimeString()}</span>
+        )}
+        <div className="flex items-center gap-2 rounded-full border border-navy/10 bg-white px-3 py-1.5">
+          <button
+            onClick={() => setAutoRefresh((v) => !v)}
+            className={`inline-flex items-center gap-1.5 transition ${autoRefresh ? "text-gold" : "text-mute"}`}
+            aria-pressed={autoRefresh}
+            aria-label="Toggle auto-refresh"
+          >
+            <Clock size={12} className={autoRefresh ? "animate-pulse" : ""} />
+            <span className="font-semibold">Auto-refresh</span>
+            <span className={`ml-1 h-2 w-2 rounded-full ${autoRefresh ? "bg-green-500" : "bg-ink/20"}`} />
+          </button>
+          <select
+            value={autoRefreshSeconds}
+            onChange={(e) => setAutoRefreshSeconds(Number(e.target.value))}
+            disabled={!autoRefresh}
+            className="bg-transparent text-[11px] font-medium text-navy disabled:opacity-50"
+            aria-label="Auto-refresh interval"
+          >
+            <option value={10}>10s</option>
+            <option value={30}>30s</option>
+            <option value={60}>1m</option>
+            <option value={300}>5m</option>
+          </select>
+        </div>
+      </div>
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
         <table className="w-full text-sm">
