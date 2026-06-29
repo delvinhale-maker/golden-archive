@@ -145,7 +145,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
                 contentUrl: "https://www.aurumvault.store/og-image.png",
                 width: 1200,
                 height: 630,
-                caption: "AurumVault — Gold Standard Digital Commerce",
+                caption: "AurumVault logo — gold laurel crown on a deep navy background representing the gold standard of digital commerce.",
+                description: "AurumVault — Gold Standard Digital Commerce. A gold laurel crown mark on a premium navy background, representing the trusted marketplace for purpose-driven digital products.",
+                representativeOfPage: true,
               },
               slogan: "Gold Standard Digital Commerce",
               parentOrganization: {
