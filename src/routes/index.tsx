@@ -536,7 +536,7 @@ function IllustriousCreator() {
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
             whileHover={{ y: -4 }}
-            className="av-card overflow-hidden"
+            className="overflow-hidden rounded-lg border border-white/10 bg-white/5 shadow-card"
           >
             <div
               className="h-[120px]"
@@ -553,18 +553,18 @@ function IllustriousCreator() {
                 IC
               </div>
               <div className="mt-3 flex items-center gap-1.5">
-                <div className="font-display text-lg font-bold text-ink">
+                <div className="font-display text-lg font-bold text-white">
                   Illustrious Capital™
                 </div>
                 <BadgeCheck size={16} className="text-emerald" />
               </div>
-              <div className="text-[13px] text-mute">
+              <div className="text-[13px] text-white/70">
                 Kingdom-centered digital resources
               </div>
               <div className="mt-4 flex items-center gap-6 text-[13px]">
                 <div>
-                  <div className="font-bold text-ink">{count}</div>
-                  <div className="text-[11px] text-mute">Products</div>
+                  <div className="font-bold text-white">{count}</div>
+                  <div className="text-[11px] text-white/60">Products</div>
                 </div>
               </div>
               <Link
@@ -575,6 +575,7 @@ function IllustriousCreator() {
               </Link>
             </div>
           </motion.div>
+
         </div>
       </div>
     </section>
