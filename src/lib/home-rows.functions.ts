@@ -98,17 +98,24 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         .order("created_at", { ascending: false })
         .limit(40);
       const rows = (data ?? []) as Array<Row & { featured: boolean | null }>;
+      // Fallback when no products at all: empty arrays (nothing to show).
       if (rows.length === 0) {
         return { newReleases: [], recommended: [], sponsored: [] };
       }
-      // New Releases: all approved+published, newest first (capped at 8 for layout).
-      const newReleases = rows.slice(0, 8).map((r) => toProduct(r));
-      // Sponsored: every product flagged featured = true (DB-curated).
-      const sponsored = rows
+      // Top 3 by created_at (newest first), used as a fallback for any empty row.
+      const top3ByDate = rows.slice(0, 3).map((r) => toProduct(r));
+
+      // New Releases: newest 8; fall back to top 3 by date when empty.
+      let newReleases = rows.slice(0, 8).map((r) => toProduct(r));
+      if (newReleases.length === 0) newReleases = top3ByDate;
+
+      // Sponsored: products flagged featured; fall back to top 3 by date.
+      let sponsored = rows
         .filter((r) => r.featured === true)
         .map((r) => toProduct(r, true));
-      // Recommended: rank by paid-sales count; when no paid orders exist,
-      // fall back to the full catalog (newest first) so the row never empties.
+      if (sponsored.length === 0) sponsored = top3ByDate;
+
+      // Recommended: rank by paid-sales count, then by created_at.
       const ids = rows.map((r) => r.id);
       const { data: itemRows } = await supa
         .from("order_items")
@@ -119,10 +126,11 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       for (const it of (itemRows ?? []) as Array<{ product_id: string }>) {
         counts.set(it.product_id, (counts.get(it.product_id) ?? 0) + 1);
       }
-      const recommended = [...rows]
+      let recommended = [...rows]
         .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
         .slice(0, 8)
         .map((r) => toProduct(r));
+      if (recommended.length === 0) recommended = top3ByDate;
       const [nrR, spR, recR] = await Promise.all([
         attachRatings(supa, newReleases),
         attachRatings(supa, sponsored),

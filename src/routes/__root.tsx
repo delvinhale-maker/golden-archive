@@ -91,8 +91,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Discover premium eBooks, courses, templates, and digital resources from verified purpose-driven creators. Powered by Illustrious Capital™.",
       },
-      // Google Search Console verification — add the real `content` value before re-enabling.
-      // { name: "google-site-verification", content: "<paste-code-here>" },
       { property: "og:site_name", content: "AurumVault" },
       { property: "og:type", content: "website" },
       { property: "og:title", content: "AurumVault — Gold Standard Digital Commerce" },
