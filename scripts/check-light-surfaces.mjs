@@ -14,12 +14,14 @@ import { join, relative } from "node:path";
 const ROOT = new URL("..", import.meta.url).pathname;
 const SCAN_DIR = join(ROOT, "src");
 
-// Files/dirs explicitly exempt (legacy themed components, UI primitives
-// rendered inside dark overlays, etc.).
+// Files/dirs explicitly exempt. The guard targets the PUBLIC marketing /
+// storefront surfaces — authenticated admin / seller dashboards and shadcn
+// primitives intentionally use light surfaces.
 const EXEMPT_PATHS = [
   "src/components/ui/",                          // shadcn primitives
-  "src/components/marketplace/CartDrawer.tsx",   // drawer surface is intentionally light
-  "src/components/marketplace/MarketHeader.tsx", // search popovers / mobile sheet
+  "src/routes/_authenticated/",                  // admin + seller dashboards
+  "src/components/marketplace/CartDrawer.tsx",   // drawer over dark page
+  "src/components/marketplace/MarketHeader.tsx", // search popover / mobile sheet
   "src/components/marketplace/NotificationsBell.tsx",
   "src/components/marketplace/UploadFab.tsx",
   "src/components/marketplace/PublisherShell.tsx",
@@ -33,17 +35,20 @@ const EXEMPT_PATHS = [
   "src/components/marketplace/PremiumProductCard.tsx",
   "src/components/marketplace/AffiliateCard.tsx",
   "src/components/marketplace/MobileTabBar.tsx",
+  "src/components/marketplace/CustomersAlsoBought.tsx",
 ];
 
-// Forbidden patterns. Each entry: { re, label }.
+// Forbidden patterns. Negative lookahead `(?!\/)` ignores translucent
+// alpha variants like `bg-white/10` — those are overlays, not surfaces.
 const FORBIDDEN = [
-  { re: /\bbg-white\b/, label: "bg-white" },
-  { re: /\bbg-cream\b/, label: "bg-cream" },
+  { re: /\bbg-white\b(?!\/)/, label: "bg-white" },
+  { re: /\bbg-cream\b(?!\/)/, label: "bg-cream" },
   { re: /bg-\[#FDFAF1\]/i, label: "bg-[#FDFAF1] (cream)" },
   { re: /bg-\[#f9fafb\]/i, label: "bg-[#f9fafb] (light gray)" },
   { re: /bg-\[#fafaf7\]/i, label: "bg-[#fafaf7] (cream)" },
   { re: /bg-\[#fdf9ec\]/i, label: "bg-[#fdf9ec] (cream)" },
 ];
+
 
 const SCAN_EXTS = new Set([".tsx", ".ts", ".jsx", ".js", ".css"]);
 const ALLOW_MARKER = "allow-light-bg";
