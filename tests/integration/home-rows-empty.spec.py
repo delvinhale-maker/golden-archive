@@ -86,7 +86,8 @@ def _truncate(body: str, limits: dict[str, int]) -> str:
         # arr_node looks like {"t":9,"i":N,"a":[...]} — truncate `a` in place.
         if isinstance(arr_node, dict) and isinstance(arr_node.get("a"), list):
             arr_node["a"] = arr_node["a"][:n]
-    return json.dumps(envelope)
+    # Seroval's client parser expects the same compact JSON the server emits.
+    return json.dumps(envelope, separators=(",", ":"), ensure_ascii=False)
 
 
 async def install_stub(page, limits: dict[str, int]) -> None:
