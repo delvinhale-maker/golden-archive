@@ -67,7 +67,8 @@ async def main() -> int:
         # --- Live catalog (server-rendered) -------------------------------
         # Collect every product title visible anywhere on the page so we can
         # validate New Releases entries belong to the live catalog.
-        all_titles = set(await page.locator("a[href^='/products/']").all_inner_texts())
+        raw_all = await page.locator("a[href^='/products/']").all_inner_texts()
+        all_titles = {t.strip() for t in raw_all if t.strip() and "\n" not in t.strip()}
 
         # --- New Releases --------------------------------------------------
         new_releases = await section_titles(page, "New Releases")
