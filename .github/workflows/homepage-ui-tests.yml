@@ -109,10 +109,14 @@ jobs:
           tail -n 200 /tmp/dev-server.log
           exit 1
 
+      - name: Install Pillow (pixel diff)
+        run: pip install Pillow
+
       - name: Run homepage row tests
         run: |
           python tests/integration/home-rows.spec.py
           python tests/integration/home-rows-empty.spec.py
+          python tests/integration/home-pixel-darkness.spec.py
 
       - name: Upload artifacts on failure
         if: failure()
