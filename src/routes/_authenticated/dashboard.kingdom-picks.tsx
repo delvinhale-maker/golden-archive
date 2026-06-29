@@ -10,7 +10,7 @@ import {
   type AffiliateProduct,
   type AffiliateSource,
 } from "@/lib/affiliate";
-import { Crown, Plus, Pencil, Trash2, ExternalLink, ShieldAlert } from "lucide-react";
+import { Crown, Plus, Pencil, Trash2, ExternalLink, ShieldAlert, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/kingdom-picks")({
@@ -53,6 +53,22 @@ function KingdomPicksAdminPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [busy, setBusy] = useState(false);
+  const [refreshingClicks, setRefreshingClicks] = useState(false);
+  const [clicksUpdatedAt, setClicksUpdatedAt] = useState<Date | null>(null);
+
+  async function refreshClicks(showToast = false) {
+    setRefreshingClicks(true);
+    try {
+      const counts = await fetchAffiliateClickCounts();
+      setClicks(counts);
+      setClicksUpdatedAt(new Date());
+      if (showToast) toast.success("Click counts refreshed");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to refresh clicks");
+    } finally {
+      setRefreshingClicks(false);
+    }
+  }
 
   async function refresh() {
     const [products, counts] = await Promise.all([
@@ -61,6 +77,7 @@ function KingdomPicksAdminPage() {
     ]);
     setRows(products);
     setClicks(counts);
+    setClicksUpdatedAt(new Date());
   }
 
   useEffect(() => {
@@ -165,14 +182,31 @@ function KingdomPicksAdminPage() {
           <h1 className="mt-1 font-display text-3xl md:text-4xl text-navy">Kingdom Picks</h1>
           <p className="mt-1 text-mute text-sm">Curate Amazon &amp; Walmart partner products and track click-through performance.</p>
         </div>
-        <button
-          onClick={startCreate}
-          className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 text-white shadow-md hover:shadow-lg"
-          style={{ background: "var(--page-accent)" }}
-        >
-          <Plus size={16} /> Add Kingdom Pick
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => refreshClicks(true)}
+            disabled={refreshingClicks}
+            className="inline-flex items-center gap-2 rounded-full border border-navy/20 px-4 py-2.5 text-sm font-medium text-navy hover:bg-navy/5 disabled:opacity-60"
+            aria-label="Refresh click counts"
+            title={clicksUpdatedAt ? `Last updated ${clicksUpdatedAt.toLocaleTimeString()}` : "Refresh click counts"}
+          >
+            <RefreshCw size={14} className={refreshingClicks ? "animate-spin" : ""} />
+            {refreshingClicks ? "Refreshing…" : "Refresh clicks"}
+          </button>
+          <button
+            onClick={startCreate}
+            className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 text-white shadow-md hover:shadow-lg"
+            style={{ background: "var(--page-accent)" }}
+          >
+            <Plus size={16} /> Add Kingdom Pick
+          </button>
+        </div>
       </div>
+      {clicksUpdatedAt && (
+        <p className="mt-2 text-[11px] text-mute">
+          Click counts updated {clicksUpdatedAt.toLocaleTimeString()}
+        </p>
+      )}
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
         <table className="w-full text-sm">
@@ -183,7 +217,12 @@ function KingdomPicksAdminPage() {
               <th className="p-3">Source</th>
               <th className="p-3">Category</th>
               <th className="p-3">Price</th>
-              <th className="p-3">Clicks</th>
+              <th className="p-3">
+                <span className="inline-flex items-center gap-1">
+                  Clicks
+                  {refreshingClicks && <RefreshCw size={10} className="animate-spin text-gold" />}
+                </span>
+              </th>
               <th className="p-3">Featured</th>
               <th className="p-3">Active</th>
               <th className="p-3 text-right">Actions</th>
