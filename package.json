@@ -9,7 +9,9 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
+    "check:bg": "node scripts/check-light-surfaces.mjs",
     "format": "prettier --write ."
+
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.51",
