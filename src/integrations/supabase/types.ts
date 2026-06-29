@@ -915,6 +915,36 @@ export type Database = {
         }
         Relationships: []
       }
+      slug_integrity_alerts: {
+        Row: {
+          details: Json
+          duplicate_group_count: number
+          id: string
+          index_present: boolean
+          missing_slug_count: number
+          ran_at: string
+          status: string
+        }
+        Insert: {
+          details?: Json
+          duplicate_group_count?: number
+          id?: string
+          index_present?: boolean
+          missing_slug_count?: number
+          ran_at?: string
+          status: string
+        }
+        Update: {
+          details?: Json
+          duplicate_group_count?: number
+          id?: string
+          index_present?: boolean
+          missing_slug_count?: number
+          ran_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           confirmation_sent_at: string | null
@@ -1067,6 +1097,24 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      run_slug_integrity_check: {
+        Args: never
+        Returns: {
+          details: Json
+          duplicate_group_count: number
+          id: string
+          index_present: boolean
+          missing_slug_count: number
+          ran_at: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "slug_integrity_alerts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       upsert_abandoned_cart: {
         Args: {
