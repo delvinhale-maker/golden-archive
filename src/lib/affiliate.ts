@@ -52,16 +52,23 @@ export async function fetchAffiliateProducts(opts?: {
 /** Fire-and-forget click logging. Never blocks navigation. */
 export function logAffiliateClick(p: AffiliateProduct, userId?: string | null) {
   try {
-    void supabase.from("affiliate_clicks").insert({
-      product_id: p.id,
-      affiliate_url: p.affiliate_url,
-      source: p.source,
-      user_id: userId ?? null,
-    });
+    // PostgREST builder is lazy — call .then() to actually dispatch the request.
+    supabase
+      .from("affiliate_clicks")
+      .insert({
+        product_id: p.id,
+        affiliate_url: p.affiliate_url,
+        source: p.source,
+        user_id: userId ?? null,
+      })
+      .then(({ error }) => {
+        if (error) console.warn("[affiliate] click log failed", error.message);
+      });
   } catch {
     /* ignore */
   }
 }
+
 
 /** Map of product_id -> total click count (admin only — relies on SELECT policy). */
 export async function fetchAffiliateClickCounts(): Promise<Record<string, number>> {
