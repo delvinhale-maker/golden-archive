@@ -37,16 +37,17 @@ function Row({
                 {kicker}
               </div>
             )}
-            <h2 className="mt-1 flex items-center gap-2 font-display text-2xl font-bold text-ink md:text-3xl">
+            <h2 className="mt-1 flex items-center gap-2 font-display text-2xl font-bold md:text-3xl" style={{ color: "#ffffff" }}>
               <Icon size={22} className="text-gold" /> {title}
             </h2>
           </div>
           <Link
             to="/products"
-            className="hidden text-xs font-bold uppercase tracking-caps text-navy hover:text-gold sm:inline"
+            className="hidden text-xs font-bold uppercase tracking-caps text-gold hover:text-white sm:inline"
           >
             See all →
           </Link>
+
         </div>
 
         {loading ? (
