@@ -52,18 +52,18 @@ export const logError = createServerFn({ method: "POST" })
       .insert({
         message: data.message,
         stack: data.stack,
-        source: data.source,
-        severity: data.severity,
+        source: data.source ?? "client",
+        severity: data.severity ?? "error",
         route: data.route,
         url: data.url,
         user_agent: data.userAgent,
         fingerprint,
-        context: data.context,
+        context: data.context as any,
       })
       .select("id, occurred_at")
       .single();
 
-    if (error) {
+    if (error || !inserted) {
       console.error("logError insert failed", error);
       return { ok: false as const };
     }
