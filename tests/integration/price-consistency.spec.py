@@ -93,16 +93,17 @@ async def main() -> int:
                 else None
             )
 
-            def check(scope: str, text: str, *, require_title_match: bool = False):
-                if require_title_match and title not in text:
-                    return
-                if not price_present(text, cents):
+            def check(scope: str, text: str, *, title_gated: bool = False):
+                title_visible = title in text
+                if not title_gated and not price_present(text, cents):
+                    failures.append(f"{scope} '{title}': expected {expected}")
+                if title_gated and title_visible and not price_present(text, cents):
                     failures.append(f"{scope} '{title}': expected {expected}")
                 if compare_cents and compare_cents > cents:
                     # Compare-at must render alongside the sale price wherever the
-                    # product appears. On listings we only assert it when the title
-                    # is visible (the row may be paginated off-screen).
-                    if not price_present(text, compare_cents):
+                    # product card/detail is visible.
+                    needs_compare = (not title_gated) or title_visible
+                    if needs_compare and not price_present(text, compare_cents):
                         failures.append(
                             f"{scope} '{title}': expected compare-at {compare_expected}"
                         )
