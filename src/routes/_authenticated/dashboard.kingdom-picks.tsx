@@ -87,6 +87,24 @@ function KingdomPicksAdminPage() {
     if (isAdmin) refresh();
   }, [isAdmin]);
 
+  useEffect(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (autoRefresh && isAdmin) {
+      timerRef.current = setInterval(() => {
+        refreshClicks(false);
+      }, Math.max(5, autoRefreshSeconds) * 1000);
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [autoRefresh, autoRefreshSeconds, isAdmin]);
+
   if (loading) return null;
   if (!isAdmin) {
     return (
