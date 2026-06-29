@@ -15,9 +15,8 @@ import {
   Lock,
   RefreshCw,
   ShieldCheck,
-  Star,
-  Swords,
   Twitter,
+  Wallet,
 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import {
