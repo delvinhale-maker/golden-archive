@@ -331,12 +331,22 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
               {description}
             </p>
 
-            <div className="mt-6 flex items-baseline gap-3">
-              <span className="text-4xl font-bold" style={{ color: GOLD }}>
+            <div
+              data-testid="pdp-price-block"
+              className="mt-6 flex items-baseline gap-3"
+            >
+              <span
+                data-testid="pdp-price"
+                className="text-4xl font-bold"
+                style={{ color: GOLD }}
+              >
                 ${price.toFixed(2)}
               </span>
               {compareAtPrice && compareAtPrice > price && (
-                <span className="text-lg text-[#9ca3af] line-through">
+                <span
+                  data-testid="pdp-compare-at"
+                  className="text-lg text-[#9ca3af] line-through"
+                >
                   ${compareAtPrice.toFixed(2)}
                 </span>
               )}

@@ -16,6 +16,8 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
 
   return (
     <motion.article
+      data-testid="product-tile"
+      data-product-id={product.id}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
@@ -122,12 +124,18 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
           <div className="mt-2 text-[11px] italic text-mute">No reviews yet</div>
         )}
         <div className="mt-3 flex items-baseline gap-2">
-          <span className="font-display text-[18px] font-bold text-gold">
-            ${product.price}
+          <span
+            data-testid="product-price"
+            className="font-display text-[18px] font-bold text-gold"
+          >
+            ${product.price.toFixed(2)}
           </span>
           {product.compareAtPrice && (
-            <span className="text-[12px] text-mute line-through">
-              ${product.compareAtPrice}
+            <span
+              data-testid="product-compare-at"
+              className="text-[12px] text-mute line-through"
+            >
+              ${product.compareAtPrice.toFixed(2)}
             </span>
           )}
         </div>
