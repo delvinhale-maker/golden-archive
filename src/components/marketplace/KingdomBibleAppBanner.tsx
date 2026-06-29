@@ -2,7 +2,7 @@ import { Crown, ArrowRight } from "lucide-react";
 
 export function KingdomBibleAppBanner() {
   return (
-    <section className="bg-white py-6 md:py-8">
+    <section className="bg-bg-page py-6 md:py-8">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <a
           href="https://www.kingdombibleapp.com"
