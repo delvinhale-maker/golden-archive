@@ -33,7 +33,8 @@ def fetch_products():
     assert SUPABASE_URL and SUPABASE_KEY, "Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY"
     url = (
         f"{SUPABASE_URL}/rest/v1/marketplace_products"
-        "?select=id,title,price_cents&published=eq.true&status=eq.approved"
+        "?select=id,title,price_cents,compare_at_price_cents"
+        "&published=eq.true&status=eq.approved"
     )
     req = urllib.request.Request(
         url,
