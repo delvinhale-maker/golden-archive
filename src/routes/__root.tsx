@@ -131,14 +131,62 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
-          "@type": "OnlineStore",
-          name: "AurumVault",
-          alternateName: "Aurum Vault",
-          url: "https://www.aurumvault.store",
-          slogan: "Gold Standard Digital Commerce",
-          parentOrganization: { "@type": "Organization", name: "Illustrious Capital" },
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": "https://www.aurumvault.store/#organization",
+              name: "AurumVault",
+              alternateName: "Aurum Vault",
+              url: "https://www.aurumvault.store",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://www.aurumvault.store/og-image.png",
+                width: 1200,
+                height: 630,
+              },
+              slogan: "Gold Standard Digital Commerce",
+              parentOrganization: {
+                "@type": "Organization",
+                name: "Illustrious Capital",
+              },
+              sameAs: [
+                "https://twitter.com/AurumVault",
+              ],
+              contactPoint: {
+                "@type": "ContactPoint",
+                contactType: "customer support",
+                email: "support@aurumvault.store",
+                availableLanguage: ["English"],
+              },
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://www.aurumvault.store/#website",
+              url: "https://www.aurumvault.store",
+              name: "AurumVault",
+              description:
+                "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
+              publisher: { "@id": "https://www.aurumvault.store/#organization" },
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate: "https://www.aurumvault.store/search?q={search_term_string}",
+                },
+                "query-input": "required name=search_term_string",
+              },
+            },
+            {
+              "@type": "OnlineStore",
+              "@id": "https://www.aurumvault.store/#store",
+              name: "AurumVault",
+              url: "https://www.aurumvault.store",
+              parentOrganization: { "@id": "https://www.aurumvault.store/#organization" },
+            },
+          ],
         }),
       },
+
       // Google Analytics 4 (placeholder)
       // Replace G-XXXXXXXXXX with your GA4 Measurement ID
       {
