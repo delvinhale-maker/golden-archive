@@ -69,13 +69,19 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       if (rows.length === 0) {
         return { newReleases: [], recommended: [], sponsored: [] };
       }
-      const newReleases = rows.slice(0, 8).map((r) => toProduct(r));
-      // Recommended: rotate by created_at hour for variety
-      const shuffled = [...rows].sort(
-        (a, b) => (a.id > b.id ? 1 : -1),
-      );
-      const recommended = shuffled.slice(0, 8).map((r) => toProduct(r));
-      const sponsored = rows.slice(0, 3).map((r) => toProduct(r, true));
+      // New Releases: 3 most recently added
+      const newReleases = rows.slice(0, 3).map((r) => toProduct(r));
+      // Sponsored: Kingdom Mind + M.O.V. (Illustrious Capital™ featured)
+      const SPONSORED_TITLES = ["Kingdom Mind", "M.O.V. — Method of Verification"];
+      const sponsored = SPONSORED_TITLES
+        .map((t) => rows.find((r) => r.title === t))
+        .filter((r): r is Row => Boolean(r))
+        .map((r) => toProduct(r, true));
+      // Recommended: top 3 bestsellers (proxy: oldest approved = most established)
+      const recommended = [...rows]
+        .sort((a, b) => (a.created_at < b.created_at ? -1 : 1))
+        .slice(0, 3)
+        .map((r) => toProduct(r));
       return { newReleases, recommended, sponsored };
     } catch {
       return { newReleases: [], recommended: [], sponsored: [] };
