@@ -115,7 +115,7 @@ export function HomeContentRows() {
       />
       <Row
         icon={Megaphone}
-        kicker="SPONSORED"
+        kicker="SPONSORED — ILLUSTRIOUS CAPITAL™"
         title="Promoted Picks"
         products={data?.sponsored ?? []}
         loading={isLoading}
