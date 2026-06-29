@@ -1037,6 +1037,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_abandoned_cart_recovered: {
+        Args: { _session_id: string }
+        Returns: undefined
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -1053,6 +1057,16 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      upsert_abandoned_cart: {
+        Args: {
+          _email?: string
+          _item_count: number
+          _items: Json
+          _session_id: string
+          _subtotal: number
+        }
+        Returns: undefined
       }
     }
     Enums: {
