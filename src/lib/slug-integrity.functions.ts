@@ -11,8 +11,7 @@ type AlertRow = {
   details: { duplicates?: Array<{ seller_id: string; slug: string; count: number }> };
 };
 
-async function ensureAdmin(ctx: { supabase: ReturnType<typeof Object>; userId: string }) {
-  // @ts-expect-error supabase typing from context
+async function ensureAdmin(ctx: { supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }> }; userId: string }) {
   const { data, error } = await ctx.supabase.rpc("has_role", {
     _user_id: ctx.userId,
     _role: "admin",
