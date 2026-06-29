@@ -60,9 +60,9 @@ try {
     BEGIN;
     SAVEPOINT sp;
     INSERT INTO public.marketplace_products
-      (seller_id, title, slug, status, price_cents, currency)
+      (seller_id, title, slug, status, price_cents, description, category)
     VALUES
-      ('${seller}', 'slug-check duplicate probe', '${slug}', 'pending', 100, 'usd');
+      ('${seller}', 'slug-check duplicate probe', '${slug}', 'pending', 100, 'probe', 'probe');
     ROLLBACK;
   `);
 } catch {
