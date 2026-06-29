@@ -57,7 +57,7 @@ function KingdomPicksAdminPage() {
   const [clicksUpdatedAt, setClicksUpdatedAt] = useState<Date | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [autoRefreshSeconds, setAutoRefreshSeconds] = useState(30);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   async function refreshClicks(showToast = false) {
     setRefreshingClicks(true);
