@@ -28,6 +28,7 @@ type Row = {
   title: string;
   category: string;
   price_cents: number;
+  compare_at_price_cents: number | null;
   cover_url: string | null;
   seller_id: string;
   created_at: string;
@@ -35,11 +36,16 @@ type Row = {
 
 function toProduct(r: Row, sponsored = false): Product {
   const cat = CAT_LABEL[r.category?.toLowerCase()] ?? r.category ?? "eBooks";
+  const compareAt =
+    r.compare_at_price_cents != null && r.compare_at_price_cents > r.price_cents
+      ? r.compare_at_price_cents / 100
+      : undefined;
   return {
     id: r.id,
     title: r.title,
     category: cat,
     price: r.price_cents / 100,
+    compareAtPrice: compareAt,
     rating: 0,
     reviewCount: 0,
     image: r.cover_url ?? `av:${cat}:0`,
@@ -60,7 +66,7 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       const supa = serverSupabase();
       const { data } = await supa
         .from("marketplace_products")
-        .select("id,title,category,price_cents,cover_url,seller_id,created_at")
+        .select("id,title,category,price_cents,compare_at_price_cents,cover_url,seller_id,created_at")
         .eq("status", "approved")
         .eq("published", true)
         .order("created_at", { ascending: false })
@@ -99,7 +105,7 @@ export const getProductsByIds = createServerFn({ method: "GET" })
       const supa = serverSupabase();
       const { data: rows } = await supa
         .from("marketplace_products")
-        .select("id,title,category,price_cents,cover_url,seller_id,created_at")
+        .select("id,title,category,price_cents,compare_at_price_cents,cover_url,seller_id,created_at")
         .in("id", data.ids)
         .eq("status", "approved")
         .eq("published", true);

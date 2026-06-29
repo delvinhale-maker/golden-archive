@@ -30,6 +30,7 @@ type DbProductRow = {
   title: string;
   category: string;
   price_cents: number;
+  compare_at_price_cents: number | null;
   cover_url: string | null;
   description: string | null;
   seller_id: string;
@@ -40,11 +41,16 @@ type DbProductRow = {
 
 function dbRowToProduct(r: DbProductRow, sellerName = "Illustrious Capital™"): Product {
   const catLabel = CAT_LABEL[r.category?.toLowerCase()] ?? r.category ?? "eBooks";
+  const compareAt =
+    r.compare_at_price_cents != null && r.compare_at_price_cents > r.price_cents
+      ? r.compare_at_price_cents / 100
+      : undefined;
   return {
     id: r.id,
     title: r.title,
     category: catLabel,
     price: r.price_cents / 100,
+    compareAtPrice: compareAt,
     rating: 0,
     reviewCount: 0,
     image: r.cover_url ?? `av:${catLabel}:0`,
@@ -100,7 +106,7 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
     const supa = serverSupabase();
     let query = supa
       .from("marketplace_products")
-      .select("id,title,category,price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score")
+      .select("id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score")
       .eq("status", "approved")
       .eq("published", true)
       .order("created_at", { ascending: false });
@@ -440,7 +446,7 @@ export const getProduct = createServerFn({ method: "GET" })
     const { data: row } = await supabaseAdmin
       .from("marketplace_products")
       .select(
-        "id,title,category,price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published",
+        "id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published",
       )
       .eq("id", data.id)
       .maybeSingle();
