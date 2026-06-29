@@ -521,7 +521,7 @@ function IllustriousCreator() {
   const { data, isFetching } = useSuspenseQuery(highlightsQ);
   const count = data.illustriousProductCount;
   return (
-    <section className="bg-[#f9fafb] py-16 md:py-24" aria-busy={isFetching}>
+    <section className="bg-bg-page py-16 md:py-24" aria-busy={isFetching}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader kicker="OUR FOUNDING PUBLISHER" title="Illustrious Capital™" />
         {isFetching && (
