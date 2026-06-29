@@ -7,6 +7,7 @@ import { template as coverAuditAlert } from './cover-audit-alert'
 import { template as productReviewUpdate } from './product-review-update'
 import { template as subscriberConfirmation } from './subscriber-confirmation'
 import { template as contactMessageReceived } from './contact-message-received'
+import { template as errorAlert } from './error-alert'
 
 export interface TemplateEntry {
   component: ComponentType<any>
@@ -26,4 +27,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'product-review-update': productReviewUpdate,
   'subscriber-confirmation': subscriberConfirmation,
   'contact-message-received': contactMessageReceived,
+  'error-alert': errorAlert,
 }

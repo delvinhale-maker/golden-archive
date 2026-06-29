@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { installGlobalErrorHandlers, reportClientError } from "../lib/client-error-reporter";
 
 function NotFoundComponent() {
   return (
@@ -39,6 +40,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportClientError(error, { source: "boundary", severity: "fatal" });
   }, [error]);
 
   return (
@@ -174,6 +176,8 @@ function RootComponent() {
   useEffect(() => {
     // Capture ?ref=CODE into localStorage so signups & checkouts can attribute.
     import("@/lib/referral").then((m) => m.captureRefFromUrl()).catch(() => {});
+    // Forward uncaught errors and unhandled rejections to the production error log.
+    installGlobalErrorHandlers();
   }, []);
 
   return (

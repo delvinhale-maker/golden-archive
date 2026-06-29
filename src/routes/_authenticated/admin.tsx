@@ -150,6 +150,7 @@ function AdminPage() {
           <Link to="/admin/products" className="ml-auto text-sm text-white/70 hover:text-white">All products</Link>
           <Link to="/admin/messages" className="text-sm text-white/70 hover:text-white">Messages</Link>
           <Link to="/admin/auto-release" className="text-sm text-white/70 hover:text-white">Auto-release</Link>
+          <Link to="/admin/errors" className="text-sm text-white/70 hover:text-white">Errors</Link>
           <Link to="/dashboard" className="text-sm text-white/70 hover:text-white inline-flex items-center gap-1">
             <ArrowLeft size={14} /> Dashboard
           </Link>
