@@ -140,9 +140,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               url: "https://www.aurumvault.store",
               logo: {
                 "@type": "ImageObject",
+                "@id": "https://www.aurumvault.store/#logo",
                 url: "https://www.aurumvault.store/og-image.png",
+                contentUrl: "https://www.aurumvault.store/og-image.png",
                 width: 1200,
                 height: 630,
+                caption: "AurumVault — Gold Standard Digital Commerce",
               },
               slogan: "Gold Standard Digital Commerce",
               parentOrganization: {
