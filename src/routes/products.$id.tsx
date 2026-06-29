@@ -305,13 +305,22 @@ function ProductPage() {
               </div>
             )}
 
-            <div className="mt-5 flex items-baseline gap-3">
-              <span className="font-display text-3xl font-bold text-gold">
-                ${product.price}
+            <div
+              data-testid="pdp-price-block"
+              className="mt-5 flex items-baseline gap-3"
+            >
+              <span
+                data-testid="pdp-price"
+                className="font-display text-3xl font-bold text-gold"
+              >
+                ${product.price.toFixed(2)}
               </span>
               {product.compareAtPrice && (
-                <span className="text-base text-mute line-through">
-                  ${product.compareAtPrice}
+                <span
+                  data-testid="pdp-compare-at"
+                  className="text-base text-mute line-through"
+                >
+                  ${product.compareAtPrice.toFixed(2)}
                 </span>
               )}
             </div>
