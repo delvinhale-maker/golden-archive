@@ -135,6 +135,7 @@ function Home() {
       <HighlightsBoundary fallback={<CreatorSkeleton />} errorLabel="featured creator">
         <IllustriousCreator />
       </HighlightsBoundary>
+      <SocialsSection />
       <EmailCaptureBanner />
     </MarketShell>
   );
@@ -606,5 +607,49 @@ function TrustBar() {
       </div>
     </section>
 
+  );
+}
+
+function SocialsSection() {
+  const links = [
+    {
+      label: "X",
+      href: "https://x.com/AurumVault",
+      icon: Twitter,
+    },
+    {
+      label: "Twitter",
+      href: "https://twitter.com/AurumVault",
+      icon: Twitter,
+    },
+  ];
+
+  return (
+    <section className="border-y border-white/10 bg-bg-page">
+      <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
+        <div className="mb-8 text-center">
+          <div className="text-[11px] font-semibold tracking-caps text-gold">
+            STAY CONNECTED
+          </div>
+          <h2 className="mt-2 font-display text-2xl font-bold text-white md:text-3xl">
+            Follow AurumVault
+          </h2>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          {links.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-gold hover:bg-white/10"
+            >
+              <link.icon size={16} className="text-gold" />
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
