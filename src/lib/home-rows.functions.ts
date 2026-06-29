@@ -66,7 +66,7 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       const supa = serverSupabase();
       const { data } = await supa
         .from("marketplace_products")
-        .select("id,title,category,price_cents,cover_url,seller_id,created_at")
+        .select("id,title,category,price_cents,compare_at_price_cents,cover_url,seller_id,created_at")
         .eq("status", "approved")
         .eq("published", true)
         .order("created_at", { ascending: false })
@@ -105,7 +105,7 @@ export const getProductsByIds = createServerFn({ method: "GET" })
       const supa = serverSupabase();
       const { data: rows } = await supa
         .from("marketplace_products")
-        .select("id,title,category,price_cents,cover_url,seller_id,created_at")
+        .select("id,title,category,price_cents,compare_at_price_cents,cover_url,seller_id,created_at")
         .in("id", data.ids)
         .eq("status", "approved")
         .eq("published", true);
