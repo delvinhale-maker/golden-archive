@@ -37,6 +37,7 @@ import {
   getHomeHighlights,
   type Product,
 } from "@/lib/marketplace.functions";
+import { useAuth } from "@/hooks/use-auth";
 
 const featuredQ = queryOptions({
   queryKey: ["mp", "featured"],
@@ -141,6 +142,8 @@ function Home() {
 function RefreshHighlightsBar() {
   const queryClient = useQueryClient();
   const isFetching = useIsFetching({ queryKey: ["mp", "home-highlights"] }) > 0;
+  const { isAdmin } = useAuth();
+  if (!isAdmin) return null;
   return (
     <div className="bg-white">
       <div className="mx-auto flex max-w-7xl items-center justify-end px-6 py-3 lg:px-8">
