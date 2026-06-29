@@ -110,8 +110,8 @@ async def main() -> int:
 
             pdp_text = await page_text(page, f"/products/{prod['id']}")
             check("PDP", pdp_text)
-            check("Browse", browse_text, require_title_match=True)
-            check("Home", home_text, require_title_match=True)
+            check("Browse", browse_text, title_gated=False)
+            check("Home", home_text, title_gated=True)
 
             label = f"{expected}"
             if compare_expected:
