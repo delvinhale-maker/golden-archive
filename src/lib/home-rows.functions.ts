@@ -122,7 +122,12 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
         .slice(0, 3)
         .map((r) => toProduct(r));
-      return { newReleases, recommended, sponsored };
+      const [nrR, spR, recR] = await Promise.all([
+        attachRatings(supa, newReleases),
+        attachRatings(supa, sponsored),
+        attachRatings(supa, recommended),
+      ]);
+      return { newReleases: nrR, recommended: recR, sponsored: spR };
     } catch {
       return { newReleases: [], recommended: [], sponsored: [] };
     }
@@ -145,7 +150,8 @@ export const getProductsByIds = createServerFn({ method: "GET" })
         .eq("published", true);
       const byId = new Map(((rows ?? []) as Row[]).map((r) => [r.id, toProduct(r)]));
       // Preserve requested order
-      return data.ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
+      const ordered = data.ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
+      return await attachRatings(supa, ordered);
     } catch {
       return [];
     }
