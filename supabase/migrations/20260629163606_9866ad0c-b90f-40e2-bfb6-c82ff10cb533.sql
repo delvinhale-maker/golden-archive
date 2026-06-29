@@ -1,0 +1,2 @@
+ALTER TABLE public.marketplace_products ADD COLUMN IF NOT EXISTS featured boolean NOT NULL DEFAULT false;
+CREATE INDEX IF NOT EXISTS idx_marketplace_products_featured ON public.marketplace_products (featured) WHERE featured = true;

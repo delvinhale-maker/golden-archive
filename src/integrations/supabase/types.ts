@@ -393,6 +393,7 @@ export type Database = {
           created_at: string
           creator_name: string | null
           description: string
+          featured: boolean
           file_path: string | null
           file_size_bytes: number | null
           id: string
@@ -423,6 +424,7 @@ export type Database = {
           created_at?: string
           creator_name?: string | null
           description: string
+          featured?: boolean
           file_path?: string | null
           file_size_bytes?: number | null
           id?: string
@@ -453,6 +455,7 @@ export type Database = {
           created_at?: string
           creator_name?: string | null
           description?: string
+          featured?: boolean
           file_path?: string | null
           file_size_bytes?: number | null
           id?: string
