@@ -48,9 +48,14 @@ async def section_titles(page, heading: str) -> list[str]:
 
 async def section_badges(page, heading: str) -> list[str]:
     sec = page.locator(f"section:has(h2:has-text('{heading}'))").first
-    # Badge text is "Bestseller", visually uppercased via CSS tracking-caps.
-    badges = await sec.locator("span:has-text('Bestseller')").all_inner_texts()
+    # Badge text is exactly "Bestseller" (CSS uppercases it visually).
+    badges = await sec.locator("span.bg-gold:has-text('Bestseller')").all_inner_texts()
     return [b.strip() for b in badges]
+
+
+async def section_kicker(page, heading: str) -> str:
+    sec = page.locator(f"section:has(h2:has-text('{heading}'))").first
+    return (await sec.locator("div.tracking-caps").first.inner_text()).strip()
 
 
 async def main() -> int:
