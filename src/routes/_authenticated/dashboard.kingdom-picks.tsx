@@ -53,6 +53,22 @@ function KingdomPicksAdminPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [busy, setBusy] = useState(false);
+  const [refreshingClicks, setRefreshingClicks] = useState(false);
+  const [clicksUpdatedAt, setClicksUpdatedAt] = useState<Date | null>(null);
+
+  async function refreshClicks(showToast = false) {
+    setRefreshingClicks(true);
+    try {
+      const counts = await fetchAffiliateClickCounts();
+      setClicks(counts);
+      setClicksUpdatedAt(new Date());
+      if (showToast) toast.success("Click counts refreshed");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to refresh clicks");
+    } finally {
+      setRefreshingClicks(false);
+    }
+  }
 
   async function refresh() {
     const [products, counts] = await Promise.all([
@@ -61,6 +77,7 @@ function KingdomPicksAdminPage() {
     ]);
     setRows(products);
     setClicks(counts);
+    setClicksUpdatedAt(new Date());
   }
 
   useEffect(() => {
