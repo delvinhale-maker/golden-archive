@@ -504,7 +504,7 @@ function FeaturedProducts() {
 
 function FeaturedSkeleton() {
   return (
-    <section className="bg-white pb-16 pt-4">
+    <section className="bg-bg-page pb-16 pt-4">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader title="Featured Products" />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
