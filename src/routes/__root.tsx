@@ -101,6 +101,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
       },
+      { property: "og:url", content: "https://www.aurumvault.store" },
+      { property: "og:image", content: "https://www.aurumvault.store/og-image.png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "AurumVault — Gold Standard Digital Commerce" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@AurumVault" },
       { name: "twitter:title", content: "AurumVault — Gold Standard Digital Commerce" },
@@ -109,6 +114,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
       },
+      { name: "twitter:image", content: "https://www.aurumvault.store/og-image.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

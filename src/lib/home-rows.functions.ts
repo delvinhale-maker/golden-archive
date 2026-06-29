@@ -90,24 +90,25 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       const supa = serverSupabase();
       const { data } = await supa
         .from("marketplace_products")
-        .select("id,title,category,price_cents,compare_at_price_cents,cover_url,seller_id,created_at")
+        .select(
+          "id,title,category,price_cents,compare_at_price_cents,cover_url,seller_id,created_at,featured",
+        )
         .eq("status", "approved")
         .eq("published", true)
         .order("created_at", { ascending: false })
         .limit(40);
-      const rows = (data ?? []) as Row[];
+      const rows = (data ?? []) as Array<Row & { featured: boolean | null }>;
       if (rows.length === 0) {
         return { newReleases: [], recommended: [], sponsored: [] };
       }
-      // New Releases: 3 most recently added
-      const newReleases = rows.slice(0, 3).map((r) => toProduct(r));
-      // Sponsored: Kingdom Mind + M.O.V. (Illustrious Capital™ featured)
-      const SPONSORED_TITLES = ["Kingdom Mind", "M.O.V. — Method of Verification"];
-      const sponsored = SPONSORED_TITLES
-        .map((t) => rows.find((r) => r.title === t))
-        .filter((r): r is Row => Boolean(r))
+      // New Releases: all approved+published, newest first (capped at 8 for layout).
+      const newReleases = rows.slice(0, 8).map((r) => toProduct(r));
+      // Sponsored: every product flagged featured = true (DB-curated).
+      const sponsored = rows
+        .filter((r) => r.featured === true)
         .map((r) => toProduct(r, true));
-      // Recommended: top 3 by paid sales count (order_items joined to paid orders)
+      // Recommended: rank by paid-sales count; when no paid orders exist,
+      // fall back to the full catalog (newest first) so the row never empties.
       const ids = rows.map((r) => r.id);
       const { data: itemRows } = await supa
         .from("order_items")
@@ -120,7 +121,7 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       }
       const recommended = [...rows]
         .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
-        .slice(0, 3)
+        .slice(0, 8)
         .map((r) => toProduct(r));
       const [nrR, spR, recR] = await Promise.all([
         attachRatings(supa, newReleases),
