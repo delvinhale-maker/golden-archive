@@ -376,6 +376,54 @@ export type Database = {
         }
         Relationships: []
       }
+      error_logs: {
+        Row: {
+          alerted_at: string | null
+          context: Json
+          fingerprint: string | null
+          id: string
+          message: string
+          occurred_at: string
+          route: string | null
+          severity: string
+          source: string
+          stack: string | null
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          alerted_at?: string | null
+          context?: Json
+          fingerprint?: string | null
+          id?: string
+          message: string
+          occurred_at?: string
+          route?: string | null
+          severity?: string
+          source: string
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          alerted_at?: string | null
+          context?: Json
+          fingerprint?: string | null
+          id?: string
+          message?: string
+          occurred_at?: string
+          route?: string | null
+          severity?: string
+          source?: string
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       marketplace_products: {
         Row: {
           admin_notes: string | null
