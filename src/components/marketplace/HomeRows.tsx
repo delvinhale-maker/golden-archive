@@ -25,7 +25,7 @@ function Row({
 }) {
   if (!loading && products.length === 0 && !empty) return null;
   return (
-    <section className="bg-white py-10 md:py-14">
+    <section className="bg-bg-page py-10 md:py-14">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
@@ -37,16 +37,17 @@ function Row({
                 {kicker}
               </div>
             )}
-            <h2 className="mt-1 flex items-center gap-2 font-display text-2xl font-bold text-ink md:text-3xl">
+            <h2 className="mt-1 flex items-center gap-2 font-display text-2xl font-bold md:text-3xl" style={{ color: "#ffffff" }}>
               <Icon size={22} className="text-gold" /> {title}
             </h2>
           </div>
           <Link
             to="/products"
-            className="hidden text-xs font-bold uppercase tracking-caps text-navy hover:text-gold sm:inline"
+            className="hidden text-xs font-bold uppercase tracking-caps text-gold hover:text-white sm:inline"
           >
             See all →
           </Link>
+
         </div>
 
         {loading ? (
@@ -56,7 +57,7 @@ function Row({
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="rounded-xl border border-line bg-[#fafaf7] p-6 text-center text-sm text-mute">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-center text-sm text-white/70">
             {empty}
           </div>
         ) : (

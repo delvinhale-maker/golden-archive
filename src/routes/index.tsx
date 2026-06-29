@@ -438,9 +438,10 @@ function SectionHeader({ kicker, title }: { kicker?: string; title: string }) {
           {kicker}
         </div>
       )}
-      <h2 className="mt-2 font-display text-3xl font-bold text-ink md:text-4xl">
+      <h2 className="mt-2 font-display text-3xl font-bold md:text-4xl" style={{ color: "#ffffff" }}>
         {title}
       </h2>
+
       <span className="mt-3 block h-[2px] w-10 bg-gold" />
     </div>
   );
@@ -448,7 +449,7 @@ function SectionHeader({ kicker, title }: { kicker?: string; title: string }) {
 
 function CategoriesSection() {
   return (
-    <section id="categories" className="bg-white py-16 md:py-24">
+    <section id="categories" className="bg-bg-page py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader title="Browse Categories" />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -463,10 +464,10 @@ function CategoriesSection() {
               <Link
                 to="/products"
                 search={{ category: c.slug } as never}
-                className="av-card group flex h-[120px] flex-col items-center justify-center gap-2 border border-transparent transition-all duration-200 ease-out hover:-translate-y-1 hover:border-gold hover:shadow-card-hover"
+                className="group flex h-[120px] flex-col items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 transition-all duration-200 ease-out hover:-translate-y-1 hover:border-gold hover:bg-white/10"
               >
                 <c.icon className="text-gold transition-transform duration-200 group-hover:scale-110" size={32} strokeWidth={1.6} />
-                <span className="text-sm font-bold text-navy">{c.label}</span>
+                <span className="text-sm font-bold text-white">{c.label}</span>
               </Link>
             </motion.div>
           ))}
@@ -476,10 +477,11 @@ function CategoriesSection() {
   );
 }
 
+
 function FeaturedProducts() {
   const { data } = useSuspenseQuery(featuredQ);
   return (
-    <section className="bg-white pb-16 pt-4 md:pb-24">
+    <section className="bg-bg-page pb-16 pt-4 md:pb-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader title="Featured Products" />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-4">
@@ -490,7 +492,7 @@ function FeaturedProducts() {
         <div className="mt-10 text-center">
           <Link
             to="/products"
-            className="inline-flex h-11 items-center rounded-full border border-navy px-6 text-sm font-bold text-navy hover:bg-navy hover:text-white"
+            className="inline-flex h-11 items-center rounded-full border border-gold px-6 text-sm font-bold text-gold hover:bg-gold hover:text-navy"
           >
             See all products →
           </Link>
@@ -500,9 +502,10 @@ function FeaturedProducts() {
   );
 }
 
+
 function FeaturedSkeleton() {
   return (
-    <section className="bg-white pb-16 pt-4">
+    <section className="bg-bg-page pb-16 pt-4">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader title="Featured Products" />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -519,7 +522,7 @@ function IllustriousCreator() {
   const { data, isFetching } = useSuspenseQuery(highlightsQ);
   const count = data.illustriousProductCount;
   return (
-    <section className="bg-[#f9fafb] py-16 md:py-24" aria-busy={isFetching}>
+    <section className="bg-bg-page py-16 md:py-24" aria-busy={isFetching}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader kicker="OUR FOUNDING PUBLISHER" title="Illustrious Capital™" />
         {isFetching && (
@@ -534,7 +537,7 @@ function IllustriousCreator() {
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
             whileHover={{ y: -4 }}
-            className="av-card overflow-hidden"
+            className="overflow-hidden rounded-lg border border-white/10 bg-white/5 shadow-card"
           >
             <div
               className="h-[120px]"
@@ -551,18 +554,18 @@ function IllustriousCreator() {
                 IC
               </div>
               <div className="mt-3 flex items-center gap-1.5">
-                <div className="font-display text-lg font-bold text-ink">
+                <div className="font-display text-lg font-bold text-white">
                   Illustrious Capital™
                 </div>
                 <BadgeCheck size={16} className="text-emerald" />
               </div>
-              <div className="text-[13px] text-mute">
+              <div className="text-[13px] text-white/70">
                 Kingdom-centered digital resources
               </div>
               <div className="mt-4 flex items-center gap-6 text-[13px]">
                 <div>
-                  <div className="font-bold text-ink">{count}</div>
-                  <div className="text-[11px] text-mute">Products</div>
+                  <div className="font-bold text-white">{count}</div>
+                  <div className="text-[11px] text-white/60">Products</div>
                 </div>
               </div>
               <Link
@@ -573,6 +576,7 @@ function IllustriousCreator() {
               </Link>
             </div>
           </motion.div>
+
         </div>
       </div>
     </section>
@@ -587,18 +591,19 @@ function TrustBar() {
     { icon: Star, label: "5-Star Support" },
   ];
   return (
-    <section className="border-y border-line bg-white">
+    <section className="border-y border-white/10 bg-bg-page">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-around gap-4 px-6 py-6 lg:px-8">
         {items.map((it, i) => (
           <div key={i} className="flex items-center gap-2">
             <it.icon size={16} className="text-gold" />
-            <span className="text-[13px] font-medium text-ink">{it.label}</span>
+            <span className="text-[13px] font-medium text-white">{it.label}</span>
             {i < items.length - 1 && (
-              <span className="ml-4 hidden h-1 w-1 rounded-full bg-mute md:block" />
+              <span className="ml-4 hidden h-1 w-1 rounded-full bg-white/40 md:block" />
             )}
           </div>
         ))}
       </div>
     </section>
+
   );
 }
