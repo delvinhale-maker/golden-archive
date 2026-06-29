@@ -1,0 +1,1 @@
+ALTER TABLE public.marketplace_products ALTER COLUMN slug SET DEFAULT '';

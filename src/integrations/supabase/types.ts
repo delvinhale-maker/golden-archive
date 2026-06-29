@@ -403,6 +403,7 @@ export type Database = {
           published: boolean
           rejected_reason: string | null
           seller_id: string
+          slug: string
           status: Database["public"]["Enums"]["product_status"]
           subtitle: string | null
           title: string
@@ -434,6 +435,7 @@ export type Database = {
           published?: boolean
           rejected_reason?: string | null
           seller_id: string
+          slug?: string
           status?: Database["public"]["Enums"]["product_status"]
           subtitle?: string | null
           title: string
@@ -465,6 +467,7 @@ export type Database = {
           published?: boolean
           rejected_reason?: string | null
           seller_id?: string
+          slug?: string
           status?: Database["public"]["Enums"]["product_status"]
           subtitle?: string | null
           title?: string
@@ -1043,6 +1046,10 @@ export type Database = {
       mark_abandoned_cart_recovered: {
         Args: { _session_id: string }
         Returns: undefined
+      }
+      marketplace_products_slugify: {
+        Args: { _title: string }
+        Returns: string
       }
       move_to_dlq: {
         Args: {
