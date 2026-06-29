@@ -15,6 +15,8 @@ import {
   Lock,
   RefreshCw,
   ShieldCheck,
+  Star,
+  Swords,
   Twitter,
   Wallet,
 } from "lucide-react";
