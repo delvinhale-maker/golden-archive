@@ -40,18 +40,13 @@ export function AbandonedCartTracker() {
         const sessionId = getSessionId();
         const { data: userData } = await supabase.auth.getUser();
         const user = userData?.user ?? null;
-        const payload = {
-          session_id: sessionId,
-          user_id: user?.id ?? null,
-          email: user?.email ?? null,
-          items: cart.items,
-          subtotal: cart.subtotal,
-          item_count: cart.count,
-          recovered: false,
-        };
-        await supabase
-          .from("abandoned_carts")
-          .upsert(payload, { onConflict: "session_id" });
+        await supabase.rpc("upsert_abandoned_cart", {
+          _session_id: sessionId,
+          _items: cart.items as never,
+          _subtotal: cart.subtotal,
+          _item_count: cart.count,
+          _email: user?.email ?? null,
+        });
         lastSyncRef.current = Date.now();
       } catch {
         // Non-blocking
@@ -67,11 +62,7 @@ export function AbandonedCartTracker() {
     if (typeof window === "undefined") return;
     const sessionId = window.localStorage.getItem(SESSION_KEY);
     if (!sessionId) return;
-    void supabase
-      .from("abandoned_carts")
-      .update({ recovered: true, recovered_at: new Date().toISOString() })
-      .eq("session_id", sessionId)
-      .eq("recovered", false);
+    void supabase.rpc("mark_abandoned_cart_recovered", { _session_id: sessionId });
     window.sessionStorage.removeItem(REMINDER_KEY);
   }, [cart.items.length]);
 
