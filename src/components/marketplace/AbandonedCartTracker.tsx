@@ -45,7 +45,7 @@ export function AbandonedCartTracker() {
           _items: cart.items as never,
           _subtotal: cart.subtotal,
           _item_count: cart.count,
-          _email: user?.email ?? null,
+          _email: user?.email ?? undefined,
         });
         lastSyncRef.current = Date.now();
       } catch {
