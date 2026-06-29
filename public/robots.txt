@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /account
+Disallow: /wishlist
+Disallow: /download/
+Disallow: /auth
+Disallow: /lovable/
+
+Sitemap: https://www.aurumvault.store/sitemap.xml
