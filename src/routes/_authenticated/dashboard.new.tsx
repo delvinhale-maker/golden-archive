@@ -440,7 +440,8 @@ function PublishFlow() {
           setUploadedFileMeta({ name: f.name, size: f.size });
           setFileProgress(100);
           setFileUploadError(null);
-          await autosaveDraftToDB({ filePath: path, fileSize: f.size });
+          await autosaveDraftToDB({ filePath: path, fileSize: f.size, silent: true });
+          toast.success("Manuscript saved to your draft ✓", { duration: 3000 });
           return;
         } catch (e) {
           lastErr = e;
