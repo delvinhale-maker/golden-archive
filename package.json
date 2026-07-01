@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "check:bg": "node scripts/check-light-surfaces.mjs",
     "check:slugs": "node scripts/check-slug-integrity.mjs",
+    "check:prepublish": "node scripts/prepublish-check.mjs",
     "format": "prettier --write ."
   },
   "dependencies": {
