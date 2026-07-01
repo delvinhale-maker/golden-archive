@@ -405,7 +405,8 @@ function PublishFlow() {
           setUploadedCoverUrl(url);
           setCoverProgress(100);
           setCoverUploadError(null);
-          await autosaveDraftToDB({ coverUrl: url });
+          await autosaveDraftToDB({ coverUrl: url, silent: true });
+          toast.success("Cover saved to your draft ✓", { duration: 3000 });
           return;
         } catch (e) {
           lastErr = e;
