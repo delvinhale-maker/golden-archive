@@ -368,7 +368,7 @@ function KingdomPicksAdminPage() {
         </div>
       )}
 
-      <style>{`.input{width:100%;border:1px solid rgba(15,30,53,.15);border-radius:.5rem;padding:.5rem .75rem;font-size:.875rem;background:#fff}.input:focus{outline:none;border-color:#B8860B}`}</style>
+      <style>{`.input{width:100%;border:1px solid rgba(15,30,53,.15);border-radius:.5rem;padding:.5rem .75rem;font-size:.875rem;background:#fff}.input:focus{outline:none;border-color:var(--accent-color)}`}</style>
     </PublisherShell>
   );
 }
