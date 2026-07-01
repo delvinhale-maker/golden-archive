@@ -92,9 +92,11 @@ async def main():
                 "(n) => (window.__anims || []).slice(n)", before
             )
             opacity_anims = [
-                a for a in new_anims if "opacity" in (a.get("props") or [])
+                a for a in new_anims
+                if "opacity" in (a.get("props") or []) and a.get("onFadeWrapper")
             ]
             results.append({"nav": label, "opacity_anims": opacity_anims[:4]})
+
 
             # Strict per-nav assertion: every SPA route change MUST run
             # both an exit (opacity 1→0) and an enter (opacity 0→1) on the
