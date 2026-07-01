@@ -91,7 +91,7 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
   async (): Promise<HomeRows> => {
     try {
       const supa = serverSupabase();
-      const { data } = await supa
+      const { data, error } = await supa
         .from("marketplace_products")
         .select(
           "id,title,category,price_cents,compare_at_price_cents,cover_url,seller_id,created_at,featured",
@@ -100,11 +100,13 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         .eq("published", true)
         .order("created_at", { ascending: false })
         .limit(40);
+      console.log("[getHomeRows] envUrl?", !!process.env.SUPABASE_URL, "envKey?", !!process.env.SUPABASE_PUBLISHABLE_KEY, "rows:", data?.length, "err:", error?.message);
       const rows = (data ?? []) as Array<Row & { featured: boolean | null }>;
       // Fallback when no products at all: empty arrays (nothing to show).
       if (rows.length === 0) {
         return { newReleases: [], recommended: [], sponsored: [] };
       }
+
       // Full catalog fallback (up to 8) used when a row is empty or too thin.
       const allProducts = rows.slice(0, 8).map((r) => toProduct(r));
 
