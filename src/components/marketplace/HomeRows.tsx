@@ -120,24 +120,22 @@ export function HomeContentRows() {
         icon={Sparkles}
         kicker="JUST IN"
         title="New Releases"
-        products={data?.newReleases ?? []}
-        loading={isLoading}
+        products={data.newReleases}
         accent="var(--gold)"
       />
       <Row
         icon={Megaphone}
         kicker="SPONSORED — ILLUSTRIOUS CAPITAL™"
         title="Promoted Picks"
-        products={data?.sponsored ?? []}
-        loading={isLoading}
+        products={data.sponsored}
       />
       <Row
         icon={Flame}
         kicker="RECOMMENDED FOR YOU"
         title="You May Also Like"
-        products={data?.recommended ?? []}
-        loading={isLoading}
+        products={data.recommended}
       />
+
     </>
   );
 }
