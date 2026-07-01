@@ -1,10 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Sparkles, Clock, Megaphone, Flame } from "lucide-react";
 import { ProductCard, ProductCardSkeleton } from "./ProductCard";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { getHomeRows, getProductsByIds } from "@/lib/home-rows.functions";
 import type { Product } from "@/lib/marketplace.functions";
+
+export const homeRowsQ = queryOptions({
+  queryKey: ["mp", "home-rows"],
+  queryFn: () => getHomeRows(),
+  staleTime: 60_000,
+});
+
 
 function Row({
   title,
