@@ -10,16 +10,22 @@ const TABS = [
   { to: "/account", label: "Account", icon: User, match: (p: string) => p.startsWith("/account") },
 ] as const;
 
+const INACTIVE = "#6B7280";
+
 export function MobileTabBar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-line bg-white md:hidden">
-      <ul className="flex h-16 items-stretch">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-30 border-t border-white/5 md:hidden"
+      style={{ backgroundColor: "#0F1E35" }}
+    >
+      <ul className="relative flex h-16 items-stretch">
         {TABS.map((t) => {
           const active = t.match(pathname);
           const Icon = t.icon;
+          const color = active ? "var(--accent-color)" : INACTIVE;
           return (
-            <li key={t.to + t.label} className="flex-1">
+            <li key={t.to + t.label} className="relative flex-1">
               <Link
                 to={t.to}
                 className="flex h-full w-full flex-col items-center justify-center gap-0.5"
@@ -28,16 +34,25 @@ export function MobileTabBar() {
                 <motion.span
                   whileTap={{ scale: 0.85 }}
                   transition={{ type: "spring", stiffness: 400, damping: 18 }}
-                  className={active ? "text-gold" : "text-mute"}
+                  style={{ color, transition: "color 300ms ease" }}
                 >
                   <Icon size={20} />
                 </motion.span>
                 <span
-                  className={`text-[10px] font-medium ${active ? "text-gold" : "text-mute"}`}
+                  className="text-[10px] font-medium"
+                  style={{ color, transition: "color 300ms ease" }}
                 >
                   {t.label}
                 </span>
               </Link>
+              {active && (
+                <motion.span
+                  layoutId="mobile-tab-underline"
+                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                  className="absolute inset-x-4 bottom-0 h-0.5 rounded-full"
+                  style={{ backgroundColor: "var(--accent-color)" }}
+                />
+              )}
             </li>
           );
         })}
