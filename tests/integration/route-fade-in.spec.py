@@ -58,15 +58,14 @@ async def main():
         failures = []
         results = []
 
-        for label, link_name in NAV_STEPS:
+        for label, href in NAV_STEPS:
             before = await page.evaluate("window.__anims.length")
-            link = page.get_by_role("link", name=link_name, exact=True).first
+            link = page.locator(f'a[href="{href}"]').first
             if not await link.count():
-                failures.append(f"{label}: no visible <Link> named '{link_name}'")
+                failures.append(f"{label}: no <a href=\"{href}\"> on page")
                 continue
             await link.click()
-            # Wait past the 200ms fade + a small buffer.
-            await page.wait_for_timeout(500)
+            await page.wait_for_url(f"**{href}", timeout=5000)
             new_anims = await page.evaluate(
                 "window.__anims.slice(arguments[0])", before
             )
