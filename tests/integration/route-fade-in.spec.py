@@ -36,11 +36,12 @@ INSTRUMENT = r"""
 }
 """
 
-# (label, click-target locator description)
+# (label, href to click) — target hrefs that exist on the homepage.
 NAV_STEPS = [
-    ("browse", "Browse"),
-    ("search", "Search"),
-    ("home", "Home"),
+    ("products", "/products"),
+    ("sell", "/sell"),
+    ("kingdom-picks", "/kingdom-picks"),
+    ("home", "/"),
 ]
 
 
