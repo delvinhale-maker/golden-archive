@@ -1291,7 +1291,7 @@ function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium
 
 /* ---------- Step 4: Review ---------- */
 
-function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover }: {
+function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover, onOpenPreview }: {
   accent: PublisherAccent;
   cover: string | null; title: string; subtitle: string; author: string;
   price: number; royalty: number; format: string; territory: string;
@@ -1301,10 +1301,19 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
   checklistPass: boolean;
   onGoToStep: (s: StepNum) => void;
   onDraft: () => void; onPublish: () => void; onZoomCover: () => void;
+  onOpenPreview: () => void;
 }) {
   return (
     <div className="space-y-6">
       <h2 className="font-display text-2xl text-navy">Review & publish</h2>
+
+      <button
+        type="button" onClick={onOpenPreview}
+        className="w-full h-12 rounded-full font-semibold inline-flex items-center justify-center gap-2 text-white shadow-md hover:shadow-lg transition-all"
+        style={{ background: accent.color }}
+      >
+        <Eye size={16} /> Preview Your Listing
+      </button>
 
       {/* KDP-style storefront preview card */}
       <div className="rounded-2xl border border-ink/10 bg-gradient-to-br from-paper to-white p-5">
