@@ -66,6 +66,7 @@ async def main():
                 continue
             await link.click()
             await page.wait_for_url(f"**{href}", timeout=5000)
+            await page.wait_for_timeout(500)  # past 200ms fade + buffer
             new_anims = await page.evaluate(
                 "window.__anims.slice(arguments[0])", before
             )
