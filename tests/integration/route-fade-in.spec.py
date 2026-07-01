@@ -1,4 +1,15 @@
-"""QA: every route change triggers a 200ms opacity 0 → 1 fade-in on the AnimatePresence wrapper keyed by useLocation/pathname."""
+"""QA: route changes trigger a ~200ms opacity 0 → 1 fade-in.
+
+Framer Motion's AnimatePresence in __root.tsx wraps <Outlet /> keyed by
+pathname; `initial={false}` skips the very first mount, but every
+subsequent navigation should run an exit (opacity 1→0) followed by an
+enter (opacity 0→1) on the wrapper `motion.div`.
+
+We verify by monkey-patching `Element.prototype.animate` before navigation
+so every WAAPI animation Framer schedules is recorded with its duration
+and animated properties, then trigger client-side route changes and
+assert an opacity animation of ~200ms fires each time.
+"""
 import asyncio
 from pathlib import Path
 from playwright.async_api import async_playwright
@@ -6,55 +17,31 @@ from playwright.async_api import async_playwright
 SHOTS = Path(__file__).parent / "screenshots" / "route-fade-in"
 SHOTS.mkdir(parents=True, exist_ok=True)
 
-# Public routes only (no auth required)
-ROUTES = ["/", "/browse", "/search", "/support", "/terms", "/privacy"]
+INSTRUMENT = r"""
+() => {
+  window.__anims = [];
+  const orig = Element.prototype.animate;
+  Element.prototype.animate = function (keyframes, options) {
+    try {
+      const kf = Array.isArray(keyframes) ? keyframes : [keyframes || {}];
+      const props = Array.from(new Set(kf.flatMap(k => Object.keys(k || {}))));
+      const duration =
+        typeof options === 'number'
+          ? options
+          : (options && options.duration) || null;
+      window.__anims.push({ props, duration, at: performance.now() });
+    } catch {}
+    return orig.apply(this, arguments);
+  };
+}
+"""
 
-# The RouteFadeIn motion.div wrapper in __root.tsx is the first child of body.
-WRAPPER_SEL = "body > div:first-child"
-
-
-async def sample_opacity(page, selector: str, ms: int) -> float:
-    """Sample computed opacity `ms` after the wrapper mounts."""
-    return await page.evaluate(
-        """async ({sel, ms}) => {
-            await new Promise(r => setTimeout(r, ms));
-            const el = document.querySelector(sel);
-            if (!el) return -1;
-            return parseFloat(getComputedStyle(el).opacity);
-        }""",
-        {"sel": selector, "ms": ms},
-    )
-
-
-async def verify_fade(page, route: str) -> dict:
-    # Navigate via client router by clicking Links when possible; else goto.
-    await page.goto(f"http://localhost:8080{route}", wait_until="domcontentloaded")
-    # Sample opacity at t≈0ms and t≈250ms (past the 200ms transition).
-    early = await sample_opacity(page, WRAPPER_SEL, 10)
-    settled = await sample_opacity(page, WRAPPER_SEL, 260)
-
-    # Read the motion.div transition duration attribute Framer applies inline.
-    duration_ms = await page.evaluate(
-        """(sel) => {
-            const el = document.querySelector(sel);
-            if (!el) return null;
-            const t = getComputedStyle(el).transitionDuration || '';
-            // Framer Motion drives opacity via WAAPI, not CSS transitions,
-            // so also inspect running animations.
-            const anims = el.getAnimations().map(a => ({
-                dur: a.effect && a.effect.getTiming().duration,
-                props: a.effect && a.effect.getKeyframes().map(k => Object.keys(k)).flat(),
-            }));
-            return { cssTransition: t, anims };
-        }""",
-        WRAPPER_SEL,
-    )
-    return {
-        "route": route,
-        "opacity_early": early,
-        "opacity_settled": settled,
-        "duration": duration_ms,
-    }
+# (label, click-target locator description)
+NAV_STEPS = [
+    ("browse", "Browse"),
+    ("search", "Search"),
+    ("home", "Home"),
+]
 
 
 async def main():
@@ -63,49 +50,43 @@ async def main():
         ctx = await b.new_context(viewport={"width": 1280, "height": 900})
         page = await ctx.new_page()
 
-        results = []
-        failures = []
-
-        for route in ROUTES:
-            r = await verify_fade(page, route)
-            results.append(r)
-            # Fade-in check: opacity should start < 1 and end at 1.
-            # Framer may complete very quickly on fast machines; tolerate
-            # opacity_early up to 1.0 IF we can prove an opacity animation ran.
-            ran_opacity_anim = False
-            dur_ok = False
-            if r["duration"] and r["duration"].get("anims"):
-                for a in r["duration"]["anims"]:
-                    props = a.get("props") or []
-                    if "opacity" in props:
-                        ran_opacity_anim = True
-                        if a.get("dur") and 150 <= a["dur"] <= 260:
-                            dur_ok = True
-            if r["opacity_settled"] < 0.99:
-                failures.append(f"{route}: settled opacity {r['opacity_settled']} < 1")
-            if not ran_opacity_anim and r["opacity_early"] >= 0.99:
-                failures.append(
-                    f"{route}: no opacity animation detected and early opacity was already 1"
-                )
-            if ran_opacity_anim and not dur_ok:
-                failures.append(f"{route}: opacity animation duration outside 150–260ms window")
-
-        # Client-side navigation via Link (Home -> Browse) — repeat check.
         await page.goto("http://localhost:8080/", wait_until="domcontentloaded")
-        await page.wait_for_timeout(300)
-        # Click a link that routes client-side.
-        link = page.get_by_role("link", name="Browse", exact=False).first
-        if await link.count():
+        await page.wait_for_timeout(400)
+        await page.evaluate(INSTRUMENT)
+
+        failures = []
+        results = []
+
+        for label, link_name in NAV_STEPS:
+            before = await page.evaluate("window.__anims.length")
+            link = page.get_by_role("link", name=link_name, exact=True).first
+            if not await link.count():
+                failures.append(f"{label}: no visible <Link> named '{link_name}'")
+                continue
             await link.click()
-            client_early = await sample_opacity(page, WRAPPER_SEL, 10)
-            client_settled = await sample_opacity(page, WRAPPER_SEL, 260)
-            results.append({
-                "route": "client-nav→/browse",
-                "opacity_early": client_early,
-                "opacity_settled": client_settled,
-            })
-            if client_settled < 0.99:
-                failures.append(f"client-nav: settled opacity {client_settled} < 1")
+            # Wait past the 200ms fade + a small buffer.
+            await page.wait_for_timeout(500)
+            new_anims = await page.evaluate(
+                "window.__anims.slice(arguments[0])", before
+            )
+            opacity_anims = [
+                a for a in new_anims if "opacity" in (a.get("props") or [])
+            ]
+            results.append({"nav": label, "opacity_anims": opacity_anims})
+
+            if not opacity_anims:
+                failures.append(f"{label}: no opacity animation fired on route change")
+                continue
+            # Expect at least one ~200ms opacity animation (Framer may run
+            # both exit and enter; both are 200ms per our transition config).
+            in_window = [
+                a for a in opacity_anims
+                if a.get("duration") and 150 <= a["duration"] <= 260
+            ]
+            if not in_window:
+                failures.append(
+                    f"{label}: opacity animation durations {[a.get('duration') for a in opacity_anims]} outside 150–260ms"
+                )
 
         for r in results:
             print(r)
@@ -115,7 +96,7 @@ async def main():
             for f in failures:
                 print(" -", f)
             raise SystemExit(1)
-        print("\nOK — route fade-in verified across", len(ROUTES), "routes.")
+        print(f"\nOK — fade-in verified across {len(NAV_STEPS)} client-side route changes.")
         await b.close()
 
 
