@@ -276,8 +276,13 @@ function DealsAndBestsellers() {
 }
 
 function HeroStatsBar() {
+  const { data } = useSuspenseQuery(highlightsQ);
+  const productCount = data.illustriousProductCount;
   const stats = [
-    { icon: BookOpen, label: "32+ Products" },
+    {
+      icon: BookOpen,
+      label: `${productCount} Product${productCount === 1 ? "" : "s"}`,
+    },
     { icon: LayoutTemplate, label: "18 Categories" },
     { icon: BadgeCheck, label: "Verified Creators" },
     { icon: Download, label: "Instant Download" },
