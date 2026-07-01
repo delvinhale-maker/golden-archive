@@ -178,6 +178,13 @@ function PublishFlow() {
   const autosavingRef = useRef(false);
   const [autosaving, setAutosaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const [autosaveError, setAutosaveError] = useState<string | null>(null);
+  const lastAutosaveOptsRef = useRef<{
+    coverUrl?: string | null;
+    filePath?: string | null;
+    fileSize?: number | null;
+    silent?: boolean;
+  } | undefined>(undefined);
   async function autosaveDraftToDB(opts?: {
     coverUrl?: string | null;
     filePath?: string | null;
@@ -186,6 +193,7 @@ function PublishFlow() {
   }) {
     if (!user || autosavingRef.current) return;
     if (!title.trim()) return; // need at least a title
+    lastAutosaveOptsRef.current = opts;
     autosavingRef.current = true;
     setAutosaving(true);
     try {
@@ -222,17 +230,33 @@ function PublishFlow() {
         if (data?.id) setDraftProductId(data.id as string);
       }
       setLastSavedAt(Date.now());
+      setAutosaveError(null);
       if (!opts?.silent) {
         toast.success("Progress saved", { duration: 2000 });
       }
     } catch (e) {
-      // Don't bother the user with toast spam on debounced saves
       console.error("Autosave failed", e);
+      const msg =
+        e instanceof Error && e.message
+          ? e.message
+          : typeof e === "object" && e && "message" in e && typeof (e as { message?: unknown }).message === "string"
+            ? (e as { message: string }).message
+            : "We couldn't save your draft. Check your connection and retry.";
+      setAutosaveError(msg);
+      if (!opts?.silent) {
+        toast.error("Couldn't save draft", { description: msg, duration: 4000 });
+      }
     } finally {
       autosavingRef.current = false;
       setAutosaving(false);
     }
   }
+
+  async function retryAutosave() {
+    setAutosaveError(null);
+    await autosaveDraftToDB({ ...(lastAutosaveOptsRef.current ?? {}), silent: false });
+  }
+
 
   // Debounced auto-save on any field change (2s)
   useEffect(() => {
