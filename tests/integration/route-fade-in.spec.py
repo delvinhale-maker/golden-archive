@@ -21,6 +21,9 @@ INSTRUMENT = r"""
 () => {
   window.__anims = [];
   const orig = Element.prototype.animate;
+  // The RouteFadeIn <motion.div> wrapper is the first direct child of <body>.
+  const isFadeWrapper = (el) => el && el.parentElement === document.body
+    && el === document.body.firstElementChild;
   Element.prototype.animate = function (keyframes, options) {
     try {
       const kf = Array.isArray(keyframes) ? keyframes : [keyframes || {}];
@@ -29,12 +32,18 @@ INSTRUMENT = r"""
         typeof options === 'number'
           ? options
           : (options && options.duration) || null;
-      window.__anims.push({ props, duration, at: performance.now() });
+      window.__anims.push({
+        props,
+        duration,
+        at: performance.now(),
+        onFadeWrapper: isFadeWrapper(this),
+      });
     } catch {}
     return orig.apply(this, arguments);
   };
 }
 """
+
 
 # (label, href to click) — client-side navigations from the current page.
 # Order matters: after each nav we're on that page and need a link to click next.
@@ -83,23 +92,38 @@ async def main():
                 "(n) => (window.__anims || []).slice(n)", before
             )
             opacity_anims = [
-                a for a in new_anims if "opacity" in (a.get("props") or [])
+                a for a in new_anims
+                if "opacity" in (a.get("props") or []) and a.get("onFadeWrapper")
             ]
             results.append({"nav": label, "opacity_anims": opacity_anims[:4]})
+
+
+            # Strict per-nav assertion: every SPA route change MUST run
+            # both an exit (opacity 1→0) and an enter (opacity 0→1) on the
+            # RouteFadeIn wrapper, each at 200ms ±TOLERANCE.
+            TARGET_MS = 200
+            TOLERANCE_MS = 20  # ±10% of the configured 200ms
+            LOW, HIGH = TARGET_MS - TOLERANCE_MS, TARGET_MS + TOLERANCE_MS
 
             if not opacity_anims:
                 failures.append(f"{label}: no opacity animation fired on route change")
                 continue
-            # Expect at least one ~200ms opacity animation (Framer may run
-            # both exit and enter; both are 200ms per our transition config).
-            in_window = [
-                a for a in opacity_anims
-                if a.get("duration") and 150 <= a["duration"] <= 260
-            ]
-            if not in_window:
+
+            durations = [a.get("duration") for a in opacity_anims]
+            out_of_spec = [d for d in durations if not (isinstance(d, (int, float)) and LOW <= d <= HIGH)]
+            in_spec = [d for d in durations if isinstance(d, (int, float)) and LOW <= d <= HIGH]
+
+            if out_of_spec:
                 failures.append(
-                    f"{label}: opacity animation durations {[a.get('duration') for a in opacity_anims]} outside 150–260ms"
+                    f"{label}: opacity animation durations {durations} include values outside {LOW}–{HIGH}ms ({out_of_spec})"
                 )
+            # AnimatePresence mode="wait" runs exit → enter, so we expect ≥2
+            # 200ms opacity animations on every SPA nav after the first.
+            if len(in_spec) < 2:
+                failures.append(
+                    f"{label}: expected ≥2 opacity animations at ~{TARGET_MS}ms (exit + enter), got {len(in_spec)} in-spec of {durations}"
+                )
+
 
         for r in results:
             print(r)
