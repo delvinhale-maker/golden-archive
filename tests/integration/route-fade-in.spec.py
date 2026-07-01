@@ -9,8 +9,8 @@ SHOTS.mkdir(parents=True, exist_ok=True)
 # Public routes only (no auth required)
 ROUTES = ["/", "/browse", "/search", "/support", "/terms", "/privacy"]
 
-# The RouteFadeIn wrapper in __root.tsx is the first motion.div child of #root.
-WRAPPER_SEL = "#root > div"
+# The RouteFadeIn motion.div wrapper in __root.tsx is the first child of body.
+WRAPPER_SEL = "body > div:first-child"
 
 
 async def sample_opacity(page, selector: str, ms: int) -> float:
