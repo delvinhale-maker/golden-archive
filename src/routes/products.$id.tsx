@@ -257,7 +257,10 @@ function ProductPage() {
 
           {/* Details */}
           <div>
-            <div className="text-[11px] font-semibold tracking-caps text-gold">
+            <div
+              className="text-[11px] font-semibold tracking-caps"
+              style={{ color: "var(--accent-color)" }}
+            >
               {product.category.toUpperCase()}
             </div>
             <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-ink md:text-4xl">
@@ -299,8 +302,8 @@ function ProductPage() {
                     <Star
                       key={i}
                       size={14}
-                      fill={i < Math.round(product.rating) ? "var(--gold)" : "none"}
-                      stroke="var(--gold)"
+                      fill={i < Math.round(product.rating) ? "var(--accent-color)" : "none"}
+                      stroke="var(--accent-color)"
                     />
                   ))}
                 </div>
@@ -321,7 +324,8 @@ function ProductPage() {
             >
               <span
                 data-testid="pdp-price"
-                className="font-display text-3xl font-bold text-gold"
+                className="font-display text-3xl font-bold"
+                style={{ color: "var(--accent-color)" }}
               >
                 ${product.price.toFixed(2)}
               </span>
