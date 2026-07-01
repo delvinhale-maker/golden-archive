@@ -42,12 +42,14 @@ import {
   CONFETTI_DURATION_MS,
   CONFETTI_PIECE_COUNT,
 } from "@/components/marketplace/PublishSuccessScreen";
-import { ACCENTS } from "@/components/marketplace/PublisherShell";
 
 const fixture = {
   productId: "prod_abc123",
   title: "Kingdom Mind",
-  accent: ACCENTS.publishStep4,
+  accent: { color: "#B8860B", tint: "rgba(184,134,11,0.10)" } as const,
+  cover: "https://cdn.aurumvault.store/covers/kingdom-mind.jpg",
+  price: 27,
+};
   cover: "https://cdn.aurumvault.store/covers/kingdom-mind.jpg",
   price: 27,
 };
