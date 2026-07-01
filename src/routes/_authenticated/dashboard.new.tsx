@@ -744,7 +744,16 @@ function PublishFlow() {
         </div>
       )}
 
-      <StepperBar step={step} />
+      <div className="flex items-center justify-between gap-3">
+        <StepperBar step={step} />
+        <div aria-live="polite" className="hidden sm:flex items-center gap-1.5 text-xs text-mute min-h-[20px]">
+          {autosaving ? (
+            <><Loader2 size={12} className="animate-spin" aria-hidden="true" /> <span>Saving draft…</span></>
+          ) : lastSavedAt ? (
+            <><CheckCircle2 size={12} className="text-emerald-600" aria-hidden="true" /> <span>Draft saved</span></>
+          ) : null}
+        </div>
+      </div>
 
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
