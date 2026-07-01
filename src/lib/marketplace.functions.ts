@@ -493,7 +493,8 @@ export const getHomeHighlights = createServerFn({ method: "GET" }).handler(
           .from("marketplace_products")
           .select("id", { count: "exact", head: true })
           .eq("status", "approved")
-          .eq("published", true),
+          .eq("published", true)
+          .eq("seller_id", "02579d2f-e0c1-4f53-b0e8-abedf18e4d4f"),
       ]);
       let heroProduct = heroRes.data
         ? dbRowToProduct(heroRes.data as DbProductRow)
