@@ -1947,11 +1947,13 @@ function PrePublishPreview(props: {
           <div className="min-w-0">
             <div className="relative mx-auto max-w-[280px]">
               <div className="relative w-full aspect-[1/1.6] rounded-md bg-gradient-to-br from-navy to-[#22335A] shadow-xl overflow-hidden">
-                {props.cover ? (
-                  <img src={props.cover} alt={`Cover for ${props.title || "untitled product"}`} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/40 text-xs" role="img" aria-label="No cover uploaded">No cover</div>
-                )}
+                <CoverThumb
+                  src={props.cover}
+                  title={props.title}
+                  alt={`Cover for ${props.title || "untitled product"}`}
+                  imgClassName="w-full h-full object-cover"
+                  fallbackClassName="w-full h-full flex items-center justify-center px-4 text-white/70"
+                />
                 {props.coverFullUrl && (
                   <a
                     href={props.coverFullUrl} target="_blank" rel="noopener noreferrer"
