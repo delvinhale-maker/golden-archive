@@ -24,6 +24,8 @@ import { FrequentlyBoughtTogether } from "@/components/marketplace/FrequentlyBou
 import { ShareButtons, ReportIssueLink } from "@/components/marketplace/ShareButtons";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { getProduct, type Product, type ProductDetailResult } from "@/lib/marketplace.functions";
+import { useTheme } from "@/lib/theme/ThemeProvider";
+import { CATEGORY_THEMES, DEFAULT_THEME } from "@/lib/theme/theme-config";
 
 const productQ = (id: string) =>
   queryOptions({
@@ -188,6 +190,14 @@ function ProductPage() {
 
   const formats = useMemo(() => formatsFor(product.category), [product.category]);
   const [format, setFormat] = useState(formats[0]?.id ?? "pdf");
+
+  // Auto-set accent color for this product's category (Amazon-style theming).
+  const { setActiveTheme } = useTheme();
+  useEffect(() => {
+    const key = product.category?.toLowerCase();
+    const theme = (key && CATEGORY_THEMES[key]) || DEFAULT_THEME;
+    setActiveTheme(theme);
+  }, [product.category, setActiveTheme]);
 
   return (
     <MarketShell>
