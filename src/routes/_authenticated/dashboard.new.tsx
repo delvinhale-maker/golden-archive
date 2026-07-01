@@ -1170,21 +1170,23 @@ function StepContent(p: {
 }
 
 function UploadSuccess({ iconLabel, name, size, onReplace }: { iconLabel: string; name: string; size: number; onReplace: () => void }) {
-  const sizeMB = size > 1024 * 1024 ? `${(size / 1024 / 1024).toFixed(2)} MB` : `${Math.max(1, Math.round(size / 1024))} KB`;
+  const sizeLabel = size > 1024 * 1024 ? `${(size / 1024 / 1024).toFixed(2)} MB` : size > 0 ? `${Math.max(1, Math.round(size / 1024))} KB` : "—";
   return (
     <div className="flex items-center gap-3 rounded-xl border-2 border-emerald-300 bg-emerald-50/60 p-4">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700" aria-hidden="true">
         <CheckCircle2 size={22} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-navy truncate">{name}</p>
-        <p className="text-xs text-mute">{sizeMB} · {iconLabel} uploaded</p>
+        <p className="text-sm font-semibold text-navy truncate">
+          ✅ {name} — {sizeLabel} uploaded successfully.
+        </p>
+        <p className="text-xs text-mute">Tap Replace to swap this {iconLabel}.</p>
       </div>
       <button
         type="button" onClick={onReplace}
         className="shrink-0 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5"
       >
-        Replace file
+        Replace
       </button>
     </div>
   );
