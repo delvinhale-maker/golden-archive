@@ -6,7 +6,7 @@ import { PublisherShell, ACCENTS, type PublisherAccent } from "@/components/mark
 import {
   ArrowLeft, ArrowRight, Check, Image as ImageIcon, FileText, X,
   CheckCircle2, AlertCircle, Maximize2, Plus, Sparkles, ShieldCheck, Globe,
-  Save, Eye, Loader2,
+  Save, Eye, Loader2, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -178,6 +178,13 @@ function PublishFlow() {
   const autosavingRef = useRef(false);
   const [autosaving, setAutosaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const [autosaveError, setAutosaveError] = useState<string | null>(null);
+  const lastAutosaveOptsRef = useRef<{
+    coverUrl?: string | null;
+    filePath?: string | null;
+    fileSize?: number | null;
+    silent?: boolean;
+  } | undefined>(undefined);
   async function autosaveDraftToDB(opts?: {
     coverUrl?: string | null;
     filePath?: string | null;
@@ -186,6 +193,7 @@ function PublishFlow() {
   }) {
     if (!user || autosavingRef.current) return;
     if (!title.trim()) return; // need at least a title
+    lastAutosaveOptsRef.current = opts;
     autosavingRef.current = true;
     setAutosaving(true);
     try {
@@ -222,17 +230,33 @@ function PublishFlow() {
         if (data?.id) setDraftProductId(data.id as string);
       }
       setLastSavedAt(Date.now());
+      setAutosaveError(null);
       if (!opts?.silent) {
         toast.success("Progress saved", { duration: 2000 });
       }
     } catch (e) {
-      // Don't bother the user with toast spam on debounced saves
       console.error("Autosave failed", e);
+      const msg =
+        e instanceof Error && e.message
+          ? e.message
+          : typeof e === "object" && e && "message" in e && typeof (e as { message?: unknown }).message === "string"
+            ? (e as { message: string }).message
+            : "We couldn't save your draft. Check your connection and retry.";
+      setAutosaveError(msg);
+      if (!opts?.silent) {
+        toast.error("Couldn't save draft", { description: msg, duration: 4000 });
+      }
     } finally {
       autosavingRef.current = false;
       setAutosaving(false);
     }
   }
+
+  async function retryAutosave() {
+    setAutosaveError(null);
+    await autosaveDraftToDB({ ...(lastAutosaveOptsRef.current ?? {}), silent: false });
+  }
+
 
   // Debounced auto-save on any field change (2s)
   useEffect(() => {
@@ -744,16 +768,54 @@ function PublishFlow() {
         </div>
       )}
 
+
+      {autosaveError && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-red-300 bg-red-50 p-3 sm:p-4"
+        >
+          <AlertCircle size={18} className="text-red-700 shrink-0 mt-0.5 sm:mt-0" aria-hidden="true" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-red-800">Autosave failed — your progress is still here</p>
+            <p className="text-xs text-red-700/90 mt-0.5 break-words">{autosaveError}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={retryAutosave}
+              disabled={autosaving}
+              className="inline-flex items-center gap-1.5 rounded-full bg-red-700 text-white text-xs font-semibold px-3 py-1.5 hover:bg-red-800 disabled:opacity-60 disabled:cursor-not-allowed"
+              aria-busy={autosaving}
+            >
+              {autosaving ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+              {autosaving ? "Retrying…" : "Retry save"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setAutosaveError(null)}
+              className="text-red-700 hover:text-red-900 rounded-full p-1"
+              aria-label="Dismiss autosave error"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between gap-3">
         <StepperBar step={step} />
         <div aria-live="polite" className="hidden sm:flex items-center gap-1.5 text-xs text-mute min-h-[20px]">
           {autosaving ? (
             <><Loader2 size={12} className="animate-spin" aria-hidden="true" /> <span>Saving draft…</span></>
+          ) : autosaveError ? (
+            <><AlertCircle size={12} className="text-red-600" aria-hidden="true" /> <span className="text-red-700">Not saved</span></>
           ) : lastSavedAt ? (
             <><CheckCircle2 size={12} className="text-emerald-600" aria-hidden="true" /> <span>Draft saved</span></>
           ) : null}
         </div>
       </div>
+
 
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
