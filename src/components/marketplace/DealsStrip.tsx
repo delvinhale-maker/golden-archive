@@ -12,17 +12,19 @@ function endOfDayMs() {
 }
 
 function useCountdown(target: number) {
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
+    setNow(Date.now());
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  const diff = Math.max(0, target - now);
+  const diff = now === null ? 0 : Math.max(0, target - now);
   const h = Math.floor(diff / 3_600_000);
   const m = Math.floor((diff % 3_600_000) / 60_000);
   const s = Math.floor((diff % 60_000) / 1000);
-  return { h, m, s };
+  return { h, m, s, ready: now !== null };
 }
+
 
 function pad(n: number) {
   return n.toString().padStart(2, "0");
@@ -30,7 +32,8 @@ function pad(n: number) {
 
 export function DealsStrip({ products }: { products: Product[] }) {
   const [target] = useState(() => endOfDayMs());
-  const { h, m, s } = useCountdown(target);
+  const { h, m, s, ready } = useCountdown(target);
+
   const deals = products.slice(0, 4).map((p) => ({
     ...p,
     dealPrice: Math.max(7, Math.round(p.price * 0.7 * 100) / 100),
@@ -53,11 +56,12 @@ export function DealsStrip({ products }: { products: Product[] }) {
           <div className="flex items-center gap-2">
             <span className="text-[12px] font-semibold text-white/70">Ends in</span>
             <div className="flex items-center gap-1 font-mono text-sm font-bold text-navy">
-              <TimeBox v={pad(h)} />
+              <TimeBox v={ready ? pad(h) : "--"} />
               <span>:</span>
-              <TimeBox v={pad(m)} />
+              <TimeBox v={ready ? pad(m) : "--"} />
               <span>:</span>
-              <TimeBox v={pad(s)} />
+              <TimeBox v={ready ? pad(s) : "--"} />
+
             </div>
           </div>
         </div>
