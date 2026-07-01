@@ -53,7 +53,10 @@ function dbRowToProduct(r: DbProductRow, sellerName = "Illustrious Capital™"):
     compareAtPrice: compareAt,
     rating: 0,
     reviewCount: 0,
-    image: r.cover_url ?? `av:${catLabel}:0`,
+    image:
+      r.cover_url && r.cover_url.trim().length > 0
+        ? r.cover_url
+        : `av:${catLabel}:0`,
     bestseller: false,
     creator: { id: r.seller_id, name: sellerName, verified: true },
     description: r.description ?? undefined,
