@@ -1685,6 +1685,7 @@ function PrePublishPreview(props: {
   const firstFixBtnRef = useRef<HTMLButtonElement>(null);
   const titleId = "prepublish-title";
   const descId = "prepublish-desc";
+  const [openingManuscript, setOpeningManuscript] = useState(false);
 
   useEffect(() => {
     const prevOverflow = document.body.style.overflow;
