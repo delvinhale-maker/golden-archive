@@ -18,7 +18,7 @@ def parse_rgb(s: str):
 async def main():
     async with async_playwright() as pw:
         b = await pw.chromium.launch(headless=True)
-        ctx = await b.new_context(viewport={"width": 390, "height": 800}, is_mobile=True)
+        ctx = await b.new_context(viewport={"width": 390, "height": 800}, is_mobile=True, has_touch=True)
         page = await ctx.new_page()
         await page.goto("http://localhost:8080/", wait_until="domcontentloaded")
         await page.wait_for_selector("nav a[aria-current], nav a", timeout=10000)
