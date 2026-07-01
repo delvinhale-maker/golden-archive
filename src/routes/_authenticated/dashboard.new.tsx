@@ -1612,9 +1612,11 @@ function PrePublishPreview(props: {
   checklistPass: boolean;
   submitting: boolean;
   cover: string | null;
+  coverFullUrl: string | null;
   title: string; subtitle: string; author: string; description: string;
   price: number; royalty: number;
   fileName: string | null; fileSize: number | null;
+  manuscriptPath: string | null;
   category: string; territory: string;
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
