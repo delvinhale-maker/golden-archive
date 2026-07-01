@@ -1478,11 +1478,13 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
         <div className="mt-4 mx-auto max-w-[260px]">
           <div className="rounded-xl bg-white border border-ink/10 shadow-sm overflow-hidden">
             <button type="button" onClick={onZoomCover} className="block w-full aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A] overflow-hidden">
-              {cover ? (
-                <img src={cover} alt={`Cover for ${title || "untitled"}`} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">No cover</div>
-              )}
+              <CoverThumb
+                src={cover}
+                title={title}
+                alt={`Cover for ${title || "untitled"}`}
+                imgClassName="w-full h-full object-cover"
+                fallbackClassName="w-full h-full flex items-center justify-center text-white/60 text-[11px] px-3 text-center"
+              />
             </button>
             <div className="p-3">
               <span className="inline-block text-[10px] uppercase tracking-wider font-semibold rounded-full px-2 py-0.5"
@@ -1725,6 +1727,54 @@ function DescriptionCounter({ value }: { value: string }) {
   );
 }
 
+/* ---------- Resilient cover thumbnail with graceful fallback ---------- */
+function CoverThumb({
+  src,
+  title,
+  alt,
+  fallbackClassName,
+  imgClassName = "h-full w-full object-cover",
+}: {
+  src: string | null | undefined;
+  title: string;
+  alt: string;
+  fallbackClassName?: string;
+  imgClassName?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { setFailed(false); }, [src]);
+  const showImg = !!src && !failed;
+  if (showImg) {
+    return (
+      <img
+        src={src as string}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        onError={() => setFailed(true)}
+        className={imgClassName}
+      />
+    );
+  }
+  return (
+    <div
+      role="img"
+      aria-label={src ? "Cover image unavailable" : "No cover uploaded"}
+      className={
+        fallbackClassName ??
+        "flex h-full w-full items-center justify-center px-4 text-white/70 text-xs"
+      }
+    >
+      <span
+        className="line-clamp-4 text-center text-base leading-tight"
+        style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+      >
+        {title || "Your cover will appear here"}
+      </span>
+    </div>
+  );
+}
+
 /* ---------- Pre-publish preview modal ---------- */
 function PrePublishPreview(props: {
   accent: PublisherAccent;
@@ -1897,11 +1947,13 @@ function PrePublishPreview(props: {
           <div className="min-w-0">
             <div className="relative mx-auto max-w-[280px]">
               <div className="relative w-full aspect-[1/1.6] rounded-md bg-gradient-to-br from-navy to-[#22335A] shadow-xl overflow-hidden">
-                {props.cover ? (
-                  <img src={props.cover} alt={`Cover for ${props.title || "untitled product"}`} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/40 text-xs" role="img" aria-label="No cover uploaded">No cover</div>
-                )}
+                <CoverThumb
+                  src={props.cover}
+                  title={props.title}
+                  alt={`Cover for ${props.title || "untitled product"}`}
+                  imgClassName="w-full h-full object-cover"
+                  fallbackClassName="w-full h-full flex items-center justify-center px-4 text-white/70"
+                />
                 {props.coverFullUrl && (
                   <a
                     href={props.coverFullUrl} target="_blank" rel="noopener noreferrer"
@@ -1957,26 +2009,13 @@ function PrePublishPreview(props: {
             >
               {/* Cover thumbnail — fixed 180px tall like the live card */}
               <div className="relative h-[180px] w-full overflow-hidden bg-gradient-to-br from-[#1B2A4A] to-[#4A1B6D]">
-                {props.cover ? (
-                  <img
-                    src={props.cover}
-                    alt={`Cover for ${props.title || "untitled product"}`}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div
-                    className="flex h-full w-full items-center justify-center px-6"
-                    role="img"
-                    aria-label="No cover uploaded"
-                  >
-                    <span
-                      className="line-clamp-4 text-center text-lg leading-tight text-white/90"
-                      style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
-                    >
-                      {props.title || "Your cover will appear here"}
-                    </span>
-                  </div>
-                )}
+                <CoverThumb
+                  src={props.cover}
+                  title={props.title}
+                  alt={`Cover for ${props.title || "untitled product"}`}
+                  imgClassName="h-full w-full object-cover"
+                  fallbackClassName="flex h-full w-full items-center justify-center px-6 text-white/90"
+                />
               </div>
 
               {/* Body */}
