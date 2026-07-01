@@ -37,11 +37,14 @@ function applyThemeToRoot(theme: ThemeTokens) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const routeTheme = useMemo(() => resolveThemeForPath(pathname), [pathname]);
+  const location = useRouterState({ select: (s) => s.location });
+  const routeTheme = useMemo(
+    () => resolveThemeForPath(location.pathname, location.search as Record<string, unknown>),
+    [location.pathname, location.search],
+  );
   const [activeTheme, setActiveTheme] = useState<ThemeTokens>(routeTheme);
 
-  // Auto-update theme on route change
+  // Auto-update theme on route or query change
   useEffect(() => {
     setActiveTheme(routeTheme);
   }, [routeTheme]);
