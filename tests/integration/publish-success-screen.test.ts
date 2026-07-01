@@ -47,7 +47,7 @@ import { ACCENTS } from "@/components/marketplace/PublisherShell";
 const fixture = {
   productId: "prod_abc123",
   title: "Kingdom Mind",
-  accent: ACCENTS[0],
+  accent: ACCENTS.publishStep4,
   cover: "https://cdn.aurumvault.store/covers/kingdom-mind.jpg",
   price: 27,
 };
