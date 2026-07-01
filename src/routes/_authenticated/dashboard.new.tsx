@@ -1725,6 +1725,54 @@ function DescriptionCounter({ value }: { value: string }) {
   );
 }
 
+/* ---------- Resilient cover thumbnail with graceful fallback ---------- */
+function CoverThumb({
+  src,
+  title,
+  alt,
+  fallbackClassName,
+  imgClassName = "h-full w-full object-cover",
+}: {
+  src: string | null | undefined;
+  title: string;
+  alt: string;
+  fallbackClassName?: string;
+  imgClassName?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { setFailed(false); }, [src]);
+  const showImg = !!src && !failed;
+  if (showImg) {
+    return (
+      <img
+        src={src as string}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        onError={() => setFailed(true)}
+        className={imgClassName}
+      />
+    );
+  }
+  return (
+    <div
+      role="img"
+      aria-label={src ? "Cover image unavailable" : "No cover uploaded"}
+      className={
+        fallbackClassName ??
+        "flex h-full w-full items-center justify-center px-4 text-white/70 text-xs"
+      }
+    >
+      <span
+        className="line-clamp-4 text-center text-base leading-tight"
+        style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+      >
+        {title || "Your cover will appear here"}
+      </span>
+    </div>
+  );
+}
+
 /* ---------- Pre-publish preview modal ---------- */
 function PrePublishPreview(props: {
   accent: PublisherAccent;
