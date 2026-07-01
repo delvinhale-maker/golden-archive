@@ -1478,12 +1478,13 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
         <div className="mt-4 mx-auto max-w-[260px]">
           <div className="rounded-xl bg-white border border-ink/10 shadow-sm overflow-hidden">
             <button type="button" onClick={onZoomCover} className="block w-full aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A] overflow-hidden">
-              {cover ? (
-                <img src={cover} alt={`Cover for ${title || "untitled"}`} className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; (e.currentTarget.parentElement?.querySelector('[data-cover-fallback]') as HTMLElement | null)?.style.setProperty('display', 'flex'); }} />
-              ) : null}
-              <div data-cover-fallback className="w-full h-full items-center justify-center text-white/60 text-xs px-3 text-center" style={{ display: cover ? 'none' : 'flex' }}>
-                {cover ? "Cover unavailable" : (title ? `“${title}”` : "No cover")}
-              </div>
+              <CoverThumb
+                src={cover}
+                title={title}
+                alt={`Cover for ${title || "untitled"}`}
+                imgClassName="w-full h-full object-cover"
+                fallbackClassName="w-full h-full flex items-center justify-center text-white/60 text-[11px] px-3 text-center"
+              />
             </button>
             <div className="p-3">
               <span className="inline-block text-[10px] uppercase tracking-wider font-semibold rounded-full px-2 py-0.5"
