@@ -63,6 +63,8 @@ async def main():
             has_hook = await page.evaluate("!!window.__anims")
             if not has_hook:
                 await page.evaluate(INSTRUMENT)
+            # Plant a beacon; if it survives the click, navigation was SPA.
+            await page.evaluate("window.__navBeacon = true")
             before = await page.evaluate("window.__anims.length")
             link = page.locator(f'a[href="{href}"]').first
             if not await link.count():
@@ -71,6 +73,10 @@ async def main():
             await link.click()
             await page.wait_for_url(f"**{href}", timeout=5000)
             await page.wait_for_timeout(500)  # past 200ms fade + buffer
+            spa = await page.evaluate("!!window.__navBeacon")
+            if not spa:
+                results.append({"nav": label, "skipped": "full page reload (not SPA nav)"})
+                continue
             new_anims = await page.evaluate(
                 "(n) => (window.__anims || []).slice(n)", before
             )
