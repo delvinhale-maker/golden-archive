@@ -276,6 +276,14 @@ function PublishFlow() {
       setPrice(((data.price_cents ?? 0) / 100).toString());
       setExistingCoverUrl(data.cover_url ?? null);
       setExistingFilePath(data.file_path ?? null);
+      // Hydrate "uploaded" state so the confirmation bars persist on refresh
+      if (data.cover_url) setUploadedCoverUrl(data.cover_url as string);
+      if (data.file_path) {
+        const rawName = (data.file_path as string).split("/").pop() ?? "manuscript";
+        const cleanName = rawName.replace(/^\d+-/, "");
+        setUploadedFilePath(data.file_path as string);
+        setUploadedFileMeta({ name: cleanName, size: (data.file_size_bytes as number | null) ?? 0 });
+      }
       try {
         const raw = data.admin_notes as unknown;
         const n = typeof raw === "string" ? JSON.parse(raw) : raw;
@@ -405,7 +413,8 @@ function PublishFlow() {
           setUploadedCoverUrl(url);
           setCoverProgress(100);
           setCoverUploadError(null);
-          await autosaveDraftToDB({ coverUrl: url });
+          await autosaveDraftToDB({ coverUrl: url, silent: true });
+          toast.success("Cover saved to your draft ✓", { duration: 3000 });
           return;
         } catch (e) {
           lastErr = e;
@@ -439,7 +448,8 @@ function PublishFlow() {
           setUploadedFileMeta({ name: f.name, size: f.size });
           setFileProgress(100);
           setFileUploadError(null);
-          await autosaveDraftToDB({ filePath: path, fileSize: f.size });
+          await autosaveDraftToDB({ filePath: path, fileSize: f.size, silent: true });
+          toast.success("Manuscript saved to your draft ✓", { duration: 3000 });
           return;
         } catch (e) {
           lastErr = e;
@@ -679,7 +689,7 @@ function PublishFlow() {
   if (publishedId) {
     return (
       <PublisherShell accent={accent}>
-        <SuccessScreen productId={publishedId} title={title} accent={accent} cover={coverPreview ?? existingCoverUrl} />
+        <SuccessScreen productId={publishedId} title={title} accent={accent} cover={coverPreview ?? existingCoverUrl} price={priceNum} />
       </PublisherShell>
     );
   }
@@ -798,6 +808,7 @@ function PublishFlow() {
               onDraft={() => uploadAndSave(false)}
               onPublish={() => uploadAndSave(true)}
               onZoomCover={() => setCoverLightbox(true)}
+              onOpenPreview={() => setShowPreview(true)}
             />
           )}
 
@@ -879,10 +890,12 @@ function PublishFlow() {
           checklistPass={checklistPass}
           submitting={submitting}
           cover={coverPreview}
+          coverFullUrl={uploadedCoverUrl ?? existingCoverUrl ?? coverPreview}
           title={title} subtitle={subtitle} author={author} description={description}
           price={priceNum} royalty={royalty}
-          fileName={file?.name ?? (existingFilePath ? existingFilePath.split("/").pop() ?? "Existing manuscript" : null)}
-          fileSize={file?.size ?? null}
+          fileName={uploadedFileMeta?.name ?? file?.name ?? (existingFilePath ? (existingFilePath.split("/").pop() ?? "Existing manuscript").replace(/^\d+-/, "") : null)}
+          fileSize={uploadedFileMeta?.size ?? file?.size ?? null}
+          manuscriptPath={uploadedFilePath ?? existingFilePath}
           category={category} territory={territory}
         />
       )}
@@ -1055,11 +1068,11 @@ function StepContent(p: {
       <div>
         <h3 className="font-display text-lg text-navy mb-2">Manuscript</h3>
         <p className="text-xs text-mute mb-3">Accepted: PDF, EPUB, DOCX. Max {MAX_FILE_MB} MB.</p>
-        {fileDone && p.file ? (
+        {(fileDone && (p.uploadedFileMeta || p.file)) ? (
           <UploadSuccess
             iconLabel="manuscript"
-            name={p.uploadedFileMeta?.name ?? p.file.name}
-            size={p.uploadedFileMeta?.size ?? p.file.size}
+            name={p.uploadedFileMeta?.name ?? p.file?.name ?? "manuscript"}
+            size={p.uploadedFileMeta?.size ?? p.file?.size ?? 0}
             onReplace={() => p.handleFileChange(null)}
           />
         ) : (
@@ -1082,12 +1095,6 @@ function StepContent(p: {
             <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
               <div className="h-full transition-all" style={{ width: `${p.fileProgress}%`, background: "var(--page-accent)" }} />
             </div>
-          </div>
-        )}
-        {!p.file && !p.fileError && p.existingFilePath && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-navy bg-paper border border-ink/10 rounded-lg p-3">
-            <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
-            <span className="truncate">Current manuscript on file. Tap the zone above to replace it.</span>
           </div>
         )}
         {p.fileUploadError && (
@@ -1134,14 +1141,14 @@ function StepContent(p: {
         {coverDone && p.cover && (
           <div className="mt-2 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <CheckCircle2 size={16} className="shrink-0" />
-            <span className="truncate flex-1">{p.cover.name} — {(p.cover.size / 1024 / 1024).toFixed(2)} MB · uploaded</span>
-            <button type="button" onClick={() => p.handleCoverChange(null)} className="text-xs font-semibold text-emerald-800 underline">Replace file</button>
+            <span className="truncate flex-1">✅ {p.cover.name} — {(p.cover.size / 1024 / 1024).toFixed(2)} MB uploaded successfully. Tap to replace.</span>
+            <button type="button" onClick={() => p.handleCoverChange(null)} className="text-xs font-semibold text-emerald-800 underline">Replace</button>
           </div>
         )}
-        {!p.cover && p.existingCoverUrl && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-navy bg-paper border border-ink/10 rounded-lg p-3">
-            <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
-            <span className="truncate">Current cover shown above. Tap the zone to replace it.</span>
+        {!p.cover && p.uploadedCoverUrl && (
+          <div className="mt-2 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+            <CheckCircle2 size={16} className="shrink-0" />
+            <span className="truncate flex-1">✅ Cover saved to your draft. Tap the zone above to replace it.</span>
           </div>
         )}
         {p.coverUploadError && (
@@ -1166,21 +1173,23 @@ function StepContent(p: {
 }
 
 function UploadSuccess({ iconLabel, name, size, onReplace }: { iconLabel: string; name: string; size: number; onReplace: () => void }) {
-  const sizeMB = size > 1024 * 1024 ? `${(size / 1024 / 1024).toFixed(2)} MB` : `${Math.max(1, Math.round(size / 1024))} KB`;
+  const sizeLabel = size > 1024 * 1024 ? `${(size / 1024 / 1024).toFixed(2)} MB` : size > 0 ? `${Math.max(1, Math.round(size / 1024))} KB` : "—";
   return (
     <div className="flex items-center gap-3 rounded-xl border-2 border-emerald-300 bg-emerald-50/60 p-4">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700" aria-hidden="true">
         <CheckCircle2 size={22} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-navy truncate">{name}</p>
-        <p className="text-xs text-mute">{sizeMB} · {iconLabel} uploaded</p>
+        <p className="text-sm font-semibold text-navy truncate">
+          ✅ {name} — {sizeLabel} uploaded successfully.
+        </p>
+        <p className="text-xs text-mute">Tap Replace to swap this {iconLabel}.</p>
       </div>
       <button
         type="button" onClick={onReplace}
         className="shrink-0 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5"
       >
-        Replace file
+        Replace
       </button>
     </div>
   );
@@ -1282,7 +1291,7 @@ function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium
 
 /* ---------- Step 4: Review ---------- */
 
-function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover }: {
+function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover, onOpenPreview }: {
   accent: PublisherAccent;
   cover: string | null; title: string; subtitle: string; author: string;
   price: number; royalty: number; format: string; territory: string;
@@ -1292,10 +1301,19 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
   checklistPass: boolean;
   onGoToStep: (s: StepNum) => void;
   onDraft: () => void; onPublish: () => void; onZoomCover: () => void;
+  onOpenPreview: () => void;
 }) {
   return (
     <div className="space-y-6">
       <h2 className="font-display text-2xl text-navy">Review & publish</h2>
+
+      <button
+        type="button" onClick={onOpenPreview}
+        className="w-full h-12 rounded-full font-semibold inline-flex items-center justify-center gap-2 text-white shadow-md hover:shadow-lg transition-all"
+        style={{ background: accent.color }}
+      >
+        <Eye size={16} /> Preview Your Listing
+      </button>
 
       {/* KDP-style storefront preview card */}
       <div className="rounded-2xl border border-ink/10 bg-gradient-to-br from-paper to-white p-5">
@@ -1396,24 +1414,53 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
 
 /* ---------- Success ---------- */
 
-function SuccessScreen({ productId, title, accent, cover }: { productId: string; title: string; accent: PublisherAccent; cover: string | null }) {
+function SuccessScreen({ productId, title, accent, cover, price }: { productId: string; title: string; accent: PublisherAccent; cover: string | null; price: number }) {
+  const [showConfetti, setShowConfetti] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setShowConfetti(false), 3000);
+    return () => clearTimeout(t);
+  }, []);
+  const pieces = useMemo(
+    () => Array.from({ length: 60 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 0.6,
+      dur: 2 + Math.random() * 1.5,
+      hue: Math.floor(Math.random() * 360),
+      size: 6 + Math.round(Math.random() * 6),
+    })),
+    []
+  );
   return (
-    <div className="max-w-2xl mx-auto mt-12 text-center">
-      <div
-        className="mx-auto inline-flex items-center justify-center h-20 w-20 rounded-full text-white shadow-xl"
-        style={{ background: accent.color }}
-      >
-        <CheckCircle2 size={42} />
-      </div>
+    <div className="relative max-w-2xl mx-auto mt-12 text-center">
+      {showConfetti && (
+        <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden z-40">
+          {pieces.map((p) => (
+            <span
+              key={p.id}
+              className="absolute top-[-20px] block rounded-sm"
+              style={{
+                left: `${p.left}%`,
+                width: p.size, height: p.size,
+                background: `hsl(${p.hue} 85% 60%)`,
+                animation: `av-fall ${p.dur}s ${p.delay}s linear forwards`,
+              }}
+            />
+          ))}
+          <style>{`@keyframes av-fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}`}</style>
+        </div>
+      )}
       {cover && (
         <img
           src={cover} alt={`Cover for ${title}`}
-          className="mx-auto mt-6 w-32 aspect-[1/1.6] object-cover rounded-md shadow-lg border border-ink/10"
+          className="mx-auto w-40 aspect-[1/1.6] object-cover rounded-md shadow-2xl border border-ink/10"
         />
       )}
-      <h1 className="mt-6 font-display text-3xl md:text-4xl text-navy">Your title is live on AurumVault!</h1>
-
-      <p className="mt-2 text-mute">"{title}" was successfully published and is now available in the storefront.</p>
+      <h1 className="mt-6 font-display text-3xl md:text-4xl text-navy">🎉 Your title is live on AurumVault!</h1>
+      <p className="mt-3 text-navy font-medium">"{title}"</p>
+      {price > 0 && (
+        <p className="text-mute mt-1">Listed at <span className="font-mono font-semibold text-navy">${price.toFixed(2)}</span></p>
+      )}
       <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
         <Link
           to="/products/$id" params={{ id: productId }}
@@ -1422,13 +1469,16 @@ function SuccessScreen({ productId, title, accent, cover }: { productId: string;
         >
           View in Store <ArrowRight size={16} />
         </Link>
-        <Link
-          to="/dashboard"
+        <a
+          href="/dashboard/new"
           className="h-12 px-6 rounded-full font-semibold text-navy border border-navy/20 inline-flex items-center justify-center hover:bg-navy/5"
         >
-          Back to Bookshelf
-        </Link>
+          Upload Another Title
+        </a>
       </div>
+      <Link to="/dashboard" className="mt-4 inline-block text-sm text-mute hover:text-navy underline">
+        Back to Bookshelf
+      </Link>
     </div>
   );
 }
@@ -1594,9 +1644,11 @@ function PrePublishPreview(props: {
   checklistPass: boolean;
   submitting: boolean;
   cover: string | null;
+  coverFullUrl: string | null;
   title: string; subtitle: string; author: string; description: string;
   price: number; royalty: number;
   fileName: string | null; fileSize: number | null;
+  manuscriptPath: string | null;
   category: string; territory: string;
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -1748,40 +1800,91 @@ function PrePublishPreview(props: {
           </p>
         </div>
 
-        <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6">
-          <div className="mx-auto md:mx-0 w-[220px] aspect-[1/1.6] rounded-md bg-gradient-to-br from-navy to-[#22335A] shadow-xl overflow-hidden">
-            {props.cover ? (
-              <img src={props.cover} alt={`Cover for ${props.title || "untitled product"}`} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white/40 text-xs" role="img" aria-label="No cover uploaded">No cover</div>
-            )}
-          </div>
+        <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* LEFT — Cover viewer */}
           <div className="min-w-0">
-            <h3 className="font-display text-2xl text-navy break-words">{props.title || "Untitled"}</h3>
-            {props.subtitle && <p className="text-sm italic text-mute mt-0.5">{props.subtitle}</p>}
-            <p className="text-sm text-mute mt-1">by <span className="text-navy font-medium">{props.author || "—"}</span></p>
-            <div className="mt-3 flex flex-wrap gap-2 text-xs">
-              <span className="px-2 py-1 rounded-full bg-navy/5 text-navy">{props.category || "Uncategorized"}</span>
-              <span className="px-2 py-1 rounded-full bg-navy/5 text-navy inline-flex items-center gap-1">
-                <Globe size={11} aria-hidden="true" /> <span><span className="sr-only">Territory: </span>{props.territory}</span>
-              </span>
-            </div>
-            <div className="mt-4 flex items-baseline gap-3">
-              <span className="font-display text-3xl text-navy tabular-nums" aria-label={`Price ${props.price.toFixed(2)} dollars`}>${props.price.toFixed(2)}</span>
-              <span className="text-xs text-mute">Royalty estimate: <strong className="text-navy">${props.royalty.toFixed(2)}</strong></span>
+            <div className="relative mx-auto max-w-[280px]">
+              <div className="relative w-full aspect-[1/1.6] rounded-md bg-gradient-to-br from-navy to-[#22335A] shadow-xl overflow-hidden">
+                {props.cover ? (
+                  <img src={props.cover} alt={`Cover for ${props.title || "untitled product"}`} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white/40 text-xs" role="img" aria-label="No cover uploaded">No cover</div>
+                )}
+                {props.coverFullUrl && (
+                  <a
+                    href={props.coverFullUrl} target="_blank" rel="noopener noreferrer"
+                    className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-navy/80 hover:bg-navy text-white text-xs font-medium px-2.5 py-1.5 backdrop-blur"
+                    aria-label="Open cover at full resolution in a new tab"
+                  >
+                    Full size <ArrowRight size={12} />
+                  </a>
+                )}
+              </div>
             </div>
             <div className="mt-4 rounded-lg border border-ink/10 bg-paper/40 p-3 text-xs text-mute">
-              <div className="flex items-center gap-2 text-navy font-medium"><FileText size={14} aria-hidden="true"/> Manuscript</div>
+              <div className="flex items-center gap-2 text-navy font-medium">
+                <FileText size={14} aria-hidden="true"/> Manuscript
+                {props.fileName && (
+                  <span className="ml-auto inline-flex items-center rounded-full bg-navy/10 text-navy text-[10px] font-bold uppercase tracking-wider px-2 py-0.5">
+                    {(props.fileName.split(".").pop() || "FILE").toUpperCase()}
+                  </span>
+                )}
+              </div>
               <div className="mt-1 break-all">{props.fileName ?? "No file uploaded"} · {sizeLabel}</div>
-            </div>
-            <div className="mt-4">
-              <p className="text-[11px] uppercase tracking-wider font-semibold text-mute" id="prepublish-desc-heading">Description</p>
-              <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed" aria-labelledby="prepublish-desc-heading">
-                {props.description || <span className="text-mute italic">No description provided.</span>}
-              </p>
+              <button
+                type="button"
+                disabled={!props.manuscriptPath}
+                onClick={async () => {
+                  if (!props.manuscriptPath) return;
+                  const { data, error } = await supabase.storage.from("product-files").createSignedUrl(props.manuscriptPath, 300);
+                  if (error || !data?.signedUrl) { toast.error("Could not open preview."); return; }
+                  window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+                }}
+                className="mt-3 w-full h-10 rounded-full text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
+                style={{ background: props.accent.color }}
+              >
+                <Eye size={14} /> Preview Manuscript
+              </button>
             </div>
           </div>
+
+          {/* RIGHT — Storefront listing card replica */}
+          <div className="min-w-0">
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-mute mb-2">Storefront listing preview</p>
+            <div className="rounded-xl bg-white border border-ink/10 shadow-sm overflow-hidden max-w-[280px]">
+              <div className="w-full aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A] overflow-hidden">
+                {props.cover ? (
+                  <img src={props.cover} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">No cover</div>
+                )}
+              </div>
+              <div className="p-3">
+                <span className="inline-block text-[10px] uppercase tracking-wider font-semibold rounded-full px-2 py-0.5"
+                  style={{ background: `${props.accent.color}22`, color: props.accent.color }}>
+                  {props.category || "Uncategorized"}
+                </span>
+                <p className="mt-1.5 font-display text-base text-navy leading-tight line-clamp-2">{props.title || "Untitled"}</p>
+                <p className="text-xs text-mute mt-0.5 flex items-center gap-1 truncate">
+                  by <span className="text-navy font-medium truncate">{props.author || "—"}</span>
+                  <ShieldCheck size={11} className="text-emerald-600 shrink-0" aria-label="Verified creator" />
+                </p>
+                <div className="mt-1.5 flex items-center gap-0.5" aria-label="0 of 5 stars, no reviews yet">
+                  {[0,1,2,3,4].map((i) => (
+                    <svg key={i} viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-amber-400"><path d="M12 17.3 5.8 21l1.6-7L2 9.3l7.1-.6L12 2l2.9 6.7 7.1.6-5.4 4.7 1.6 7z"/></svg>
+                  ))}
+                  <span className="ml-1 text-[10px] text-mute">(0 reviews)</span>
+                </div>
+                <div className="mt-2 flex items-baseline justify-between">
+                  <span className="font-mono text-navy font-semibold">${props.price.toFixed(2)}</span>
+                  <button type="button" disabled className="text-[11px] rounded-full bg-ink/10 text-mute px-3 py-1.5 cursor-not-allowed">Add to Cart</button>
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-mute italic">This is exactly how your product will appear in the Vault.</p>
+          </div>
         </div>
+
 
         <div className="p-6 md:p-8 border-t border-ink/10 bg-paper/30 rounded-b-2xl">
           <p className="text-[11px] uppercase tracking-wider font-semibold text-mute" id="checklist-heading">
