@@ -77,9 +77,10 @@ describe("PublishSuccessScreen (post-publish success)", () => {
   });
 
   it('routes "View in Store →" to /products/<id> with an arrow icon', () => {
-    expect(html).toMatch(
-      /<a[^>]+data-testid="publish-success-view-in-store"[^>]+href="\/products\/prod_abc123"/,
-    );
+    // Anchor exists with the test id AND the expanded /products/<id> href;
+    // attribute order in the SSR string isn't guaranteed, so assert each.
+    expect(html).toMatch(/<a\b[^>]*\bdata-testid="publish-success-view-in-store"[^>]*>/);
+    expect(html).toMatch(/<a\b[^>]*\bhref="\/products\/prod_abc123"[^>]*>/);
     expect(html).toContain("View in Store");
     // lucide ArrowRight renders as an <svg> inside the CTA
     const cta = html.split('data-testid="publish-success-view-in-store"')[1] ?? "";
@@ -87,9 +88,8 @@ describe("PublishSuccessScreen (post-publish success)", () => {
   });
 
   it('routes "Upload Another Title" back to /dashboard/new', () => {
-    expect(html).toMatch(
-      /<a[^>]+data-testid="publish-success-upload-another"[^>]+href="\/dashboard\/new"/,
-    );
+    expect(html).toMatch(/<a\b[^>]*\bdata-testid="publish-success-upload-another"[^>]*>/);
+    expect(html).toMatch(/<a\b[^>]*\bhref="\/dashboard\/new"[^>]*>/);
     expect(html).toContain("Upload Another Title");
   });
 
