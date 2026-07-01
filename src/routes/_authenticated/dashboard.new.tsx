@@ -178,13 +178,25 @@ function PublishFlow() {
   const autosavingRef = useRef(false);
   const [autosaving, setAutosaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
-  const [autosaveError, setAutosaveError] = useState<string | null>(null);
-  const lastAutosaveOptsRef = useRef<{
+  type AutosaveKind = "cover" | "manuscript" | "metadata";
+  const [autosaveErrors, setAutosaveErrors] = useState<Record<AutosaveKind, string | null>>({
+    cover: null,
+    manuscript: null,
+    metadata: null,
+  });
+  const [autosavingKind, setAutosavingKind] = useState<AutosaveKind | null>(null);
+  const lastAutosaveOptsRef = useRef<Record<AutosaveKind, {
     coverUrl?: string | null;
     filePath?: string | null;
     fileSize?: number | null;
-    silent?: boolean;
-  } | undefined>(undefined);
+  } | undefined>>({ cover: undefined, manuscript: undefined, metadata: undefined });
+
+  function classifyKind(opts?: { coverUrl?: string | null; filePath?: string | null }): AutosaveKind {
+    if (opts?.coverUrl !== undefined) return "cover";
+    if (opts?.filePath !== undefined) return "manuscript";
+    return "metadata";
+  }
+
   async function autosaveDraftToDB(opts?: {
     coverUrl?: string | null;
     filePath?: string | null;
@@ -193,9 +205,13 @@ function PublishFlow() {
   }) {
     if (!user || autosavingRef.current) return;
     if (!title.trim()) return; // need at least a title
-    lastAutosaveOptsRef.current = opts;
+    const kind = classifyKind(opts);
+    const { silent, ...persistedOpts } = opts ?? {};
+    void silent;
+    lastAutosaveOptsRef.current[kind] = persistedOpts;
     autosavingRef.current = true;
     setAutosaving(true);
+    setAutosavingKind(kind);
     try {
       const priceCents = Math.round((parseFloat(price || "0") || 0) * 100);
       const notes = JSON.stringify({
@@ -230,32 +246,36 @@ function PublishFlow() {
         if (data?.id) setDraftProductId(data.id as string);
       }
       setLastSavedAt(Date.now());
-      setAutosaveError(null);
+      setAutosaveErrors((prev) => (prev[kind] ? { ...prev, [kind]: null } : prev));
       if (!opts?.silent) {
         toast.success("Progress saved", { duration: 2000 });
       }
     } catch (e) {
-      console.error("Autosave failed", e);
+      console.error(`Autosave failed (${kind})`, e);
       const msg =
         e instanceof Error && e.message
           ? e.message
           : typeof e === "object" && e && "message" in e && typeof (e as { message?: unknown }).message === "string"
             ? (e as { message: string }).message
-            : "We couldn't save your draft. Check your connection and retry.";
-      setAutosaveError(msg);
+            : "We couldn't save this change. Check your connection and retry.";
+      setAutosaveErrors((prev) => ({ ...prev, [kind]: msg }));
       if (!opts?.silent) {
-        toast.error("Couldn't save draft", { description: msg, duration: 4000 });
+        const label = kind === "cover" ? "cover" : kind === "manuscript" ? "manuscript" : "draft";
+        toast.error(`Couldn't save ${label}`, { description: msg, duration: 4000 });
       }
     } finally {
       autosavingRef.current = false;
       setAutosaving(false);
+      setAutosavingKind(null);
     }
   }
 
-  async function retryAutosave() {
-    setAutosaveError(null);
-    await autosaveDraftToDB({ ...(lastAutosaveOptsRef.current ?? {}), silent: false });
+  async function retryAutosaveKind(kind: AutosaveKind) {
+    setAutosaveErrors((prev) => ({ ...prev, [kind]: null }));
+    const opts = lastAutosaveOptsRef.current[kind];
+    await autosaveDraftToDB({ ...(opts ?? {}), silent: false });
   }
+
 
 
   // Debounced auto-save on any field change (2s)
@@ -769,52 +789,100 @@ function PublishFlow() {
       )}
 
 
-      {autosaveError && (
+
+      {(autosaveErrors.cover || autosaveErrors.manuscript || autosaveErrors.metadata) && (
         <div
           role="alert"
           aria-live="assertive"
-          className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-red-300 bg-red-50 p-3 sm:p-4"
+          className="rounded-xl border border-red-300 bg-red-50 p-3 sm:p-4 space-y-2"
         >
-          <AlertCircle size={18} className="text-red-700 shrink-0 mt-0.5 sm:mt-0" aria-hidden="true" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-red-800">Autosave failed — your progress is still here</p>
-            <p className="text-xs text-red-700/90 mt-0.5 break-words">{autosaveError}</p>
+          <div className="flex items-start gap-2">
+            <AlertCircle size={18} className="text-red-700 shrink-0 mt-0.5" aria-hidden="true" />
+            <p className="text-sm font-semibold text-red-800">
+              Some changes didn't save — your progress is still here
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={retryAutosave}
-              disabled={autosaving}
-              className="inline-flex items-center gap-1.5 rounded-full bg-red-700 text-white text-xs font-semibold px-3 py-1.5 hover:bg-red-800 disabled:opacity-60 disabled:cursor-not-allowed"
-              aria-busy={autosaving}
-            >
-              {autosaving ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
-              {autosaving ? "Retrying…" : "Retry save"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setAutosaveError(null)}
-              className="text-red-700 hover:text-red-900 rounded-full p-1"
-              aria-label="Dismiss autosave error"
-            >
-              <X size={14} />
-            </button>
-          </div>
+          <ul className="space-y-2 pl-6">
+            {(["cover", "manuscript", "metadata"] as const).map((kind) => {
+              const err = autosaveErrors[kind];
+              if (!err) return null;
+              const label =
+                kind === "cover" ? "Cover link" :
+                kind === "manuscript" ? "Manuscript link" :
+                "Details (title, description, price)";
+              const isRetrying = autosavingKind === kind;
+              return (
+                <li key={kind} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-red-800">{label}</p>
+                    <p className="text-xs text-red-700/90 break-words">{err}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => retryAutosaveKind(kind)}
+                      disabled={autosaving}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-red-700 text-white text-xs font-semibold px-3 py-1.5 hover:bg-red-800 disabled:opacity-60 disabled:cursor-not-allowed"
+                      aria-busy={isRetrying}
+                      aria-label={`Retry saving ${label}`}
+                    >
+                      {isRetrying ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+                      {isRetrying ? "Retrying…" : "Retry"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setAutosaveErrors((prev) => ({ ...prev, [kind]: null }))
+                      }
+                      className="text-red-700 hover:text-red-900 rounded-full p-1"
+                      aria-label={`Dismiss ${label} error`}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
 
       <div className="flex items-center justify-between gap-3">
         <StepperBar step={step} />
-        <div aria-live="polite" className="hidden sm:flex items-center gap-1.5 text-xs text-mute min-h-[20px]">
-          {autosaving ? (
-            <><Loader2 size={12} className="animate-spin" aria-hidden="true" /> <span>Saving draft…</span></>
-          ) : autosaveError ? (
-            <><AlertCircle size={12} className="text-red-600" aria-hidden="true" /> <span className="text-red-700">Not saved</span></>
-          ) : lastSavedAt ? (
-            <><CheckCircle2 size={12} className="text-emerald-600" aria-hidden="true" /> <span>Draft saved</span></>
-          ) : null}
+        <div aria-live="polite" className="hidden sm:flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-mute min-h-[20px]">
+          {(["metadata", "cover", "manuscript"] as const).map((kind) => {
+            const err = autosaveErrors[kind];
+            const busy = autosavingKind === kind;
+            const label = kind === "cover" ? "Cover" : kind === "manuscript" ? "Manuscript" : "Details";
+            if (busy) {
+              return (
+                <span key={kind} className="inline-flex items-center gap-1">
+                  <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+                  <span>Saving {label.toLowerCase()}…</span>
+                </span>
+              );
+            }
+            if (err) {
+              return (
+                <span key={kind} className="inline-flex items-center gap-1 text-red-700">
+                  <AlertCircle size={12} aria-hidden="true" />
+                  <span>{label} not saved</span>
+                </span>
+              );
+            }
+            return null;
+          })}
+          {!autosaving &&
+            !autosaveErrors.cover && !autosaveErrors.manuscript && !autosaveErrors.metadata &&
+            lastSavedAt && (
+              <span className="inline-flex items-center gap-1">
+                <CheckCircle2 size={12} className="text-emerald-600" aria-hidden="true" />
+                <span>Draft saved</span>
+              </span>
+            )}
         </div>
       </div>
+
 
 
 
