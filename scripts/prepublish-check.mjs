@@ -57,8 +57,8 @@ step("Local import resolution", () => {
   for (const f of files) {
     const src = readFileSync(f, "utf8");
     for (const m of src.matchAll(importRe)) {
-      const spec = m[1];
-      if (!spec.startsWith(".") && !spec.startsWith("@/")) continue;
+      const spec = m[1].split("?")[0].split("#")[0];
+      if (!spec || (!spec.startsWith(".") && !spec.startsWith("@/"))) continue;
       if (!resolveImport(spec, f)) missing.push(`  ${f.replace(ROOT + "/", "")} → '${spec}'`);
     }
   }
