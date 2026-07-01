@@ -143,9 +143,11 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         attachRatings(supa, recommended),
       ]);
       return { newReleases: nrR, recommended: recR, sponsored: spR };
-    } catch {
+    } catch (e) {
+      console.error("[getHomeRows] failed:", e);
       return { newReleases: [], recommended: [], sponsored: [] };
     }
+
   },
 );
 
