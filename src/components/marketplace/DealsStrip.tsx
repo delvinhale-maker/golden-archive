@@ -56,11 +56,12 @@ export function DealsStrip({ products }: { products: Product[] }) {
           <div className="flex items-center gap-2">
             <span className="text-[12px] font-semibold text-white/70">Ends in</span>
             <div className="flex items-center gap-1 font-mono text-sm font-bold text-navy">
-              <TimeBox v={pad(h)} />
+              <TimeBox v={ready ? pad(h) : "--"} />
               <span>:</span>
-              <TimeBox v={pad(m)} />
+              <TimeBox v={ready ? pad(m) : "--"} />
               <span>:</span>
-              <TimeBox v={pad(s)} />
+              <TimeBox v={ready ? pad(s) : "--"} />
+
             </div>
           </div>
         </div>
