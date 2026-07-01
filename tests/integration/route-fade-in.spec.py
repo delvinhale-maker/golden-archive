@@ -21,6 +21,9 @@ INSTRUMENT = r"""
 () => {
   window.__anims = [];
   const orig = Element.prototype.animate;
+  // The RouteFadeIn <motion.div> wrapper is the first direct child of <body>.
+  const isFadeWrapper = (el) => el && el.parentElement === document.body
+    && el === document.body.firstElementChild;
   Element.prototype.animate = function (keyframes, options) {
     try {
       const kf = Array.isArray(keyframes) ? keyframes : [keyframes || {}];
@@ -29,12 +32,18 @@ INSTRUMENT = r"""
         typeof options === 'number'
           ? options
           : (options && options.duration) || null;
-      window.__anims.push({ props, duration, at: performance.now() });
+      window.__anims.push({
+        props,
+        duration,
+        at: performance.now(),
+        onFadeWrapper: isFadeWrapper(this),
+      });
     } catch {}
     return orig.apply(this, arguments);
   };
 }
 """
+
 
 # (label, href to click) — client-side navigations from the current page.
 # Order matters: after each nav we're on that page and need a link to click next.
