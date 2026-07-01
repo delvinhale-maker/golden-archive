@@ -23,7 +23,7 @@ BASE_URL = "http://localhost:8080"
 OUT = Path("/tmp/browser/home-rows")
 OUT.mkdir(parents=True, exist_ok=True)
 
-# Sponsored row is hardcoded in src/lib/home-rows.functions.ts
+# Sponsored row is hardcoded in src/lib/homerows.functions.ts
 EXPECTED_SPONSORED = ["Kingdom Mind", "M.O.V. — Method of Verification"]
 
 # New Releases is the 3 most recent approved+published products. We assert

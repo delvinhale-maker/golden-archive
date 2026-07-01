@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Sparkles, Clock, Megaphone, Flame } from "lucide-react";
 import { ProductCard, ProductCardSkeleton } from "./ProductCard";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
-import { getHomeRows, getProductsByIds } from "@/lib/home-rows.functions";
+import { getHomeRows, getProductsByIds } from "@/lib/homerows.functions";
 import type { Product } from "@/lib/marketplace.functions";
 
 export const homeRowsQ = queryOptions({

@@ -40,7 +40,7 @@ PROMOTED_HEADING = "Promoted Picks"
 NEW_HEADING = "New Releases"
 
 # Identifier baked into the /_serverFn/<base64> URL for getHomeRows.
-HOME_ROWS_FN_MARKER = "home-rows.functions"
+HOME_ROWS_FN_MARKER = "homerows.functions"
 
 
 # --------------------------------------------------------------------------- #
