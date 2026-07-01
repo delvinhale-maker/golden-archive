@@ -178,13 +178,25 @@ function PublishFlow() {
   const autosavingRef = useRef(false);
   const [autosaving, setAutosaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
-  const [autosaveError, setAutosaveError] = useState<string | null>(null);
-  const lastAutosaveOptsRef = useRef<{
+  type AutosaveKind = "cover" | "manuscript" | "metadata";
+  const [autosaveErrors, setAutosaveErrors] = useState<Record<AutosaveKind, string | null>>({
+    cover: null,
+    manuscript: null,
+    metadata: null,
+  });
+  const [autosavingKind, setAutosavingKind] = useState<AutosaveKind | null>(null);
+  const lastAutosaveOptsRef = useRef<Record<AutosaveKind, {
     coverUrl?: string | null;
     filePath?: string | null;
     fileSize?: number | null;
-    silent?: boolean;
-  } | undefined>(undefined);
+  } | undefined>>({ cover: undefined, manuscript: undefined, metadata: undefined });
+
+  function classifyKind(opts?: { coverUrl?: string | null; filePath?: string | null }): AutosaveKind {
+    if (opts?.coverUrl !== undefined) return "cover";
+    if (opts?.filePath !== undefined) return "manuscript";
+    return "metadata";
+  }
+
   async function autosaveDraftToDB(opts?: {
     coverUrl?: string | null;
     filePath?: string | null;
@@ -193,9 +205,13 @@ function PublishFlow() {
   }) {
     if (!user || autosavingRef.current) return;
     if (!title.trim()) return; // need at least a title
-    lastAutosaveOptsRef.current = opts;
+    const kind = classifyKind(opts);
+    const { silent, ...persistedOpts } = opts ?? {};
+    void silent;
+    lastAutosaveOptsRef.current[kind] = persistedOpts;
     autosavingRef.current = true;
     setAutosaving(true);
+    setAutosavingKind(kind);
     try {
       const priceCents = Math.round((parseFloat(price || "0") || 0) * 100);
       const notes = JSON.stringify({
@@ -230,32 +246,36 @@ function PublishFlow() {
         if (data?.id) setDraftProductId(data.id as string);
       }
       setLastSavedAt(Date.now());
-      setAutosaveError(null);
+      setAutosaveErrors((prev) => (prev[kind] ? { ...prev, [kind]: null } : prev));
       if (!opts?.silent) {
         toast.success("Progress saved", { duration: 2000 });
       }
     } catch (e) {
-      console.error("Autosave failed", e);
+      console.error(`Autosave failed (${kind})`, e);
       const msg =
         e instanceof Error && e.message
           ? e.message
           : typeof e === "object" && e && "message" in e && typeof (e as { message?: unknown }).message === "string"
             ? (e as { message: string }).message
-            : "We couldn't save your draft. Check your connection and retry.";
-      setAutosaveError(msg);
+            : "We couldn't save this change. Check your connection and retry.";
+      setAutosaveErrors((prev) => ({ ...prev, [kind]: msg }));
       if (!opts?.silent) {
-        toast.error("Couldn't save draft", { description: msg, duration: 4000 });
+        const label = kind === "cover" ? "cover" : kind === "manuscript" ? "manuscript" : "draft";
+        toast.error(`Couldn't save ${label}`, { description: msg, duration: 4000 });
       }
     } finally {
       autosavingRef.current = false;
       setAutosaving(false);
+      setAutosavingKind(null);
     }
   }
 
-  async function retryAutosave() {
-    setAutosaveError(null);
-    await autosaveDraftToDB({ ...(lastAutosaveOptsRef.current ?? {}), silent: false });
+  async function retryAutosaveKind(kind: AutosaveKind) {
+    setAutosaveErrors((prev) => ({ ...prev, [kind]: null }));
+    const opts = lastAutosaveOptsRef.current[kind];
+    await autosaveDraftToDB({ ...(opts ?? {}), silent: false });
   }
+
 
 
   // Debounced auto-save on any field change (2s)
