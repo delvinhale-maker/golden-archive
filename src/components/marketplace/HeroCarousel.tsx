@@ -3,6 +3,9 @@ import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { ProductCover } from "./ProductCover";
+import { useTheme } from "@/lib/theme/ThemeProvider";
+
+type SlideTheme = { accentColor: string; gradientStart: string };
 
 type Slide = {
   kicker: string;
@@ -14,6 +17,7 @@ type Slide = {
   secondaryHref?: string;
   card: { title: string; cat: string; price: number; coverUrl?: string | null };
   bgClass?: string;
+  theme: SlideTheme;
 };
 
 const DEFAULT_HERO_SLIDE: Slide = {
