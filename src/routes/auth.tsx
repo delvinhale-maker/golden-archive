@@ -13,6 +13,26 @@ import {
   logOAuthFailure,
   sessionMarker,
 } from "@/lib/oauth-telemetry";
+import { resolvePostAuthRedirect } from "@/lib/post-auth-redirect";
+
+async function fetchRolesFor(userId: string): Promise<string[]> {
+  try {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    return (data ?? []).map((r: { role: string }) => r.role);
+  } catch {
+    return [];
+  }
+}
+
+async function resolveRedirectForSession(savedRedirect?: string | null): Promise<string> {
+  const { data } = await supabase.auth.getUser();
+  const uid = data.user?.id;
+  const roles = uid ? await fetchRolesFor(uid) : [];
+  return resolvePostAuthRedirect({ roles, savedRedirect });
+}
 
 const authSearchSchema = z.object({
   redirect: z.string().optional(),
