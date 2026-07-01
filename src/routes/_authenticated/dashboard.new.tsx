@@ -817,6 +817,7 @@ function PublishFlow() {
               category={category}
               uploading={uploading} uploadProgress={uploadProgress}
               submitting={submitting} disabled={canSell === false}
+              autosaving={autosaving}
               checklist={checklist} checklistPass={checklistPass}
               onGoToStep={(s: StepNum) => setStep(s)}
               onDraft={() => uploadAndSave(false)}
