@@ -36,12 +36,12 @@ INSTRUMENT = r"""
 }
 """
 
-# (label, href to click) — target hrefs that exist on the homepage.
+# (label, href to click) — client-side navigations from the current page.
+# Order matters: after each nav we're on that page and need a link to click next.
 NAV_STEPS = [
-    ("products", "/products"),
-    ("sell", "/sell"),
-    ("kingdom-picks", "/kingdom-picks"),
-    ("home", "/"),
+    ("sell", "/sell"),        # from "/"
+    ("home", "/"),            # from "/sell"
+    ("sell-again", "/sell"),  # from "/" — verifies repeat navigation still fades
 ]
 
 
