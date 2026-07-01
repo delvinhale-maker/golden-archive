@@ -808,6 +808,7 @@ function PublishFlow() {
               onDraft={() => uploadAndSave(false)}
               onPublish={() => uploadAndSave(true)}
               onZoomCover={() => setCoverLightbox(true)}
+              onOpenPreview={() => setShowPreview(true)}
             />
           )}
 
