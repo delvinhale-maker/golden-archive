@@ -130,7 +130,10 @@ function Home() {
       <KingdomPicksRow />
       <CategoriesSection />
 
-      <HomeContentRows />
+      <Suspense fallback={null}>
+        <HomeContentRows />
+      </Suspense>
+
       <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProducts />
       </Suspense>
