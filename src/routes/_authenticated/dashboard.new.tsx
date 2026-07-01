@@ -6,7 +6,7 @@ import { PublisherShell, ACCENTS, type PublisherAccent } from "@/components/mark
 import {
   ArrowLeft, ArrowRight, Check, Image as ImageIcon, FileText, X,
   CheckCircle2, AlertCircle, Maximize2, Plus, Sparkles, ShieldCheck, Globe,
-  Save, Eye,
+  Save, Eye, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -176,6 +176,8 @@ function PublishFlow() {
   // Auto-save the current form state to the DB as a draft.
   // Used after a successful upload and on a 2s debounce for field changes.
   const autosavingRef = useRef(false);
+  const [autosaving, setAutosaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   async function autosaveDraftToDB(opts?: {
     coverUrl?: string | null;
     filePath?: string | null;
@@ -185,6 +187,7 @@ function PublishFlow() {
     if (!user || autosavingRef.current) return;
     if (!title.trim()) return; // need at least a title
     autosavingRef.current = true;
+    setAutosaving(true);
     try {
       const priceCents = Math.round((parseFloat(price || "0") || 0) * 100);
       const notes = JSON.stringify({
@@ -218,6 +221,7 @@ function PublishFlow() {
         if (error) throw error;
         if (data?.id) setDraftProductId(data.id as string);
       }
+      setLastSavedAt(Date.now());
       if (!opts?.silent) {
         toast.success("Progress saved", { duration: 2000 });
       }
@@ -226,6 +230,7 @@ function PublishFlow() {
       console.error("Autosave failed", e);
     } finally {
       autosavingRef.current = false;
+      setAutosaving(false);
     }
   }
 
@@ -739,7 +744,16 @@ function PublishFlow() {
         </div>
       )}
 
-      <StepperBar step={step} />
+      <div className="flex items-center justify-between gap-3">
+        <StepperBar step={step} />
+        <div aria-live="polite" className="hidden sm:flex items-center gap-1.5 text-xs text-mute min-h-[20px]">
+          {autosaving ? (
+            <><Loader2 size={12} className="animate-spin" aria-hidden="true" /> <span>Saving draft…</span></>
+          ) : lastSavedAt ? (
+            <><CheckCircle2 size={12} className="text-emerald-600" aria-hidden="true" /> <span>Draft saved</span></>
+          ) : null}
+        </div>
+      </div>
 
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
@@ -803,6 +817,7 @@ function PublishFlow() {
               category={category}
               uploading={uploading} uploadProgress={uploadProgress}
               submitting={submitting} disabled={canSell === false}
+              autosaving={autosaving}
               checklist={checklist} checklistPass={checklistPass}
               onGoToStep={(s: StepNum) => setStep(s)}
               onDraft={() => uploadAndSave(false)}
@@ -824,31 +839,37 @@ function PublishFlow() {
               </button>
               <div className="flex gap-2 ml-auto">
                 <button
-                  type="button" onClick={() => uploadAndSave(false)} disabled={submitting || !title.trim()}
-                  className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50"
-                  title="Save progress as a draft in your bookshelf"
+                  type="button" onClick={() => uploadAndSave(false)} disabled={submitting || autosaving || !title.trim()}
+                  className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={autosaving ? "Saving in progress…" : "Save progress as a draft in your bookshelf"}
+                  aria-busy={submitting || autosaving}
                 >
-                  <Save size={14} /> Save Progress
+                  {submitting || autosaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                  {submitting ? "Saving…" : autosaving ? "Saving…" : "Save Progress"}
                 </button>
                 <button
                   type="button" onClick={next}
-                  className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-1.5 transition-colors duration-300"
+                  disabled={submitting || autosaving}
+                  className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-1.5 transition-colors duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{ background: accent.color }}
+                  aria-busy={submitting || autosaving}
                 >
-                  Continue <ArrowRight size={16} />
+                  {autosaving ? <><Loader2 size={16} className="animate-spin" /> Saving…</> : <>Continue <ArrowRight size={16} /></>}
                 </button>
               </div>
             </div>
           ) : (
             <div className="mt-6 flex items-center justify-between">
-              <button onClick={() => setStep(3)} className="text-sm text-mute hover:text-navy inline-flex items-center gap-1.5">
+              <button onClick={() => setStep(3)} disabled={submitting} className="text-sm text-mute hover:text-navy inline-flex items-center gap-1.5 disabled:opacity-50">
                 <ArrowLeft size={14} /> Back to pricing
               </button>
               <button
-                type="button" onClick={() => uploadAndSave(false)} disabled={submitting || !title.trim()}
-                className="h-10 px-4 rounded-full border border-navy/20 text-navy text-sm font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50"
+                type="button" onClick={() => uploadAndSave(false)} disabled={submitting || autosaving || !title.trim()}
+                className="h-10 px-4 rounded-full border border-navy/20 text-navy text-sm font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-busy={submitting || autosaving}
               >
-                <Save size={14} /> Save Progress
+                {submitting || autosaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                {submitting ? "Saving…" : autosaving ? "Saving…" : "Save Progress"}
               </button>
             </div>
           )}
@@ -1291,12 +1312,13 @@ function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium
 
 /* ---------- Step 4: Review ---------- */
 
-function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover, onOpenPreview }: {
+function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, autosaving, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover, onOpenPreview }: {
   accent: PublisherAccent;
   cover: string | null; title: string; subtitle: string; author: string;
   price: number; royalty: number; format: string; territory: string;
   category: string;
   uploading: boolean; uploadProgress: number; submitting: boolean; disabled: boolean;
+  autosaving: boolean;
   checklist: Array<{ id: string; label: string; ok: boolean; gotoStep: StepNum }>;
   checklistPass: boolean;
   onGoToStep: (s: StepNum) => void;
@@ -1309,10 +1331,12 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
 
       <button
         type="button" onClick={onOpenPreview}
-        className="w-full h-12 rounded-full font-semibold inline-flex items-center justify-center gap-2 text-white shadow-md hover:shadow-lg transition-all"
+        disabled={submitting || autosaving}
+        className="w-full h-12 rounded-full font-semibold inline-flex items-center justify-center gap-2 text-white shadow-md hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed"
         style={{ background: accent.color }}
+        aria-busy={submitting || autosaving}
       >
-        <Eye size={16} /> Preview Your Listing
+        {autosaving ? <><Loader2 size={16} className="animate-spin" /> Saving draft…</> : <><Eye size={16} /> Preview Your Listing</>}
       </button>
 
       {/* KDP-style storefront preview card */}
@@ -1393,18 +1417,22 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <button
-          type="button" disabled={submitting || disabled} onClick={onDraft}
-          className="h-12 px-5 rounded-full bg-white border border-navy/20 text-navy font-semibold hover:bg-navy/5 disabled:opacity-60"
+          type="button" disabled={submitting || autosaving || disabled} onClick={onDraft}
+          className="h-12 px-5 rounded-full bg-white border border-navy/20 text-navy font-semibold hover:bg-navy/5 disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+          aria-busy={submitting || autosaving}
         >
-          Save as Draft
+          {(submitting || autosaving) && <Loader2 size={14} className="animate-spin" />}
+          {autosaving ? "Saving…" : submitting ? "Saving…" : "Save as Draft"}
         </button>
         <button
-          type="button" disabled={submitting || disabled || !checklistPass} onClick={onPublish}
+          type="button" disabled={submitting || autosaving || disabled || !checklistPass} onClick={onPublish}
           className="flex-1 h-12 rounded-full text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 transition-colors duration-300"
           style={{ background: accent.color }}
-          title={!checklistPass ? "Resolve checklist items above" : undefined}
+          title={!checklistPass ? "Resolve checklist items above" : autosaving ? "Saving in progress…" : undefined}
+          aria-busy={submitting}
         >
-          <ShieldCheck size={16} /> {submitting ? "Publishing…" : "Publish to Vault"}
+          {submitting ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
+          {submitting ? "Publishing…" : autosaving ? "Saving draft…" : "Publish to Vault"}
         </button>
       </div>
     </div>
@@ -1657,6 +1685,7 @@ function PrePublishPreview(props: {
   const firstFixBtnRef = useRef<HTMLButtonElement>(null);
   const titleId = "prepublish-title";
   const descId = "prepublish-desc";
+  const [openingManuscript, setOpeningManuscript] = useState(false);
 
   useEffect(() => {
     const prevOverflow = document.body.style.overflow;
@@ -1833,17 +1862,23 @@ function PrePublishPreview(props: {
               <div className="mt-1 break-all">{props.fileName ?? "No file uploaded"} · {sizeLabel}</div>
               <button
                 type="button"
-                disabled={!props.manuscriptPath}
+                disabled={!props.manuscriptPath || openingManuscript || props.submitting}
                 onClick={async () => {
-                  if (!props.manuscriptPath) return;
-                  const { data, error } = await supabase.storage.from("product-files").createSignedUrl(props.manuscriptPath, 300);
-                  if (error || !data?.signedUrl) { toast.error("Could not open preview."); return; }
-                  window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+                  if (!props.manuscriptPath || openingManuscript) return;
+                  setOpeningManuscript(true);
+                  try {
+                    const { data, error } = await supabase.storage.from("product-files").createSignedUrl(props.manuscriptPath, 300);
+                    if (error || !data?.signedUrl) { toast.error("Could not open preview."); return; }
+                    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+                  } finally {
+                    setOpeningManuscript(false);
+                  }
                 }}
-                className="mt-3 w-full h-10 rounded-full text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
+                className="mt-3 w-full h-10 rounded-full text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: props.accent.color }}
+                aria-busy={openingManuscript}
               >
-                <Eye size={14} /> Preview Manuscript
+                {openingManuscript ? <><Loader2 size={14} className="animate-spin" /> Preparing preview…</> : <><Eye size={14} /> Preview Manuscript</>}
               </button>
             </div>
           </div>
@@ -1923,20 +1958,22 @@ function PrePublishPreview(props: {
           <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
             <button
               type="button" onClick={props.onClose}
-              className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5 focus-visible:ring-2 focus-visible:ring-navy focus-visible:outline-none"
+              disabled={props.submitting}
+              className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5 focus-visible:ring-2 focus-visible:ring-navy focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Keep editing
             </button>
             <button
               ref={publishBtnRef}
-              type="button" onClick={props.onConfirm}
+              type="button" onClick={() => { if (!props.submitting && props.checklistPass) props.onConfirm(); }}
               disabled={!props.checklistPass || props.submitting}
               className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-navy focus-visible:outline-none"
               style={{ background: props.accent.color }}
               aria-describedby={!props.checklistPass ? "checklist-heading" : undefined}
               aria-label={props.checklistPass ? "Publish to Vault (Ctrl+Enter)" : "Publish to Vault — resolve checklist first"}
+              aria-busy={props.submitting}
             >
-              <ShieldCheck size={16} aria-hidden="true" />
+              {props.submitting ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <ShieldCheck size={16} aria-hidden="true" />}
               {props.submitting ? "Publishing…" : "Publish to Vault"}
             </button>
           </div>
