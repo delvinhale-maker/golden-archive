@@ -257,7 +257,7 @@ function AuthPage() {
         const saved = sessionStorage.getItem("av_oauth_redirect");
         sessionStorage.removeItem("av_oauth_redirect");
         clearOAuthCorrelationId();
-        navigate({ to: saved || "/dashboard" });
+        navigate({ to: await resolveRedirectForSession(saved) });
       } else {
         logOAuthEvent({
           level: "info",
