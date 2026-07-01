@@ -838,31 +838,37 @@ function PublishFlow() {
               </button>
               <div className="flex gap-2 ml-auto">
                 <button
-                  type="button" onClick={() => uploadAndSave(false)} disabled={submitting || !title.trim()}
-                  className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50"
-                  title="Save progress as a draft in your bookshelf"
+                  type="button" onClick={() => uploadAndSave(false)} disabled={submitting || autosaving || !title.trim()}
+                  className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={autosaving ? "Saving in progress…" : "Save progress as a draft in your bookshelf"}
+                  aria-busy={submitting || autosaving}
                 >
-                  <Save size={14} /> Save Progress
+                  {submitting || autosaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                  {submitting ? "Saving…" : autosaving ? "Saving…" : "Save Progress"}
                 </button>
                 <button
                   type="button" onClick={next}
-                  className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-1.5 transition-colors duration-300"
+                  disabled={submitting || autosaving}
+                  className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-1.5 transition-colors duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{ background: accent.color }}
+                  aria-busy={submitting || autosaving}
                 >
-                  Continue <ArrowRight size={16} />
+                  {autosaving ? <><Loader2 size={16} className="animate-spin" /> Saving…</> : <>Continue <ArrowRight size={16} /></>}
                 </button>
               </div>
             </div>
           ) : (
             <div className="mt-6 flex items-center justify-between">
-              <button onClick={() => setStep(3)} className="text-sm text-mute hover:text-navy inline-flex items-center gap-1.5">
+              <button onClick={() => setStep(3)} disabled={submitting} className="text-sm text-mute hover:text-navy inline-flex items-center gap-1.5 disabled:opacity-50">
                 <ArrowLeft size={14} /> Back to pricing
               </button>
               <button
-                type="button" onClick={() => uploadAndSave(false)} disabled={submitting || !title.trim()}
-                className="h-10 px-4 rounded-full border border-navy/20 text-navy text-sm font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50"
+                type="button" onClick={() => uploadAndSave(false)} disabled={submitting || autosaving || !title.trim()}
+                className="h-10 px-4 rounded-full border border-navy/20 text-navy text-sm font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-busy={submitting || autosaving}
               >
-                <Save size={14} /> Save Progress
+                {submitting || autosaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                {submitting ? "Saving…" : autosaving ? "Saving…" : "Save Progress"}
               </button>
             </div>
           )}
