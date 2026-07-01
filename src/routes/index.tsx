@@ -54,9 +54,11 @@ const highlightsQ = queryOptions({
 export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(featuredQ);
+    context.queryClient.ensureQueryData(homeRowsQ);
     context.queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] });
     context.queryClient.ensureQueryData(highlightsQ);
   },
+
   head: () => ({
     meta: [
       { title: "AurumVault — Gold Standard Digital Commerce" },
