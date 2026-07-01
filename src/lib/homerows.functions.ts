@@ -167,12 +167,13 @@ export const getProductsByIds = createServerFn({ method: "GET" })
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const supa = supabaseAdmin;
-
+      const { data: rows } = await supa
         .from("marketplace_products")
         .select("id,title,category,price_cents,compare_at_price_cents,cover_url,seller_id,created_at")
         .in("id", data.ids)
         .eq("status", "approved")
         .eq("published", true);
+
       const byId = new Map(((rows ?? []) as Row[]).map((r) => [r.id, toProduct(r)]));
       // Preserve requested order
       const ordered = data.ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
