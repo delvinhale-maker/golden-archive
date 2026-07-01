@@ -1417,18 +1417,22 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <button
-          type="button" disabled={submitting || disabled} onClick={onDraft}
-          className="h-12 px-5 rounded-full bg-white border border-navy/20 text-navy font-semibold hover:bg-navy/5 disabled:opacity-60"
+          type="button" disabled={submitting || autosaving || disabled} onClick={onDraft}
+          className="h-12 px-5 rounded-full bg-white border border-navy/20 text-navy font-semibold hover:bg-navy/5 disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+          aria-busy={submitting || autosaving}
         >
-          Save as Draft
+          {(submitting || autosaving) && <Loader2 size={14} className="animate-spin" />}
+          {autosaving ? "Saving…" : submitting ? "Saving…" : "Save as Draft"}
         </button>
         <button
-          type="button" disabled={submitting || disabled || !checklistPass} onClick={onPublish}
+          type="button" disabled={submitting || autosaving || disabled || !checklistPass} onClick={onPublish}
           className="flex-1 h-12 rounded-full text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 transition-colors duration-300"
           style={{ background: accent.color }}
-          title={!checklistPass ? "Resolve checklist items above" : undefined}
+          title={!checklistPass ? "Resolve checklist items above" : autosaving ? "Saving in progress…" : undefined}
+          aria-busy={submitting}
         >
-          <ShieldCheck size={16} /> {submitting ? "Publishing…" : "Publish to Vault"}
+          {submitting ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
+          {submitting ? "Publishing…" : autosaving ? "Saving draft…" : "Publish to Vault"}
         </button>
       </div>
     </div>
