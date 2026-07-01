@@ -789,52 +789,100 @@ function PublishFlow() {
       )}
 
 
-      {autosaveError && (
+
+      {(autosaveErrors.cover || autosaveErrors.manuscript || autosaveErrors.metadata) && (
         <div
           role="alert"
           aria-live="assertive"
-          className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-red-300 bg-red-50 p-3 sm:p-4"
+          className="rounded-xl border border-red-300 bg-red-50 p-3 sm:p-4 space-y-2"
         >
-          <AlertCircle size={18} className="text-red-700 shrink-0 mt-0.5 sm:mt-0" aria-hidden="true" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-red-800">Autosave failed — your progress is still here</p>
-            <p className="text-xs text-red-700/90 mt-0.5 break-words">{autosaveError}</p>
+          <div className="flex items-start gap-2">
+            <AlertCircle size={18} className="text-red-700 shrink-0 mt-0.5" aria-hidden="true" />
+            <p className="text-sm font-semibold text-red-800">
+              Some changes didn't save — your progress is still here
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={retryAutosave}
-              disabled={autosaving}
-              className="inline-flex items-center gap-1.5 rounded-full bg-red-700 text-white text-xs font-semibold px-3 py-1.5 hover:bg-red-800 disabled:opacity-60 disabled:cursor-not-allowed"
-              aria-busy={autosaving}
-            >
-              {autosaving ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
-              {autosaving ? "Retrying…" : "Retry save"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setAutosaveError(null)}
-              className="text-red-700 hover:text-red-900 rounded-full p-1"
-              aria-label="Dismiss autosave error"
-            >
-              <X size={14} />
-            </button>
-          </div>
+          <ul className="space-y-2 pl-6">
+            {(["cover", "manuscript", "metadata"] as const).map((kind) => {
+              const err = autosaveErrors[kind];
+              if (!err) return null;
+              const label =
+                kind === "cover" ? "Cover link" :
+                kind === "manuscript" ? "Manuscript link" :
+                "Details (title, description, price)";
+              const isRetrying = autosavingKind === kind;
+              return (
+                <li key={kind} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-red-800">{label}</p>
+                    <p className="text-xs text-red-700/90 break-words">{err}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => retryAutosaveKind(kind)}
+                      disabled={autosaving}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-red-700 text-white text-xs font-semibold px-3 py-1.5 hover:bg-red-800 disabled:opacity-60 disabled:cursor-not-allowed"
+                      aria-busy={isRetrying}
+                      aria-label={`Retry saving ${label}`}
+                    >
+                      {isRetrying ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+                      {isRetrying ? "Retrying…" : "Retry"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setAutosaveErrors((prev) => ({ ...prev, [kind]: null }))
+                      }
+                      className="text-red-700 hover:text-red-900 rounded-full p-1"
+                      aria-label={`Dismiss ${label} error`}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
 
       <div className="flex items-center justify-between gap-3">
         <StepperBar step={step} />
-        <div aria-live="polite" className="hidden sm:flex items-center gap-1.5 text-xs text-mute min-h-[20px]">
-          {autosaving ? (
-            <><Loader2 size={12} className="animate-spin" aria-hidden="true" /> <span>Saving draft…</span></>
-          ) : autosaveError ? (
-            <><AlertCircle size={12} className="text-red-600" aria-hidden="true" /> <span className="text-red-700">Not saved</span></>
-          ) : lastSavedAt ? (
-            <><CheckCircle2 size={12} className="text-emerald-600" aria-hidden="true" /> <span>Draft saved</span></>
-          ) : null}
+        <div aria-live="polite" className="hidden sm:flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-mute min-h-[20px]">
+          {(["metadata", "cover", "manuscript"] as const).map((kind) => {
+            const err = autosaveErrors[kind];
+            const busy = autosavingKind === kind;
+            const label = kind === "cover" ? "Cover" : kind === "manuscript" ? "Manuscript" : "Details";
+            if (busy) {
+              return (
+                <span key={kind} className="inline-flex items-center gap-1">
+                  <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+                  <span>Saving {label.toLowerCase()}…</span>
+                </span>
+              );
+            }
+            if (err) {
+              return (
+                <span key={kind} className="inline-flex items-center gap-1 text-red-700">
+                  <AlertCircle size={12} aria-hidden="true" />
+                  <span>{label} not saved</span>
+                </span>
+              );
+            }
+            return null;
+          })}
+          {!autosaving &&
+            !autosaveErrors.cover && !autosaveErrors.manuscript && !autosaveErrors.metadata &&
+            lastSavedAt && (
+              <span className="inline-flex items-center gap-1">
+                <CheckCircle2 size={12} className="text-emerald-600" aria-hidden="true" />
+                <span>Draft saved</span>
+              </span>
+            )}
         </div>
       </div>
+
 
 
 
