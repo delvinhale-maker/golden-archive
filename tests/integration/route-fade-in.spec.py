@@ -67,7 +67,9 @@ async def main():
             await page.evaluate("window.__navBeacon = true")
             before = await page.evaluate("window.__anims.length")
             link = page.locator(f'a[href="{href}"]').first
-            if not await link.count():
+            try:
+                await link.wait_for(state="attached", timeout=5000)
+            except Exception:
                 failures.append(f"{label}: no <a href=\"{href}\"> on page")
                 continue
             await link.click()
