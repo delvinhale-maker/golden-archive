@@ -1312,12 +1312,13 @@ function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium
 
 /* ---------- Step 4: Review ---------- */
 
-function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover, onOpenPreview }: {
+function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, autosaving, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover, onOpenPreview }: {
   accent: PublisherAccent;
   cover: string | null; title: string; subtitle: string; author: string;
   price: number; royalty: number; format: string; territory: string;
   category: string;
   uploading: boolean; uploadProgress: number; submitting: boolean; disabled: boolean;
+  autosaving: boolean;
   checklist: Array<{ id: string; label: string; ok: boolean; gotoStep: StepNum }>;
   checklistPass: boolean;
   onGoToStep: (s: StepNum) => void;
@@ -1330,10 +1331,12 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
 
       <button
         type="button" onClick={onOpenPreview}
-        className="w-full h-12 rounded-full font-semibold inline-flex items-center justify-center gap-2 text-white shadow-md hover:shadow-lg transition-all"
+        disabled={submitting || autosaving}
+        className="w-full h-12 rounded-full font-semibold inline-flex items-center justify-center gap-2 text-white shadow-md hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed"
         style={{ background: accent.color }}
+        aria-busy={submitting || autosaving}
       >
-        <Eye size={16} /> Preview Your Listing
+        {autosaving ? <><Loader2 size={16} className="animate-spin" /> Saving draft…</> : <><Eye size={16} /> Preview Your Listing</>}
       </button>
 
       {/* KDP-style storefront preview card */}
