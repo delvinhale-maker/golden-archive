@@ -48,7 +48,10 @@ function toProduct(r: Row, sponsored = false): Product {
     compareAtPrice: compareAt,
     rating: 0,
     reviewCount: 0,
-    image: r.cover_url ?? `av:${cat}:0`,
+    image:
+      r.cover_url && r.cover_url.trim().length > 0
+        ? r.cover_url
+        : `av:${cat}:0`,
     bestseller: sponsored,
     creator: { id: r.seller_id, name: "Illustrious Capital™", verified: true },
   };
