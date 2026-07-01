@@ -1946,41 +1946,112 @@ function PrePublishPreview(props: {
             </div>
           </div>
 
-          {/* RIGHT — Storefront listing card replica */}
+          {/* RIGHT — Storefront listing card replica (matches PremiumProductCard on aurumvault.store) */}
           <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-wider font-semibold text-mute mb-2">Storefront listing preview</p>
-            <div className="rounded-xl bg-white border border-ink/10 shadow-sm overflow-hidden max-w-[280px]">
-              <div className="w-full aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A] overflow-hidden">
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-mute mb-2">
+              Storefront listing preview
+            </p>
+            <article
+              aria-label="Storefront listing preview card"
+              className="flex w-full max-w-[280px] min-w-0 flex-col overflow-hidden rounded-[12px] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+            >
+              {/* Cover thumbnail — fixed 180px tall like the live card */}
+              <div className="relative h-[180px] w-full overflow-hidden bg-gradient-to-br from-[#1B2A4A] to-[#4A1B6D]">
                 {props.cover ? (
-                  <img src={props.cover} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={props.cover}
+                    alt={`Cover for ${props.title || "untitled product"}`}
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">No cover</div>
+                  <div
+                    className="flex h-full w-full items-center justify-center px-6"
+                    role="img"
+                    aria-label="No cover uploaded"
+                  >
+                    <span
+                      className="line-clamp-4 text-center text-lg leading-tight text-white/90"
+                      style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                    >
+                      {props.title || "Your cover will appear here"}
+                    </span>
+                  </div>
                 )}
               </div>
-              <div className="p-3">
-                <span className="inline-block text-[10px] uppercase tracking-wider font-semibold rounded-full px-2 py-0.5"
-                  style={{ background: `${props.accent.color}22`, color: props.accent.color }}>
+
+              {/* Body */}
+              <div className="flex flex-1 flex-col p-4">
+                {/* Category badge — gold uppercase, matches live storefront */}
+                <div
+                  className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                  style={{ color: "#C9A84C" }}
+                >
                   {props.category || "Uncategorized"}
-                </span>
-                <p className="mt-1.5 font-display text-base text-navy leading-tight line-clamp-2">{props.title || "Untitled"}</p>
-                <p className="text-xs text-mute mt-0.5 flex items-center gap-1 truncate">
-                  by <span className="text-navy font-medium truncate">{props.author || "—"}</span>
-                  <ShieldCheck size={11} className="text-emerald-600 shrink-0" aria-label="Verified creator" />
-                </p>
-                <div className="mt-1.5 flex items-center gap-0.5" aria-label="0 of 5 stars, no reviews yet">
-                  {[0,1,2,3,4].map((i) => (
-                    <svg key={i} viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-amber-400"><path d="M12 17.3 5.8 21l1.6-7L2 9.3l7.1-.6L12 2l2.9 6.7 7.1.6-5.4 4.7 1.6 7z"/></svg>
-                  ))}
-                  <span className="ml-1 text-[10px] text-mute">(0 reviews)</span>
                 </div>
-                <div className="mt-2 flex items-baseline justify-between">
-                  <span className="font-mono text-navy font-semibold">${props.price.toFixed(2)}</span>
-                  <button type="button" disabled className="text-[11px] rounded-full bg-ink/10 text-mute px-3 py-1.5 cursor-not-allowed">Add to Cart</button>
+
+                {/* Title — navy, 2-line clamp */}
+                <h3
+                  className="mt-1.5 line-clamp-2 min-h-[2.6em] break-words text-[15px] font-bold leading-snug"
+                  style={{ color: "#1B2A4A" }}
+                >
+                  {props.title || "Untitled"}
+                </h3>
+
+                {/* Author with verified checkmark */}
+                <div className="mt-2 flex items-center gap-2">
+                  <div
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                    style={{ background: "#1B2A4A" }}
+                    aria-hidden="true"
+                  >
+                    {(props.author || "—")
+                      .split(" ")
+                      .map((p) => p[0])
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase() || "AV"}
+                  </div>
+                  <span className="truncate text-[12px] text-[#6b7280]">
+                    {props.author || "Unknown creator"}
+                  </span>
+                  <ShieldCheck
+                    size={14}
+                    className="shrink-0 text-emerald-600"
+                    aria-label="Verified creator"
+                  />
                 </div>
+
+                {/* Price — gold, tabular */}
+                <div
+                  className="mt-3 whitespace-nowrap text-[18px] font-bold tabular-nums"
+                  style={{ color: "#C9A84C" }}
+                >
+                  ${props.price.toFixed(2)}
+                </div>
+
+                {/* Disabled Add to Cart — outlined navy, preview-only */}
+                <button
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  title="Preview only — publish to enable purchases"
+                  className="mt-4 w-full cursor-not-allowed rounded-full border-2 py-2.5 text-[13px] font-bold opacity-60"
+                  style={{
+                    borderColor: "#1B2A4A",
+                    color: "#1B2A4A",
+                    background: "transparent",
+                  }}
+                >
+                  Add to Cart
+                </button>
               </div>
-            </div>
-            <p className="mt-3 text-xs text-mute italic">This is exactly how your product will appear in the Vault.</p>
+            </article>
+            <p className="mt-3 text-xs italic text-mute">
+              This is exactly how your product will appear in the Vault.
+            </p>
           </div>
+
         </div>
 
 
