@@ -111,11 +111,8 @@ export function ContinueBrowsingRow() {
 }
 
 export function HomeContentRows() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["mp", "home-rows"],
-    queryFn: () => getHomeRows(),
-    staleTime: 60_000,
-  });
+  const { data } = useSuspenseQuery(homeRowsQ);
+
 
   return (
     <>
