@@ -6,7 +6,7 @@ from playwright.async_api import async_playwright
 SHOTS = Path(__file__).parent / "screenshots" / "mobile-tabbar"
 SHOTS.mkdir(parents=True, exist_ok=True)
 
-TABS = ["Home", "Browse", "Search", "Wishlist", "Account"]
+TABS = ["Home", "Browse", "Search"]  # public tabs; Wishlist/Account require auth
 INACTIVE = "rgb(107, 114, 128)"  # #6B7280
 
 
