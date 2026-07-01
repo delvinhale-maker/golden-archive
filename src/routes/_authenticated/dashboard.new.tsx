@@ -6,7 +6,7 @@ import { PublisherShell, ACCENTS, type PublisherAccent } from "@/components/mark
 import {
   ArrowLeft, ArrowRight, Check, Image as ImageIcon, FileText, X,
   CheckCircle2, AlertCircle, Maximize2, Plus, Sparkles, ShieldCheck, Globe,
-  Save, Eye,
+  Save, Eye, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
