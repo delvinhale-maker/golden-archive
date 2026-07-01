@@ -351,7 +351,8 @@ function ProductPage() {
               whileTap={{ scale: 0.98 }}
               whileHover={{ scale: 1.01 }}
               onClick={() => setCheckoutOpen(true)}
-              className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full bg-gold text-base font-bold text-navy shadow-gold-glow"
+              className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full text-base font-bold text-navy shadow-gold-glow"
+              style={{ backgroundColor: "var(--accent-color)" }}
             >
               Buy Now · ${product.price}
             </motion.button>
