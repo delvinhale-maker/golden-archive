@@ -11,7 +11,7 @@ import {
   Star,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { StripeEmbeddedProductCheckout } from "@/components/StripeEmbeddedCheckout";
@@ -24,6 +24,8 @@ import { FrequentlyBoughtTogether } from "@/components/marketplace/FrequentlyBou
 import { ShareButtons, ReportIssueLink } from "@/components/marketplace/ShareButtons";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { getProduct, type Product, type ProductDetailResult } from "@/lib/marketplace.functions";
+import { useTheme } from "@/lib/theme/ThemeProvider";
+import { CATEGORY_THEMES, DEFAULT_THEME } from "@/lib/theme/theme-config";
 
 const productQ = (id: string) =>
   queryOptions({
@@ -189,6 +191,14 @@ function ProductPage() {
   const formats = useMemo(() => formatsFor(product.category), [product.category]);
   const [format, setFormat] = useState(formats[0]?.id ?? "pdf");
 
+  // Auto-set accent color for this product's category (Amazon-style theming).
+  const { setActiveTheme } = useTheme();
+  useEffect(() => {
+    const key = product.category?.toLowerCase();
+    const theme = (key && CATEGORY_THEMES[key]) || DEFAULT_THEME;
+    setActiveTheme(theme);
+  }, [product.category, setActiveTheme]);
+
   return (
     <MarketShell>
       <div className="mx-auto max-w-7xl px-4 pb-16 pt-6 md:px-8">
@@ -247,7 +257,10 @@ function ProductPage() {
 
           {/* Details */}
           <div>
-            <div className="text-[11px] font-semibold tracking-caps text-gold">
+            <div
+              className="text-[11px] font-semibold tracking-caps"
+              style={{ color: "var(--accent-color)" }}
+            >
               {product.category.toUpperCase()}
             </div>
             <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-ink md:text-4xl">
@@ -289,8 +302,8 @@ function ProductPage() {
                     <Star
                       key={i}
                       size={14}
-                      fill={i < Math.round(product.rating) ? "var(--gold)" : "none"}
-                      stroke="var(--gold)"
+                      fill={i < Math.round(product.rating) ? "var(--accent-color)" : "none"}
+                      stroke="var(--accent-color)"
                     />
                   ))}
                 </div>
@@ -311,7 +324,8 @@ function ProductPage() {
             >
               <span
                 data-testid="pdp-price"
-                className="font-display text-3xl font-bold text-gold"
+                className="font-display text-3xl font-bold"
+                style={{ color: "var(--accent-color)" }}
               >
                 ${product.price.toFixed(2)}
               </span>
@@ -337,7 +351,8 @@ function ProductPage() {
               whileTap={{ scale: 0.98 }}
               whileHover={{ scale: 1.01 }}
               onClick={() => setCheckoutOpen(true)}
-              className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full bg-gold text-base font-bold text-navy shadow-gold-glow"
+              className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full text-base font-bold text-navy shadow-gold-glow"
+              style={{ backgroundColor: "var(--accent-color)" }}
             >
               Buy Now · ${product.price}
             </motion.button>
