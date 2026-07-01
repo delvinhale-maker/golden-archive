@@ -283,4 +283,27 @@
   .av-theme-accent { color: var(--accent-color); transition: color 400ms ease; }
   .av-theme-accent-bg { background-color: var(--accent-color); transition: background-color 400ms ease; }
   .av-theme-accent-border { border-color: var(--accent-color); transition: border-color 400ms ease; }
+
+  .nav-tab-active {
+    color: var(--accent-color);
+    border-bottom: 2px solid var(--accent-color);
+    transition: color 300ms ease, border-color 300ms ease;
+  }
+  .btn-primary {
+    background-color: var(--accent-color);
+    transition: background-color 300ms ease;
+  }
+  .card-border-accent {
+    border-color: var(--accent-color);
+    transition: border-color 300ms ease;
+  }
+  .accent-text {
+    color: var(--accent-color);
+    transition: color 300ms ease;
+  }
+  .section-header-accent {
+    border-left: 4px solid var(--accent-color);
+    transition: border-color 300ms ease;
+  }
 }
+

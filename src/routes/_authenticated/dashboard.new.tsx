@@ -13,6 +13,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
 import { isListPriceValid } from "@/lib/publish-validation";
 import { PublishSuccessScreen as SuccessScreen } from "@/components/marketplace/PublishSuccessScreen";
+import { useTheme } from "@/lib/theme/ThemeProvider";
+
+const PUBLISH_STEP_ACCENTS: Record<1 | 2 | 3 | 4, string> = {
+  1: "#1A6B3A", // Emerald
+  2: "#4B2D8F", // Purple
+  3: "#C47B00", // Amber
+  4: "#B8860B", // Gold
+};
 
 // (legacy localStorage draft key removed — drafts now live in the database)
 const DESC_MIN = 50;
@@ -67,6 +75,13 @@ function PublishFlow() {
 
   const [step, setStep] = useState<StepNum>(1);
   const accent: PublisherAccent = STEPS.find((s) => s.n === step)!.accent;
+
+  // Override the global route theme's accent per publish step
+  const { activeTheme, setActiveTheme } = useTheme();
+  useEffect(() => {
+    setActiveTheme({ ...activeTheme, accentColor: PUBLISH_STEP_ACCENTS[step] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
   const [loadingEdit, setLoadingEdit] = useState<boolean>(isEditing);
   const [existingCoverUrl, setExistingCoverUrl] = useState<string | null>(null);
   const [existingFilePath, setExistingFilePath] = useState<string | null>(null);
