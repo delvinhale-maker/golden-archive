@@ -13,6 +13,26 @@ import {
   logOAuthFailure,
   sessionMarker,
 } from "@/lib/oauth-telemetry";
+import { resolvePostAuthRedirect } from "@/lib/post-auth-redirect";
+
+async function fetchRolesFor(userId: string): Promise<string[]> {
+  try {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    return (data ?? []).map((r: { role: string }) => r.role);
+  } catch {
+    return [];
+  }
+}
+
+async function resolveRedirectForSession(savedRedirect?: string | null): Promise<string> {
+  const { data } = await supabase.auth.getUser();
+  const uid = data.user?.id;
+  const roles = uid ? await fetchRolesFor(uid) : [];
+  return resolvePostAuthRedirect({ roles, savedRedirect });
+}
 
 const authSearchSchema = z.object({
   redirect: z.string().optional(),
@@ -44,14 +64,19 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
-  const returnTo = redirect || "/dashboard";
+  const explicitRedirect = redirect ?? null;
 
   useEffect(() => {
+    let cancelled = false;
+    const go = async (saved?: string | null) => {
+      const to = await resolveRedirectForSession(saved ?? explicitRedirect);
+      if (!cancelled) navigate({ to });
+    };
     // Initial check
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         void tryAttachReferral();
-        navigate({ to: returnTo });
+        void go(explicitRedirect);
       }
     });
     // Listen for sign-in completing via OAuth popup / cross-tab broker.
@@ -60,11 +85,14 @@ function AuthPage() {
         void tryAttachReferral();
         const saved = sessionStorage.getItem("av_oauth_redirect");
         sessionStorage.removeItem("av_oauth_redirect");
-        navigate({ to: saved || returnTo });
+        void go(saved ?? explicitRedirect);
       }
     });
-    return () => sub.subscription.unsubscribe();
-  }, [navigate, returnTo]);
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
+  }, [navigate, explicitRedirect]);
 
   async function tryAttachReferral() {
     try {
@@ -107,7 +135,7 @@ function AuthPage() {
         }
         toast.success("Account created — welcome to AurumVault");
         await tryAttachReferral();
-        navigate({ to: returnTo });
+        navigate({ to: await resolveRedirectForSession(explicitRedirect) });
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
@@ -124,7 +152,7 @@ function AuthPage() {
         }
         toast.success("Welcome back");
         await tryAttachReferral();
-        navigate({ to: returnTo });
+        navigate({ to: await resolveRedirectForSession(explicitRedirect) });
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
@@ -229,7 +257,7 @@ function AuthPage() {
         const saved = sessionStorage.getItem("av_oauth_redirect");
         sessionStorage.removeItem("av_oauth_redirect");
         clearOAuthCorrelationId();
-        navigate({ to: saved || "/dashboard" });
+        navigate({ to: await resolveRedirectForSession(saved) });
       } else {
         logOAuthEvent({
           level: "info",
