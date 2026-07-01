@@ -1571,11 +1571,8 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
 }
 
 
-/* ---------- Success ---------- */
+/* ---------- Success screen is imported from PublishSuccessScreen.tsx ---------- */
 
-// SuccessScreen extracted to its own component so it can be unit-tested
-// independently of the wizard state machine.
-import { PublishSuccessScreen as SuccessScreen } from "@/components/marketplace/PublishSuccessScreen";
 
 /* ---------- Shared inputs ---------- */
 
