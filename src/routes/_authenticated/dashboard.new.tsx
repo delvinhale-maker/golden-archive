@@ -890,10 +890,12 @@ function PublishFlow() {
           checklistPass={checklistPass}
           submitting={submitting}
           cover={coverPreview}
+          coverFullUrl={uploadedCoverUrl ?? existingCoverUrl ?? coverPreview}
           title={title} subtitle={subtitle} author={author} description={description}
           price={priceNum} royalty={royalty}
-          fileName={file?.name ?? (existingFilePath ? existingFilePath.split("/").pop() ?? "Existing manuscript" : null)}
-          fileSize={file?.size ?? null}
+          fileName={uploadedFileMeta?.name ?? file?.name ?? (existingFilePath ? (existingFilePath.split("/").pop() ?? "Existing manuscript").replace(/^\d+-/, "") : null)}
+          fileSize={uploadedFileMeta?.size ?? file?.size ?? null}
+          manuscriptPath={uploadedFilePath ?? existingFilePath}
           category={category} territory={territory}
         />
       )}
