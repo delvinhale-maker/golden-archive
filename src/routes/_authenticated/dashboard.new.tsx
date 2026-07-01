@@ -1958,20 +1958,22 @@ function PrePublishPreview(props: {
           <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
             <button
               type="button" onClick={props.onClose}
-              className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5 focus-visible:ring-2 focus-visible:ring-navy focus-visible:outline-none"
+              disabled={props.submitting}
+              className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5 focus-visible:ring-2 focus-visible:ring-navy focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Keep editing
             </button>
             <button
               ref={publishBtnRef}
-              type="button" onClick={props.onConfirm}
+              type="button" onClick={() => { if (!props.submitting && props.checklistPass) props.onConfirm(); }}
               disabled={!props.checklistPass || props.submitting}
               className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-navy focus-visible:outline-none"
               style={{ background: props.accent.color }}
               aria-describedby={!props.checklistPass ? "checklist-heading" : undefined}
               aria-label={props.checklistPass ? "Publish to Vault (Ctrl+Enter)" : "Publish to Vault — resolve checklist first"}
+              aria-busy={props.submitting}
             >
-              <ShieldCheck size={16} aria-hidden="true" />
+              {props.submitting ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <ShieldCheck size={16} aria-hidden="true" />}
               {props.submitting ? "Publishing…" : "Publish to Vault"}
             </button>
           </div>
