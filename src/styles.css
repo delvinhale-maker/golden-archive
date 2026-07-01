@@ -262,3 +262,25 @@
     box-shadow: var(--shadow-card-hover);
   }
 }
+
+@layer base {
+  :root {
+    --accent-color: #D4AF37;
+    --gradient-start: #0F1E35;
+    --gradient-end: #0A0A0A;
+    --page-gradient: linear-gradient(180deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+  }
+
+  html {
+    transition: background-color 600ms ease;
+  }
+
+  .av-theme-bg {
+    background: var(--page-gradient);
+    transition: background 600ms ease;
+  }
+
+  .av-theme-accent { color: var(--accent-color); transition: color 400ms ease; }
+  .av-theme-accent-bg { background-color: var(--accent-color); transition: background-color 400ms ease; }
+  .av-theme-accent-border { border-color: var(--accent-color); transition: border-color 400ms ease; }
+}
