@@ -32,7 +32,8 @@ function pad(n: number) {
 
 export function DealsStrip({ products }: { products: Product[] }) {
   const [target] = useState(() => endOfDayMs());
-  const { h, m, s } = useCountdown(target);
+  const { h, m, s, ready } = useCountdown(target);
+
   const deals = products.slice(0, 4).map((p) => ({
     ...p,
     dealPrice: Math.max(7, Math.round(p.price * 0.7 * 100) / 100),
