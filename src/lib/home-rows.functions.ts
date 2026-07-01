@@ -105,20 +105,20 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       if (rows.length === 0) {
         return { newReleases: [], recommended: [], sponsored: [] };
       }
-      // Top 3 by created_at (newest first), used as a fallback for any empty row.
-      const top3ByDate = rows.slice(0, 3).map((r) => toProduct(r));
+      // Full catalog fallback (up to 8) used when a row is empty or too thin.
+      const allProducts = rows.slice(0, 8).map((r) => toProduct(r));
 
-      // New Releases: newest 8; fall back to top 3 by date when empty.
+      // New Releases: newest 8; fall back to full catalog when < 3.
       let newReleases = rows.slice(0, 8).map((r) => toProduct(r));
-      if (newReleases.length === 0) newReleases = top3ByDate;
+      if (newReleases.length < 3) newReleases = allProducts;
 
-      // Sponsored: products flagged featured; fall back to top 3 by date.
+      // Sponsored: products flagged featured; fall back to full catalog.
       let sponsored = rows
         .filter((r) => r.featured === true)
         .map((r) => toProduct(r, true));
-      if (sponsored.length === 0) sponsored = top3ByDate;
+      if (sponsored.length === 0) sponsored = allProducts;
 
-      // Recommended: rank by paid-sales count, then by created_at.
+      // Recommended: rank by paid-sales count, then by created_at; fallback to all.
       const ids = rows.map((r) => r.id);
       const { data: itemRows } = await supa
         .from("order_items")
@@ -129,11 +129,14 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       for (const it of (itemRows ?? []) as Array<{ product_id: string }>) {
         counts.set(it.product_id, (counts.get(it.product_id) ?? 0) + 1);
       }
-      let recommended = [...rows]
-        .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
-        .slice(0, 8)
-        .map((r) => toProduct(r));
-      if (recommended.length === 0) recommended = top3ByDate;
+      const hasPurchaseHistory = counts.size > 0;
+      let recommended = hasPurchaseHistory
+        ? [...rows]
+            .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
+            .slice(0, 8)
+            .map((r) => toProduct(r))
+        : allProducts;
+      if (recommended.length === 0) recommended = allProducts;
       const [nrR, spR, recR] = await Promise.all([
         attachRatings(supa, newReleases),
         attachRatings(supa, sponsored),
