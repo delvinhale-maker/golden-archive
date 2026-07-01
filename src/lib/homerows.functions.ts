@@ -90,8 +90,12 @@ async function attachRatings(
 export const getHomeRows = createServerFn({ method: "GET" }).handler(
   async (): Promise<HomeRows> => {
     try {
-      const supa = serverSupabase();
-      const { data } = await supa
+      // Use service-role admin client to bypass any table-level GRANT/RLS quirks
+      // (the `featured` column has caused permission-denied errors with the anon
+      // key even though public read policies exist).
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const supa = supabaseAdmin;
+      const { data, error } = await supa
         .from("marketplace_products")
         .select(
           "id,title,category,price_cents,compare_at_price_cents,cover_url,seller_id,created_at,featured",
@@ -100,16 +104,19 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         .eq("published", true)
         .order("created_at", { ascending: false })
         .limit(40);
+      if (error) console.error("[getHomeRows] db error:", error.message);
+
       const rows = (data ?? []) as Array<Row & { featured: boolean | null }>;
       // Fallback when no products at all: empty arrays (nothing to show).
       if (rows.length === 0) {
         return { newReleases: [], recommended: [], sponsored: [] };
       }
-      // Full catalog fallback (up to 8) used when a row is empty or too thin.
-      const allProducts = rows.slice(0, 8).map((r) => toProduct(r));
 
-      // New Releases: newest 8; fall back to full catalog when < 3.
-      let newReleases = rows.slice(0, 8).map((r) => toProduct(r));
+      // Full catalog fallback (up to 3) used when a row is empty or too thin.
+      const allProducts = rows.slice(0, 3).map((r) => toProduct(r));
+
+      // New Releases: newest 3.
+      let newReleases = rows.slice(0, 3).map((r) => toProduct(r));
       if (newReleases.length < 3) newReleases = allProducts;
 
       // Sponsored: products flagged featured; fall back to full catalog.
@@ -133,19 +140,22 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       let recommended = hasPurchaseHistory
         ? [...rows]
             .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
-            .slice(0, 8)
+            .slice(0, 3)
             .map((r) => toProduct(r))
         : allProducts;
       if (recommended.length === 0) recommended = allProducts;
+
       const [nrR, spR, recR] = await Promise.all([
         attachRatings(supa, newReleases),
         attachRatings(supa, sponsored),
         attachRatings(supa, recommended),
       ]);
       return { newReleases: nrR, recommended: recR, sponsored: spR };
-    } catch {
+    } catch (e) {
+      console.error("[getHomeRows] failed:", e);
       return { newReleases: [], recommended: [], sponsored: [] };
     }
+
   },
 );
 
@@ -156,13 +166,15 @@ export const getProductsByIds = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<Product[]> => {
     if (data.ids.length === 0) return [];
     try {
-      const supa = serverSupabase();
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const supa = supabaseAdmin;
       const { data: rows } = await supa
         .from("marketplace_products")
         .select("id,title,category,price_cents,compare_at_price_cents,cover_url,seller_id,created_at")
         .in("id", data.ids)
         .eq("status", "approved")
         .eq("published", true);
+
       const byId = new Map(((rows ?? []) as Row[]).map((r) => [r.id, toProduct(r)]));
       // Preserve requested order
       const ordered = data.ids.map((id) => byId.get(id)).filter(Boolean) as Product[];

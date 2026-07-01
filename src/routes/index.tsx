@@ -31,7 +31,7 @@ import { DealsStrip } from "@/components/marketplace/DealsStrip";
 import { BestsellersRow } from "@/components/marketplace/BestsellersRow";
 import { KingdomPicksRow } from "@/components/marketplace/KingdomPicksRow";
 import { KingdomBibleAppBanner } from "@/components/marketplace/KingdomBibleAppBanner";
-import { ContinueBrowsingRow, HomeContentRows } from "@/components/marketplace/HomeRows";
+import { ContinueBrowsingRow, HomeContentRows, homeRowsQ } from "@/components/marketplace/HomeRows";
 import { EmailCaptureBanner } from "@/components/EmailCaptureBanner";
 import {
   getFeaturedProducts,
@@ -54,9 +54,11 @@ const highlightsQ = queryOptions({
 export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(featuredQ);
+    context.queryClient.ensureQueryData(homeRowsQ);
     context.queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] });
     context.queryClient.ensureQueryData(highlightsQ);
   },
+
   head: () => ({
     meta: [
       { title: "AurumVault — Gold Standard Digital Commerce" },
@@ -128,7 +130,10 @@ function Home() {
       <KingdomPicksRow />
       <CategoriesSection />
 
-      <HomeContentRows />
+      <Suspense fallback={null}>
+        <HomeContentRows />
+      </Suspense>
+
       <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProducts />
       </Suspense>

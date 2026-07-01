@@ -1,10 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Sparkles, Clock, Megaphone, Flame } from "lucide-react";
 import { ProductCard, ProductCardSkeleton } from "./ProductCard";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
-import { getHomeRows, getProductsByIds } from "@/lib/home-rows.functions";
+import { getHomeRows, getProductsByIds } from "@/lib/homerows.functions";
 import type { Product } from "@/lib/marketplace.functions";
+
+export const homeRowsQ = queryOptions({
+  queryKey: ["mp", "home-rows"],
+  queryFn: () => getHomeRows(),
+  staleTime: 60_000,
+});
+
 
 function Row({
   title,
@@ -23,9 +30,15 @@ function Row({
   empty?: React.ReactNode;
   accent?: string;
 }) {
-  if (!loading && products.length === 0 && !empty) return null;
+  if (!loading && products.length === 0 && !empty) {
+    // Still render the header so consumers/SEO/tests can find the section;
+    // show a lightweight empty state below.
+    empty = "New picks coming soon.";
+  }
+
   return (
     <section className="bg-bg-page py-10 md:py-14">
+
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
@@ -98,11 +111,8 @@ export function ContinueBrowsingRow() {
 }
 
 export function HomeContentRows() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["mp", "home-rows"],
-    queryFn: () => getHomeRows(),
-    staleTime: 60_000,
-  });
+  const { data } = useSuspenseQuery(homeRowsQ);
+
 
   return (
     <>
@@ -110,24 +120,22 @@ export function HomeContentRows() {
         icon={Sparkles}
         kicker="JUST IN"
         title="New Releases"
-        products={data?.newReleases ?? []}
-        loading={isLoading}
+        products={data.newReleases}
         accent="var(--gold)"
       />
       <Row
         icon={Megaphone}
         kicker="SPONSORED — ILLUSTRIOUS CAPITAL™"
         title="Promoted Picks"
-        products={data?.sponsored ?? []}
-        loading={isLoading}
+        products={data.sponsored}
       />
       <Row
         icon={Flame}
         kicker="RECOMMENDED FOR YOU"
         title="You May Also Like"
-        products={data?.recommended ?? []}
-        loading={isLoading}
+        products={data.recommended}
       />
+
     </>
   );
 }
