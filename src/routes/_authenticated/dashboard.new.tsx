@@ -176,6 +176,8 @@ function PublishFlow() {
   // Auto-save the current form state to the DB as a draft.
   // Used after a successful upload and on a 2s debounce for field changes.
   const autosavingRef = useRef(false);
+  const [autosaving, setAutosaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   async function autosaveDraftToDB(opts?: {
     coverUrl?: string | null;
     filePath?: string | null;
@@ -185,6 +187,7 @@ function PublishFlow() {
     if (!user || autosavingRef.current) return;
     if (!title.trim()) return; // need at least a title
     autosavingRef.current = true;
+    setAutosaving(true);
     try {
       const priceCents = Math.round((parseFloat(price || "0") || 0) * 100);
       const notes = JSON.stringify({
@@ -218,6 +221,7 @@ function PublishFlow() {
         if (error) throw error;
         if (data?.id) setDraftProductId(data.id as string);
       }
+      setLastSavedAt(Date.now());
       if (!opts?.silent) {
         toast.success("Progress saved", { duration: 2000 });
       }
@@ -226,6 +230,7 @@ function PublishFlow() {
       console.error("Autosave failed", e);
     } finally {
       autosavingRef.current = false;
+      setAutosaving(false);
     }
   }
 
