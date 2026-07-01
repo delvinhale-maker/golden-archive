@@ -60,7 +60,9 @@ describe("PublishSuccessScreen (post-publish success)", () => {
   it("renders the celebratory heading, title, and formatted price", () => {
     expect(html).toContain("🎉 Your title is live on AurumVault!");
     expect(html).toContain("Kingdom Mind");
-    expect(html).toContain("$27.00");
+    // React inserts <!-- --> comment markers between adjacent text nodes in
+    // SSR output (e.g. `$` and `27.00`), so match the digits and cents only.
+    expect(html).toMatch(/\$(?:<!--[^>]*-->)?27\.00/);
   });
 
   it("hides the price row when price is 0 (free/draft)", () => {
