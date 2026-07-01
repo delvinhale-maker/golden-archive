@@ -1065,11 +1065,11 @@ function StepContent(p: {
       <div>
         <h3 className="font-display text-lg text-navy mb-2">Manuscript</h3>
         <p className="text-xs text-mute mb-3">Accepted: PDF, EPUB, DOCX. Max {MAX_FILE_MB} MB.</p>
-        {fileDone && p.file ? (
+        {(fileDone && (p.uploadedFileMeta || p.file)) ? (
           <UploadSuccess
             iconLabel="manuscript"
-            name={p.uploadedFileMeta?.name ?? p.file.name}
-            size={p.uploadedFileMeta?.size ?? p.file.size}
+            name={p.uploadedFileMeta?.name ?? p.file?.name ?? "manuscript"}
+            size={p.uploadedFileMeta?.size ?? p.file?.size ?? 0}
             onReplace={() => p.handleFileChange(null)}
           />
         ) : (
@@ -1092,12 +1092,6 @@ function StepContent(p: {
             <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
               <div className="h-full transition-all" style={{ width: `${p.fileProgress}%`, background: "var(--page-accent)" }} />
             </div>
-          </div>
-        )}
-        {!p.file && !p.fileError && p.existingFilePath && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-navy bg-paper border border-ink/10 rounded-lg p-3">
-            <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
-            <span className="truncate">Current manuscript on file. Tap the zone above to replace it.</span>
           </div>
         )}
         {p.fileUploadError && (
