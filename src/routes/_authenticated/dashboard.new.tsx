@@ -1768,40 +1768,91 @@ function PrePublishPreview(props: {
           </p>
         </div>
 
-        <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6">
-          <div className="mx-auto md:mx-0 w-[220px] aspect-[1/1.6] rounded-md bg-gradient-to-br from-navy to-[#22335A] shadow-xl overflow-hidden">
-            {props.cover ? (
-              <img src={props.cover} alt={`Cover for ${props.title || "untitled product"}`} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white/40 text-xs" role="img" aria-label="No cover uploaded">No cover</div>
-            )}
-          </div>
+        <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* LEFT — Cover viewer */}
           <div className="min-w-0">
-            <h3 className="font-display text-2xl text-navy break-words">{props.title || "Untitled"}</h3>
-            {props.subtitle && <p className="text-sm italic text-mute mt-0.5">{props.subtitle}</p>}
-            <p className="text-sm text-mute mt-1">by <span className="text-navy font-medium">{props.author || "—"}</span></p>
-            <div className="mt-3 flex flex-wrap gap-2 text-xs">
-              <span className="px-2 py-1 rounded-full bg-navy/5 text-navy">{props.category || "Uncategorized"}</span>
-              <span className="px-2 py-1 rounded-full bg-navy/5 text-navy inline-flex items-center gap-1">
-                <Globe size={11} aria-hidden="true" /> <span><span className="sr-only">Territory: </span>{props.territory}</span>
-              </span>
-            </div>
-            <div className="mt-4 flex items-baseline gap-3">
-              <span className="font-display text-3xl text-navy tabular-nums" aria-label={`Price ${props.price.toFixed(2)} dollars`}>${props.price.toFixed(2)}</span>
-              <span className="text-xs text-mute">Royalty estimate: <strong className="text-navy">${props.royalty.toFixed(2)}</strong></span>
+            <div className="relative mx-auto max-w-[280px]">
+              <div className="relative w-full aspect-[1/1.6] rounded-md bg-gradient-to-br from-navy to-[#22335A] shadow-xl overflow-hidden">
+                {props.cover ? (
+                  <img src={props.cover} alt={`Cover for ${props.title || "untitled product"}`} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white/40 text-xs" role="img" aria-label="No cover uploaded">No cover</div>
+                )}
+                {props.coverFullUrl && (
+                  <a
+                    href={props.coverFullUrl} target="_blank" rel="noopener noreferrer"
+                    className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-navy/80 hover:bg-navy text-white text-xs font-medium px-2.5 py-1.5 backdrop-blur"
+                    aria-label="Open cover at full resolution in a new tab"
+                  >
+                    Full size <ArrowRight size={12} />
+                  </a>
+                )}
+              </div>
             </div>
             <div className="mt-4 rounded-lg border border-ink/10 bg-paper/40 p-3 text-xs text-mute">
-              <div className="flex items-center gap-2 text-navy font-medium"><FileText size={14} aria-hidden="true"/> Manuscript</div>
+              <div className="flex items-center gap-2 text-navy font-medium">
+                <FileText size={14} aria-hidden="true"/> Manuscript
+                {props.fileName && (
+                  <span className="ml-auto inline-flex items-center rounded-full bg-navy/10 text-navy text-[10px] font-bold uppercase tracking-wider px-2 py-0.5">
+                    {(props.fileName.split(".").pop() || "FILE").toUpperCase()}
+                  </span>
+                )}
+              </div>
               <div className="mt-1 break-all">{props.fileName ?? "No file uploaded"} · {sizeLabel}</div>
-            </div>
-            <div className="mt-4">
-              <p className="text-[11px] uppercase tracking-wider font-semibold text-mute" id="prepublish-desc-heading">Description</p>
-              <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed" aria-labelledby="prepublish-desc-heading">
-                {props.description || <span className="text-mute italic">No description provided.</span>}
-              </p>
+              <button
+                type="button"
+                disabled={!props.manuscriptPath}
+                onClick={async () => {
+                  if (!props.manuscriptPath) return;
+                  const { data, error } = await supabase.storage.from("product-files").createSignedUrl(props.manuscriptPath, 300);
+                  if (error || !data?.signedUrl) { toast.error("Could not open preview."); return; }
+                  window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+                }}
+                className="mt-3 w-full h-10 rounded-full text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
+                style={{ background: props.accent.color }}
+              >
+                <Eye size={14} /> Preview Manuscript
+              </button>
             </div>
           </div>
+
+          {/* RIGHT — Storefront listing card replica */}
+          <div className="min-w-0">
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-mute mb-2">Storefront listing preview</p>
+            <div className="rounded-xl bg-white border border-ink/10 shadow-sm overflow-hidden max-w-[280px]">
+              <div className="w-full aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A] overflow-hidden">
+                {props.cover ? (
+                  <img src={props.cover} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">No cover</div>
+                )}
+              </div>
+              <div className="p-3">
+                <span className="inline-block text-[10px] uppercase tracking-wider font-semibold rounded-full px-2 py-0.5"
+                  style={{ background: `${props.accent.color}22`, color: props.accent.color }}>
+                  {props.category || "Uncategorized"}
+                </span>
+                <p className="mt-1.5 font-display text-base text-navy leading-tight line-clamp-2">{props.title || "Untitled"}</p>
+                <p className="text-xs text-mute mt-0.5 flex items-center gap-1 truncate">
+                  by <span className="text-navy font-medium truncate">{props.author || "—"}</span>
+                  <ShieldCheck size={11} className="text-emerald-600 shrink-0" aria-label="Verified creator" />
+                </p>
+                <div className="mt-1.5 flex items-center gap-0.5" aria-label="0 of 5 stars, no reviews yet">
+                  {[0,1,2,3,4].map((i) => (
+                    <svg key={i} viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-amber-400"><path d="M12 17.3 5.8 21l1.6-7L2 9.3l7.1-.6L12 2l2.9 6.7 7.1.6-5.4 4.7 1.6 7z"/></svg>
+                  ))}
+                  <span className="ml-1 text-[10px] text-mute">(0 reviews)</span>
+                </div>
+                <div className="mt-2 flex items-baseline justify-between">
+                  <span className="font-mono text-navy font-semibold">${props.price.toFixed(2)}</span>
+                  <button type="button" disabled className="text-[11px] rounded-full bg-ink/10 text-mute px-3 py-1.5 cursor-not-allowed">Add to Cart</button>
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-mute italic">This is exactly how your product will appear in the Vault.</p>
+          </div>
         </div>
+
 
         <div className="p-6 md:p-8 border-t border-ink/10 bg-paper/30 rounded-b-2xl">
           <p className="text-[11px] uppercase tracking-wider font-semibold text-mute" id="checklist-heading">
