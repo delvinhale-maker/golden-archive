@@ -276,6 +276,14 @@ function PublishFlow() {
       setPrice(((data.price_cents ?? 0) / 100).toString());
       setExistingCoverUrl(data.cover_url ?? null);
       setExistingFilePath(data.file_path ?? null);
+      // Hydrate "uploaded" state so the confirmation bars persist on refresh
+      if (data.cover_url) setUploadedCoverUrl(data.cover_url as string);
+      if (data.file_path) {
+        const rawName = (data.file_path as string).split("/").pop() ?? "manuscript";
+        const cleanName = rawName.replace(/^\d+-/, "");
+        setUploadedFilePath(data.file_path as string);
+        setUploadedFileMeta({ name: cleanName, size: (data.file_size_bytes as number | null) ?? 0 });
+      }
       try {
         const raw = data.admin_notes as unknown;
         const n = typeof raw === "string" ? JSON.parse(raw) : raw;
