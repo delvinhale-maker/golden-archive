@@ -19,8 +19,9 @@ const step = (name, fn) => {
     fn();
     console.log(`✓ ${name}`);
   } catch (err) {
-    errors.push(`${name}: ${err.message ?? err}`);
-    console.error(`✗ ${name}`);
+    const msg = err.message ?? String(err);
+    errors.push(`${name}:${msg}`);
+    console.error(`✗ ${name}${msg}`);
     if (err.stdout) process.stderr.write(String(err.stdout));
     if (err.stderr) process.stderr.write(String(err.stderr));
   }
