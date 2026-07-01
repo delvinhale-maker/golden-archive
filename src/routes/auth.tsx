@@ -64,14 +64,19 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
-  const returnTo = redirect || "/dashboard";
+  const explicitRedirect = redirect ?? null;
 
   useEffect(() => {
+    let cancelled = false;
+    const go = async (saved?: string | null) => {
+      const to = await resolveRedirectForSession(saved ?? explicitRedirect);
+      if (!cancelled) navigate({ to });
+    };
     // Initial check
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         void tryAttachReferral();
-        navigate({ to: returnTo });
+        void go(explicitRedirect);
       }
     });
     // Listen for sign-in completing via OAuth popup / cross-tab broker.
@@ -80,11 +85,14 @@ function AuthPage() {
         void tryAttachReferral();
         const saved = sessionStorage.getItem("av_oauth_redirect");
         sessionStorage.removeItem("av_oauth_redirect");
-        navigate({ to: saved || returnTo });
+        void go(saved ?? explicitRedirect);
       }
     });
-    return () => sub.subscription.unsubscribe();
-  }, [navigate, returnTo]);
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
+  }, [navigate, explicitRedirect]);
 
   async function tryAttachReferral() {
     try {
