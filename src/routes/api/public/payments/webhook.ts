@@ -18,7 +18,7 @@ function generateToken(): string {
     .join("");
 }
 
-async function handleCheckoutCompleted(session: any, env: StripeEnv) {
+export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   // Idempotency: skip if order already exists for this session.
