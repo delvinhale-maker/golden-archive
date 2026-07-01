@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
 import { isListPriceValid } from "@/lib/publish-validation";
+import { PublishSuccessScreen as SuccessScreen } from "@/components/marketplace/PublishSuccessScreen";
 
 // (legacy localStorage draft key removed — drafts now live in the database)
 const DESC_MIN = 50;
