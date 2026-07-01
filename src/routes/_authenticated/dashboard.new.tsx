@@ -2009,26 +2009,13 @@ function PrePublishPreview(props: {
             >
               {/* Cover thumbnail — fixed 180px tall like the live card */}
               <div className="relative h-[180px] w-full overflow-hidden bg-gradient-to-br from-[#1B2A4A] to-[#4A1B6D]">
-                {props.cover ? (
-                  <img
-                    src={props.cover}
-                    alt={`Cover for ${props.title || "untitled product"}`}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div
-                    className="flex h-full w-full items-center justify-center px-6"
-                    role="img"
-                    aria-label="No cover uploaded"
-                  >
-                    <span
-                      className="line-clamp-4 text-center text-lg leading-tight text-white/90"
-                      style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
-                    >
-                      {props.title || "Your cover will appear here"}
-                    </span>
-                  </div>
-                )}
+                <CoverThumb
+                  src={props.cover}
+                  title={props.title}
+                  alt={`Cover for ${props.title || "untitled product"}`}
+                  imgClassName="h-full w-full object-cover"
+                  fallbackClassName="flex h-full w-full items-center justify-center px-6 text-white/90"
+                />
               </div>
 
               {/* Body */}
