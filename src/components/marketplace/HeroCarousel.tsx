@@ -33,36 +33,39 @@ const DEFAULT_HERO_SLIDE: Slide = {
   secondaryLabel: "Browse Categories →",
   secondaryHref: "#categories",
   card: { title: "Kingdom Mind", cat: "eBook", price: 14.99 },
+  theme: { accentColor: "#B8860B", gradientStart: "#0F1E35" },
 };
 
 const SECONDARY_SLIDES: Slide[] = [
   {
-    kicker: "NEW THIS WEEK",
+    kicker: "DEALS OF THE DAY",
     title: (
       <>
-        The <span className="gold-gradient">Sovereign Leadership</span> playbook is live.
+        Deals of the <span className="gold-gradient">Day</span> — limited time savings.
       </>
     ),
-    body: "A 12-module course for operators building with intention. Lifetime access, downloadable workbook, private community.",
-    ctaLabel: "Enroll Now →",
+    body: "Featured picks at lower prices for a limited time. Grab a title before the timer runs out.",
+    ctaLabel: "Shop Deals →",
     ctaTo: "/products",
-    secondaryLabel: "View Curriculum →",
+    secondaryLabel: "Browse All →",
     secondaryHref: "/products",
     card: { title: "Sovereign Leadership", cat: "Course", price: 199 },
+    theme: { accentColor: "#B8860B", gradientStart: "#1A1000" },
   },
   {
-    kicker: "BECOME A SELLER",
+    kicker: "AURUMVAULT PREMIUM",
     title: (
       <>
-        Sell with <span className="gold-gradient">conviction</span>. Keep 91%.
+        Unlock <span className="gold-gradient">AurumVault Premium</span>.
       </>
     ),
-    body: "Apply to sell on AurumVault and reach buyers who pay full price for purpose-built work.",
-    ctaLabel: "Apply to Sell →",
-    ctaTo: "/sell",
+    body: "Members-only pricing, early access to launches, and exclusive downloads across the vault.",
+    ctaLabel: "Join Premium →",
+    ctaTo: "/products",
     secondaryLabel: "Explore the Store →",
     secondaryHref: "/products",
     card: { title: "Boardroom Liturgy", cat: "Audio", price: 29 },
+    theme: { accentColor: "#4B2D8F", gradientStart: "#1A0A2E" },
   },
 ];
 
@@ -89,14 +92,26 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
   const SLIDES: Slide[] = [heroSlide, ...SECONDARY_SLIDES];
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
+  const { activeTheme, setActiveTheme } = useTheme();
 
   useEffect(() => {
     if (paused) return;
-    const t = setInterval(() => setI((p) => (p + 1) % SLIDES.length), 6500);
+    const t = setInterval(() => setI((p) => (p + 1) % SLIDES.length), 5000);
     return () => clearInterval(t);
-  }, [paused]);
+  }, [paused, SLIDES.length]);
 
   const slide = SLIDES[i];
+
+  // Sync the global theme (accent + gradient) to the active slide
+  useEffect(() => {
+    setActiveTheme({
+      ...activeTheme,
+      accentColor: slide.theme.accentColor,
+      gradientStart: slide.theme.gradientStart,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i]);
+
   const next = () => setI((p) => (p + 1) % SLIDES.length);
   const prev = () => setI((p) => (p - 1 + SLIDES.length) % SLIDES.length);
 
