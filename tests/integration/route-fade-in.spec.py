@@ -59,6 +59,10 @@ async def main():
         results = []
 
         for label, href in NAV_STEPS:
+            # (Re-)instrument in case a full navigation reset the page.
+            has_hook = await page.evaluate("!!window.__anims")
+            if not has_hook:
+                await page.evaluate(INSTRUMENT)
             before = await page.evaluate("window.__anims.length")
             link = page.locator(f'a[href="{href}"]').first
             if not await link.count():
@@ -68,12 +72,12 @@ async def main():
             await page.wait_for_url(f"**{href}", timeout=5000)
             await page.wait_for_timeout(500)  # past 200ms fade + buffer
             new_anims = await page.evaluate(
-                "window.__anims.slice(arguments[0])", before
+                "(n) => (window.__anims || []).slice(n)", before
             )
             opacity_anims = [
                 a for a in new_anims if "opacity" in (a.get("props") or [])
             ]
-            results.append({"nav": label, "opacity_anims": opacity_anims})
+            results.append({"nav": label, "opacity_anims": opacity_anims[:4]})
 
             if not opacity_anims:
                 failures.append(f"{label}: no opacity animation fired on route change")
