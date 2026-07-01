@@ -165,8 +165,9 @@ export const getProductsByIds = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<Product[]> => {
     if (data.ids.length === 0) return [];
     try {
-      const supa = serverSupabase();
-      const { data: rows } = await supa
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const supa = supabaseAdmin;
+
         .from("marketplace_products")
         .select("id,title,category,price_cents,compare_at_price_cents,cover_url,seller_id,created_at")
         .in("id", data.ids)
