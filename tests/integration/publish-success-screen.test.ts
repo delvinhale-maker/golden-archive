@@ -50,9 +50,6 @@ const fixture = {
   cover: "https://cdn.aurumvault.store/covers/kingdom-mind.jpg",
   price: 27,
 };
-  cover: "https://cdn.aurumvault.store/covers/kingdom-mind.jpg",
-  price: 27,
-};
 
 describe("PublishSuccessScreen (post-publish success)", () => {
   let html = "";
