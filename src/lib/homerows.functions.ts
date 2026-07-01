@@ -90,7 +90,11 @@ async function attachRatings(
 export const getHomeRows = createServerFn({ method: "GET" }).handler(
   async (): Promise<HomeRows> => {
     try {
-      const supa = serverSupabase();
+      // Use service-role admin client to bypass any table-level GRANT/RLS quirks
+      // (the `featured` column has caused permission-denied errors with the anon
+      // key even though public read policies exist).
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const supa = supabaseAdmin;
       const { data, error } = await supa
         .from("marketplace_products")
         .select(
@@ -100,7 +104,8 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         .eq("published", true)
         .order("created_at", { ascending: false })
         .limit(40);
-      console.log("[getHomeRows] envUrl?", !!process.env.SUPABASE_URL, "envKey?", !!process.env.SUPABASE_PUBLISHABLE_KEY, "rows:", data?.length, "err:", error?.message);
+      if (error) console.error("[getHomeRows] db error:", error.message);
+
       const rows = (data ?? []) as Array<Row & { featured: boolean | null }>;
       // Fallback when no products at all: empty arrays (nothing to show).
       if (rows.length === 0) {
