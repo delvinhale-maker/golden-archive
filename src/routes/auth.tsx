@@ -135,7 +135,7 @@ function AuthPage() {
         }
         toast.success("Account created — welcome to AurumVault");
         await tryAttachReferral();
-        navigate({ to: returnTo });
+        navigate({ to: await resolveRedirectForSession(explicitRedirect) });
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
@@ -152,7 +152,7 @@ function AuthPage() {
         }
         toast.success("Welcome back");
         await tryAttachReferral();
-        navigate({ to: returnTo });
+        navigate({ to: await resolveRedirectForSession(explicitRedirect) });
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
