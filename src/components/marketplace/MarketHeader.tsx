@@ -276,7 +276,8 @@ export function MarketHeader() {
                 <Link
                   to="/dashboard/new"
                   onClick={() => setMenuOpen(false)}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3 text-center text-sm font-semibold text-navy"
+                  data-tab-cta="solid"
+                  className="flex w-full items-center justify-center gap-2 rounded-full py-3 text-center text-sm font-semibold"
                 >
                   <BookPlus size={16} /> Publish
                 </Link>
@@ -284,7 +285,8 @@ export function MarketHeader() {
                 <Link
                   to="/sell"
                   onClick={() => setMenuOpen(false)}
-                  className="block w-full rounded-full border border-gold/40 py-3 text-center text-sm font-semibold text-gold"
+                  data-tab-cta="outline"
+                  className="block w-full rounded-full border py-3 text-center text-sm font-semibold"
                 >
                   Sell on AurumVault
                 </Link>
@@ -299,10 +301,12 @@ export function MarketHeader() {
               <Link
                 to="/products"
                 onClick={() => setMenuOpen(false)}
-                className="block w-full rounded-full bg-gold py-3 text-center text-sm font-semibold text-navy"
+                data-tab-cta="solid"
+                className="block w-full rounded-full py-3 text-center text-sm font-semibold"
               >
                 Shop the Vault
               </Link>
+
             </div>
           </motion.div>
         )}
