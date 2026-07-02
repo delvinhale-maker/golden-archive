@@ -221,7 +221,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
         <Scripts />
       </body>
     </html>
@@ -240,15 +240,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <RouteFadeIn>
-          <Outlet />
-        </RouteFadeIn>
-      </ThemeProvider>
+      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <RouteFadeIn>
+        <Outlet />
+      </RouteFadeIn>
     </QueryClientProvider>
   );
 }
+
 
 /**
  * Subtle Amazon-style page entry fade: opacity 0 → 1 over 200ms on every route

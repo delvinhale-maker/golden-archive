@@ -37,12 +37,19 @@ function applyThemeToRoot(theme: ThemeTokens) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  if (typeof window !== "undefined") {
+    (window as unknown as { __tpRenders?: number }).__tpRenders =
+      ((window as unknown as { __tpRenders?: number }).__tpRenders ?? 0) + 1;
+  }
   const location = useRouterState({ select: (s) => s.location });
   const routeTheme = useMemo(
     () => resolveThemeForPath(location.pathname, location.search as Record<string, unknown>),
     [location.pathname, location.search],
   );
   const [activeTheme, setActiveTheme] = useState<ThemeTokens>(routeTheme);
+
+
+
 
   // Auto-update theme on route or query change
   useEffect(() => {
@@ -53,6 +60,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     applyThemeToRoot(activeTheme);
   }, [activeTheme]);
+
+
 
   const value = useMemo(
     () => ({ activeTheme, setActiveTheme }),
