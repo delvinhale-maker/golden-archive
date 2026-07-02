@@ -63,7 +63,7 @@ function Row({
   products,
   loading,
   empty,
-  accent = "var(--gold)",
+  scheme = "darkNavy",
 }: {
   title: string;
   kicker?: string;
@@ -71,39 +71,62 @@ function Row({
   products: Product[];
   loading?: boolean;
   empty?: React.ReactNode;
-  accent?: string;
+  scheme?: keyof typeof SCHEMES;
 }) {
+  const ref = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting && e.intersectionRatio >= 0.35) {
+            applyScheme(SCHEMES[scheme]);
+          }
+        }
+      },
+      { threshold: [0.35, 0.6], rootMargin: "-20% 0px -20% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [scheme]);
+
   if (!loading && products.length === 0 && !empty) {
-    // Still render the header so consumers/SEO/tests can find the section;
-    // show a lightweight empty state below.
     empty = "New picks coming soon.";
   }
 
   return (
-    <section className="bg-bg-page py-10 md:py-14">
-
+    <section
+      ref={ref}
+      data-scheme={scheme}
+      className="scheme-surface py-10 md:py-14"
+    >
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             {kicker && (
               <div
-                className="text-[11px] font-semibold tracking-caps"
-                style={{ color: accent }}
+                className="text-[11px] font-semibold tracking-caps transition-colors duration-500"
+                style={{ color: "var(--scheme-kicker)" }}
               >
                 {kicker}
               </div>
             )}
-            <h2 className="mt-1 flex items-center gap-2 font-display text-2xl font-bold md:text-3xl" style={{ color: "#ffffff" }}>
-              <Icon size={22} className="text-gold" /> {title}
+            <h2
+              className="mt-1 flex items-center gap-2 font-display text-2xl font-bold md:text-3xl transition-colors duration-500"
+              style={{ color: "var(--scheme-fg)" }}
+            >
+              <Icon size={22} style={{ color: "var(--scheme-kicker)" }} /> {title}
             </h2>
           </div>
           <Link
             to="/products"
-            className="hidden text-xs font-bold uppercase tracking-caps text-gold hover:text-white sm:inline"
+            className="hidden text-xs font-bold uppercase tracking-caps transition-colors duration-500 sm:inline"
+            style={{ color: "var(--scheme-kicker)" }}
           >
             See all →
           </Link>
-
         </div>
 
         {loading ? (
@@ -113,7 +136,14 @@ function Row({
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-center text-sm text-white/70">
+          <div
+            className="rounded-xl p-6 text-center text-sm transition-colors duration-500"
+            style={{
+              border: "1px solid var(--scheme-border)",
+              color: "var(--scheme-muted)",
+              background: "color-mix(in oklab, var(--scheme-fg) 4%, transparent)",
+            }}
+          >
             {empty}
           </div>
         ) : (
