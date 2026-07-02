@@ -10,8 +10,6 @@ const TABS = [
   { to: "/account", label: "Account", icon: User, match: (p: string) => p.startsWith("/account") },
 ] as const;
 
-const INACTIVE = "#6B7280";
-
 export function MobileTabBar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
@@ -23,34 +21,29 @@ export function MobileTabBar() {
         {TABS.map((t) => {
           const active = t.match(pathname);
           const Icon = t.icon;
-          const color = active ? "var(--accent-color)" : INACTIVE;
           return (
             <li key={t.to + t.label} className="relative flex-1">
               <Link
                 to={t.to}
+                data-nav-tab
+                data-active={active ? "true" : "false"}
                 className="flex h-full w-full flex-col items-center justify-center gap-0.5"
                 aria-current={active ? "page" : undefined}
               >
                 <motion.span
                   whileTap={{ scale: 0.85 }}
                   transition={{ type: "spring", stiffness: 400, damping: 18 }}
-                  style={{ color, transition: "color 300ms ease" }}
                 >
                   <Icon size={20} />
                 </motion.span>
-                <span
-                  className="text-[10px] font-medium"
-                  style={{ color, transition: "color 300ms ease" }}
-                >
-                  {t.label}
-                </span>
+                <span className="text-[10px] font-medium">{t.label}</span>
               </Link>
               {active && (
                 <motion.span
                   layoutId="mobile-tab-underline"
+                  data-nav-underline
                   transition={{ type: "spring", stiffness: 380, damping: 32 }}
                   className="absolute inset-x-4 bottom-0 h-0.5 rounded-full"
-                  style={{ backgroundColor: "var(--accent-color)" }}
                 />
               )}
             </li>
