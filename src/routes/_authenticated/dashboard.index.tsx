@@ -596,6 +596,16 @@ function ActionsMenu({
             type="button"
             onClick={() => {
               setOpen(false);
+              onHistory();
+            }}
+            className="w-full text-left px-3 py-2 hover:bg-paper flex items-center gap-2 text-ink"
+          >
+            <History size={14} /> History
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
               onDelete();
             }}
             className="w-full text-left px-3 py-2 hover:bg-red-50 flex items-center gap-2 text-red-700"
