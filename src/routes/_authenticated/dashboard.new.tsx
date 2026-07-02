@@ -1264,7 +1264,9 @@ function StepContent(p: {
               name={p.uploadedFileMeta?.name ?? p.file?.name ?? "manuscript"}
               size={p.uploadedFileMeta?.size ?? p.file?.size ?? 0}
               onReplace={() => p.handleFileChange(null)}
+              busy={p.fileUploading}
             />
+
             {manuscriptPath && (
               <button
                 type="button"
@@ -1343,7 +1345,7 @@ function StepContent(p: {
           <div className="mt-2 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <CheckCircle2 size={16} className="shrink-0" />
             <span className="truncate flex-1">✅ {p.cover.name} — {(p.cover.size / 1024 / 1024).toFixed(2)} MB uploaded successfully. Tap to replace.</span>
-            <button type="button" onClick={() => p.handleCoverChange(null)} className="text-xs font-semibold text-emerald-800 underline">Replace</button>
+            <button type="button" onClick={() => p.handleCoverChange(null)} disabled={p.coverUploading} aria-disabled={p.coverUploading} title={p.coverUploading ? "Upload in progress" : undefined} className="text-xs font-semibold text-emerald-800 underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed">Replace</button>
           </div>
         )}
         {!p.cover && p.uploadedCoverUrl && (
@@ -1381,7 +1383,7 @@ function StepContent(p: {
   );
 }
 
-function UploadSuccess({ iconLabel, name, size, onReplace }: { iconLabel: string; name: string; size: number; onReplace: () => void }) {
+function UploadSuccess({ iconLabel, name, size, onReplace, busy = false }: { iconLabel: string; name: string; size: number; onReplace: () => void; busy?: boolean }) {
   const sizeLabel = size > 1024 * 1024 ? `${(size / 1024 / 1024).toFixed(2)} MB` : size > 0 ? `${Math.max(1, Math.round(size / 1024))} KB` : "—";
   return (
     <div className="flex items-center gap-3 rounded-xl border-2 border-emerald-300 bg-emerald-50/60 p-4">
@@ -1392,17 +1394,19 @@ function UploadSuccess({ iconLabel, name, size, onReplace }: { iconLabel: string
         <p className="text-sm font-semibold text-navy truncate">
           ✅ {name} — {sizeLabel} uploaded successfully.
         </p>
-        <p className="text-xs text-mute">Tap Replace to swap this {iconLabel}.</p>
+        <p className="text-xs text-mute">{busy ? `Uploading ${iconLabel}…` : `Tap Replace to swap this ${iconLabel}.`}</p>
       </div>
       <button
-        type="button" onClick={onReplace}
-        className="shrink-0 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5"
+        type="button" onClick={onReplace} disabled={busy} aria-disabled={busy}
+        title={busy ? "Upload in progress" : undefined}
+        className="shrink-0 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
       >
         Replace
       </button>
     </div>
   );
 }
+
 
 
 function RightsBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
