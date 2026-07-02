@@ -31,11 +31,14 @@ type Product = {
   status: string;
   published: boolean;
   cover_url: string | null;
+  file_path: string | null;
   created_at: string;
   price_cents: number;
   category: string;
   rejected_reason: string | null;
 };
+
+type ConfirmKind = "unpublish" | "republish" | "delete1" | "delete2";
 
 type Stat = { units: number; earnings_cents: number };
 type FilterKey = "all" | "live" | "drafts" | "unpublished";
