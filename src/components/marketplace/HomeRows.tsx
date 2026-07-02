@@ -170,12 +170,55 @@ export function ContinueBrowsingRow() {
   );
 }
 
+function SchemeScrollSync() {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let raf = 0;
+    let lastKey = "";
+    const pick = () => {
+      raf = 0;
+      const sections = document.querySelectorAll<HTMLElement>("section[data-scheme]");
+      if (!sections.length) return;
+      const vh = window.innerHeight;
+      const center = vh / 2;
+      let best: { el: HTMLElement; dist: number } | null = null;
+      sections.forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > vh) return;
+        const mid = (r.top + r.bottom) / 2;
+        const dist = Math.abs(mid - center);
+        if (!best || dist < best.dist) best = { el, dist };
+      });
+      if (!best) return;
+      const key = best.el.dataset.scheme ?? "";
+      if (!key || key === lastKey) return;
+      const s = SCHEMES[key as keyof typeof SCHEMES];
+      if (!s) return;
+      lastKey = key;
+      applyScheme(s);
+    };
+    const onScroll = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(pick);
+    };
+    pick();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+  return null;
+}
+
 export function HomeContentRows() {
   const { data } = useSuspenseQuery(homeRowsQ);
 
-
   return (
     <>
+      <SchemeScrollSync />
       <Row
         icon={Sparkles}
         kicker="JUST IN"
