@@ -45,7 +45,7 @@ export function PublishFlow({ editingId: editingIdProp }: { editingId?: string }
   return <PublishFlowImpl editingId={editingIdProp} />;
 }
 
-function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
+
 
 const CATEGORIES: { label: string; value: "ebooks" | "finance" | "leadership" | "purpose" | "business" }[] = [
   { label: "eBooks", value: "ebooks" },
