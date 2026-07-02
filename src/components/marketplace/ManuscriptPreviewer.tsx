@@ -293,9 +293,17 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                 <div className="text-red-600 text-sm text-center px-6">{error}</div>
               ) : location === 1 ? (
                 coverUrl ? (
-                  <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                  <img
+                    src={coverUrl}
+                    alt="Cover"
+                    className="w-full h-full object-cover transition-transform duration-200"
+                    style={{ transform: `scale(${FONT_SCALES[fontSize] ?? 1})`, transformOrigin: "center center" }}
+                  />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy to-[#22335A] text-white/70 text-sm">
+                  <div
+                    className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy to-[#22335A] text-white/70 text-sm transition-transform duration-200"
+                    style={{ transform: `scale(${FONT_SCALES[fontSize] ?? 1})`, transformOrigin: "center center" }}
+                  >
                     No cover uploaded
                   </div>
                 )
