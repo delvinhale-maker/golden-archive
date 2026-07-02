@@ -807,3 +807,197 @@ function ConfirmDialog({
   );
 
 }
+
+type HistoryRow = {
+  id: string;
+  event: string;
+  from_published: boolean | null;
+  to_published: boolean | null;
+  from_status: string | null;
+  to_status: string | null;
+  actor_id: string | null;
+  note: string | null;
+  created_at: string;
+};
+
+function HistoryDialog({
+  product,
+  onClose,
+}: {
+  product: Product;
+  onClose: () => void;
+}) {
+  const [rows, setRows] = useState<HistoryRow[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("product_publish_history")
+        .select(
+          "id,event,from_published,to_published,from_status,to_status,actor_id,note,created_at",
+        )
+        .eq("product_id", product.id)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (cancelled) return;
+      if (error) setError(error.message);
+      else setRows((data ?? []) as HistoryRow[]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between px-5 py-4 border-b border-ink/10">
+          <div>
+            <p className="text-xs uppercase tracking-wider text-mute font-semibold">
+              Published history
+            </p>
+            <h3 className="font-display text-lg text-navy mt-0.5 line-clamp-1">
+              {product.title}
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="p-1.5 rounded-full hover:bg-paper text-ink/60"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div className="max-h-[65vh] overflow-y-auto px-5 py-4">
+          {rows === null && !error && (
+            <div className="text-sm text-mute py-8 text-center">Loading history…</div>
+          )}
+          {error && (
+            <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+              Couldn't load history: {error}
+            </div>
+          )}
+          {rows && rows.length === 0 && (
+            <div className="text-sm text-mute py-8 text-center">
+              No history recorded yet.
+            </div>
+          )}
+          {rows && rows.length > 0 && (
+            <ol className="relative border-l-2 border-ink/10 ml-2 space-y-4">
+              {rows.map((r) => {
+                const meta = eventMeta(r.event);
+                return (
+                  <li key={r.id} className="pl-4 relative">
+                    <span
+                      className={`absolute -left-[9px] top-1.5 h-4 w-4 rounded-full border-2 border-white ${meta.dot}`}
+                    />
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`inline-flex items-center text-[11px] font-semibold rounded-full px-2 py-0.5 border ${meta.badge}`}
+                      >
+                        {meta.label}
+                      </span>
+                      <span className="text-xs text-mute">
+                        {new Date(r.created_at).toLocaleString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                    {(r.from_status || r.to_status) &&
+                      r.from_status !== r.to_status && (
+                        <p className="text-xs text-ink/70 mt-1">
+                          Status: <span className="text-mute">{r.from_status ?? "—"}</span> →{" "}
+                          <span className="font-medium text-ink">{r.to_status ?? "—"}</span>
+                        </p>
+                      )}
+                    {r.from_published !== r.to_published && (
+                      <p className="text-xs text-ink/70 mt-0.5">
+                        Published:{" "}
+                        <span className="text-mute">
+                          {r.from_published === null ? "—" : r.from_published ? "yes" : "no"}
+                        </span>{" "}
+                        →{" "}
+                        <span className="font-medium text-ink">
+                          {r.to_published ? "yes" : "no"}
+                        </span>
+                      </p>
+                    )}
+                    {r.note && (
+                      <p className="text-xs text-ink/70 mt-1 italic">{r.note}</p>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function eventMeta(event: string) {
+  switch (event) {
+    case "created":
+      return {
+        label: "Created",
+        dot: "bg-ink/40",
+        badge: "bg-ink/10 text-ink/70 border-ink/15",
+      };
+    case "submitted":
+      return {
+        label: "Submitted for review",
+        dot: "bg-amber-500",
+        badge: "bg-amber-100 text-amber-800 border-amber-200",
+      };
+    case "approved":
+      return {
+        label: "Approved",
+        dot: "bg-emerald-500",
+        badge: "bg-emerald-100 text-emerald-800 border-emerald-200",
+      };
+    case "rejected":
+      return {
+        label: "Rejected",
+        dot: "bg-red-500",
+        badge: "bg-red-100 text-red-800 border-red-200",
+      };
+    case "unpublished":
+      return {
+        label: "Unpublished",
+        dot: "bg-red-500",
+        badge: "bg-red-100 text-red-800 border-red-200",
+      };
+    case "republished":
+      return {
+        label: "Republished",
+        dot: "bg-emerald-500",
+        badge: "bg-emerald-100 text-emerald-800 border-emerald-200",
+      };
+    default:
+      return {
+        label: event.replace(/_/g, " "),
+        dot: "bg-ink/40",
+        badge: "bg-ink/10 text-ink/70 border-ink/15",
+      };
+  }
+}
