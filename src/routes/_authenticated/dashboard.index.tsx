@@ -330,6 +330,7 @@ function BookshelfPage() {
 
       <ConfirmDialog
         state={confirmState}
+        busy={!!confirmState && busyId === confirmState.product.id}
         onCancel={() => setConfirmState(null)}
         onConfirm={handleConfirm}
         onStepBack={() =>
@@ -338,6 +339,7 @@ function BookshelfPage() {
             : setConfirmState(null)
         }
       />
+
     </PublisherShell>
   );
 }
