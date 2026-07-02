@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, CheckCircle2, XCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { AlertCircle, CheckCircle2, XCircle, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
+
 import { useAuth } from "@/hooks/use-auth";
 import { homeRowsQ } from "./HomeRows";
 import type { RowSource } from "@/lib/homerows.functions";
