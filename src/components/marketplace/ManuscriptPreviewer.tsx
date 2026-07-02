@@ -2,33 +2,44 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-type DeviceKind = "tablet" | "phone" | "kindle";
+type DeviceKind = "phone" | "tablet" | "kindle";
 type OutlineEntry = { title: string; pageIndex: number };
 
-const FONT_SCALES: Record<number, number> = { 1: 0.8, 2: 0.9, 3: 1, 4: 1.35, 5: 1.7 };
+// Spec: 1=0.6×, 2=0.8×, 3=1.0×, 4=1.4×, 5=1.8×
+const FONT_SCALES: Record<number, number> = { 1: 0.6, 2: 0.8, 3: 1.0, 4: 1.4, 5: 1.8 };
 
-const DEVICES: Record<DeviceKind, { label: string; w: number; h: number; frame: string; page: string; bg: string; homeButton?: boolean }> = {
-  tablet: {
-    label: "Tablet",
-    w: 600, h: 800,
-    frame: "bg-black rounded-[36px] p-5 shadow-2xl",
-    page: "rounded-[14px] bg-white",
-    bg: "#ffffff",
-  },
+// Spec: Phone 340×600 black bezel | Tablet 520×700 thick bezel | Kindle 380×560 gray sepia
+const DEVICES: Record<
+  DeviceKind,
+  { label: string; w: number; h: number; frame: string; page: string; bg: string; pad: number; homeButton?: boolean }
+> = {
   phone: {
     label: "Phone",
-    w: 320, h: 580,
-    frame: "bg-black rounded-[44px] p-4 shadow-2xl",
+    w: 340,
+    h: 600,
+    frame: "bg-black rounded-[44px] shadow-2xl",
     page: "rounded-[28px] bg-white",
     bg: "#ffffff",
+    pad: 16,
     homeButton: true,
+  },
+  tablet: {
+    label: "Tablet",
+    w: 520,
+    h: 700,
+    frame: "bg-black rounded-[36px] shadow-2xl",
+    page: "rounded-[14px] bg-white",
+    bg: "#ffffff",
+    pad: 28,
   },
   kindle: {
     label: "Kindle",
-    w: 400, h: 600,
-    frame: "bg-[#c9c8c3] rounded-[20px] p-6 shadow-2xl",
-    page: "rounded-[4px] bg-[#f7f5ef]",
-    bg: "#f7f5ef",
+    w: 380,
+    h: 560,
+    frame: "bg-[#c9c8c3] rounded-[20px] shadow-2xl",
+    page: "rounded-[4px] bg-[#f7f1e3]",
+    bg: "#f7f1e3",
+    pad: 24,
   },
 };
 
@@ -42,8 +53,8 @@ export interface ManuscriptPreviewerProps {
 export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }: ManuscriptPreviewerProps) {
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [pdf, setPdf] = useState<any>(null);
-  const [pageCount, setPageCount] = useState(1); // +1 for cover
-  const [location, setLocation] = useState(1); // 1-indexed; 1 = cover
+  const [pageCount, setPageCount] = useState(1); // includes cover as location 1
+  const [location, setLocation] = useState(1);
   const [fontSize, setFontSize] = useState(3);
   const [device, setDevice] = useState<DeviceKind>("tablet");
   const [outline, setOutline] = useState<OutlineEntry[]>([]);
@@ -66,76 +77,107 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     (async () => {
       setLoading(true);
       setError(null);
+      setPdf(null);
+      setPageCount(1);
+      setLocation(1);
+      setOutline([]);
+      setNotPdf(false);
       try {
-        const { data, error } = await supabase.storage
+        const { data, error: signErr } = await supabase.storage
           .from("product-files")
           .createSignedUrl(manuscriptPath, 60 * 30);
-        if (error || !data?.signedUrl) throw new Error(error?.message ?? "Could not load manuscript");
+        if (signErr || !data?.signedUrl) throw new Error(signErr?.message ?? "Could not load manuscript");
         if (cancelled) return;
         setSignedUrl(data.signedUrl);
+
         if (!isPdf) {
           setNotPdf(true);
           setPageCount(1);
           setLoading(false);
           return;
         }
+
         const pdfjs: any = await import("pdfjs-dist");
-        const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
-        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+        // Robust worker init: use a module Worker constructed from the bundled URL.
+        try {
+          const workerUrl = new URL(
+            "pdfjs-dist/build/pdf.worker.min.mjs",
+            import.meta.url,
+          );
+          pdfjs.GlobalWorkerOptions.workerPort = new Worker(workerUrl, { type: "module" });
+        } catch {
+          const fallback = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+          pdfjs.GlobalWorkerOptions.workerSrc = fallback;
+        }
+
         const loadingTask = pdfjs.getDocument({ url: data.signedUrl });
         const doc = await loadingTask.promise;
         if (cancelled) return;
-        setPdf(doc);
-        setPageCount(doc.numPages + 1); // +1 for cover
 
-        // Parse outline
+        setPdf(doc);
+        setPageCount(doc.numPages + 1); // +1 for cover as location 1
+
+        // Parse outline (best effort)
         try {
           const raw = await doc.getOutline();
           if (raw && raw.length) {
             const entries: OutlineEntry[] = [];
-            for (const item of raw) {
-              try {
-                const dest = typeof item.dest === "string" ? await doc.getDestination(item.dest) : item.dest;
-                if (!dest) continue;
-                const ref = dest[0];
-                const pageIndex = await doc.getPageIndex(ref);
-                entries.push({ title: item.title, pageIndex: pageIndex + 2 }); // +2 (cover offset + 1-index)
-              } catch { /* skip */ }
-            }
+            const walk = async (items: any[]) => {
+              for (const item of items) {
+                try {
+                  const dest =
+                    typeof item.dest === "string" ? await doc.getDestination(item.dest) : item.dest;
+                  if (dest) {
+                    const ref = dest[0];
+                    const pageIndex = await doc.getPageIndex(ref);
+                    entries.push({ title: item.title, pageIndex: pageIndex + 2 });
+                  }
+                } catch { /* skip */ }
+                if (item.items?.length) await walk(item.items);
+              }
+            };
+            await walk(raw);
             if (!cancelled) setOutline(entries);
           }
         } catch { /* no outline */ }
+
         setLoading(false);
       } catch (err: any) {
+        console.error("[ManuscriptPreviewer]", err);
         if (!cancelled) {
-          setError(err?.message ?? "Failed to load manuscript");
+          setError("Unable to load manuscript. Please try again.");
           setLoading(false);
         }
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [manuscriptPath, isPdf]);
 
-  // Render current page
   const dev = DEVICES[device];
-  const pageAreaW = dev.w - (device === "phone" ? 32 : device === "kindle" ? 48 : 40);
-  const pageAreaH = dev.h - (device === "phone" ? 32 : device === "kindle" ? 48 : 40);
+  const pageAreaW = dev.w - dev.pad * 2;
+  const pageAreaH = dev.h - dev.pad * 2;
 
+  // Render current PDF page (locations >= 2)
   useEffect(() => {
     if (!pdf || location === 1) return;
     let cancelled = false;
     (async () => {
       try {
-        if (renderTaskRef.current) { try { renderTaskRef.current.cancel(); } catch {} }
-        const page = await pdf.getPage(location - 1); // cover offset
+        if (renderTaskRef.current) {
+          try { renderTaskRef.current.cancel(); } catch { /* noop */ }
+        }
+        const pageNum = location - 1; // location 2 => PDF page 1
+        if (pageNum < 1 || pageNum > pdf.numPages) return;
+        const page = await pdf.getPage(pageNum);
         if (cancelled) return;
         const canvas = canvasRef.current;
         if (!canvas) return;
-        const baseViewport = page.getViewport({ scale: 1 });
-        const fitScale = Math.min(pageAreaW / baseViewport.width, pageAreaH / baseViewport.height);
+        const base = page.getViewport({ scale: 1 });
+        const fitScale = Math.min(pageAreaW / base.width, pageAreaH / base.height);
         const zoom = FONT_SCALES[fontSize] ?? 1;
-        const scale = fitScale * zoom;
-        const viewport = page.getViewport({ scale });
+        const viewport = page.getViewport({ scale: fitScale * zoom });
         const dpr = window.devicePixelRatio || 1;
         canvas.width = Math.floor(viewport.width * dpr);
         canvas.height = Math.floor(viewport.height * dpr);
@@ -149,27 +191,30 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         await task.promise;
       } catch (err: any) {
         if (err?.name !== "RenderingCancelledException") {
-          // ignore
+          console.error("[ManuscriptPreviewer] render", err);
         }
       }
     })();
     return () => { cancelled = true; };
   }, [pdf, location, fontSize, pageAreaW, pageAreaH]);
 
-  const goTo = useCallback((next: number) => {
-    setLocation((prev) => {
-      const target = Math.max(1, Math.min(pageCount, next));
-      if (target === prev) return prev;
-      setSlideDir(target > prev ? "left" : "right");
-      setLocationInput(String(target));
-      setTimeout(() => setSlideDir(null), 220);
-      return target;
-    });
-  }, [pageCount]);
+  const goTo = useCallback(
+    (next: number) => {
+      setLocation((prev) => {
+        const target = Math.max(1, Math.min(pageCount, next));
+        if (target === prev) return prev;
+        setSlideDir(target > prev ? "left" : "right");
+        setLocationInput(String(target));
+        window.setTimeout(() => setSlideDir(null), 160);
+        return target;
+      });
+    },
+    [pageCount],
+  );
 
   useEffect(() => { setLocationInput(String(location)); }, [location]);
 
-  // Keyboard
+  // Keyboard nav
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") { onClose(); return; }
@@ -200,8 +245,19 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     return slideDir === "left" ? "av-slide-left" : "av-slide-right";
   }, [slideDir]);
 
+  const commitLocation = () => {
+    const n = parseInt(locationInput, 10);
+    if (Number.isFinite(n)) goTo(n);
+    else setLocationInput(String(location));
+  };
+
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-[#111] text-white" role="dialog" aria-modal="true" aria-label={`Preview ${title}`}>
+    <div
+      className="fixed inset-0 z-[60] flex flex-col bg-[#111] text-white"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Preview ${title}`}
+    >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 md:px-6 h-14 border-b border-white/10 bg-[#0b0b0b]">
         <span className="font-semibold truncate">{title || "Untitled"}</span>
@@ -221,32 +277,38 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
           <input
             value={locationInput}
             onChange={(e) => setLocationInput(e.target.value.replace(/[^0-9]/g, ""))}
-            onBlur={() => { const n = parseInt(locationInput, 10); if (Number.isFinite(n)) goTo(n); else setLocationInput(String(location)); }}
-            onKeyDown={(e) => { if (e.key === "Enter") { const n = parseInt(locationInput, 10); if (Number.isFinite(n)) goTo(n); } }}
+            onBlur={commitLocation}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitLocation(); } }}
             className="w-16 h-9 rounded-md bg-black/40 border border-white/15 px-2 text-center text-white"
-            aria-label="Current page"
+            aria-label="Current location"
           />
           <span className="text-white/60">of {pageCount}</span>
         </label>
 
         <label className="flex items-center gap-2">
           <span className="text-white/70">Font size</span>
-          <select value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value, 10))}
-            className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white">
-            {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}
+          <select
+            value={fontSize}
+            onChange={(e) => setFontSize(parseInt(e.target.value, 10))}
+            className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white"
+          >
+            {[1, 2, 3, 4, 5].map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
           </select>
         </label>
 
         <label className="flex items-center gap-2">
           <span className="text-white/70">Contents</span>
           <select
-            disabled={false}
             value=""
             onChange={(e) => { const p = parseInt(e.target.value, 10); if (Number.isFinite(p)) goTo(p); }}
-            className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white max-w-[240px] disabled:opacity-60"
+            className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white max-w-[240px]"
           >
-            <option value="">{outline.length ? "Jump to chapter…" : "Jump to…"}</option>
-            <option value="1">Cover</option>
+            <option value="">
+              {outline.length ? "Jump to chapter…" : "No contents available"}
+            </option>
+            {outline.length > 0 && <option value="1">Cover</option>}
             {outline.map((o, i) => (
               <option key={i} value={o.pageIndex}>{o.title}</option>
             ))}
@@ -255,36 +317,48 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
 
         <label className="flex items-center gap-2 ml-auto">
           <span className="text-white/70">Device</span>
-          <select value={device} onChange={(e) => setDevice(e.target.value as DeviceKind)}
-            className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white">
-            {Object.entries(DEVICES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+          <select
+            value={device}
+            onChange={(e) => setDevice(e.target.value as DeviceKind)}
+            className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white"
+          >
+            {Object.entries(DEVICES).map(([k, v]) => (
+              <option key={k} value={k}>{v.label}</option>
+            ))}
           </select>
         </label>
       </div>
 
       {/* Stage */}
-      <div className="relative flex-1 overflow-auto flex items-center justify-center p-6" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        {/* Left arrow */}
+      <div
+        className="relative flex-1 overflow-auto flex items-center justify-center p-6"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* Left arrow — 56×56 tap target */}
         <button
           onClick={() => goTo(location - 1)}
           aria-label="Previous page"
           disabled={location <= 1}
-          className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-30 inline-flex items-center justify-center"
+          className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition"
         >
-          <ChevronLeft size={28} />
+          <ChevronLeft size={30} />
         </button>
 
         {/* Device frame */}
         <div
           key={device}
           className={`transition-opacity duration-200 ${dev.frame} relative`}
-          style={{ width: dev.w, height: dev.h, maxWidth: "100%" }}
+          style={{ width: dev.w, height: dev.h, maxWidth: "100%", padding: dev.pad }}
         >
           <div
             className={`relative overflow-hidden ${dev.page} w-full h-full flex items-center justify-center`}
             style={{ background: location === 1 ? "transparent" : dev.bg }}
           >
-            <div key={location} className={`w-full h-full flex items-center justify-center ${slideAnim}`}>
+            <div
+              key={location}
+              className={`w-full h-full flex items-center justify-center ${slideAnim}`}
+            >
               {loading ? (
                 <div className="flex flex-col items-center gap-2 text-black/60">
                   <Loader2 className="animate-spin" size={28} />
@@ -297,21 +371,38 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   <img
                     src={coverUrl}
                     alt="Cover"
-                    className="w-full h-full object-cover transition-transform duration-200"
-                    style={{ transform: `scale(${FONT_SCALES[fontSize] ?? 1})`, transformOrigin: "center center" }}
+                    className="w-full h-full object-cover"
+                    style={{
+                      transform: `scale(${FONT_SCALES[fontSize] ?? 1})`,
+                      transformOrigin: "center center",
+                      transition: "transform 150ms ease",
+                    }}
                   />
                 ) : (
                   <div
-                    className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy to-[#22335A] text-white/70 text-sm transition-transform duration-200"
-                    style={{ transform: `scale(${FONT_SCALES[fontSize] ?? 1})`, transformOrigin: "center center" }}
+                    className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy to-[#22335A] text-white/70 text-sm"
+                    style={{
+                      transform: `scale(${FONT_SCALES[fontSize] ?? 1})`,
+                      transformOrigin: "center center",
+                      transition: "transform 150ms ease",
+                    }}
                   >
                     No cover uploaded
                   </div>
                 )
               ) : notPdf ? (
                 <div className="text-center px-6 text-black/70 text-sm">
-                  <p className="font-semibold mb-2">Live preview not available for {ext.toUpperCase()} files.</p>
-                  <a href={signedUrl ?? "#"} target="_blank" rel="noopener noreferrer" className="underline">Open file in new tab</a>
+                  <p className="font-semibold mb-2">
+                    Live preview not available for {ext.toUpperCase()} files.
+                  </p>
+                  <a
+                    href={signedUrl ?? "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline"
+                  >
+                    Open file in new tab
+                  </a>
                 </div>
               ) : (
                 <canvas ref={canvasRef} className="block max-w-full max-h-full" />
@@ -319,26 +410,29 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             </div>
           </div>
           {dev.homeButton && (
-            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-16 rounded-full bg-white/30" aria-hidden="true" />
+            <div
+              className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-16 rounded-full bg-white/30"
+              aria-hidden="true"
+            />
           )}
         </div>
 
-        {/* Right arrow */}
+        {/* Right arrow — 56×56 tap target */}
         <button
           onClick={() => goTo(location + 1)}
           aria-label="Next page"
           disabled={location >= pageCount}
-          className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-30 inline-flex items-center justify-center"
+          className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition"
         >
-          <ChevronRight size={28} />
+          <ChevronRight size={30} />
         </button>
       </div>
 
       <style>{`
-        @keyframes av-slide-left-kf { from { transform: translateX(30px); opacity: 0.4 } to { transform: translateX(0); opacity: 1 } }
-        @keyframes av-slide-right-kf { from { transform: translateX(-30px); opacity: 0.4 } to { transform: translateX(0); opacity: 1 } }
-        .av-slide-left { animation: av-slide-left-kf 200ms ease }
-        .av-slide-right { animation: av-slide-right-kf 200ms ease }
+        @keyframes av-slide-left-kf { from { transform: translateX(24px); opacity: 0.35 } to { transform: translateX(0); opacity: 1 } }
+        @keyframes av-slide-right-kf { from { transform: translateX(-24px); opacity: 0.35 } to { transform: translateX(0); opacity: 1 } }
+        .av-slide-left { animation: av-slide-left-kf 150ms ease }
+        .av-slide-right { animation: av-slide-right-kf 150ms ease }
       `}</style>
     </div>
   );
