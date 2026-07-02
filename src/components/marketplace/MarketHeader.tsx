@@ -60,7 +60,12 @@ export function MarketHeader() {
   return (
     <header className="fixed top-0 left-0 right-0 z-40">
       {/* Top bar */}
-      <div className="bg-navy">
+      <div
+        className="scheme-surface-bg"
+        style={{
+          backgroundColor: "color-mix(in oklab, var(--scheme-bg) 92%, #000 8%)",
+        }}
+      >
         <div className="mx-auto flex h-[60px] max-w-7xl items-center gap-3 px-4 md:h-[72px] md:gap-6 md:px-8">
           <button
             type="button"
