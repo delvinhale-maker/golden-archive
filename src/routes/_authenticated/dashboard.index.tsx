@@ -55,7 +55,7 @@ function BookshelfPage() {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("date");
   const [confirmState, setConfirmState] = useState<
-    { kind: "unpublish" | "delete"; product: Product } | null
+    { kind: ConfirmKind; product: Product } | null
   >(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
