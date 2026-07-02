@@ -97,6 +97,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
   const [loadingEdit, setLoadingEdit] = useState<boolean>(isEditing);
   const [existingCoverUrl, setExistingCoverUrl] = useState<string | null>(null);
   const [existingFilePath, setExistingFilePath] = useState<string | null>(null);
+  const [dbUpdatedAt, setDbUpdatedAt] = useState<string | null>(null);
 
   // Step 1
   const [title, setTitle] = useState("");
