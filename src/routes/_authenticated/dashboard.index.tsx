@@ -17,6 +17,8 @@ import {
   MoreVertical,
   AlertTriangle,
   Loader2,
+  History,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
