@@ -1614,6 +1614,14 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        {isEditing && onCancel && (
+          <button
+            type="button" disabled={submitting} onClick={onCancel}
+            className="h-12 px-5 rounded-full bg-white border border-navy/20 text-navy font-semibold hover:bg-navy/5 disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+          >
+            Cancel
+          </button>
+        )}
         <button
           type="button" disabled={submitting || autosaving || disabled} onClick={onDraft}
           className="h-12 px-5 rounded-full bg-white border border-navy/20 text-navy font-semibold hover:bg-navy/5 disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
@@ -1630,7 +1638,7 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
           aria-busy={submitting}
         >
           {submitting ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
-          {submitting ? "Publishing…" : autosaving ? "Saving draft…" : "Publish to Vault"}
+          {submitting ? (isEditing ? "Updating…" : "Publishing…") : autosaving ? "Saving draft…" : (isEditing ? "Update Title" : "Publish to Vault")}
         </button>
       </div>
     </div>
