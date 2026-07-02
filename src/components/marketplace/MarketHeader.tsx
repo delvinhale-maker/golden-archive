@@ -471,8 +471,10 @@ function HeaderIcon({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative flex h-11 w-11 items-center justify-center rounded-full text-white hover:bg-white/10"
+      data-nav-tab
+      className="relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10"
     >
+
       {icon}
       {badge && badge > 0 ? (
         <span
