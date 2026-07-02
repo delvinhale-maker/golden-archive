@@ -33,8 +33,19 @@ export const Route = createFileRoute("/_authenticated/dashboard/new")({
   validateSearch: (s: Record<string, unknown>) => ({
     id: typeof s.id === "string" ? s.id : undefined,
   }),
-  component: PublishFlow,
+  component: PublishFlowRoute,
 });
+
+function PublishFlowRoute() {
+  const { id } = Route.useSearch();
+  return <PublishFlow editingId={id} />;
+}
+
+export function PublishFlow({ editingId: editingIdProp }: { editingId?: string } = {}) {
+  return <PublishFlowImpl editingId={editingIdProp} />;
+}
+
+
 
 const CATEGORIES: { label: string; value: "ebooks" | "finance" | "leadership" | "purpose" | "business" }[] = [
   { label: "eBooks", value: "ebooks" },
@@ -67,11 +78,11 @@ const STEPS = [
 ];
 type StepNum = 1 | 2 | 3 | 4;
 
-function PublishFlow() {
+function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const runReview = useServerFn(reviewProduct);
-  const { id: editingId } = Route.useSearch();
+  const editingId = editingIdProp;
   const isEditing = !!editingId;
 
   const [step, setStep] = useState<StepNum>(1);
@@ -86,6 +97,7 @@ function PublishFlow() {
   const [loadingEdit, setLoadingEdit] = useState<boolean>(isEditing);
   const [existingCoverUrl, setExistingCoverUrl] = useState<string | null>(null);
   const [existingFilePath, setExistingFilePath] = useState<string | null>(null);
+  const [dbUpdatedAt, setDbUpdatedAt] = useState<string | null>(null);
 
   // Step 1
   const [title, setTitle] = useState("");
@@ -263,6 +275,7 @@ function PublishFlow() {
         if (data?.id) setDraftProductId(data.id as string);
       }
       setLastSavedAt(Date.now());
+      setDbUpdatedAt(new Date().toISOString());
       setAutosaveErrors((prev) => (prev[kind] ? { ...prev, [kind]: null } : prev));
       if (!opts?.silent) {
         toast.success("Progress saved", { duration: 2000 });
@@ -342,6 +355,7 @@ function PublishFlow() {
       setPrice(((data.price_cents ?? 0) / 100).toString());
       setExistingCoverUrl(data.cover_url ?? null);
       setExistingFilePath(data.file_path ?? null);
+      setDbUpdatedAt((data.updated_at as string | null) ?? null);
       // Hydrate "uploaded" state so the confirmation bars persist on refresh
       if (data.cover_url) setUploadedCoverUrl(data.cover_url as string);
       if (data.file_path) {
@@ -972,6 +986,9 @@ function PublishFlow() {
               onPublish={() => uploadAndSave(true)}
               onZoomCover={() => setCoverLightbox(true)}
               onOpenPreview={() => setShowPreview(true)}
+              isEditing={isEditing}
+              lastUpdatedAt={dbUpdatedAt}
+              onCancel={() => navigate({ to: "/dashboard" })}
             />
           )}
 
@@ -1483,7 +1500,7 @@ function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium
 
 /* ---------- Step 4: Review ---------- */
 
-function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, autosaving, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover, onOpenPreview }: {
+function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, autosaving, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover, onOpenPreview, isEditing, lastUpdatedAt, onCancel }: {
   accent: PublisherAccent;
   cover: string | null; title: string; subtitle: string; author: string;
   price: number; royalty: number; format: string; territory: string;
@@ -1495,10 +1512,18 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
   onGoToStep: (s: StepNum) => void;
   onDraft: () => void; onPublish: () => void; onZoomCover: () => void;
   onOpenPreview: () => void;
+  isEditing?: boolean;
+  lastUpdatedAt?: string | null;
+  onCancel?: () => void;
 }) {
   return (
     <div className="space-y-6">
-      <h2 className="font-display text-2xl text-navy">Review & publish</h2>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-display text-2xl text-navy">{isEditing ? "Review & update" : "Review & publish"}</h2>
+        {isEditing && lastUpdatedAt && (
+          <span className="text-xs text-mute">Last updated {new Date(lastUpdatedAt).toLocaleString()}</span>
+        )}
+      </div>
 
       <button
         type="button" onClick={onOpenPreview}
@@ -1589,6 +1614,14 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        {isEditing && onCancel && (
+          <button
+            type="button" disabled={submitting} onClick={onCancel}
+            className="h-12 px-5 rounded-full bg-white border border-navy/20 text-navy font-semibold hover:bg-navy/5 disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+          >
+            Cancel
+          </button>
+        )}
         <button
           type="button" disabled={submitting || autosaving || disabled} onClick={onDraft}
           className="h-12 px-5 rounded-full bg-white border border-navy/20 text-navy font-semibold hover:bg-navy/5 disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
@@ -1605,7 +1638,7 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
           aria-busy={submitting}
         >
           {submitting ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
-          {submitting ? "Publishing…" : autosaving ? "Saving draft…" : "Publish to Vault"}
+          {submitting ? (isEditing ? "Updating…" : "Publishing…") : autosaving ? "Saving draft…" : (isEditing ? "Update Title" : "Publish to Vault")}
         </button>
       </div>
     </div>
