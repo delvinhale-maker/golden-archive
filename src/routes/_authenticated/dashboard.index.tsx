@@ -15,6 +15,8 @@ import {
   XCircle,
   Search,
   MoreVertical,
+  AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -49,6 +51,10 @@ function BookshelfPage() {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("date");
+  const [confirmState, setConfirmState] = useState<
+    { kind: "unpublish" | "delete"; product: Product } | null
+  >(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -120,13 +126,15 @@ function BookshelfPage() {
   }, [products]);
 
   async function unpublish(id: string) {
+    setBusyId(id);
     const { error } = await supabase
       .from("marketplace_products")
       .update({ published: false })
       .eq("id", id);
+    setBusyId(null);
     if (error) return toast.error(error.message);
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, published: false } : p)));
-    toast.success("Title unpublished.");
+    toast.success("Title unpublished. It's no longer visible in the store.");
   }
 
   async function republish(id: string) {
@@ -134,21 +142,38 @@ function BookshelfPage() {
     if (target && target.status !== "approved") {
       return toast.error("Only approved titles can be republished.");
     }
+    setBusyId(id);
     const { error } = await supabase
       .from("marketplace_products")
       .update({ published: true })
       .eq("id", id);
+    setBusyId(null);
     if (error) return toast.error(error.message);
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, published: true } : p)));
     toast.success("Title is live again.");
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this title? This cannot be undone.")) return;
+    setBusyId(id);
     const { error } = await supabase.from("marketplace_products").delete().eq("id", id);
+    setBusyId(null);
     if (error) return toast.error(error.message);
     setProducts((prev) => prev.filter((p) => p.id !== id));
     toast.success("Title deleted.");
+  }
+
+  function requestConfirm(kind: "unpublish" | "delete", id: string) {
+    const product = products.find((p) => p.id === id);
+    if (!product) return;
+    setConfirmState({ kind, product });
+  }
+
+  async function handleConfirm() {
+    if (!confirmState) return;
+    const { kind, product } = confirmState;
+    setConfirmState(null);
+    if (kind === "unpublish") await unpublish(product.id);
+    else await remove(product.id);
   }
 
   return (
@@ -265,12 +290,19 @@ function BookshelfPage() {
           <BookshelfTable
             products={visible}
             stats={stats}
-            onUnpublish={unpublish}
+            busyId={busyId}
+            onUnpublish={(id) => requestConfirm("unpublish", id)}
             onRepublish={republish}
-            onDelete={remove}
+            onDelete={(id) => requestConfirm("delete", id)}
           />
         )}
       </section>
+
+      <ConfirmDialog
+        state={confirmState}
+        onCancel={() => setConfirmState(null)}
+        onConfirm={handleConfirm}
+      />
     </PublisherShell>
   );
 }
@@ -318,12 +350,14 @@ function statusBadge(p: Product) {
 function BookshelfTable({
   products,
   stats,
+  busyId,
   onUnpublish,
   onRepublish,
   onDelete,
 }: {
   products: Product[];
   stats: Record<string, Stat>;
+  busyId: string | null;
   onUnpublish: (id: string) => void;
   onRepublish: (id: string) => void;
   onDelete: (id: string) => void;
@@ -400,6 +434,7 @@ function BookshelfTable({
                         productId={p.id}
                         isLive={isLive}
                         canRepublish={!p.published && p.status === "approved"}
+                        busy={busyId === p.id}
                         onUnpublish={() => onUnpublish(p.id)}
                         onRepublish={() => onRepublish(p.id)}
                         onDelete={() => onDelete(p.id)}
@@ -432,6 +467,7 @@ function ActionsMenu({
   productId,
   isLive,
   canRepublish,
+  busy,
   onUnpublish,
   onRepublish,
   onDelete,
@@ -439,6 +475,7 @@ function ActionsMenu({
   productId: string;
   isLive: boolean;
   canRepublish: boolean;
+  busy: boolean;
   onUnpublish: () => void;
   onRepublish: () => void;
   onDelete: () => void;
@@ -460,9 +497,10 @@ function ActionsMenu({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Actions"
-        className="p-1.5 rounded-full hover:bg-paper text-ink/70"
+        disabled={busy}
+        className="p-1.5 rounded-full hover:bg-paper text-ink/70 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <MoreVertical size={16} />
+        {busy ? <Loader2 size={16} className="animate-spin" /> : <MoreVertical size={16} />}
       </button>
       {open && (
         <div className="absolute right-0 mt-1 z-20 min-w-[180px] rounded-xl bg-white border border-ink/10 shadow-lg py-1.5 text-sm">
@@ -533,5 +571,81 @@ function MenuItem({
     >
       {icon} {children}
     </Link>
+  );
+}
+
+function ConfirmDialog({
+  state,
+  onCancel,
+  onConfirm,
+}: {
+  state: { kind: "unpublish" | "delete"; product: Product } | null;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  useEffect(() => {
+    if (!state) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [state, onCancel]);
+
+  if (!state) return null;
+  const isDelete = state.kind === "delete";
+  const title = isDelete ? "Delete this title?" : "Unpublish this title?";
+  const body = isDelete
+    ? "This permanently deletes the listing, cover, and manuscript from your bookshelf. Past orders and downloads are preserved. This cannot be undone."
+    : "The title will be hidden from the store immediately. Existing customers keep access to their downloads. You can republish it any time.";
+  const cta = isDelete ? "Delete permanently" : "Unpublish";
+  const ctaCls = isDelete
+    ? "bg-red-600 text-white hover:bg-red-700"
+    : "bg-navy text-white hover:bg-navy/90";
+  const iconCls = isDelete ? "text-red-600 bg-red-50" : "text-navy bg-navy/5";
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+    >
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onCancel}
+        className="absolute inset-0 bg-navy/40 backdrop-blur-sm"
+      />
+      <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-150">
+        <div className="flex items-start gap-4">
+          <div className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${iconCls}`}>
+            {isDelete ? <Trash2 size={18} /> : <AlertTriangle size={18} />}
+          </div>
+          <div className="flex-1">
+            <h3 className="font-display text-lg text-navy">{title}</h3>
+            <p className="mt-1 text-sm text-mute leading-relaxed">{body}</p>
+            <p className="mt-3 text-sm font-medium text-ink line-clamp-2">
+              "{state.product.title}"
+            </p>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 rounded-full text-sm font-semibold text-ink/80 hover:bg-paper"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className={`px-4 py-2 rounded-full text-sm font-semibold ${ctaCls}`}
+          >
+            {cta}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
