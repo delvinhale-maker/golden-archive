@@ -319,8 +319,8 @@ function BookshelfPage() {
             stats={stats}
             busyId={busyId}
             onUnpublish={(id) => requestConfirm("unpublish", id)}
-            onRepublish={republish}
-            onDelete={(id) => requestConfirm("delete", id)}
+            onRepublish={(id) => requestConfirm("republish", id)}
+            onDelete={(id) => requestConfirm("delete1", id)}
           />
         )}
       </section>
@@ -329,6 +329,11 @@ function BookshelfPage() {
         state={confirmState}
         onCancel={() => setConfirmState(null)}
         onConfirm={handleConfirm}
+        onStepBack={() =>
+          confirmState?.kind === "delete2"
+            ? setConfirmState({ kind: "delete1", product: confirmState.product })
+            : setConfirmState(null)
+        }
       />
     </PublisherShell>
   );
