@@ -240,12 +240,13 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         <label className="flex items-center gap-2">
           <span className="text-white/70">Contents</span>
           <select
-            disabled={outline.length === 0}
+            disabled={false}
             value=""
             onChange={(e) => { const p = parseInt(e.target.value, 10); if (Number.isFinite(p)) goTo(p); }}
             className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white max-w-[240px] disabled:opacity-60"
           >
-            <option value="">{outline.length ? "Jump to chapter…" : "No table of contents available"}</option>
+            <option value="">{outline.length ? "Jump to chapter…" : "Jump to…"}</option>
+            <option value="1">Cover</option>
             {outline.map((o, i) => (
               <option key={i} value={o.pageIndex}>{o.title}</option>
             ))}
