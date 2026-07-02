@@ -339,9 +339,9 @@ function BookshelfTable({
               <th className="text-left font-semibold px-4 py-3">Status</th>
               <th className="text-left font-semibold px-4 py-3">Format</th>
               <th className="text-left font-semibold px-4 py-3 whitespace-nowrap">Date</th>
-              <th className="text-right font-semibold px-4 py-3">Price</th>
-              <th className="text-right font-semibold px-4 py-3">Units</th>
-              <th className="text-right font-semibold px-4 py-3">Earnings</th>
+              <th className="text-right font-semibold px-4 py-3 whitespace-nowrap min-w-[96px]">Price</th>
+              <th className="text-right font-semibold px-4 py-3 min-w-[72px]">Units</th>
+              <th className="text-right font-semibold px-4 py-3 whitespace-nowrap min-w-[112px]">Earnings</th>
               <th className="text-right font-semibold px-4 py-3">Actions</th>
             </tr>
           </thead>
@@ -387,13 +387,12 @@ function BookshelfTable({
                       year: "numeric",
                     })}
                   </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap text-ink tabular-nums">
-                    <span className="text-mute mr-0.5">$</span>
-                    {(p.price_cents / 100).toFixed(2)}
+                  <td className="px-4 py-3 text-right whitespace-nowrap text-ink">
+                    <Money cents={p.price_cents} />
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-ink">{s.units}</td>
-                  <td className="px-4 py-3 text-right tabular-nums font-semibold text-gold">
-                    ${(s.earnings_cents / 100).toFixed(2)}
+                  <td className="px-4 py-3 text-right tabular-nums text-ink whitespace-nowrap">{s.units}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-gold">
+                    <Money cents={s.earnings_cents} />
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end">
