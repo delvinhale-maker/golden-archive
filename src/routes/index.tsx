@@ -134,6 +134,8 @@ function Home() {
       <Suspense fallback={null}>
         <HomeContentRows />
       </Suspense>
+      <HomeRowsDiagnostics />
+
 
       <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProducts />
