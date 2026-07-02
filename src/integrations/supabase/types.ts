@@ -693,6 +693,56 @@ export type Database = {
         }
         Relationships: []
       }
+      product_publish_history: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event: string
+          from_published: boolean | null
+          from_status: string | null
+          id: string
+          note: string | null
+          product_id: string
+          seller_id: string
+          to_published: boolean | null
+          to_status: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event: string
+          from_published?: boolean | null
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          product_id: string
+          seller_id: string
+          to_published?: boolean | null
+          to_status?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event?: string
+          from_published?: boolean | null
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          product_id?: string
+          seller_id?: string
+          to_published?: boolean | null
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_publish_history_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_qa: {
         Row: {
           answer: string | null
