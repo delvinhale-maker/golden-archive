@@ -71,7 +71,7 @@ function BookshelfPage() {
         supabase
           .from("marketplace_products")
           .select(
-            "id,title,status,published,cover_url,created_at,price_cents,category,rejected_reason",
+            "id,title,status,published,cover_url,file_path,created_at,price_cents,category,rejected_reason",
           )
           .eq("seller_id", user.id)
           .order("created_at", { ascending: false }),
