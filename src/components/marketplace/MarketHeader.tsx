@@ -93,18 +93,21 @@ export function MarketHeader() {
             {canUpload ? (
               <Link
                 to="/dashboard/new"
-                className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-gold px-3 py-1.5 text-[12px] font-semibold text-navy hover:bg-gold/90 transition"
+                data-tab-cta="solid"
+                className="hidden md:inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold hover:opacity-90"
               >
                 <BookPlus size={14} /> Publish
               </Link>
             ) : (
               <Link
                 to="/sell"
-                className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-gold/40 px-3 py-1.5 text-[12px] font-medium text-gold hover:bg-gold hover:text-navy transition"
+                data-tab-cta="outline"
+                className="hidden md:inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium"
               >
                 <Store size={14} /> Sell on AurumVault
               </Link>
             )}
+
             {user ? (
               <>
                 <NotificationsBell />
