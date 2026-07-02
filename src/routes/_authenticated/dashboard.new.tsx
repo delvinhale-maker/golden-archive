@@ -1265,7 +1265,9 @@ function StepContent(p: {
               size={p.uploadedFileMeta?.size ?? p.file?.size ?? 0}
               onReplace={() => p.handleFileChange(null)}
               busy={p.fileUploading}
+              progress={p.fileProgress}
             />
+
 
             {manuscriptPath && (
               <button
@@ -1383,29 +1385,40 @@ function StepContent(p: {
   );
 }
 
-function UploadSuccess({ iconLabel, name, size, onReplace, busy = false }: { iconLabel: string; name: string; size: number; onReplace: () => void; busy?: boolean }) {
+function UploadSuccess({ iconLabel, name, size, onReplace, busy = false, progress }: { iconLabel: string; name: string; size: number; onReplace: () => void; busy?: boolean; progress?: number }) {
   const sizeLabel = size > 1024 * 1024 ? `${(size / 1024 / 1024).toFixed(2)} MB` : size > 0 ? `${Math.max(1, Math.round(size / 1024))} KB` : "—";
+  const pct = Math.max(0, Math.min(100, Math.round(progress ?? 0)));
   return (
-    <div className="flex items-center gap-3 rounded-xl border-2 border-emerald-300 bg-emerald-50/60 p-4">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700" aria-hidden="true">
-        <CheckCircle2 size={22} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-navy truncate">
-          ✅ {name} — {sizeLabel} uploaded successfully.
-        </p>
-        <p className="text-xs text-mute">{busy ? `Uploading ${iconLabel}…` : `Tap Replace to swap this ${iconLabel}.`}</p>
+    <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50/60 p-4">
+      <div className="flex items-center gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700" aria-hidden="true">
+          <CheckCircle2 size={22} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-navy truncate">
+            ✅ {name} — {sizeLabel} uploaded successfully.
+          </p>
+          <p className="text-xs text-mute tabular-nums">
+            {busy ? `Uploading ${iconLabel}… ${pct}%` : `Tap Replace to swap this ${iconLabel}.`}
+          </p>
+        </div>
+        <button
+          type="button" onClick={onReplace} disabled={busy} aria-disabled={busy}
+          title={busy ? `Upload in progress — ${pct}%` : undefined}
+          className="shrink-0 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+        >
+          {busy ? `${pct}%` : "Replace"}
+        </button>
       </div>
-      <button
-        type="button" onClick={onReplace} disabled={busy} aria-disabled={busy}
-        title={busy ? "Upload in progress" : undefined}
-        className="shrink-0 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
-      >
-        Replace
-      </button>
+      {busy && (
+        <div className="mt-3 h-1.5 bg-ink/10 rounded-full overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
+          <div className="h-full transition-all" style={{ width: `${pct}%`, background: "var(--page-accent)" }} />
+        </div>
+      )}
     </div>
   );
 }
+
 
 
 
