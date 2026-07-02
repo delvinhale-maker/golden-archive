@@ -109,6 +109,11 @@ export function KingdomPicksRow() {
                   href={p.affiliateUrl}
                   target="_blank"
                   rel="noopener noreferrer sponsored"
+                  onClick={() => trackAmazonClick(p, "home_kingdom_picks_row")}
+                  onAuxClick={() => trackAmazonClick(p, "home_kingdom_picks_row")}
+                  data-analytics-event="affiliate_click"
+                  data-analytics-source={p.source ?? "amazon"}
+                  data-analytics-product-id={p.id}
                   className="mt-auto inline-flex h-10 items-center justify-center gap-1 rounded-full bg-gold px-4 text-xs font-bold text-navy transition hover:brightness-105"
                 >
                   View on Amazon <ExternalLink size={12} />
