@@ -1212,9 +1212,12 @@ function StepContent(p: {
   uploadedCoverUrl: string | null;
   uploadedFilePath: string | null;
   uploadedFileMeta: { name: string; size: number } | null;
+  title: string;
 }) {
   const coverDone = !!p.uploadedCoverUrl && !p.coverUploading && !p.coverUploadError;
   const fileDone = !!p.uploadedFilePath && !p.fileUploading && !p.fileUploadError;
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const manuscriptPath = p.uploadedFilePath ?? p.existingFilePath;
   return (
     <div className="space-y-6">
       <h2 className="font-display text-2xl text-navy">Content & rights</h2>
