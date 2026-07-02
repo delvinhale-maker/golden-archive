@@ -697,55 +697,75 @@ function ConfirmDialog({
         type="button"
         aria-label="Close"
         onClick={onCancel}
-        className="absolute inset-0 bg-navy/40 backdrop-blur-sm"
+        disabled={busy}
+        className="absolute inset-0 bg-navy/40 backdrop-blur-sm disabled:cursor-not-allowed"
       />
-      <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-150">
-        <div className="flex items-start gap-4">
-          <div className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${config.iconCls}`}>
-            {config.icon}
+      <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        {busy && (
+          <div
+            role="progressbar"
+            aria-label="Working"
+            className="absolute left-0 top-0 h-1 w-full overflow-hidden bg-ink/5"
+          >
+            <div className="h-full w-1/3 animate-[shimmer_1.1s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-display text-lg text-navy">{config.title}</h3>
-            {config.body && (
-              <p className="mt-1 text-sm text-mute leading-relaxed">{config.body}</p>
-            )}
-            {isStep2 ? (
-              <div className="mt-3">
-                <p className="text-sm text-ink">
-                  Type <span className="font-semibold">{product.title}</span> to confirm:
-                </p>
-                <input
-                  autoFocus
-                  value={typed}
-                  onChange={(e) => setTyped(e.target.value)}
-                  placeholder={product.title}
-                  className="mt-2 w-full px-3 py-2 text-sm rounded-lg border border-ink/15 focus:outline-none focus:ring-2 focus:ring-red-500/40"
-                />
-              </div>
-            ) : (
-              kind !== "unpublish" &&
-              kind !== "republish" && (
-                <p className="mt-3 text-sm font-medium text-ink line-clamp-2">
-                  "{product.title}"
-                </p>
-              )
-            )}
+        )}
+        <div className="p-6">
+          <div className="flex items-start gap-4">
+            <div className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${config.iconCls}`}>
+              {config.icon}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-display text-lg text-navy">{config.title}</h3>
+              {config.body && (
+                <p className="mt-1 text-sm text-mute leading-relaxed">{config.body}</p>
+              )}
+              {isStep2 ? (
+                <div className="mt-3">
+                  <p className="text-sm text-ink">
+                    Type <span className="font-semibold">{product.title}</span> to confirm:
+                  </p>
+                  <input
+                    autoFocus
+                    value={typed}
+                    onChange={(e) => setTyped(e.target.value)}
+                    placeholder={product.title}
+                    disabled={busy}
+                    className="mt-2 w-full px-3 py-2 text-sm rounded-lg border border-ink/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 disabled:bg-paper"
+                  />
+                </div>
+              ) : (
+                kind !== "unpublish" &&
+                kind !== "republish" && (
+                  <p className="mt-3 text-sm font-medium text-ink line-clamp-2">
+                    "{product.title}"
+                  </p>
+                )
+              )}
+            </div>
+          </div>
+          <div className="mt-6 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={isStep2 ? onStepBack : onCancel}
+              disabled={busy}
+              className="px-4 py-2 rounded-full text-sm font-semibold text-ink/80 border border-ink/15 hover:bg-paper disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={!canConfirm || busy}
+              aria-busy={busy}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${config.ctaCls} disabled:opacity-60 disabled:cursor-not-allowed`}
+            >
+              {busy && <Loader2 size={14} className="animate-spin" />}
+              {busy ? busyLabel(kind) : config.cta}
+            </button>
           </div>
         </div>
-        <div className="mt-6 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={isStep2 ? onStepBack : onCancel}
-            className="px-4 py-2 rounded-full text-sm font-semibold text-ink/80 border border-ink/15 hover:bg-paper"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={!canConfirm}
-            className={`px-4 py-2 rounded-full text-sm font-semibold ${config.ctaCls} disabled:opacity-40 disabled:cursor-not-allowed`}
-          >
+
             {config.cta}
           </button>
         </div>
