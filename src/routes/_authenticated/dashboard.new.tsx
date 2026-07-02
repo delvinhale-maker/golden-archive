@@ -1839,6 +1839,7 @@ function PrePublishPreview(props: {
   const titleId = "prepublish-title";
   const descId = "prepublish-desc";
   const [openingManuscript, setOpeningManuscript] = useState(false);
+  const [previewerOpen, setPreviewerOpen] = useState(false);
 
   useEffect(() => {
     const prevOverflow = document.body.style.overflow;
