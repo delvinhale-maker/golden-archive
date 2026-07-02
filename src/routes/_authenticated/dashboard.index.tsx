@@ -573,3 +573,79 @@ function MenuItem({
     </Link>
   );
 }
+
+function ConfirmDialog({
+  state,
+  onCancel,
+  onConfirm,
+}: {
+  state: { kind: "unpublish" | "delete"; product: Product } | null;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  useEffect(() => {
+    if (!state) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [state, onCancel]);
+
+  if (!state) return null;
+  const isDelete = state.kind === "delete";
+  const title = isDelete ? "Delete this title?" : "Unpublish this title?";
+  const body = isDelete
+    ? "This permanently deletes the listing, cover, and manuscript from your bookshelf. Past orders and downloads are preserved. This cannot be undone."
+    : "The title will be hidden from the store immediately. Existing customers keep access to their downloads. You can republish it any time.";
+  const cta = isDelete ? "Delete permanently" : "Unpublish";
+  const ctaCls = isDelete
+    ? "bg-red-600 text-white hover:bg-red-700"
+    : "bg-navy text-white hover:bg-navy/90";
+  const iconCls = isDelete ? "text-red-600 bg-red-50" : "text-navy bg-navy/5";
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+    >
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onCancel}
+        className="absolute inset-0 bg-navy/40 backdrop-blur-sm"
+      />
+      <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-150">
+        <div className="flex items-start gap-4">
+          <div className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${iconCls}`}>
+            {isDelete ? <Trash2 size={18} /> : <AlertTriangle size={18} />}
+          </div>
+          <div className="flex-1">
+            <h3 className="font-display text-lg text-navy">{title}</h3>
+            <p className="mt-1 text-sm text-mute leading-relaxed">{body}</p>
+            <p className="mt-3 text-sm font-medium text-ink line-clamp-2">
+              "{state.product.title}"
+            </p>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 rounded-full text-sm font-semibold text-ink/80 hover:bg-paper"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className={`px-4 py-2 rounded-full text-sm font-semibold ${ctaCls}`}
+          >
+            {cta}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
