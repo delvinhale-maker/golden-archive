@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTrackView } from "@/hooks/use-recently-viewed";
+import { useTheme } from "@/lib/theme/ThemeProvider";
+import { CATEGORY_THEMES } from "@/lib/theme/theme-config";
+
 import {
   BadgeCheck,
   ChevronRight,
