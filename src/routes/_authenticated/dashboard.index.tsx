@@ -60,6 +60,7 @@ function BookshelfPage() {
     { kind: ConfirmKind; product: Product } | null
   >(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [historyProduct, setHistoryProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     if (!user) return;
