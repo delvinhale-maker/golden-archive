@@ -93,18 +93,21 @@ export function MarketHeader() {
             {canUpload ? (
               <Link
                 to="/dashboard/new"
-                className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-gold px-3 py-1.5 text-[12px] font-semibold text-navy hover:bg-gold/90 transition"
+                data-tab-cta="solid"
+                className="hidden md:inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold hover:opacity-90"
               >
                 <BookPlus size={14} /> Publish
               </Link>
             ) : (
               <Link
                 to="/sell"
-                className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-gold/40 px-3 py-1.5 text-[12px] font-medium text-gold hover:bg-gold hover:text-navy transition"
+                data-tab-cta="outline"
+                className="hidden md:inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium"
               >
                 <Store size={14} /> Sell on AurumVault
               </Link>
             )}
+
             {user ? (
               <>
                 <NotificationsBell />
@@ -128,11 +131,16 @@ export function MarketHeader() {
             <Link
               to="/wishlist"
               aria-label="Wishlist"
-              className="relative flex h-11 w-11 items-center justify-center rounded-full text-white hover:bg-white/10"
+              data-nav-tab
+              data-active={pathname.startsWith("/wishlist") ? "true" : "false"}
+              className="relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10"
             >
               <Heart size={20} />
               {wishlist.count > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold text-navy">
+                <span
+                  data-tab-badge
+                  className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold"
+                >
                   {wishlist.count}
                 </span>
               )}
@@ -144,6 +152,7 @@ export function MarketHeader() {
               onClick={openCartDrawer}
             />
           </div>
+
         </div>
 
         {/* Mobile search */}
@@ -174,16 +183,20 @@ export function MarketHeader() {
               <button
                 key={c}
                 onClick={() => goCategory(c)}
-                className="relative flex h-10 items-center px-3 text-[13px] text-white/85 hover:text-white"
+                data-nav-tab
+                data-active={active ? "true" : "false"}
+                className="relative flex h-10 items-center px-3 text-[13px]"
               >
                 {c}
                 {active && (
                   <motion.span
                     layoutId="cat-underline"
-                    className="absolute bottom-0 left-2 right-2 h-[2px] bg-gold"
+                    data-nav-underline
+                    className="absolute bottom-0 left-2 right-2 h-[2px]"
                   />
                 )}
               </button>
+
             );
           })}
         </div>
@@ -205,21 +218,23 @@ export function MarketHeader() {
               <button
                 key={c}
                 onClick={() => goCategory(c)}
-                className={`relative whitespace-nowrap px-3 text-[13px] ${
-                  active ? "text-white" : "text-white/70"
-                }`}
+                data-nav-tab
+                data-active={active ? "true" : "false"}
+                className="relative whitespace-nowrap px-3 text-[13px]"
               >
                 {c}
                 {active && (
                   <motion.span
                     layoutId="cat-underline-m"
-                    className="absolute -bottom-0.5 left-2 right-2 h-[2px] bg-gold"
+                    data-nav-underline
+                    className="absolute -bottom-0.5 left-2 right-2 h-[2px]"
                   />
                 )}
               </button>
             );
           })}
         </div>
+
       </div>
 
       {/* Mobile menu overlay */}
@@ -250,8 +265,9 @@ export function MarketHeader() {
                 >
                   <span>{c}</span>
                   {activeCat === c && (
-                    <span className="h-2 w-2 rounded-full bg-gold" />
+                    <span data-nav-dot className="h-2 w-2 rounded-full" />
                   )}
+
                 </button>
               ))}
             </nav>
@@ -260,7 +276,8 @@ export function MarketHeader() {
                 <Link
                   to="/dashboard/new"
                   onClick={() => setMenuOpen(false)}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3 text-center text-sm font-semibold text-navy"
+                  data-tab-cta="solid"
+                  className="flex w-full items-center justify-center gap-2 rounded-full py-3 text-center text-sm font-semibold"
                 >
                   <BookPlus size={16} /> Publish
                 </Link>
@@ -268,7 +285,8 @@ export function MarketHeader() {
                 <Link
                   to="/sell"
                   onClick={() => setMenuOpen(false)}
-                  className="block w-full rounded-full border border-gold/40 py-3 text-center text-sm font-semibold text-gold"
+                  data-tab-cta="outline"
+                  className="block w-full rounded-full border py-3 text-center text-sm font-semibold"
                 >
                   Sell on AurumVault
                 </Link>
@@ -283,10 +301,12 @@ export function MarketHeader() {
               <Link
                 to="/products"
                 onClick={() => setMenuOpen(false)}
-                className="block w-full rounded-full bg-gold py-3 text-center text-sm font-semibold text-navy"
+                data-tab-cta="solid"
+                className="block w-full rounded-full py-3 text-center text-sm font-semibold"
               >
                 Shop the Vault
               </Link>
+
             </div>
           </motion.div>
         )}
@@ -450,10 +470,14 @@ function HeaderIcon({
     >
       {icon}
       {badge && badge > 0 ? (
-        <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold text-navy">
+        <span
+          data-tab-badge
+          className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold"
+        >
           {badge}
         </span>
       ) : null}
+
     </button>
   );
 }

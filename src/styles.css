@@ -333,7 +333,47 @@
       --gradient-start 600ms ease,
       --gradient-end 600ms ease,
       background 600ms ease;
+
+  /* --- Tab / header styling wired to html[data-tab] --- */
+  [data-nav-tab] {
+    color: rgb(255 255 255 / 0.65);
+    transition: color 300ms ease, background-color 300ms ease, border-color 300ms ease;
   }
+  [data-nav-tab]:hover {
+    color: var(--accent-color);
+  }
+  [data-nav-tab][data-active="true"] {
+    color: var(--accent-color);
+  }
+  [data-nav-underline] {
+    background-color: var(--accent-color);
+    transition: background-color 400ms ease;
+  }
+  [data-nav-dot] {
+    background-color: var(--accent-color);
+    transition: background-color 400ms ease;
+  }
+  [data-tab-badge] {
+    background-color: var(--accent-color);
+    color: #0F1E35;
+    transition: background-color 400ms ease;
+  }
+  [data-tab-cta] {
+    background-color: var(--accent-color);
+    color: #0F1E35;
+    transition: background-color 400ms ease, color 400ms ease, border-color 400ms ease;
+  }
+  [data-tab-cta="outline"] {
+    background-color: transparent;
+    color: var(--accent-color);
+    border-color: color-mix(in srgb, var(--accent-color) 40%, transparent);
+  }
+  [data-tab-cta="outline"]:hover {
+    background-color: var(--accent-color);
+    color: #0F1E35;
+  }
+}
+
 
 
   .av-theme-accent { color: var(--accent-color); transition: color 400ms ease; }
