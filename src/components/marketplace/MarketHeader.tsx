@@ -114,7 +114,9 @@ export function MarketHeader() {
                 <Link
                   to="/dashboard"
                   aria-label="Dashboard"
-                  className="relative flex h-11 w-11 items-center justify-center rounded-full text-white hover:bg-white/10"
+                  data-nav-tab
+                  data-active={pathname.startsWith("/dashboard") ? "true" : "false"}
+                  className="relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10"
                 >
                   <LayoutDashboard size={20} />
                 </Link>
@@ -123,11 +125,14 @@ export function MarketHeader() {
               <Link
                 to="/auth"
                 aria-label="Sign in"
-                className="relative flex h-11 w-11 items-center justify-center rounded-full text-white hover:bg-white/10"
+                data-nav-tab
+                data-active={pathname.startsWith("/auth") ? "true" : "false"}
+                className="relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10"
               >
                 <User size={20} />
               </Link>
             )}
+
             <Link
               to="/wishlist"
               aria-label="Wishlist"
