@@ -1257,7 +1257,7 @@ function StepContent(p: {
       <div>
         <h3 className="font-display text-lg text-navy mb-2">Manuscript</h3>
         <p className="text-xs text-mute mb-3">Accepted: PDF, EPUB, DOCX. Max {MAX_FILE_MB} MB.</p>
-        {(fileDone && (p.uploadedFileMeta || p.file)) ? (
+        {(p.fileUploading || (fileDone && (p.uploadedFileMeta || p.file))) ? (
           <div className="space-y-2">
             <UploadSuccess
               iconLabel="manuscript"
@@ -1268,8 +1268,7 @@ function StepContent(p: {
               progress={p.fileProgress}
             />
 
-
-            {manuscriptPath && (
+            {manuscriptPath && !p.fileUploading && (
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
@@ -1292,14 +1291,6 @@ function StepContent(p: {
         {p.fileError && (
           <div className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
             <AlertCircle size={16} className="mt-0.5 shrink-0" /><span>{p.fileError}</span>
-          </div>
-        )}
-        {p.fileUploading && (
-          <div className="mt-3" aria-live="polite">
-            <div className="flex justify-between text-xs text-mute mb-1"><span>Uploading manuscript…</span><span>{p.fileProgress}%</span></div>
-            <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
-              <div className="h-full transition-all" style={{ width: `${p.fileProgress}%`, background: "var(--page-accent)" }} />
-            </div>
           </div>
         )}
         {p.fileUploadError && (
