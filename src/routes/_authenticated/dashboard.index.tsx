@@ -765,11 +765,8 @@ function ConfirmDialog({
             </button>
           </div>
         </div>
-
-            {config.cta}
-          </button>
-        </div>
       </div>
     </div>
   );
+
 }
