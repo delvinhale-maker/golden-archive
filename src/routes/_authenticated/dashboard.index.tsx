@@ -633,11 +633,12 @@ function ConfirmDialog({
   useEffect(() => {
     if (!state) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
+      if (e.key === "Escape" && !busy) onCancel();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [state, onCancel]);
+  }, [state, onCancel, busy]);
+
 
   if (!state) return null;
   const { kind, product } = state;
