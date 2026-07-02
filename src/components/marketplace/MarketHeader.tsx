@@ -470,10 +470,14 @@ function HeaderIcon({
     >
       {icon}
       {badge && badge > 0 ? (
-        <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold text-navy">
+        <span
+          data-tab-badge
+          className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold"
+        >
           {badge}
         </span>
       ) : null}
+
     </button>
   );
 }
