@@ -512,3 +512,93 @@ export const getHomeHighlights = createServerFn({ method: "GET" }).handler(
     }
   },
 );
+
+// ============================================================================
+// Homepage row server functions — cloned from getFeaturedProducts pattern.
+// Each row uses the same working shape as FeaturedProducts to guarantee data
+// reaches the client the same way.
+// ============================================================================
+
+// Clone 1: New Releases — newest approved+published, ordered desc, top 8.
+export const getNewReleasesRowFn = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Product[]> => {
+    // fetchDbProducts already orders by created_at desc
+    const items = await fetchDbProducts();
+    return items.slice(0, 8);
+  },
+);
+
+// Clone 2: Promoted Picks — featured=true, fallback to all products if empty.
+export const getPromotedPicksRowFn = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Product[]> => {
+    try {
+      const supa = serverSupabase();
+      const { data } = await supa
+        .from("marketplace_products")
+        .select(
+          "id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score",
+        )
+        .eq("status", "approved")
+        .eq("published", true)
+        .eq("featured", true)
+        .order("created_at", { ascending: false });
+      if (data && data.length > 0) {
+        const products = (data as DbProductRow[]).map((r) => dbRowToProduct(r));
+        const agg = await fetchReviewAggregates(supa, products.map((p) => p.id));
+        return applyAggregates(products, agg).slice(0, 8);
+      }
+    } catch {
+      // fall through to fallback
+    }
+    // Fallback: all approved products
+    const fallback = await fetchDbProducts();
+    return fallback.slice(0, 8);
+  },
+);
+
+// Clone 3: Recommended — same query, no filter, top 8.
+export const getRecommendedRowFn = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Product[]> => {
+    const items = await fetchDbProducts();
+    return items.slice(0, 8);
+  },
+);
+
+// Clone 4: Kingdom Picks — affiliate_products, active=true.
+export type AffiliatePick = {
+  id: string;
+  title: string;
+  price: number | null;
+  source: string | null;
+  affiliateUrl: string;
+  imageUrl: string | null;
+  badge: string | null;
+};
+
+export const getKingdomPicksRowFn = createServerFn({ method: "GET" }).handler(
+  async (): Promise<AffiliatePick[]> => {
+    try {
+      const supa = serverSupabase();
+      const { data, error } = await supa
+        .from("affiliate_products")
+        .select("id,title,price,source,affiliate_url,image_url,badge,featured,created_at")
+        .eq("active", true)
+        .order("featured", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(8);
+      if (error || !data) return [];
+      return data.map((r) => ({
+        id: r.id as string,
+        title: r.title as string,
+        price: r.price != null ? Number(r.price) : null,
+        source: (r.source as string | null) ?? null,
+        affiliateUrl: r.affiliate_url as string,
+        imageUrl: (r.image_url as string | null) ?? null,
+        badge: (r.badge as string | null) ?? null,
+      }));
+    } catch {
+      return [];
+    }
+  },
+);
+
