@@ -354,6 +354,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
       setPrice(((data.price_cents ?? 0) / 100).toString());
       setExistingCoverUrl(data.cover_url ?? null);
       setExistingFilePath(data.file_path ?? null);
+      setDbUpdatedAt((data.updated_at as string | null) ?? null);
       // Hydrate "uploaded" state so the confirmation bars persist on refresh
       if (data.cover_url) setUploadedCoverUrl(data.cover_url as string);
       if (data.file_path) {
