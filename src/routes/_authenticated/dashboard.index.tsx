@@ -327,9 +327,20 @@ function BookshelfPage() {
             onUnpublish={(id) => requestConfirm("unpublish", id)}
             onRepublish={(id) => requestConfirm("republish", id)}
             onDelete={(id) => requestConfirm("delete1", id)}
+            onHistory={(id) => {
+              const p = products.find((x) => x.id === id);
+              if (p) setHistoryProduct(p);
+            }}
           />
         )}
       </section>
+
+      {historyProduct && (
+        <HistoryDialog
+          product={historyProduct}
+          onClose={() => setHistoryProduct(null)}
+        />
+      )}
 
       <ConfirmDialog
         state={confirmState}
