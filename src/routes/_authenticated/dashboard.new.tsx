@@ -2182,6 +2182,14 @@ function PrePublishPreview(props: {
           </div>
         </div>
       </div>
+      {previewerOpen && props.manuscriptPath && (
+        <ManuscriptPreviewer
+          manuscriptPath={props.manuscriptPath}
+          title={props.title}
+          coverUrl={props.coverFullUrl ?? props.cover}
+          onClose={() => setPreviewerOpen(false)}
+        />
+      )}
     </div>
   );
 }
