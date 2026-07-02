@@ -986,6 +986,9 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
               onPublish={() => uploadAndSave(true)}
               onZoomCover={() => setCoverLightbox(true)}
               onOpenPreview={() => setShowPreview(true)}
+              isEditing={isEditing}
+              lastUpdatedAt={dbUpdatedAt}
+              onCancel={() => navigate({ to: "/dashboard" })}
             />
           )}
 
