@@ -944,6 +944,7 @@ function PublishFlow() {
               uploadedCoverUrl={uploadedCoverUrl}
               uploadedFilePath={uploadedFilePath}
               uploadedFileMeta={uploadedFileMeta}
+              title={title}
             />
 
           )}
