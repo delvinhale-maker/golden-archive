@@ -187,10 +187,11 @@ function SchemeScrollSync() {
         if (r.bottom < 0 || r.top > vh) return;
         const mid = (r.top + r.bottom) / 2;
         const dist = Math.abs(mid - center);
-        if (!best || dist < best.dist) best = { el, dist };
+        if (!best || dist < (best as { dist: number }).dist) best = { el, dist };
       });
       if (!best) return;
-      const key = best.el.dataset.scheme ?? "";
+      const bestEl = (best as { el: HTMLElement }).el;
+      const key = bestEl.dataset.scheme ?? "";
       if (!key || key === lastKey) return;
       const s = SCHEMES[key as keyof typeof SCHEMES];
       if (!s) return;
