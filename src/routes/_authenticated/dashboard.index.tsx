@@ -611,7 +611,14 @@ function MenuItem({
   );
 }
 
+function busyLabel(kind: ConfirmKind) {
+  if (kind === "unpublish") return "Unpublishing…";
+  if (kind === "republish") return "Republishing…";
+  return "Deleting…";
+}
+
 function ConfirmDialog({
+
   state,
   busy = false,
   onCancel,
