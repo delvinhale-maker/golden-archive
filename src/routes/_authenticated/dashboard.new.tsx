@@ -1500,7 +1500,7 @@ function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium
 
 /* ---------- Step 4: Review ---------- */
 
-function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, autosaving, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover, onOpenPreview }: {
+function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, autosaving, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover, onOpenPreview, isEditing, lastUpdatedAt, onCancel }: {
   accent: PublisherAccent;
   cover: string | null; title: string; subtitle: string; author: string;
   price: number; royalty: number; format: string; territory: string;
@@ -1512,6 +1512,9 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
   onGoToStep: (s: StepNum) => void;
   onDraft: () => void; onPublish: () => void; onZoomCover: () => void;
   onOpenPreview: () => void;
+  isEditing?: boolean;
+  lastUpdatedAt?: string | null;
+  onCancel?: () => void;
 }) {
   return (
     <div className="space-y-6">
