@@ -265,8 +265,9 @@ export function MarketHeader() {
                 >
                   <span>{c}</span>
                   {activeCat === c && (
-                    <span className="h-2 w-2 rounded-full bg-gold" />
+                    <span data-nav-dot className="h-2 w-2 rounded-full" />
                   )}
+
                 </button>
               ))}
             </nav>
