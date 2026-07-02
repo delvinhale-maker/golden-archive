@@ -1345,7 +1345,7 @@ function StepContent(p: {
           <div className="mt-2 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <CheckCircle2 size={16} className="shrink-0" />
             <span className="truncate flex-1">✅ {p.cover.name} — {(p.cover.size / 1024 / 1024).toFixed(2)} MB uploaded successfully. Tap to replace.</span>
-            <button type="button" onClick={() => p.handleCoverChange(null)} className="text-xs font-semibold text-emerald-800 underline">Replace</button>
+            <button type="button" onClick={() => p.handleCoverChange(null)} disabled={p.coverUploading} aria-disabled={p.coverUploading} title={p.coverUploading ? "Upload in progress" : undefined} className="text-xs font-semibold text-emerald-800 underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed">Replace</button>
           </div>
         )}
         {!p.cover && p.uploadedCoverUrl && (
