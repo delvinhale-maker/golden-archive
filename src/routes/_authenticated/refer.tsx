@@ -347,7 +347,13 @@ function StatCard({
   return (
     <div className="rounded-2xl border border-[#0F1E35]/10 bg-[#F5F0E8]/60 p-4">
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#0F1E35]/60">
-        <span className="grid h-6 w-6 place-items-center rounded-full bg-[#0F1E35] text-[#F5C76E]">{icon}</span>
+        <span
+          className="grid h-6 w-6 place-items-center rounded-full bg-[#0F1E35]"
+          style={{ color: "var(--accent-color)" }}
+        >
+          {icon}
+        </span>
+
         {label}
       </div>
       <div className={`mt-2 text-2xl font-black text-[#0F1E35] ${mono ? "font-mono tracking-widest" : ""}`}>
