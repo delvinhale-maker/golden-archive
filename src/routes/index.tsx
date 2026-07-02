@@ -32,6 +32,7 @@ import { BestsellersRow } from "@/components/marketplace/BestsellersRow";
 import { KingdomPicksRow } from "@/components/marketplace/KingdomPicksRow";
 import { KingdomBibleAppBanner } from "@/components/marketplace/KingdomBibleAppBanner";
 import { ContinueBrowsingRow, HomeContentRows, homeRowsQ } from "@/components/marketplace/HomeRows";
+import { HomeRowsDiagnostics } from "@/components/marketplace/HomeRowsDiagnostics";
 import { EmailCaptureBanner } from "@/components/EmailCaptureBanner";
 import {
   getFeaturedProducts,
