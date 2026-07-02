@@ -131,7 +131,10 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.45 }}
           >
-            <div className="text-[11px] font-semibold tracking-caps text-gold">
+            <div
+              className="text-[11px] font-semibold tracking-caps"
+              style={{ color: "var(--accent-color)" }}
+            >
               {slide.kicker}
             </div>
             <h1 className="mt-6 font-display text-4xl leading-[1.05] text-white sm:text-5xl md:text-6xl lg:text-[64px]">
@@ -145,7 +148,12 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
                 <motion.span
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
-                  className="inline-flex h-12 items-center rounded-full bg-gold px-7 text-sm font-bold text-navy shadow-gold-glow"
+                  className="inline-flex h-12 items-center rounded-full px-7 text-sm font-bold text-navy"
+                  style={{
+                    backgroundColor: "var(--accent-color)",
+                    boxShadow:
+                      "0 10px 30px -8px color-mix(in srgb, var(--accent-color) 55%, transparent)",
+                  }}
                 >
                   {slide.ctaLabel}
                 </motion.span>
@@ -161,6 +169,7 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
                 </motion.a>
               )}
             </div>
+
           </motion.div>
         </AnimatePresence>
 
@@ -190,20 +199,27 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
                 )}
               </div>
               <div className="p-5">
-                <div className="text-[10px] font-semibold tracking-caps text-gold">
+                <div
+                  className="text-[10px] font-semibold tracking-caps"
+                  style={{ color: "var(--accent-color)" }}
+                >
                   {slide.card.cat.toUpperCase()}
                 </div>
                 <div className="mt-1 font-display text-lg font-bold text-ink">
                   {slide.card.title}
                 </div>
                 <div className="mt-3 flex items-center justify-between">
-                  <span className="font-display text-xl font-bold text-gold">
+                  <span
+                    className="font-display text-xl font-bold"
+                    style={{ color: "var(--accent-color)" }}
+                  >
                     ${slide.card.price}
                   </span>
                   <div className="flex items-center gap-1 text-[12px] text-mute">
-                    <Star size={12} fill="var(--gold)" stroke="var(--gold)" /> 4.9
+                    <Star size={12} fill="var(--accent-color)" stroke="var(--accent-color)" /> 4.9
                   </div>
                 </div>
+
               </div>
             </motion.div>
           </AnimatePresence>
