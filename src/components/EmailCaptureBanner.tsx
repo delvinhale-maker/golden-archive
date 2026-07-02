@@ -50,7 +50,13 @@ export function EmailCaptureBanner() {
           Join the Vault for early drops, free guides, and Kingdom-curated picks.
         </p>
         {done ? (
-          <p className="mt-6 inline-block rounded-full bg-[#d4af37]/15 px-5 py-3 text-[#f4d56b]">
+          <p
+            className="mt-6 inline-block rounded-full px-5 py-3"
+            style={{
+              backgroundColor: "color-mix(in srgb, var(--accent-color) 15%, transparent)",
+              color: "var(--accent-color)",
+            }}
+          >
             Almost there — check your inbox and click the confirm link to activate your subscription.
           </p>
         ) : (
@@ -68,17 +74,22 @@ export function EmailCaptureBanner() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="flex-1 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-white placeholder-white/50 outline-none focus:border-[#d4af37]"
+              className="flex-1 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-white placeholder-white/50 outline-none"
+              style={{ ["--tw-ring-color" as never]: "var(--accent-color)" }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent-color)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "")}
             />
             <button
               type="submit"
               disabled={busy}
-              className="rounded-full bg-gradient-to-b from-[#f4d56b] to-[#d4af37] px-6 py-3 font-semibold text-[#0a1f44] shadow-lg transition hover:brightness-105 disabled:opacity-60"
+              className="rounded-full px-6 py-3 font-semibold text-[#0a1f44] shadow-lg transition hover:brightness-105 disabled:opacity-60"
+              style={{ backgroundColor: "var(--accent-color)" }}
             >
               {busy ? "Joining…" : "Join the Vault"}
             </button>
           </form>
         )}
+
       </div>
     </section>
   );
