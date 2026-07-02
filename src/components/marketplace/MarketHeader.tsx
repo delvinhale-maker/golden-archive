@@ -64,7 +64,8 @@ export function MarketHeader() {
         className="scheme-surface-bg relative"
         style={{
           backgroundImage:
-            "linear-gradient(180deg, rgba(10,15,28,0.92), rgba(10,15,28,0.82)), linear-gradient(180deg, var(--scheme-bg), var(--scheme-bg))",
+            "linear-gradient(180deg, rgba(10,15,28,0.72), rgba(10,15,28,0.72))",
+          backgroundColor: "var(--scheme-bg)",
         }}
       >
         <div className="mx-auto flex h-[60px] max-w-7xl items-center gap-3 px-4 md:h-[72px] md:gap-6 md:px-8">
