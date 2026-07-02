@@ -101,11 +101,10 @@ async function attachRatings(
 export const getHomeRows = createServerFn({ method: "GET" }).handler(
   async (): Promise<HomeRows> => {
     try {
-      // Use service-role admin client to bypass any table-level GRANT/RLS quirks
-      // (the `featured` column has caused permission-denied errors with the anon
-      // key even though public read policies exist).
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const supa = supabaseAdmin;
+      // Use the SAME publishable-key server client that Featured Products uses.
+      // The admin client can fail at runtime when the injected key is not a
+      // JWT, leaving these rows empty while Featured still renders.
+      const supa = serverSupabase();
       const { data, error } = await supa
         .from("marketplace_products")
         .select(
@@ -127,19 +126,18 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         counts: { newReleases: 0, sponsored: 0, recommended: 0 },
         generatedAt: new Date().toISOString(),
       });
-      // Fallback when no products at all: empty arrays (nothing to show).
       if (rows.length === 0) {
         return { newReleases: [], recommended: [], sponsored: [], diagnostics: emptyDiag() };
       }
 
-      // Full catalog fallback (up to 5) used when a row is empty or too thin.
-      const allProducts = rows.slice(0, 5).map((r) => toProduct(r));
+      // Full catalog fallback (up to 8) used when a row is empty or too thin.
+      const allProducts = rows.slice(0, 8).map((r) => toProduct(r));
 
-      // New Releases: newest 5 (always "specific" when rows exist).
-      const newReleases = rows.slice(0, 5).map((r) => toProduct(r));
+      // New Releases: newest 8 (always "specific" when rows exist).
+      const newReleases = rows.slice(0, 8).map((r) => toProduct(r));
       const newReleasesSource: RowSource = newReleases.length > 0 ? "specific" : "empty";
 
-      // Sponsored: products flagged featured; fall back to full catalog.
+      // Sponsored: featured=true; fallback to full catalog.
       const sponsoredSpecific = rows
         .filter((r) => r.featured === true)
         .map((r) => toProduct(r, true));
@@ -147,7 +145,7 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       const sponsoredSource: RowSource =
         sponsoredSpecific.length > 0 ? "specific" : sponsored.length > 0 ? "fallback" : "empty";
 
-      // Recommended: rank by paid-sales count, then by created_at; fallback to all.
+      // Recommended: rank by paid-sales count; fallback to all.
       const ids = rows.map((r) => r.id);
       const { data: itemRows } = await supa
         .from("order_items")
@@ -162,7 +160,7 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       const recommended = hasPurchaseHistory
         ? [...rows]
             .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
-            .slice(0, 5)
+            .slice(0, 8)
             .map((r) => toProduct(r))
         : allProducts;
       const recommendedSource: RowSource = hasPurchaseHistory
@@ -209,8 +207,6 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         },
       };
     }
-
-
   },
 );
 
@@ -221,8 +217,7 @@ export const getProductsByIds = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<Product[]> => {
     if (data.ids.length === 0) return [];
     try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const supa = supabaseAdmin;
+      const supa = serverSupabase();
       const { data: rows } = await supa
         .from("marketplace_products")
         .select("id,title,category,price_cents,compare_at_price_cents,cover_url,seller_id,created_at")
@@ -231,10 +226,10 @@ export const getProductsByIds = createServerFn({ method: "GET" })
         .eq("published", true);
 
       const byId = new Map(((rows ?? []) as Row[]).map((r) => [r.id, toProduct(r)]));
-      // Preserve requested order
       const ordered = data.ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
       return await attachRatings(supa, ordered);
     } catch {
       return [];
     }
   });
+
