@@ -37,10 +37,6 @@ function applyThemeToRoot(theme: ThemeTokens) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  if (typeof window !== "undefined") {
-    (window as unknown as { __tpRenders?: number }).__tpRenders =
-      ((window as unknown as { __tpRenders?: number }).__tpRenders ?? 0) + 1;
-  }
   const location = useRouterState({ select: (s) => s.location });
   const routeTheme = useMemo(
     () => resolveThemeForPath(location.pathname, location.search as Record<string, unknown>),
@@ -48,28 +44,31 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
   const [activeTheme, setActiveTheme] = useState<ThemeTokens>(routeTheme);
 
-
-
-
   // Auto-update theme on route or query change
   useEffect(() => {
     setActiveTheme(routeTheme);
   }, [routeTheme]);
 
-  // Apply CSS custom properties whenever the theme changes
+  // Apply CSS custom properties whenever the theme changes (imperative fallback)
   useEffect(() => {
     applyThemeToRoot(activeTheme);
   }, [activeTheme]);
-
-
 
   const value = useMemo(
     () => ({ activeTheme, setActiveTheme }),
     [activeTheme],
   );
 
+  // Declarative CSS variables via a <style> tag guarantees the vars apply
+  // even if the imperative documentElement.style write is clobbered by
+  // hydration or router transitions.
+  const css = `:root{--accent-color:${activeTheme.accentColor};--gradient-start:${activeTheme.gradientStart};--gradient-end:${activeTheme.gradientEnd};--page-gradient:linear-gradient(180deg,${activeTheme.gradientStart} 0%,${activeTheme.gradientEnd} 100%);}`;
+
   return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>
+      <style data-theme-vars={activeTheme.tabName}>{css}</style>
+      {children}
+    </ThemeContext.Provider>
   );
 }
 
