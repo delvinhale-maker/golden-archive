@@ -15,6 +15,8 @@ import {
   XCircle,
   Search,
   MoreVertical,
+  AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -49,6 +51,10 @@ function BookshelfPage() {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("date");
+  const [confirmState, setConfirmState] = useState<
+    { kind: "unpublish" | "delete"; product: Product } | null
+  >(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -120,13 +126,15 @@ function BookshelfPage() {
   }, [products]);
 
   async function unpublish(id: string) {
+    setBusyId(id);
     const { error } = await supabase
       .from("marketplace_products")
       .update({ published: false })
       .eq("id", id);
+    setBusyId(null);
     if (error) return toast.error(error.message);
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, published: false } : p)));
-    toast.success("Title unpublished.");
+    toast.success("Title unpublished. It's no longer visible in the store.");
   }
 
   async function republish(id: string) {
@@ -134,21 +142,38 @@ function BookshelfPage() {
     if (target && target.status !== "approved") {
       return toast.error("Only approved titles can be republished.");
     }
+    setBusyId(id);
     const { error } = await supabase
       .from("marketplace_products")
       .update({ published: true })
       .eq("id", id);
+    setBusyId(null);
     if (error) return toast.error(error.message);
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, published: true } : p)));
     toast.success("Title is live again.");
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this title? This cannot be undone.")) return;
+    setBusyId(id);
     const { error } = await supabase.from("marketplace_products").delete().eq("id", id);
+    setBusyId(null);
     if (error) return toast.error(error.message);
     setProducts((prev) => prev.filter((p) => p.id !== id));
     toast.success("Title deleted.");
+  }
+
+  function requestConfirm(kind: "unpublish" | "delete", id: string) {
+    const product = products.find((p) => p.id === id);
+    if (!product) return;
+    setConfirmState({ kind, product });
+  }
+
+  async function handleConfirm() {
+    if (!confirmState) return;
+    const { kind, product } = confirmState;
+    setConfirmState(null);
+    if (kind === "unpublish") await unpublish(product.id);
+    else await remove(product.id);
   }
 
   return (
