@@ -613,15 +613,18 @@ function MenuItem({
 
 function ConfirmDialog({
   state,
+  busy = false,
   onCancel,
   onConfirm,
   onStepBack,
 }: {
   state: { kind: ConfirmKind; product: Product } | null;
+  busy?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
   onStepBack: () => void;
 }) {
+
   const [typed, setTyped] = useState("");
   useEffect(() => {
     setTyped("");
