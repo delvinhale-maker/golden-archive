@@ -159,7 +159,70 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const pageAreaW = dev.w - dev.pad * 2;
   const pageAreaH = dev.h - dev.pad * 2;
 
-  // Render current PDF page (locations >= 2)
+  // Rendered-page cache: key = `${pageNum}|${fontSize}|${device}` -> offscreen canvas.
+  // Cache survives navigation, so revisiting a page is instant. A miss (new page,
+  // new zoom, or new device frame) is the only path that re-runs pdf.render.
+  const cacheRef = useRef<Map<string, HTMLCanvasElement>>(new Map());
+
+  // Invalidate the cache when the source doc changes.
+  useEffect(() => {
+    cacheRef.current.clear();
+  }, [pdf]);
+
+  const renderToOffscreen = useCallback(
+    async (
+      pageNum: number,
+      zoomStep: number,
+      deviceKey: DeviceKind,
+    ): Promise<HTMLCanvasElement | null> => {
+      if (!pdf) return null;
+      const key = `${pageNum}|${zoomStep}|${deviceKey}`;
+      const cached = cacheRef.current.get(key);
+      if (cached) return cached;
+
+      const page = await pdf.getPage(pageNum);
+      const base = page.getViewport({ scale: 1 });
+      const areaW = DEVICES[deviceKey].w - DEVICES[deviceKey].pad * 2;
+      const areaH = DEVICES[deviceKey].h - DEVICES[deviceKey].pad * 2;
+      const fitScale = Math.min(areaW / base.width, areaH / base.height);
+      const zoom = FONT_SCALES[zoomStep] ?? 1;
+      const viewport = page.getViewport({ scale: fitScale * zoom });
+      const dpr = window.devicePixelRatio || 1;
+
+      const off = document.createElement("canvas");
+      off.width = Math.floor(viewport.width * dpr);
+      off.height = Math.floor(viewport.height * dpr);
+      const cssW = Math.floor(viewport.width);
+      const cssH = Math.floor(viewport.height);
+      off.dataset.cssW = String(cssW);
+      off.dataset.cssH = String(cssH);
+      const ctx = off.getContext("2d");
+      if (!ctx) return null;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      cacheRef.current.set(key, off);
+      return off;
+    },
+    [pdf],
+  );
+
+  const blit = useCallback((source: HTMLCanvasElement) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const cssW = Number(source.dataset.cssW || source.width);
+    const cssH = Number(source.dataset.cssH || source.height);
+    canvas.width = source.width;
+    canvas.height = source.height;
+    canvas.style.width = `${cssW}px`;
+    canvas.style.height = `${cssH}px`;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(source, 0, 0);
+  }, []);
+
+  // Render current PDF page (locations >= 2). Cache-first, then prefetch neighbors.
   useEffect(() => {
     if (!pdf || location === 1) return;
     let cancelled = false;
@@ -168,27 +231,30 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         if (renderTaskRef.current) {
           try { renderTaskRef.current.cancel(); } catch { /* noop */ }
         }
-        const pageNum = location - 1; // location 2 => PDF page 1
+        const pageNum = location - 1;
         if (pageNum < 1 || pageNum > pdf.numPages) return;
-        const page = await pdf.getPage(pageNum);
-        if (cancelled) return;
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const base = page.getViewport({ scale: 1 });
-        const fitScale = Math.min(pageAreaW / base.width, pageAreaH / base.height);
-        const zoom = FONT_SCALES[fontSize] ?? 1;
-        const viewport = page.getViewport({ scale: fitScale * zoom });
-        const dpr = window.devicePixelRatio || 1;
-        canvas.width = Math.floor(viewport.width * dpr);
-        canvas.height = Math.floor(viewport.height * dpr);
-        canvas.style.width = `${Math.floor(viewport.width)}px`;
-        canvas.style.height = `${Math.floor(viewport.height)}px`;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const task = page.render({ canvasContext: ctx, viewport });
-        renderTaskRef.current = task;
-        await task.promise;
+
+        const key = `${pageNum}|${fontSize}|${device}`;
+        const cached = cacheRef.current.get(key);
+        if (cached) {
+          blit(cached);
+        } else {
+          const off = await renderToOffscreen(pageNum, fontSize, device);
+          if (cancelled || !off) return;
+          blit(off);
+        }
+
+        // Prefetch neighbors so the next arrow tap is also instant.
+        const neighbors = [pageNum + 1, pageNum - 1].filter(
+          (n) => n >= 1 && n <= pdf.numPages,
+        );
+        for (const n of neighbors) {
+          if (cancelled) break;
+          const k = `${n}|${fontSize}|${device}`;
+          if (!cacheRef.current.has(k)) {
+            renderToOffscreen(n, fontSize, device).catch(() => { /* ignore */ });
+          }
+        }
       } catch (err: any) {
         if (err?.name !== "RenderingCancelledException") {
           console.error("[ManuscriptPreviewer] render", err);
@@ -196,7 +262,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       }
     })();
     return () => { cancelled = true; };
-  }, [pdf, location, fontSize, pageAreaW, pageAreaH]);
+  }, [pdf, location, fontSize, device, blit, renderToOffscreen]);
 
   const goTo = useCallback(
     (next: number) => {
