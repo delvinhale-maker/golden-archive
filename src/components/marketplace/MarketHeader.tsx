@@ -183,16 +183,20 @@ export function MarketHeader() {
               <button
                 key={c}
                 onClick={() => goCategory(c)}
-                className="relative flex h-10 items-center px-3 text-[13px] text-white/85 hover:text-white"
+                data-nav-tab
+                data-active={active ? "true" : "false"}
+                className="relative flex h-10 items-center px-3 text-[13px]"
               >
                 {c}
                 {active && (
                   <motion.span
                     layoutId="cat-underline"
-                    className="absolute bottom-0 left-2 right-2 h-[2px] bg-gold"
+                    data-nav-underline
+                    className="absolute bottom-0 left-2 right-2 h-[2px]"
                   />
                 )}
               </button>
+
             );
           })}
         </div>
