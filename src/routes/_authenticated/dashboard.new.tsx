@@ -2018,23 +2018,12 @@ function PrePublishPreview(props: {
               <div className="mt-1 break-all">{props.fileName ?? "No file uploaded"} · {sizeLabel}</div>
               <button
                 type="button"
-                disabled={!props.manuscriptPath || openingManuscript || props.submitting}
-                onClick={async () => {
-                  if (!props.manuscriptPath || openingManuscript) return;
-                  setOpeningManuscript(true);
-                  try {
-                    const { data, error } = await supabase.storage.from("product-files").createSignedUrl(props.manuscriptPath, 300);
-                    if (error || !data?.signedUrl) { toast.error("Could not open preview."); return; }
-                    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
-                  } finally {
-                    setOpeningManuscript(false);
-                  }
-                }}
+                disabled={!props.manuscriptPath || props.submitting}
+                onClick={() => { if (props.manuscriptPath) setPreviewerOpen(true); }}
                 className="mt-3 w-full h-10 rounded-full text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: props.accent.color }}
-                aria-busy={openingManuscript}
               >
-                {openingManuscript ? <><Loader2 size={14} className="animate-spin" /> Preparing preview…</> : <><Eye size={14} /> Preview Manuscript</>}
+                <Eye size={14} /> Preview Manuscript
               </button>
             </div>
           </div>
