@@ -405,6 +405,7 @@ function BookshelfTable({
   onUnpublish,
   onRepublish,
   onDelete,
+  onHistory,
 }: {
   products: Product[];
   stats: Record<string, Stat>;
@@ -412,6 +413,7 @@ function BookshelfTable({
   onUnpublish: (id: string) => void;
   onRepublish: (id: string) => void;
   onDelete: (id: string) => void;
+  onHistory: (id: string) => void;
 }) {
   return (
     <div className="overflow-hidden rounded-2xl bg-white border border-ink/10">
