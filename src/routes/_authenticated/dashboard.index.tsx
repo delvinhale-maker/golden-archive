@@ -1,9 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
-import { BookOpen, Plus, ExternalLink, Pencil, EyeOff, Hourglass, XCircle } from "lucide-react";
+import {
+  BookOpen,
+  Plus,
+  ExternalLink,
+  Pencil,
+  EyeOff,
+  Eye,
+  Trash2,
+  Hourglass,
+  XCircle,
+  Search,
+  MoreVertical,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
@@ -23,26 +35,89 @@ type Product = {
   rejected_reason: string | null;
 };
 
+type Stat = { units: number; earnings_cents: number };
+type FilterKey = "all" | "live" | "drafts" | "unpublished";
+type SortKey = "date" | "title" | "status" | "price";
+
 function BookshelfPage() {
   const { user, isSeller, isAdmin } = useAuth();
   const [app, setApp] = useState<Application | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [stats, setStats] = useState<Record<string, Stat>>({});
   const [loading, setLoading] = useState(true);
+
+  const [filter, setFilter] = useState<FilterKey>("all");
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<SortKey>("date");
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: a }, { data: p }] = await Promise.all([
-        supabase.from("seller_applications").select("id,status").eq("user_id", user.id).maybeSingle(),
-        supabase.from("marketplace_products").select("id,title,status,published,cover_url,created_at,price_cents,category,rejected_reason").eq("seller_id", user.id).order("created_at", { ascending: false }),
+      const [{ data: a }, { data: p }, { data: items }] = await Promise.all([
+        supabase
+          .from("seller_applications")
+          .select("id,status")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("marketplace_products")
+          .select(
+            "id,title,status,published,cover_url,created_at,price_cents,category,rejected_reason",
+          )
+          .eq("seller_id", user.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("order_items")
+          .select("product_id,seller_amount_cents,orders!inner(status)")
+          .eq("seller_id", user.id)
+          .eq("orders.status", "paid"),
       ]);
       setApp(a as Application | null);
       setProducts((p ?? []) as Product[]);
+      const map: Record<string, Stat> = {};
+      for (const it of (items ?? []) as {
+        product_id: string;
+        seller_amount_cents: number;
+      }[]) {
+        const cur = map[it.product_id] ?? { units: 0, earnings_cents: 0 };
+        cur.units += 1;
+        cur.earnings_cents += it.seller_amount_cents ?? 0;
+        map[it.product_id] = cur;
+      }
+      setStats(map);
       setLoading(false);
     })();
   }, [user]);
 
   const canPublish = isAdmin || isSeller || app?.status === "approved";
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    let list = products.filter((p) => {
+      if (q && !p.title.toLowerCase().includes(q)) return false;
+      if (filter === "live") return p.published && p.status === "approved";
+      if (filter === "drafts") return p.status === "pending" || (!p.published && p.status !== "rejected");
+      if (filter === "unpublished") return !p.published && p.status === "approved";
+      return true;
+    });
+    list = [...list].sort((a, b) => {
+      if (sort === "title") return a.title.localeCompare(b.title);
+      if (sort === "price") return b.price_cents - a.price_cents;
+      if (sort === "status") return statusRank(a) - statusRank(b);
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+    return list;
+  }, [products, query, filter, sort]);
+
+  const counts = useMemo(() => {
+    const c = { all: products.length, live: 0, drafts: 0, unpublished: 0 };
+    for (const p of products) {
+      if (p.published && p.status === "approved") c.live++;
+      else if (p.status === "pending" || (!p.published && p.status !== "rejected")) c.drafts++;
+      if (!p.published && p.status === "approved") c.unpublished++;
+    }
+    return c;
+  }, [products]);
 
   async function unpublish(id: string) {
     const { error } = await supabase
@@ -54,18 +129,39 @@ function BookshelfPage() {
     toast.success("Title unpublished.");
   }
 
+  async function republish(id: string) {
+    const target = products.find((p) => p.id === id);
+    if (target && target.status !== "approved") {
+      return toast.error("Only approved titles can be republished.");
+    }
+    const { error } = await supabase
+      .from("marketplace_products")
+      .update({ published: true })
+      .eq("id", id);
+    if (error) return toast.error(error.message);
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, published: true } : p)));
+    toast.success("Title is live again.");
+  }
+
+  async function remove(id: string) {
+    if (!confirm("Delete this title? This cannot be undone.")) return;
+    const { error } = await supabase.from("marketplace_products").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+    toast.success("Title deleted.");
+  }
+
   return (
     <PublisherShell accent={ACCENTS.bookshelf}>
       <div className="flex items-end justify-between flex-wrap gap-4">
         <div>
           <h1 className="font-display text-3xl md:text-4xl text-navy">Your Bookshelf</h1>
-          <p className="mt-1 text-mute">Manage every title you've published or saved as a draft.</p>
+          <p className="mt-1 text-mute">Manage your published and draft titles.</p>
         </div>
         {canPublish && (
           <Link
             to="/dashboard/new"
-            className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 text-white shadow-md transition-all duration-300 hover:shadow-lg"
-            style={{ background: "var(--page-accent)" }}
+            className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 bg-gold text-navy shadow-md transition-all duration-300 hover:shadow-lg hover:bg-gold/90"
           >
             <Plus size={16} /> Create New Title
           </Link>
@@ -75,8 +171,13 @@ function BookshelfPage() {
       {!loading && !app && !isAdmin && (
         <div className="mt-8 rounded-2xl bg-white border border-ink/10 p-7">
           <h2 className="font-display text-xl text-navy">Become an AurumVault Creator</h2>
-          <p className="mt-1 text-sm text-mute">Apply once — get reviewed within 48 hours. We keep 9%, you keep 91%.</p>
-          <Link to="/sell" className="mt-4 inline-flex rounded-full bg-gold text-navy font-semibold px-5 py-2.5 hover:bg-gold/90">
+          <p className="mt-1 text-sm text-mute">
+            Apply once — get reviewed within 48 hours. We keep 9%, you keep 91%.
+          </p>
+          <Link
+            to="/sell"
+            className="mt-4 inline-flex rounded-full bg-gold text-navy font-semibold px-5 py-2.5 hover:bg-gold/90"
+          >
             Apply to sell
           </Link>
         </div>
@@ -86,41 +187,114 @@ function BookshelfPage() {
           <Hourglass className="text-amber-600 shrink-0" />
           <div>
             <p className="font-medium text-amber-900">Application under review</p>
-            <p className="text-sm text-amber-800 mt-1">Typically within 48 hours — you'll get an email when approved.</p>
+            <p className="text-sm text-amber-800 mt-1">
+              Typically within 48 hours — you'll get an email when approved.
+            </p>
           </div>
         </div>
       )}
       {!loading && app?.status === "rejected" && (
         <div className="mt-8 rounded-2xl bg-red-50 border border-red-200 p-5 flex items-start gap-3">
           <XCircle className="text-red-600 shrink-0" />
-          <p className="text-sm text-red-900">Application not approved. Email support@aurumvault.store to reapply.</p>
+          <p className="text-sm text-red-900">
+            Application not approved. Email support@aurumvault.store to reapply.
+          </p>
         </div>
       )}
 
-      <section className="mt-8">
+      {/* Controls */}
+      {!loading && products.length > 0 && (
+        <div className="mt-8 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-wrap gap-1 rounded-full bg-white border border-ink/10 p-1 w-fit">
+            {(
+              [
+                ["all", "All Titles", counts.all],
+                ["live", "Live", counts.live],
+                ["drafts", "Drafts", counts.drafts],
+                ["unpublished", "Unpublished", counts.unpublished],
+              ] as const
+            ).map(([key, label, n]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFilter(key)}
+                className={`px-3.5 py-1.5 text-xs font-semibold rounded-full transition-colors ${
+                  filter === key
+                    ? "bg-navy text-white"
+                    : "text-ink/70 hover:text-navy hover:bg-paper"
+                }`}
+              >
+                {label} <span className="opacity-70">({n})</span>
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-mute" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search titles…"
+                className="pl-9 pr-3 py-2 text-sm rounded-full bg-white border border-ink/10 focus:outline-none focus:ring-2 focus:ring-gold/60 w-56"
+              />
+            </div>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              className="px-3 py-2 text-sm rounded-full bg-white border border-ink/10 focus:outline-none focus:ring-2 focus:ring-gold/60"
+            >
+              <option value="date">Sort: Date Created</option>
+              <option value="title">Sort: Title A–Z</option>
+              <option value="status">Sort: Status</option>
+              <option value="price">Sort: Price</option>
+            </select>
+          </div>
+        </div>
+      )}
+
+      <section className="mt-6">
         {loading ? (
           <div className="text-mute">Loading your bookshelf…</div>
         ) : products.length === 0 ? (
           <EmptyState canPublish={canPublish} />
+        ) : visible.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-ink/15 bg-white p-10 text-center text-mute">
+            No titles match your filters.
+          </div>
         ) : (
-          <BookshelfTable products={products} onUnpublish={unpublish} />
+          <BookshelfTable
+            products={visible}
+            stats={stats}
+            onUnpublish={unpublish}
+            onRepublish={republish}
+            onDelete={remove}
+          />
         )}
       </section>
     </PublisherShell>
   );
 }
 
+function statusRank(p: Product) {
+  if (p.published && p.status === "approved") return 0;
+  if (p.status === "pending") return 1;
+  if (!p.published && p.status === "approved") return 2;
+  if (p.status === "rejected") return 3;
+  return 4;
+}
+
 function EmptyState({ canPublish }: { canPublish: boolean }) {
   return (
     <div className="rounded-2xl border border-dashed border-ink/15 bg-white p-12 text-center">
       <BookOpen className="mx-auto text-mute" size={32} />
-      <p className="mt-4 font-display text-xl text-navy">You haven't published any titles yet.</p>
-      <p className="mt-1 text-sm text-mute">Click "Create New Title" to get started.</p>
+      <p className="mt-4 font-display text-xl text-navy">
+        You haven't published any titles yet.
+      </p>
+      <p className="mt-1 text-sm text-mute">Click "+ Create New Title" to get started.</p>
       {canPublish && (
         <Link
           to="/dashboard/new"
-          className="mt-5 inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 text-white"
-          style={{ background: "var(--page-accent)" }}
+          className="mt-5 inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 bg-gold text-navy"
         >
           <Plus size={16} /> Create New Title
         </Link>
@@ -130,18 +304,30 @@ function EmptyState({ canPublish }: { canPublish: boolean }) {
 }
 
 function statusBadge(p: Product) {
-  if (p.status === "pending") return { label: "Under Review", cls: "bg-amber-100 text-amber-800 border-amber-200" };
-  if (p.published && p.status === "approved") return { label: "Live", cls: "bg-emerald-100 text-emerald-800 border-emerald-200" };
-  if (p.status === "rejected") return { label: "Rejected", cls: "bg-red-100 text-red-800 border-red-200" };
+  if (p.published && p.status === "approved")
+    return { label: "Live", cls: "bg-emerald-100 text-emerald-800 border-emerald-200" };
+  if (p.status === "pending")
+    return { label: "Under Review", cls: "bg-amber-100 text-amber-800 border-amber-200" };
+  if (!p.published && p.status === "approved")
+    return { label: "Unpublished", cls: "bg-red-100 text-red-800 border-red-200" };
+  if (p.status === "rejected")
+    return { label: "Rejected", cls: "bg-red-100 text-red-800 border-red-200" };
   return { label: "Draft", cls: "bg-ink/10 text-ink/70 border-ink/15" };
 }
 
-function formatFor(category: string): string {
-  if (category === "ebooks") return "eBook";
-  return "eBook";
-}
-
-function BookshelfTable({ products, onUnpublish }: { products: Product[]; onUnpublish: (id: string) => void }) {
+function BookshelfTable({
+  products,
+  stats,
+  onUnpublish,
+  onRepublish,
+  onDelete,
+}: {
+  products: Product[];
+  stats: Record<string, Stat>;
+  onUnpublish: (id: string) => void;
+  onRepublish: (id: string) => void;
+  onDelete: (id: string) => void;
+}) {
   return (
     <div className="overflow-hidden rounded-2xl bg-white border border-ink/10">
       <div className="overflow-x-auto">
@@ -152,7 +338,10 @@ function BookshelfTable({ products, onUnpublish }: { products: Product[]; onUnpu
               <th className="text-left font-semibold px-4 py-3">Title</th>
               <th className="text-left font-semibold px-4 py-3">Status</th>
               <th className="text-left font-semibold px-4 py-3">Format</th>
-              <th className="text-left font-semibold px-4 py-3">Date</th>
+              <th className="text-left font-semibold px-4 py-3 whitespace-nowrap">Date</th>
+              <th className="text-right font-semibold px-4 py-3">Price</th>
+              <th className="text-right font-semibold px-4 py-3">Units</th>
+              <th className="text-right font-semibold px-4 py-3">Earnings</th>
               <th className="text-right font-semibold px-4 py-3">Actions</th>
             </tr>
           </thead>
@@ -160,54 +349,62 @@ function BookshelfTable({ products, onUnpublish }: { products: Product[]; onUnpu
             {products.map((p) => {
               const badge = statusBadge(p);
               const isLive = p.published && p.status === "approved";
+              const s = stats[p.id] ?? { units: 0, earnings_cents: 0 };
               return (
-                <tr key={p.id} className="border-b border-ink/5 last:border-0 hover:bg-paper/50 transition-colors">
+                <tr
+                  key={p.id}
+                  className="border-b border-ink/5 last:border-0 hover:bg-paper/50 transition-colors"
+                >
                   <td className="px-4 py-3">
                     <div
-                      className="h-14 w-10 rounded shadow-sm bg-gradient-to-br from-navy to-[#22335A] bg-cover bg-center"
+                      className="h-14 w-10 rounded shadow-sm bg-gradient-to-br from-navy to-[#22335A] bg-cover bg-center flex items-center justify-center"
                       style={p.cover_url ? { backgroundImage: `url(${p.cover_url})` } : undefined}
-                    />
+                    >
+                      {!p.cover_url && <BookOpen size={14} className="text-white/50" />}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="font-display text-navy text-base leading-snug max-w-md">{p.title}</div>
-                    <div className="text-xs text-mute mt-0.5">${(p.price_cents / 100).toFixed(2)}</div>
+                    <Link
+                      to="/dashboard/edit/$id"
+                      params={{ id: p.id }}
+                      className="font-display text-navy text-base leading-snug max-w-md hover:underline underline-offset-2"
+                    >
+                      {p.title}
+                    </Link>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center text-[11px] font-semibold rounded-full px-2.5 py-1 border ${badge.cls}`}>
+                    <span
+                      className={`inline-flex items-center text-[11px] font-semibold rounded-full px-2.5 py-1 border ${badge.cls}`}
+                    >
                       {badge.label}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-ink/80">{formatFor(p.category)}</td>
+                  <td className="px-4 py-3 text-ink/80">eBook</td>
                   <td className="px-4 py-3 text-mute whitespace-nowrap">
-                    {new Date(p.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                    {new Date(p.created_at).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap text-ink tabular-nums">
+                    <span className="text-mute mr-0.5">$</span>
+                    {(p.price_cents / 100).toFixed(2)}
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums text-ink">{s.units}</td>
+                  <td className="px-4 py-3 text-right tabular-nums font-semibold text-gold">
+                    ${(s.earnings_cents / 100).toFixed(2)}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-2 whitespace-nowrap">
-                      <Link
-                        to="/dashboard/new"
-                        search={{ id: p.id }}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-navy px-2 py-1.5 rounded hover:bg-paper"
-                      >
-                        <Pencil size={13} /> Edit
-                      </Link>
-                      {isLive && (
-                        <Link
-                          to="/products/$id"
-                          params={{ id: p.id }}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-navy px-2 py-1.5 rounded hover:bg-paper"
-                        >
-                          <ExternalLink size={13} /> View on Store
-                        </Link>
-                      )}
-                      {isLive && (
-                        <button
-                          type="button"
-                          onClick={() => onUnpublish(p.id)}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-red-700 px-2 py-1.5 rounded hover:bg-red-50"
-                        >
-                          <EyeOff size={13} /> Unpublish
-                        </button>
-                      )}
+                    <div className="flex justify-end">
+                      <ActionsMenu
+                        productId={p.id}
+                        isLive={isLive}
+                        canRepublish={!p.published && p.status === "approved"}
+                        onUnpublish={() => onUnpublish(p.id)}
+                        onRepublish={() => onRepublish(p.id)}
+                        onDelete={() => onDelete(p.id)}
+                      />
                     </div>
                   </td>
                 </tr>
@@ -217,5 +414,113 @@ function BookshelfTable({ products, onUnpublish }: { products: Product[]; onUnpu
         </table>
       </div>
     </div>
+  );
+}
+
+function ActionsMenu({
+  productId,
+  isLive,
+  canRepublish,
+  onUnpublish,
+  onRepublish,
+  onDelete,
+}: {
+  productId: string;
+  isLive: boolean;
+  canRepublish: boolean;
+  onUnpublish: () => void;
+  onRepublish: () => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Actions"
+        className="p-1.5 rounded-full hover:bg-paper text-ink/70"
+      >
+        <MoreVertical size={16} />
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-1 z-20 min-w-[180px] rounded-xl bg-white border border-ink/10 shadow-lg py-1.5 text-sm">
+          <MenuItem to="/dashboard/edit/$id" params={{ id: productId }} icon={<Pencil size={14} />}>
+            Edit
+          </MenuItem>
+          {isLive && (
+            <MenuItem to="/products/$id" params={{ id: productId }} icon={<ExternalLink size={14} />}>
+              View in Store
+            </MenuItem>
+          )}
+          {isLive && (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onUnpublish();
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-paper flex items-center gap-2 text-ink"
+            >
+              <EyeOff size={14} /> Unpublish
+            </button>
+          )}
+          {canRepublish && (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onRepublish();
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-paper flex items-center gap-2 text-ink"
+            >
+              <Eye size={14} /> Republish
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onDelete();
+            }}
+            className="w-full text-left px-3 py-2 hover:bg-red-50 flex items-center gap-2 text-red-700"
+          >
+            <Trash2 size={14} /> Delete
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MenuItem({
+  to,
+  params,
+  icon,
+  children,
+}: {
+  to: "/dashboard/edit/$id" | "/products/$id";
+  params: { id: string };
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      to={to}
+      params={params}
+      className="w-full text-left px-3 py-2 hover:bg-paper flex items-center gap-2 text-ink"
+    >
+      {icon} {children}
+    </Link>
   );
 }
