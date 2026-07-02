@@ -1257,7 +1257,7 @@ function StepContent(p: {
       <div>
         <h3 className="font-display text-lg text-navy mb-2">Manuscript</h3>
         <p className="text-xs text-mute mb-3">Accepted: PDF, EPUB, DOCX. Max {MAX_FILE_MB} MB.</p>
-        {(fileDone && (p.uploadedFileMeta || p.file)) ? (
+        {(p.fileUploading || (fileDone && (p.uploadedFileMeta || p.file))) ? (
           <div className="space-y-2">
             <UploadSuccess
               iconLabel="manuscript"
@@ -1268,8 +1268,7 @@ function StepContent(p: {
               progress={p.fileProgress}
             />
 
-
-            {manuscriptPath && (
+            {manuscriptPath && !p.fileUploading && (
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
