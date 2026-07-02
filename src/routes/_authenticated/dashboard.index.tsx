@@ -434,6 +434,7 @@ function BookshelfTable({
                         productId={p.id}
                         isLive={isLive}
                         canRepublish={!p.published && p.status === "approved"}
+                        busy={busyId === p.id}
                         onUnpublish={() => onUnpublish(p.id)}
                         onRepublish={() => onRepublish(p.id)}
                         onDelete={() => onDelete(p.id)}
