@@ -1241,12 +1241,24 @@ function StepContent(p: {
         <h3 className="font-display text-lg text-navy mb-2">Manuscript</h3>
         <p className="text-xs text-mute mb-3">Accepted: PDF, EPUB, DOCX. Max {MAX_FILE_MB} MB.</p>
         {(fileDone && (p.uploadedFileMeta || p.file)) ? (
-          <UploadSuccess
-            iconLabel="manuscript"
-            name={p.uploadedFileMeta?.name ?? p.file?.name ?? "manuscript"}
-            size={p.uploadedFileMeta?.size ?? p.file?.size ?? 0}
-            onReplace={() => p.handleFileChange(null)}
-          />
+          <div className="space-y-2">
+            <UploadSuccess
+              iconLabel="manuscript"
+              name={p.uploadedFileMeta?.name ?? p.file?.name ?? "manuscript"}
+              size={p.uploadedFileMeta?.size ?? p.file?.size ?? 0}
+              onReplace={() => p.handleFileChange(null)}
+            />
+            {manuscriptPath && (
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5"
+                aria-label="Preview manuscript"
+              >
+                <Eye size={14} /> Preview
+              </button>
+            )}
+          </div>
         ) : (
           <FileInput
             file={p.file}
