@@ -276,6 +276,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
       }
       setLastSavedAt(Date.now());
       setDbUpdatedAt(new Date().toISOString());
+      setAutosaveErrors((prev) => (prev[kind] ? { ...prev, [kind]: null } : prev));
       if (!opts?.silent) {
         toast.success("Progress saved", { duration: 2000 });
       }
