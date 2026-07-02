@@ -1518,7 +1518,12 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
 }) {
   return (
     <div className="space-y-6">
-      <h2 className="font-display text-2xl text-navy">Review & publish</h2>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-display text-2xl text-navy">{isEditing ? "Review & update" : "Review & publish"}</h2>
+        {isEditing && lastUpdatedAt && (
+          <span className="text-xs text-mute">Last updated {new Date(lastUpdatedAt).toLocaleString()}</span>
+        )}
+      </div>
 
       <button
         type="button" onClick={onOpenPreview}
