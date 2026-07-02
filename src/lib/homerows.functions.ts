@@ -112,12 +112,12 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         return { newReleases: [], recommended: [], sponsored: [] };
       }
 
-      // Full catalog fallback (up to 3) used when a row is empty or too thin.
-      const allProducts = rows.slice(0, 3).map((r) => toProduct(r));
+      // Full catalog fallback (up to 5) used when a row is empty or too thin.
+      const allProducts = rows.slice(0, 5).map((r) => toProduct(r));
 
-      // New Releases: newest 3.
-      let newReleases = rows.slice(0, 3).map((r) => toProduct(r));
-      if (newReleases.length < 3) newReleases = allProducts;
+      // New Releases: newest 5.
+      let newReleases = rows.slice(0, 5).map((r) => toProduct(r));
+      if (newReleases.length === 0) newReleases = allProducts;
 
       // Sponsored: products flagged featured; fall back to full catalog.
       let sponsored = rows
@@ -140,10 +140,11 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       let recommended = hasPurchaseHistory
         ? [...rows]
             .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
-            .slice(0, 3)
+            .slice(0, 5)
             .map((r) => toProduct(r))
         : allProducts;
       if (recommended.length === 0) recommended = allProducts;
+
 
       const [nrR, spR, recR] = await Promise.all([
         attachRatings(supa, newReleases),
