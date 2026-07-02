@@ -290,12 +290,19 @@ function BookshelfPage() {
           <BookshelfTable
             products={visible}
             stats={stats}
-            onUnpublish={unpublish}
+            busyId={busyId}
+            onUnpublish={(id) => requestConfirm("unpublish", id)}
             onRepublish={republish}
-            onDelete={remove}
+            onDelete={(id) => requestConfirm("delete", id)}
           />
         )}
       </section>
+
+      <ConfirmDialog
+        state={confirmState}
+        onCancel={() => setConfirmState(null)}
+        onConfirm={handleConfirm}
+      />
     </PublisherShell>
   );
 }
