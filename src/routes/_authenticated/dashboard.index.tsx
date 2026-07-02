@@ -467,6 +467,7 @@ function ActionsMenu({
   productId,
   isLive,
   canRepublish,
+  busy,
   onUnpublish,
   onRepublish,
   onDelete,
@@ -474,6 +475,7 @@ function ActionsMenu({
   productId: string;
   isLive: boolean;
   canRepublish: boolean;
+  busy: boolean;
   onUnpublish: () => void;
   onRepublish: () => void;
   onDelete: () => void;
@@ -495,9 +497,10 @@ function ActionsMenu({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Actions"
-        className="p-1.5 rounded-full hover:bg-paper text-ink/70"
+        disabled={busy}
+        className="p-1.5 rounded-full hover:bg-paper text-ink/70 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <MoreVertical size={16} />
+        {busy ? <Loader2 size={16} className="animate-spin" /> : <MoreVertical size={16} />}
       </button>
       {open && (
         <div className="absolute right-0 mt-1 z-20 min-w-[180px] rounded-xl bg-white border border-ink/10 shadow-lg py-1.5 text-sm">
