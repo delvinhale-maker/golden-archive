@@ -1,10 +1,53 @@
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Sparkles, Clock, Megaphone, Flame } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { ProductCard, ProductCardSkeleton } from "./ProductCard";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { getHomeRows, getProductsByIds } from "@/lib/homerows.functions";
 import type { Product } from "@/lib/marketplace.functions";
+
+type Scheme = {
+  bg: string;
+  fg: string;
+  muted: string;
+  kicker: string;
+  border: string;
+};
+
+const SCHEMES: Record<"darkNavy" | "lightCream" | "darkOnyx", Scheme> = {
+  darkNavy: {
+    bg: "#0F1E35",
+    fg: "#ffffff",
+    muted: "rgba(255,255,255,0.72)",
+    kicker: "#E3C25B",
+    border: "rgba(255,255,255,0.10)",
+  },
+  lightCream: {
+    bg: "#F5EFE0",
+    fg: "#0F1E35",
+    muted: "rgba(15,30,53,0.70)",
+    kicker: "#9A7A14",
+    border: "rgba(15,30,53,0.10)",
+  },
+  darkOnyx: {
+    bg: "#0A0A0A",
+    fg: "#ffffff",
+    muted: "rgba(255,255,255,0.72)",
+    kicker: "#C9A227",
+    border: "rgba(255,255,255,0.10)",
+  },
+};
+
+function applyScheme(s: Scheme) {
+  if (typeof document === "undefined") return;
+  const r = document.documentElement.style;
+  r.setProperty("--scheme-bg", s.bg);
+  r.setProperty("--scheme-fg", s.fg);
+  r.setProperty("--scheme-muted", s.muted);
+  r.setProperty("--scheme-kicker", s.kicker);
+  r.setProperty("--scheme-border", s.border);
+}
 
 export const homeRowsQ = queryOptions({
   queryKey: ["mp", "home-rows"],
