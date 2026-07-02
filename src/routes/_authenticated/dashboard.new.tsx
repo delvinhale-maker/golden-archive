@@ -78,11 +78,11 @@ const STEPS = [
 ];
 type StepNum = 1 | 2 | 3 | 4;
 
-function PublishFlow() {
+function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const runReview = useServerFn(reviewProduct);
-  const { id: editingId } = Route.useSearch();
+  const editingId = editingIdProp;
   const isEditing = !!editingId;
 
   const [step, setStep] = useState<StepNum>(1);
