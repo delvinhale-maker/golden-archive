@@ -350,12 +350,14 @@ function statusBadge(p: Product) {
 function BookshelfTable({
   products,
   stats,
+  busyId,
   onUnpublish,
   onRepublish,
   onDelete,
 }: {
   products: Product[];
   stats: Record<string, Stat>;
+  busyId: string | null;
   onUnpublish: (id: string) => void;
   onRepublish: (id: string) => void;
   onDelete: (id: string) => void;
