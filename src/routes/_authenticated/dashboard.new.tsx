@@ -13,6 +13,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
 import { isListPriceValid } from "@/lib/publish-validation";
 import { PublishSuccessScreen as SuccessScreen } from "@/components/marketplace/PublishSuccessScreen";
+import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 
 const PUBLISH_STEP_ACCENTS: Record<1 | 2 | 3 | 4, string> = {
