@@ -33,8 +33,17 @@ export const Route = createFileRoute("/_authenticated/dashboard/new")({
   validateSearch: (s: Record<string, unknown>) => ({
     id: typeof s.id === "string" ? s.id : undefined,
   }),
-  component: PublishFlow,
+  component: PublishFlowRoute,
 });
+
+function PublishFlowRoute() {
+  const { id } = Route.useSearch();
+  return <PublishFlow editingId={id} />;
+}
+
+export function PublishFlow({ editingId: editingIdProp }: { editingId?: string } = {}) {
+  return <PublishFlowImpl editingId={editingIdProp} />;
+}
 
 const CATEGORIES: { label: string; value: "ebooks" | "finance" | "leadership" | "purpose" | "business" }[] = [
   { label: "eBooks", value: "ebooks" },
