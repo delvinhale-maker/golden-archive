@@ -57,10 +57,21 @@ function toProduct(r: Row, sponsored = false): Product {
   };
 }
 
+export type RowSource = "specific" | "fallback" | "empty";
+export type HomeRowsDiagnostics = {
+  totalApproved: number;
+  featuredCount: number;
+  purchaseHistoryCount: number;
+  sources: { newReleases: RowSource; sponsored: RowSource; recommended: RowSource };
+  counts: { newReleases: number; sponsored: number; recommended: number };
+  generatedAt: string;
+};
+
 export type HomeRows = {
   newReleases: Product[];
   recommended: Product[];
   sponsored: Product[];
+  diagnostics: HomeRowsDiagnostics;
 };
 
 async function attachRatings(
@@ -107,23 +118,34 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       if (error) console.error("[getHomeRows] db error:", error.message);
 
       const rows = (data ?? []) as Array<Row & { featured: boolean | null }>;
+      const featuredCount = rows.filter((r) => r.featured === true).length;
+      const emptyDiag = (): HomeRowsDiagnostics => ({
+        totalApproved: rows.length,
+        featuredCount,
+        purchaseHistoryCount: 0,
+        sources: { newReleases: "empty", sponsored: "empty", recommended: "empty" },
+        counts: { newReleases: 0, sponsored: 0, recommended: 0 },
+        generatedAt: new Date().toISOString(),
+      });
       // Fallback when no products at all: empty arrays (nothing to show).
       if (rows.length === 0) {
-        return { newReleases: [], recommended: [], sponsored: [] };
+        return { newReleases: [], recommended: [], sponsored: [], diagnostics: emptyDiag() };
       }
 
       // Full catalog fallback (up to 5) used when a row is empty or too thin.
       const allProducts = rows.slice(0, 5).map((r) => toProduct(r));
 
-      // New Releases: newest 5.
-      let newReleases = rows.slice(0, 5).map((r) => toProduct(r));
-      if (newReleases.length === 0) newReleases = allProducts;
+      // New Releases: newest 5 (always "specific" when rows exist).
+      const newReleases = rows.slice(0, 5).map((r) => toProduct(r));
+      const newReleasesSource: RowSource = newReleases.length > 0 ? "specific" : "empty";
 
       // Sponsored: products flagged featured; fall back to full catalog.
-      let sponsored = rows
+      const sponsoredSpecific = rows
         .filter((r) => r.featured === true)
         .map((r) => toProduct(r, true));
-      if (sponsored.length === 0) sponsored = allProducts;
+      const sponsored = sponsoredSpecific.length > 0 ? sponsoredSpecific : allProducts;
+      const sponsoredSource: RowSource =
+        sponsoredSpecific.length > 0 ? "specific" : sponsored.length > 0 ? "fallback" : "empty";
 
       // Recommended: rank by paid-sales count, then by created_at; fallback to all.
       const ids = rows.map((r) => r.id);
@@ -137,25 +159,57 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         counts.set(it.product_id, (counts.get(it.product_id) ?? 0) + 1);
       }
       const hasPurchaseHistory = counts.size > 0;
-      let recommended = hasPurchaseHistory
+      const recommended = hasPurchaseHistory
         ? [...rows]
             .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
             .slice(0, 5)
             .map((r) => toProduct(r))
         : allProducts;
-      if (recommended.length === 0) recommended = allProducts;
-
+      const recommendedSource: RowSource = hasPurchaseHistory
+        ? "specific"
+        : recommended.length > 0
+          ? "fallback"
+          : "empty";
 
       const [nrR, spR, recR] = await Promise.all([
         attachRatings(supa, newReleases),
         attachRatings(supa, sponsored),
         attachRatings(supa, recommended),
       ]);
-      return { newReleases: nrR, recommended: recR, sponsored: spR };
+      const diagnostics: HomeRowsDiagnostics = {
+        totalApproved: rows.length,
+        featuredCount,
+        purchaseHistoryCount: counts.size,
+        sources: {
+          newReleases: newReleasesSource,
+          sponsored: sponsoredSource,
+          recommended: recommendedSource,
+        },
+        counts: {
+          newReleases: nrR.length,
+          sponsored: spR.length,
+          recommended: recR.length,
+        },
+        generatedAt: new Date().toISOString(),
+      };
+      return { newReleases: nrR, recommended: recR, sponsored: spR, diagnostics };
     } catch (e) {
       console.error("[getHomeRows] failed:", e);
-      return { newReleases: [], recommended: [], sponsored: [] };
+      return {
+        newReleases: [],
+        recommended: [],
+        sponsored: [],
+        diagnostics: {
+          totalApproved: 0,
+          featuredCount: 0,
+          purchaseHistoryCount: 0,
+          sources: { newReleases: "empty", sponsored: "empty", recommended: "empty" },
+          counts: { newReleases: 0, sponsored: 0, recommended: 0 },
+          generatedAt: new Date().toISOString(),
+        },
+      };
     }
+
 
   },
 );
