@@ -610,11 +610,18 @@ function ConfirmDialog({
   state,
   onCancel,
   onConfirm,
+  onStepBack,
 }: {
-  state: { kind: "unpublish" | "delete"; product: Product } | null;
+  state: { kind: ConfirmKind; product: Product } | null;
   onCancel: () => void;
   onConfirm: () => void;
+  onStepBack: () => void;
 }) {
+  const [typed, setTyped] = useState("");
+  useEffect(() => {
+    setTyped("");
+  }, [state?.kind, state?.product.id]);
+
   useEffect(() => {
     if (!state) return;
     const onKey = (e: KeyboardEvent) => {
@@ -625,16 +632,51 @@ function ConfirmDialog({
   }, [state, onCancel]);
 
   if (!state) return null;
-  const isDelete = state.kind === "delete";
-  const title = isDelete ? "Delete this title?" : "Unpublish this title?";
-  const body = isDelete
-    ? "This permanently deletes the listing, cover, and manuscript from your bookshelf. Past orders and downloads are preserved. This cannot be undone."
-    : "The title will be hidden from the store immediately. Existing customers keep access to their downloads. You can republish it any time.";
-  const cta = isDelete ? "Delete permanently" : "Unpublish";
-  const ctaCls = isDelete
-    ? "bg-red-600 text-white hover:bg-red-700"
-    : "bg-navy text-white hover:bg-navy/90";
-  const iconCls = isDelete ? "text-red-600 bg-red-50" : "text-navy bg-navy/5";
+  const { kind, product } = state;
+
+  const config = (() => {
+    if (kind === "unpublish") {
+      return {
+        title: `Unpublish ${product.title}?`,
+        body: "This title will be removed from the AurumVault storefront. Existing buyers keep their downloads. You can republish anytime.",
+        cta: "Unpublish Title",
+        ctaCls: "bg-red-600 text-white hover:bg-red-700",
+        iconCls: "text-red-600 bg-red-50",
+        icon: <EyeOff size={18} />,
+      };
+    }
+    if (kind === "republish") {
+      return {
+        title: `Republish ${product.title}?`,
+        body: "This title will go live on the AurumVault storefront immediately.",
+        cta: "Republish Now",
+        ctaCls: "bg-emerald-600 text-white hover:bg-emerald-700",
+        iconCls: "text-emerald-700 bg-emerald-50",
+        icon: <Eye size={18} />,
+      };
+    }
+    if (kind === "delete1") {
+      return {
+        title: "Are you sure? This cannot be undone.",
+        body: "Deleting removes this title from your bookshelf along with its cover and manuscript. Existing buyers keep access to their downloads.",
+        cta: "Yes, Delete",
+        ctaCls: "bg-red-600 text-white hover:bg-red-700",
+        iconCls: "text-red-600 bg-red-50",
+        icon: <AlertTriangle size={18} />,
+      };
+    }
+    return {
+      title: "Type the exact title to confirm",
+      body: "",
+      cta: "Confirm Delete",
+      ctaCls: "bg-red-600 text-white hover:bg-red-700",
+      iconCls: "text-red-600 bg-red-50",
+      icon: <Trash2 size={18} />,
+    };
+  })();
+
+  const isStep2 = kind === "delete2";
+  const canConfirm = !isStep2 || typed.trim() === product.title.trim();
 
   return (
     <div
@@ -650,31 +692,52 @@ function ConfirmDialog({
       />
       <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-150">
         <div className="flex items-start gap-4">
-          <div className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${iconCls}`}>
-            {isDelete ? <Trash2 size={18} /> : <AlertTriangle size={18} />}
+          <div className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${config.iconCls}`}>
+            {config.icon}
           </div>
-          <div className="flex-1">
-            <h3 className="font-display text-lg text-navy">{title}</h3>
-            <p className="mt-1 text-sm text-mute leading-relaxed">{body}</p>
-            <p className="mt-3 text-sm font-medium text-ink line-clamp-2">
-              "{state.product.title}"
-            </p>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-display text-lg text-navy">{config.title}</h3>
+            {config.body && (
+              <p className="mt-1 text-sm text-mute leading-relaxed">{config.body}</p>
+            )}
+            {isStep2 ? (
+              <div className="mt-3">
+                <p className="text-sm text-ink">
+                  Type <span className="font-semibold">{product.title}</span> to confirm:
+                </p>
+                <input
+                  autoFocus
+                  value={typed}
+                  onChange={(e) => setTyped(e.target.value)}
+                  placeholder={product.title}
+                  className="mt-2 w-full px-3 py-2 text-sm rounded-lg border border-ink/15 focus:outline-none focus:ring-2 focus:ring-red-500/40"
+                />
+              </div>
+            ) : (
+              kind !== "unpublish" &&
+              kind !== "republish" && (
+                <p className="mt-3 text-sm font-medium text-ink line-clamp-2">
+                  "{product.title}"
+                </p>
+              )
+            )}
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <button
             type="button"
-            onClick={onCancel}
-            className="px-4 py-2 rounded-full text-sm font-semibold text-ink/80 hover:bg-paper"
+            onClick={isStep2 ? onStepBack : onCancel}
+            className="px-4 py-2 rounded-full text-sm font-semibold text-ink/80 border border-ink/15 hover:bg-paper"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className={`px-4 py-2 rounded-full text-sm font-semibold ${ctaCls}`}
+            disabled={!canConfirm}
+            className={`px-4 py-2 rounded-full text-sm font-semibold ${config.ctaCls} disabled:opacity-40 disabled:cursor-not-allowed`}
           >
-            {cta}
+            {config.cta}
           </button>
         </div>
       </div>
