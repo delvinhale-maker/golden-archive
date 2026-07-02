@@ -31,7 +31,7 @@ export function KingdomPicksRow() {
           </div>
           <Link
             to="/kingdom-picks"
-            className="hidden text-sm font-bold text-gold underline-offset-4 hover:underline md:inline"
+            className="text-sm font-bold text-gold underline-offset-4 hover:underline"
           >
             See all Kingdom Picks →
           </Link>
@@ -46,14 +46,6 @@ export function KingdomPicksRow() {
           ))}
         </div>
 
-        <div className="mt-4 md:hidden">
-          <Link
-            to="/kingdom-picks"
-            className="text-sm font-bold text-navy underline-offset-4 hover:underline"
-          >
-            See all Kingdom Picks →
-          </Link>
-        </div>
       </div>
     </section>
   );
