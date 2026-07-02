@@ -1383,7 +1383,7 @@ function StepContent(p: {
   );
 }
 
-function UploadSuccess({ iconLabel, name, size, onReplace }: { iconLabel: string; name: string; size: number; onReplace: () => void }) {
+function UploadSuccess({ iconLabel, name, size, onReplace, busy = false }: { iconLabel: string; name: string; size: number; onReplace: () => void; busy?: boolean }) {
   const sizeLabel = size > 1024 * 1024 ? `${(size / 1024 / 1024).toFixed(2)} MB` : size > 0 ? `${Math.max(1, Math.round(size / 1024))} KB` : "—";
   return (
     <div className="flex items-center gap-3 rounded-xl border-2 border-emerald-300 bg-emerald-50/60 p-4">
@@ -1394,17 +1394,19 @@ function UploadSuccess({ iconLabel, name, size, onReplace }: { iconLabel: string
         <p className="text-sm font-semibold text-navy truncate">
           ✅ {name} — {sizeLabel} uploaded successfully.
         </p>
-        <p className="text-xs text-mute">Tap Replace to swap this {iconLabel}.</p>
+        <p className="text-xs text-mute">{busy ? `Uploading ${iconLabel}…` : `Tap Replace to swap this ${iconLabel}.`}</p>
       </div>
       <button
-        type="button" onClick={onReplace}
-        className="shrink-0 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5"
+        type="button" onClick={onReplace} disabled={busy} aria-disabled={busy}
+        title={busy ? "Upload in progress" : undefined}
+        className="shrink-0 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
       >
         Replace
       </button>
     </div>
   );
 }
+
 
 
 function RightsBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
