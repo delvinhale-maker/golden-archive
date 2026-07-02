@@ -289,7 +289,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       }
     })();
     return () => { cancelled = true; };
-  }, [pdf, location, fontSize, device, blit, renderToOffscreen]);
+  }, [pdf, location, fontSize, device, blit, renderToOffscreen, cacheGet]);
 
   const goTo = useCallback(
     (next: number) => {
