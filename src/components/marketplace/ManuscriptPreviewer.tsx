@@ -240,7 +240,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         <label className="flex items-center gap-2">
           <span className="text-white/70">Contents</span>
           <select
-            disabled={outline.length === 0}
+            disabled={false}
             value=""
             onChange={(e) => { const p = parseInt(e.target.value, 10); if (Number.isFinite(p)) goTo(p); }}
             className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white max-w-[240px] disabled:opacity-60"
