@@ -1352,6 +1352,14 @@ function StepContent(p: {
           </div>
         )}
       </div>
+      {previewOpen && manuscriptPath && (
+        <ManuscriptPreviewer
+          manuscriptPath={manuscriptPath}
+          title={p.title}
+          coverUrl={p.uploadedCoverUrl ?? p.existingCoverUrl ?? p.coverPreview}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
     </div>
   );
 }
