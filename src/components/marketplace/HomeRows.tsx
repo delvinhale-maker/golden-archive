@@ -197,21 +197,22 @@ export function HomeContentRows() {
         kicker="JUST IN"
         title="New Releases"
         products={data.newReleases}
-        accent="var(--gold)"
+        scheme="darkNavy"
       />
       <Row
         icon={Megaphone}
         kicker="SPONSORED — ILLUSTRIOUS CAPITAL™"
         title="Promoted Picks"
         products={data.sponsored}
+        scheme="lightCream"
       />
       <Row
         icon={Flame}
         kicker="RECOMMENDED FOR YOU"
         title="You May Also Like"
         products={data.recommended}
+        scheme="darkOnyx"
       />
-
     </>
   );
 }
