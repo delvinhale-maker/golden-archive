@@ -2,11 +2,54 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Crown, ExternalLink } from "lucide-react";
 import { getKingdomPicksRowFn, type AffiliatePick } from "@/lib/marketplace.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const kingdomPicksRowQ = queryOptions({
   queryKey: ["mp", "row", "kingdom-picks"],
   queryFn: () => getKingdomPicksRowFn(),
 });
+
+/** Fire-and-forget outbound affiliate click tracking. Never blocks navigation. */
+function trackAmazonClick(p: AffiliatePick, placement: string) {
+  // 1) Persist to Lovable Cloud (affiliate_clicks — anon INSERT allowed)
+  try {
+    supabase
+      .from("affiliate_clicks")
+      .insert({
+        product_id: p.id,
+        affiliate_url: p.affiliateUrl,
+        source: p.source ?? "amazon",
+        user_id: null,
+      })
+      .then(({ error }) => {
+        if (error) console.warn("[affiliate] click log failed", error.message);
+      });
+  } catch {
+    /* ignore */
+  }
+  // 2) Emit analytics events (GA4 gtag + dataLayer + Plausible if present)
+  try {
+    const payload = {
+      product_id: p.id,
+      product_title: p.title,
+      source: p.source ?? "amazon",
+      placement,
+      affiliate_url: p.affiliateUrl,
+      value: p.price ?? undefined,
+      currency: "USD",
+    };
+    const w = window as unknown as {
+      gtag?: (...args: unknown[]) => void;
+      dataLayer?: unknown[];
+      plausible?: (event: string, opts?: { props?: Record<string, unknown> }) => void;
+    };
+    w.gtag?.("event", "affiliate_click", payload);
+    w.dataLayer?.push({ event: "affiliate_click", ...payload });
+    w.plausible?.("Affiliate Click", { props: payload });
+  } catch {
+    /* ignore */
+  }
+}
 
 export function KingdomPicksRow() {
   const { data } = useSuspenseQuery(kingdomPicksRowQ);
