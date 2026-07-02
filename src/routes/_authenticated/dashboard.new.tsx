@@ -1326,25 +1326,16 @@ function StepContent(p: {
             <AlertCircle size={16} className="mt-0.5 shrink-0" /><span>{p.coverError}</span>
           </div>
         )}
-        {p.coverUploading && (
-          <div className="mt-3" aria-live="polite">
-            <div className="flex justify-between text-xs text-mute mb-1"><span>Uploading cover…</span><span>{p.coverProgress}%</span></div>
-            <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
-              <div className="h-full transition-all" style={{ width: `${p.coverProgress}%`, background: "var(--page-accent)" }} />
-            </div>
-          </div>
-        )}
-        {coverDone && p.cover && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-            <CheckCircle2 size={16} className="shrink-0" />
-            <span className="truncate flex-1">✅ {p.cover.name} — {(p.cover.size / 1024 / 1024).toFixed(2)} MB uploaded successfully. Tap to replace.</span>
-            <button type="button" onClick={() => p.handleCoverChange(null)} disabled={p.coverUploading} aria-disabled={p.coverUploading} title={p.coverUploading ? "Upload in progress" : undefined} className="text-xs font-semibold text-emerald-800 underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed">Replace</button>
-          </div>
-        )}
-        {!p.cover && p.uploadedCoverUrl && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-            <CheckCircle2 size={16} className="shrink-0" />
-            <span className="truncate flex-1">✅ Cover saved to your draft. Tap the zone above to replace it.</span>
+        {(p.coverUploading || coverDone) && (
+          <div className="mt-3">
+            <UploadSuccess
+              iconLabel="cover"
+              name={p.cover?.name ?? "Cover image"}
+              size={p.cover?.size ?? 0}
+              onReplace={() => p.handleCoverChange(null)}
+              busy={p.coverUploading}
+              progress={p.coverProgress}
+            />
           </div>
         )}
         {p.coverUploadError && (
@@ -1364,6 +1355,7 @@ function StepContent(p: {
           </div>
         )}
       </div>
+
       {previewOpen && manuscriptPath && (
         <ManuscriptPreviewer
           manuscriptPath={manuscriptPath}
