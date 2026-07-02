@@ -218,21 +218,23 @@ export function MarketHeader() {
               <button
                 key={c}
                 onClick={() => goCategory(c)}
-                className={`relative whitespace-nowrap px-3 text-[13px] ${
-                  active ? "text-white" : "text-white/70"
-                }`}
+                data-nav-tab
+                data-active={active ? "true" : "false"}
+                className="relative whitespace-nowrap px-3 text-[13px]"
               >
                 {c}
                 {active && (
                   <motion.span
                     layoutId="cat-underline-m"
-                    className="absolute -bottom-0.5 left-2 right-2 h-[2px] bg-gold"
+                    data-nav-underline
+                    className="absolute -bottom-0.5 left-2 right-2 h-[2px]"
                   />
                 )}
               </button>
             );
           })}
         </div>
+
       </div>
 
       {/* Mobile menu overlay */}
