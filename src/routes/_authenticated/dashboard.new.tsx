@@ -1265,7 +1265,9 @@ function StepContent(p: {
               size={p.uploadedFileMeta?.size ?? p.file?.size ?? 0}
               onReplace={() => p.handleFileChange(null)}
               busy={p.fileUploading}
+              progress={p.fileProgress}
             />
+
 
             {manuscriptPath && (
               <button
