@@ -525,6 +525,7 @@ function ActionsMenu({
   onUnpublish,
   onRepublish,
   onDelete,
+  onHistory,
 }: {
   productId: string;
   isLive: boolean;
@@ -533,6 +534,7 @@ function ActionsMenu({
   onUnpublish: () => void;
   onRepublish: () => void;
   onDelete: () => void;
+  onHistory: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
