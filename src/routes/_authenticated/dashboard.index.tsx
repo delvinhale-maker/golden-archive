@@ -128,44 +128,63 @@ function BookshelfPage() {
     return c;
   }, [products]);
 
-  async function unpublish(id: string) {
-    setBusyId(id);
+  async function unpublish(product: Product) {
+    setBusyId(product.id);
     const { error } = await supabase
       .from("marketplace_products")
       .update({ published: false })
-      .eq("id", id);
+      .eq("id", product.id);
     setBusyId(null);
     if (error) return toast.error(error.message);
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, published: false } : p)));
-    toast.success("Title unpublished. It's no longer visible in the store.");
+    setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, published: false } : p)));
+    toast.success(`${product.title} has been unpublished. You can republish from your Bookshelf.`);
   }
 
-  async function republish(id: string) {
-    const target = products.find((p) => p.id === id);
-    if (target && target.status !== "approved") {
+  async function republish(product: Product) {
+    if (product.status !== "approved") {
       return toast.error("Only approved titles can be republished.");
     }
-    setBusyId(id);
+    setBusyId(product.id);
     const { error } = await supabase
       .from("marketplace_products")
       .update({ published: true })
-      .eq("id", id);
+      .eq("id", product.id);
     setBusyId(null);
     if (error) return toast.error(error.message);
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, published: true } : p)));
-    toast.success("Title is live again.");
+    setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, published: true } : p)));
+    toast.success(`${product.title} is live again on AurumVault!`);
   }
 
-  async function remove(id: string) {
-    setBusyId(id);
-    const { error } = await supabase.from("marketplace_products").delete().eq("id", id);
+  function extractCoverPath(url: string | null): string | null {
+    if (!url) return null;
+    const m = url.match(/\/product-covers\/([^?]+)/);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
+  async function remove(product: Product) {
+    setBusyId(product.id);
+    const { error } = await supabase.from("marketplace_products").delete().eq("id", product.id);
+    if (error) {
+      setBusyId(null);
+      return toast.error(
+        /foreign key|violat/i.test(error.message)
+          ? "Can't delete: this title has existing orders. Unpublish it instead."
+          : error.message,
+      );
+    }
+    // Best-effort storage cleanup — don't block the UI on failures
+    const coverPath = extractCoverPath(product.cover_url);
+    const removals: Promise<unknown>[] = [];
+    if (coverPath) removals.push(supabase.storage.from("product-covers").remove([coverPath]));
+    if (product.file_path)
+      removals.push(supabase.storage.from("product-files").remove([product.file_path]));
+    await Promise.allSettled(removals);
     setBusyId(null);
-    if (error) return toast.error(error.message);
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-    toast.success("Title deleted.");
+    setProducts((prev) => prev.filter((p) => p.id !== product.id));
+    toast.success(`${product.title} has been permanently deleted.`);
   }
 
-  function requestConfirm(kind: "unpublish" | "delete", id: string) {
+  function requestConfirm(kind: ConfirmKind, id: string) {
     const product = products.find((p) => p.id === id);
     if (!product) return;
     setConfirmState({ kind, product });
@@ -174,9 +193,14 @@ function BookshelfPage() {
   async function handleConfirm() {
     if (!confirmState) return;
     const { kind, product } = confirmState;
+    if (kind === "delete1") {
+      setConfirmState({ kind: "delete2", product });
+      return;
+    }
     setConfirmState(null);
-    if (kind === "unpublish") await unpublish(product.id);
-    else await remove(product.id);
+    if (kind === "unpublish") await unpublish(product);
+    else if (kind === "republish") await republish(product);
+    else if (kind === "delete2") await remove(product);
   }
 
   return (
