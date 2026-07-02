@@ -49,7 +49,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setActiveTheme(routeTheme);
   }, [routeTheme]);
 
-  // Apply CSS custom properties whenever the theme changes
+  // Apply CSS custom properties whenever the theme changes (imperative fallback)
   useEffect(() => {
     applyThemeToRoot(activeTheme);
   }, [activeTheme]);
@@ -59,8 +59,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     [activeTheme],
   );
 
+  // Declarative CSS variables via a <style> tag guarantees the vars apply
+  // even if the imperative documentElement.style write is clobbered by
+  // hydration or router transitions.
+  const css = `:root{--accent-color:${activeTheme.accentColor};--gradient-start:${activeTheme.gradientStart};--gradient-end:${activeTheme.gradientEnd};--page-gradient:linear-gradient(180deg,${activeTheme.gradientStart} 0%,${activeTheme.gradientEnd} 100%);}`;
+
   return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>
+      <style data-theme-vars={activeTheme.tabName}>{css}</style>
+      {children}
+    </ThemeContext.Provider>
   );
 }
 
