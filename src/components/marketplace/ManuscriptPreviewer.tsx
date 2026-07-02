@@ -162,7 +162,32 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   // Rendered-page cache: key = `${pageNum}|${fontSize}|${device}` -> offscreen canvas.
   // Cache survives navigation, so revisiting a page is instant. A miss (new page,
   // new zoom, or new device frame) is the only path that re-runs pdf.render.
+  // Bounded LRU: Map insertion order tracks recency; touching an entry re-inserts
+  // it, and inserts past MAX_CACHE_ENTRIES evict the oldest key. This caps memory
+  // during long reading sessions (each canvas can be several MB at high-DPR).
+  const MAX_CACHE_ENTRIES = 24;
   const cacheRef = useRef<Map<string, HTMLCanvasElement>>(new Map());
+
+  const cacheGet = useCallback((key: string): HTMLCanvasElement | undefined => {
+    const map = cacheRef.current;
+    const hit = map.get(key);
+    if (!hit) return undefined;
+    // Refresh recency: delete + set moves the entry to the newest position.
+    map.delete(key);
+    map.set(key, hit);
+    return hit;
+  }, []);
+
+  const cacheSet = useCallback((key: string, value: HTMLCanvasElement) => {
+    const map = cacheRef.current;
+    if (map.has(key)) map.delete(key);
+    map.set(key, value);
+    while (map.size > MAX_CACHE_ENTRIES) {
+      const oldest = map.keys().next().value;
+      if (oldest === undefined) break;
+      map.delete(oldest);
+    }
+  }, []);
 
   // Invalidate the cache when the source doc changes.
   useEffect(() => {
@@ -177,7 +202,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     ): Promise<HTMLCanvasElement | null> => {
       if (!pdf) return null;
       const key = `${pageNum}|${zoomStep}|${deviceKey}`;
-      const cached = cacheRef.current.get(key);
+      const cached = cacheGet(key);
       if (cached) return cached;
 
       const page = await pdf.getPage(pageNum);
@@ -200,11 +225,12 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       if (!ctx) return null;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       await page.render({ canvasContext: ctx, viewport }).promise;
-      cacheRef.current.set(key, off);
+      cacheSet(key, off);
       return off;
     },
-    [pdf],
+    [pdf, cacheGet, cacheSet],
   );
+
 
   const blit = useCallback((source: HTMLCanvasElement) => {
     const canvas = canvasRef.current;
