@@ -74,23 +74,7 @@ function Row({
   scheme?: keyof typeof SCHEMES;
 }) {
   const ref = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting && e.intersectionRatio >= 0.35) {
-            applyScheme(SCHEMES[scheme]);
-          }
-        }
-      },
-      { threshold: [0.35, 0.6], rootMargin: "-20% 0px -20% 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [scheme]);
+  // Scheme selection is handled globally by SchemeScrollSync below.
 
   if (!loading && products.length === 0 && !empty) {
     empty = "New picks coming soon.";
