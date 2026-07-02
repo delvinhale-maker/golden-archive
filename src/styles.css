@@ -289,21 +289,52 @@
 }
 
 @layer base {
+  @property --accent-color {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #D4AF37;
+  }
+  @property --gradient-start {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #0F1E35;
+  }
+  @property --gradient-end {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #0A0A0A;
+  }
+
   :root {
     --accent-color: #D4AF37;
     --gradient-start: #0F1E35;
     --gradient-end: #0A0A0A;
     --page-gradient: linear-gradient(180deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    transition:
+      --accent-color 600ms ease,
+      --gradient-start 600ms ease,
+      --gradient-end 600ms ease;
   }
 
-  html {
-    transition: background-color 600ms ease;
+  html,
+  body {
+    transition:
+      --accent-color 600ms ease,
+      --gradient-start 600ms ease,
+      --gradient-end 600ms ease,
+      background-color 600ms ease,
+      background 600ms ease;
   }
 
   .av-theme-bg {
     background: var(--page-gradient);
-    transition: background 600ms ease;
+    transition:
+      --accent-color 600ms ease,
+      --gradient-start 600ms ease,
+      --gradient-end 600ms ease,
+      background 600ms ease;
   }
+
 
   .av-theme-accent { color: var(--accent-color); transition: color 400ms ease; }
   .av-theme-accent-bg { background-color: var(--accent-color); transition: background-color 400ms ease; }
