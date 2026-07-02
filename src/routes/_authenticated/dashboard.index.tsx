@@ -714,7 +714,8 @@ function ConfirmDialog({
             aria-label="Working"
             className="absolute left-0 top-0 h-1 w-full overflow-hidden bg-ink/5"
           >
-            <div className="h-full w-1/3 animate-[shimmer_1.1s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
+            <div className="h-full w-1/3 animate-pulse bg-emerald-500" />
+
           </div>
         )}
         <div className="p-6">
