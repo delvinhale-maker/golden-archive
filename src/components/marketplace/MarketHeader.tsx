@@ -159,7 +159,14 @@ export function MarketHeader() {
       </div>
 
       {/* Category bar */}
-      <div className="bg-navy-2 hidden md:block">
+      <div
+        className="scheme-surface-bg hidden md:block"
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, rgba(10,15,28,0.85), rgba(10,15,28,0.85))",
+          backgroundColor: "var(--scheme-bg)",
+        }}
+      >
         <div className="mx-auto flex h-10 max-w-7xl items-center gap-1 overflow-x-auto px-8">
           {CATEGORIES.map((c) => {
             const active = activeCat === c || (c === "All" && pathname === "/");
