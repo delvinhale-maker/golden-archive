@@ -416,6 +416,18 @@ function BookshelfTable({
   );
 }
 
+function Money({ cents }: { cents: number }) {
+  const [whole, frac] = (Math.max(0, cents) / 100).toFixed(2).split(".");
+  const formatted = Number(whole).toLocaleString("en-US");
+  return (
+    <span className="inline-flex items-baseline justify-end tabular-nums leading-none">
+      <span className="text-mute mr-0.5 text-[0.85em]">$</span>
+      <span>{formatted}</span>
+      <span className="text-[0.85em] opacity-70">.{frac}</span>
+    </span>
+  );
+}
+
 function ActionsMenu({
   productId,
   isLive,
