@@ -261,7 +261,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         if (pageNum < 1 || pageNum > pdf.numPages) return;
 
         const key = `${pageNum}|${fontSize}|${device}`;
-        const cached = cacheRef.current.get(key);
+        const cached = cacheGet(key);
         if (cached) {
           blit(cached);
         } else {
@@ -281,6 +281,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             renderToOffscreen(n, fontSize, device).catch(() => { /* ignore */ });
           }
         }
+
       } catch (err: any) {
         if (err?.name !== "RenderingCancelledException") {
           console.error("[ManuscriptPreviewer] render", err);
