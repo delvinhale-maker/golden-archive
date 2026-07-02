@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTrackView } from "@/hooks/use-recently-viewed";
+import { useTheme } from "@/lib/theme/ThemeProvider";
+import { CATEGORY_THEMES } from "@/lib/theme/theme-config";
+
 import {
   BadgeCheck,
   ChevronRight,
@@ -267,6 +270,26 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
   const [tab, setTab] = useState<TabKey>("description");
   const [liked, setLiked] = useState(false);
   useTrackView(productId);
+
+  // Sync the global accent color to the product's category theme
+  const { activeTheme, setActiveTheme } = useTheme();
+  useEffect(() => {
+    const key = (categoryLabel || category || "").toString().toLowerCase();
+    const catTheme =
+      CATEGORY_THEMES[key] ||
+      CATEGORY_THEMES[key.replace(/s$/, "")] ||
+      CATEGORY_THEMES[key + "s"];
+    if (catTheme) {
+      setActiveTheme({
+        ...activeTheme,
+        accentColor: catTheme.accentColor,
+        gradientStart: catTheme.gradientStart,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, categoryLabel]);
+
+
 
   const crumbs = breadcrumb ?? [
     { label: "Home" },
