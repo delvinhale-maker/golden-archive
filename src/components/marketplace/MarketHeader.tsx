@@ -60,7 +60,14 @@ export function MarketHeader() {
   return (
     <header className="fixed top-0 left-0 right-0 z-40">
       {/* Top bar */}
-      <div className="bg-navy">
+      <div
+        className="scheme-surface-bg relative"
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, rgba(10,15,28,0.72), rgba(10,15,28,0.72))",
+          backgroundColor: "var(--scheme-bg)",
+        }}
+      >
         <div className="mx-auto flex h-[60px] max-w-7xl items-center gap-3 px-4 md:h-[72px] md:gap-6 md:px-8">
           <button
             type="button"
@@ -152,7 +159,14 @@ export function MarketHeader() {
       </div>
 
       {/* Category bar */}
-      <div className="bg-navy-2 hidden md:block">
+      <div
+        className="scheme-surface-bg hidden md:block"
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, rgba(10,15,28,0.85), rgba(10,15,28,0.85))",
+          backgroundColor: "var(--scheme-bg)",
+        }}
+      >
         <div className="mx-auto flex h-10 max-w-7xl items-center gap-1 overflow-x-auto px-8">
           {CATEGORIES.map((c) => {
             const active = activeCat === c || (c === "All" && pathname === "/");
@@ -176,7 +190,14 @@ export function MarketHeader() {
       </div>
 
       {/* Mobile category scroll */}
-      <div className="bg-navy-2 md:hidden">
+      <div
+        className="scheme-surface-bg md:hidden"
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, rgba(10,15,28,0.85), rgba(10,15,28,0.85))",
+          backgroundColor: "var(--scheme-bg)",
+        }}
+      >
         <div className="flex h-10 items-center gap-1 overflow-x-auto px-4">
           {CATEGORIES.map((c) => {
             const active = activeCat === c;

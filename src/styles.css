@@ -95,6 +95,31 @@
   --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-card-hover: 0 12px 28px rgba(15, 22, 41, 0.12);
   --shadow-gold-glow: 0 10px 30px -10px rgba(201, 162, 39, 0.55);
+
+  /* Scroll-driven scheme tokens (updated by HomeRows IntersectionObserver) */
+  --scheme-bg: #0F1E35;
+  --scheme-fg: #ffffff;
+  --scheme-muted: rgba(255, 255, 255, 0.72);
+  --scheme-kicker: #c9a227;
+  --scheme-border: rgba(255, 255, 255, 0.10);
+}
+
+/* Smooth cross-scheme fade for surfaces that opt in */
+.scheme-surface {
+  background-color: var(--scheme-bg);
+  color: var(--scheme-fg);
+  transition:
+    background-color 600ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 600ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.scheme-surface-bg {
+  background-color: var(--scheme-bg);
+  transition: background-color 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .scheme-surface,
+  .scheme-surface-bg { transition: none; }
 }
 
 /* VAULT (legacy luxury custody landing) — scoped */

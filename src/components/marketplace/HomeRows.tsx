@@ -1,10 +1,53 @@
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Sparkles, Clock, Megaphone, Flame } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { ProductCard, ProductCardSkeleton } from "./ProductCard";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { getHomeRows, getProductsByIds } from "@/lib/homerows.functions";
 import type { Product } from "@/lib/marketplace.functions";
+
+type Scheme = {
+  bg: string;
+  fg: string;
+  muted: string;
+  kicker: string;
+  border: string;
+};
+
+const SCHEMES: Record<"darkNavy" | "lightCream" | "darkOnyx", Scheme> = {
+  darkNavy: {
+    bg: "#0F1E35",
+    fg: "#ffffff",
+    muted: "rgba(255,255,255,0.72)",
+    kicker: "#E3C25B",
+    border: "rgba(255,255,255,0.10)",
+  },
+  lightCream: {
+    bg: "#F5EFE0",
+    fg: "#0F1E35",
+    muted: "rgba(15,30,53,0.70)",
+    kicker: "#9A7A14",
+    border: "rgba(15,30,53,0.10)",
+  },
+  darkOnyx: {
+    bg: "#0A0A0A",
+    fg: "#ffffff",
+    muted: "rgba(255,255,255,0.72)",
+    kicker: "#C9A227",
+    border: "rgba(255,255,255,0.10)",
+  },
+};
+
+function applyScheme(s: Scheme) {
+  if (typeof document === "undefined") return;
+  const r = document.documentElement.style;
+  r.setProperty("--scheme-bg", s.bg);
+  r.setProperty("--scheme-fg", s.fg);
+  r.setProperty("--scheme-muted", s.muted);
+  r.setProperty("--scheme-kicker", s.kicker);
+  r.setProperty("--scheme-border", s.border);
+}
 
 export const homeRowsQ = queryOptions({
   queryKey: ["mp", "home-rows"],
@@ -20,7 +63,7 @@ function Row({
   products,
   loading,
   empty,
-  accent = "var(--gold)",
+  scheme = "darkNavy",
 }: {
   title: string;
   kicker?: string;
@@ -28,39 +71,49 @@ function Row({
   products: Product[];
   loading?: boolean;
   empty?: React.ReactNode;
-  accent?: string;
+  scheme?: keyof typeof SCHEMES;
 }) {
+  const ref = useRef<HTMLElement | null>(null);
+  // Scheme selection is handled globally by SchemeScrollSync below.
+
   if (!loading && products.length === 0 && !empty) {
-    // Still render the header so consumers/SEO/tests can find the section;
-    // show a lightweight empty state below.
     empty = "New picks coming soon.";
   }
 
   return (
-    <section className="bg-bg-page py-10 md:py-14">
-
+    <section
+      ref={ref}
+      data-scheme={scheme}
+      className="scheme-surface py-10 md:py-14"
+    >
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             {kicker && (
               <div
-                className="text-[11px] font-semibold tracking-caps"
-                style={{ color: accent }}
+                className="text-[11px] font-semibold tracking-caps transition-colors duration-500"
+                style={{ color: "var(--scheme-kicker)" }}
               >
                 {kicker}
               </div>
             )}
-            <h2 className="mt-1 flex items-center gap-2 font-display text-2xl font-bold md:text-3xl" style={{ color: "#ffffff" }}>
-              <Icon size={22} className="text-gold" /> {title}
+            <h2
+              className="mt-1 flex items-center gap-2 font-display text-2xl font-bold md:text-3xl transition-colors duration-500"
+              style={{ color: "var(--scheme-fg)" }}
+            >
+              <span style={{ color: "var(--scheme-kicker)", display: "inline-flex" }}>
+                <Icon size={22} />
+              </span>{" "}
+              {title}
             </h2>
           </div>
           <Link
             to="/products"
-            className="hidden text-xs font-bold uppercase tracking-caps text-gold hover:text-white sm:inline"
+            className="hidden text-xs font-bold uppercase tracking-caps transition-colors duration-500 sm:inline"
+            style={{ color: "var(--scheme-kicker)" }}
           >
             See all →
           </Link>
-
         </div>
 
         {loading ? (
@@ -70,7 +123,14 @@ function Row({
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-center text-sm text-white/70">
+          <div
+            className="rounded-xl p-6 text-center text-sm transition-colors duration-500"
+            style={{
+              border: "1px solid var(--scheme-border)",
+              color: "var(--scheme-muted)",
+              background: "color-mix(in oklab, var(--scheme-fg) 4%, transparent)",
+            }}
+          >
             {empty}
           </div>
         ) : (
@@ -110,32 +170,77 @@ export function ContinueBrowsingRow() {
   );
 }
 
+function SchemeScrollSync() {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let raf = 0;
+    let lastKey = "";
+    const pick = () => {
+      raf = 0;
+      const sections = document.querySelectorAll<HTMLElement>("section[data-scheme]");
+      if (!sections.length) return;
+      const vh = window.innerHeight;
+      const center = vh / 2;
+      let best: { el: HTMLElement; dist: number } | null = null;
+      sections.forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > vh) return;
+        const mid = (r.top + r.bottom) / 2;
+        const dist = Math.abs(mid - center);
+        if (!best || dist < (best as { dist: number }).dist) best = { el, dist };
+      });
+      if (!best) return;
+      const bestEl = (best as { el: HTMLElement }).el;
+      const key = bestEl.dataset.scheme ?? "";
+      if (!key || key === lastKey) return;
+      const s = SCHEMES[key as keyof typeof SCHEMES];
+      if (!s) return;
+      lastKey = key;
+      applyScheme(s);
+    };
+    const onScroll = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(pick);
+    };
+    pick();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+  return null;
+}
+
 export function HomeContentRows() {
   const { data } = useSuspenseQuery(homeRowsQ);
 
-
   return (
     <>
+      <SchemeScrollSync />
       <Row
         icon={Sparkles}
         kicker="JUST IN"
         title="New Releases"
         products={data.newReleases}
-        accent="var(--gold)"
+        scheme="darkNavy"
       />
       <Row
         icon={Megaphone}
         kicker="SPONSORED — ILLUSTRIOUS CAPITAL™"
         title="Promoted Picks"
         products={data.sponsored}
+        scheme="lightCream"
       />
       <Row
         icon={Flame}
         kicker="RECOMMENDED FOR YOU"
         title="You May Also Like"
         products={data.recommended}
+        scheme="darkOnyx"
       />
-
     </>
   );
 }
