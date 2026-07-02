@@ -61,9 +61,10 @@ export function MarketHeader() {
     <header className="fixed top-0 left-0 right-0 z-40">
       {/* Top bar */}
       <div
-        className="scheme-surface-bg"
+        className="scheme-surface-bg relative"
         style={{
-          backgroundColor: "color-mix(in oklab, var(--scheme-bg) 92%, #000 8%)",
+          backgroundImage:
+            "linear-gradient(180deg, rgba(10,15,28,0.92), rgba(10,15,28,0.82)), linear-gradient(180deg, var(--scheme-bg), var(--scheme-bg))",
         }}
       >
         <div className="mx-auto flex h-[60px] max-w-7xl items-center gap-3 px-4 md:h-[72px] md:gap-6 md:px-8">
