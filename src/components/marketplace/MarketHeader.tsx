@@ -190,7 +190,14 @@ export function MarketHeader() {
       </div>
 
       {/* Mobile category scroll */}
-      <div className="bg-navy-2 md:hidden">
+      <div
+        className="scheme-surface-bg md:hidden"
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, rgba(10,15,28,0.85), rgba(10,15,28,0.85))",
+          backgroundColor: "var(--scheme-bg)",
+        }}
+      >
         <div className="flex h-10 items-center gap-1 overflow-x-auto px-4">
           {CATEGORIES.map((c) => {
             const active = activeCat === c;
