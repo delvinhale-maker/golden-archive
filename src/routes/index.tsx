@@ -29,16 +29,19 @@ import { ProductCover } from "@/components/marketplace/ProductCover";
 import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
 import { DealsStrip } from "@/components/marketplace/DealsStrip";
 import { BestsellersRow } from "@/components/marketplace/BestsellersRow";
-import { KingdomPicksRow } from "@/components/marketplace/KingdomPicksRow";
+import { KingdomPicksRow, kingdomPicksRowQ } from "@/components/marketplace/KingdomPicksRow";
+import { NewReleasesRow, newReleasesRowQ } from "@/components/marketplace/NewReleasesRow";
+import { PromotedPicksRow, promotedPicksRowQ } from "@/components/marketplace/PromotedPicksRow";
+import { RecommendedRow, recommendedRowQ } from "@/components/marketplace/RecommendedRow";
 import { KingdomBibleAppBanner } from "@/components/marketplace/KingdomBibleAppBanner";
-import { ContinueBrowsingRow, HomeContentRows, homeRowsQ } from "@/components/marketplace/HomeRows";
-import { HomeRowsDiagnostics } from "@/components/marketplace/HomeRowsDiagnostics";
+import { ContinueBrowsingRow } from "@/components/marketplace/HomeRows";
 import { EmailCaptureBanner } from "@/components/EmailCaptureBanner";
 import {
   getFeaturedProducts,
   getHomeHighlights,
   type Product,
 } from "@/lib/marketplace.functions";
+
 import { useAuth } from "@/hooks/use-auth";
 
 const featuredQ = queryOptions({
@@ -55,10 +58,14 @@ const highlightsQ = queryOptions({
 export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(featuredQ);
-    context.queryClient.ensureQueryData(homeRowsQ);
+    context.queryClient.ensureQueryData(newReleasesRowQ);
+    context.queryClient.ensureQueryData(promotedPicksRowQ);
+    context.queryClient.ensureQueryData(recommendedRowQ);
+    context.queryClient.ensureQueryData(kingdomPicksRowQ);
     context.queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] });
     context.queryClient.ensureQueryData(highlightsQ);
   },
+
 
   head: () => ({
     meta: [
@@ -128,14 +135,21 @@ function Home() {
       </Suspense>
       <KingdomBibleAppBanner />
       <ContinueBrowsingRow />
-      <KingdomPicksRow />
-      <CategoriesSection />
 
       <Suspense fallback={null}>
-        <HomeContentRows />
+        <NewReleasesRow />
       </Suspense>
-      <HomeRowsDiagnostics />
+      <Suspense fallback={null}>
+        <PromotedPicksRow />
+      </Suspense>
+      <Suspense fallback={null}>
+        <RecommendedRow />
+      </Suspense>
+      <Suspense fallback={null}>
+        <KingdomPicksRow />
+      </Suspense>
 
+      <CategoriesSection />
 
       <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProducts />
@@ -148,6 +162,7 @@ function Home() {
     </MarketShell>
   );
 }
+
 
 function RefreshHighlightsBar() {
   const queryClient = useQueryClient();
