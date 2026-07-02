@@ -57,10 +57,21 @@ function toProduct(r: Row, sponsored = false): Product {
   };
 }
 
+export type RowSource = "specific" | "fallback" | "empty";
+export type HomeRowsDiagnostics = {
+  totalApproved: number;
+  featuredCount: number;
+  purchaseHistoryCount: number;
+  sources: { newReleases: RowSource; sponsored: RowSource; recommended: RowSource };
+  counts: { newReleases: number; sponsored: number; recommended: number };
+  generatedAt: string;
+};
+
 export type HomeRows = {
   newReleases: Product[];
   recommended: Product[];
   sponsored: Product[];
+  diagnostics: HomeRowsDiagnostics;
 };
 
 async function attachRatings(
