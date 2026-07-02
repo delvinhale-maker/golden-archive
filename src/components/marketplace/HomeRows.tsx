@@ -117,7 +117,10 @@ function Row({
               className="mt-1 flex items-center gap-2 font-display text-2xl font-bold md:text-3xl transition-colors duration-500"
               style={{ color: "var(--scheme-fg)" }}
             >
-              <Icon size={22} style={{ color: "var(--scheme-kicker)" }} /> {title}
+              <span style={{ color: "var(--scheme-kicker)", display: "inline-flex" }}>
+                <Icon size={22} />
+              </span>{" "}
+              {title}
             </h2>
           </div>
           <Link
