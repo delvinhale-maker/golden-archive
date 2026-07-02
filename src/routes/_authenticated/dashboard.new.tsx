@@ -13,6 +13,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { reviewProduct } from "@/lib/ai-review.functions";
 import { isListPriceValid } from "@/lib/publish-validation";
 import { PublishSuccessScreen as SuccessScreen } from "@/components/marketplace/PublishSuccessScreen";
+import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 
 const PUBLISH_STEP_ACCENTS: Record<1 | 2 | 3 | 4, string> = {
@@ -943,6 +944,7 @@ function PublishFlow() {
               uploadedCoverUrl={uploadedCoverUrl}
               uploadedFilePath={uploadedFilePath}
               uploadedFileMeta={uploadedFileMeta}
+              title={title}
             />
 
           )}
@@ -1211,9 +1213,12 @@ function StepContent(p: {
   uploadedCoverUrl: string | null;
   uploadedFilePath: string | null;
   uploadedFileMeta: { name: string; size: number } | null;
+  title: string;
 }) {
   const coverDone = !!p.uploadedCoverUrl && !p.coverUploading && !p.coverUploadError;
   const fileDone = !!p.uploadedFilePath && !p.fileUploading && !p.fileUploadError;
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const manuscriptPath = p.uploadedFilePath ?? p.existingFilePath;
   return (
     <div className="space-y-6">
       <h2 className="font-display text-2xl text-navy">Content & rights</h2>
@@ -1236,12 +1241,24 @@ function StepContent(p: {
         <h3 className="font-display text-lg text-navy mb-2">Manuscript</h3>
         <p className="text-xs text-mute mb-3">Accepted: PDF, EPUB, DOCX. Max {MAX_FILE_MB} MB.</p>
         {(fileDone && (p.uploadedFileMeta || p.file)) ? (
-          <UploadSuccess
-            iconLabel="manuscript"
-            name={p.uploadedFileMeta?.name ?? p.file?.name ?? "manuscript"}
-            size={p.uploadedFileMeta?.size ?? p.file?.size ?? 0}
-            onReplace={() => p.handleFileChange(null)}
-          />
+          <div className="space-y-2">
+            <UploadSuccess
+              iconLabel="manuscript"
+              name={p.uploadedFileMeta?.name ?? p.file?.name ?? "manuscript"}
+              size={p.uploadedFileMeta?.size ?? p.file?.size ?? 0}
+              onReplace={() => p.handleFileChange(null)}
+            />
+            {manuscriptPath && (
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5"
+                aria-label="Preview manuscript"
+              >
+                <Eye size={14} /> Preview
+              </button>
+            )}
+          </div>
         ) : (
           <FileInput
             file={p.file}
@@ -1335,6 +1352,14 @@ function StepContent(p: {
           </div>
         )}
       </div>
+      {previewOpen && manuscriptPath && (
+        <ManuscriptPreviewer
+          manuscriptPath={manuscriptPath}
+          title={p.title}
+          coverUrl={p.uploadedCoverUrl ?? p.existingCoverUrl ?? p.coverPreview}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -1814,6 +1839,7 @@ function PrePublishPreview(props: {
   const titleId = "prepublish-title";
   const descId = "prepublish-desc";
   const [openingManuscript, setOpeningManuscript] = useState(false);
+  const [previewerOpen, setPreviewerOpen] = useState(false);
 
   useEffect(() => {
     const prevOverflow = document.body.style.overflow;
@@ -1992,23 +2018,12 @@ function PrePublishPreview(props: {
               <div className="mt-1 break-all">{props.fileName ?? "No file uploaded"} · {sizeLabel}</div>
               <button
                 type="button"
-                disabled={!props.manuscriptPath || openingManuscript || props.submitting}
-                onClick={async () => {
-                  if (!props.manuscriptPath || openingManuscript) return;
-                  setOpeningManuscript(true);
-                  try {
-                    const { data, error } = await supabase.storage.from("product-files").createSignedUrl(props.manuscriptPath, 300);
-                    if (error || !data?.signedUrl) { toast.error("Could not open preview."); return; }
-                    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
-                  } finally {
-                    setOpeningManuscript(false);
-                  }
-                }}
+                disabled={!props.manuscriptPath || props.submitting}
+                onClick={() => { if (props.manuscriptPath) setPreviewerOpen(true); }}
                 className="mt-3 w-full h-10 rounded-full text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: props.accent.color }}
-                aria-busy={openingManuscript}
               >
-                {openingManuscript ? <><Loader2 size={14} className="animate-spin" /> Preparing preview…</> : <><Eye size={14} /> Preview Manuscript</>}
+                <Eye size={14} /> Preview Manuscript
               </button>
             </div>
           </div>
@@ -2167,6 +2182,14 @@ function PrePublishPreview(props: {
           </div>
         </div>
       </div>
+      {previewerOpen && props.manuscriptPath && (
+        <ManuscriptPreviewer
+          manuscriptPath={props.manuscriptPath}
+          title={props.title}
+          coverUrl={props.coverFullUrl ?? props.cover}
+          onClose={() => setPreviewerOpen(false)}
+        />
+      )}
     </div>
   );
 }
