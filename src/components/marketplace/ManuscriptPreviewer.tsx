@@ -645,7 +645,13 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         <label className="flex items-center gap-2">
           <span className="text-white/70">Contents</span>
           <select
-            value=""
+            value={
+              isEpub && location === 1
+                ? "cover"
+                : isEpub && epubCurrentToc != null
+                  ? `epub:${epubCurrentToc}`
+                  : ""
+            }
             onChange={(e) => {
               const v = e.target.value;
               if (!v) return;
