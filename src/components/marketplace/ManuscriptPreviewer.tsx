@@ -1098,7 +1098,18 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
               />
             )}
           </div>
+          {fontSize !== 3 && (
+            <button
+              type="button"
+              onClick={() => setFontSize(3)}
+              className="mt-3 mx-auto block rounded-full border border-[#d4af37] text-[#d4af37] text-xs px-3 py-1 hover:bg-[#d4af37]/10 transition"
+              aria-label="Reset zoom"
+            >
+              Reset ×
+            </button>
+          )}
         </div>
+
 
 
         {/* Next-page arrow — visually on the trailing edge (left in RTL, right otherwise) */}
