@@ -65,15 +65,22 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [notPdf, setNotPdf] = useState(false);
   const [docxHtml, setDocxHtml] = useState<string | null>(null);
   const [docxPageCount, setDocxPageCount] = useState(1);
+  const [epubReady, setEpubReady] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderTaskRef = useRef<any>(null);
   const touchStartX = useRef<number | null>(null);
   const docxInnerRef = useRef<HTMLDivElement>(null);
+  const epubContainerRef = useRef<HTMLDivElement>(null);
+  const epubBookRef = useRef<any>(null);
+  const epubRenditionRef = useRef<any>(null);
+  const epubTotalRef = useRef<number>(0);
+  const epubSyncingRef = useRef<boolean>(false);
 
   const ext = manuscriptPath.split(".").pop()?.toLowerCase() ?? "";
   const isPdf = ext === "pdf";
   const isDocx = ext === "docx";
+  const isEpub = ext === "epub";
 
   // Sign URL & load PDF
   useEffect(() => {
