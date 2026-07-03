@@ -128,9 +128,14 @@ function writeCart(items: CartItem[]) {
 }
 
 export function useCart() {
-  const [items, setItems] = useState<CartItem[]>(() => []);
+  // Read localStorage synchronously on first client render so the header
+  // badge, cart drawer, and any other consumer reflect actual contents on
+  // mount (SSR still returns []; the useEffect below reconciles).
+  const [items, setItems] = useState<CartItem[]>(() => readCart());
 
   useEffect(() => {
+    // Reconcile in case SSR rendered [] and localStorage has items, and
+    // subscribe to same-tab + cross-tab updates.
     setItems(readCart());
     const handler = () => setItems(readCart());
     window.addEventListener("av:storage:cart", handler);
