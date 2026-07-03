@@ -251,8 +251,16 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     })();
     return () => {
       cancelled = true;
+      if (epubRenditionRef.current) {
+        try { epubRenditionRef.current.destroy(); } catch { /* noop */ }
+        epubRenditionRef.current = null;
+      }
+      if (epubBookRef.current) {
+        try { epubBookRef.current.destroy(); } catch { /* noop */ }
+        epubBookRef.current = null;
+      }
     };
-  }, [manuscriptPath, isPdf, isDocx]);
+  }, [manuscriptPath, isPdf, isDocx, isEpub]);
 
   const dev = DEVICES[device];
   const pageAreaW = dev.w - dev.pad * 2;
