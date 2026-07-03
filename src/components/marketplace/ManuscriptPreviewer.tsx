@@ -74,6 +74,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [attempt, setAttempt] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const scrollFrameRef = useRef<HTMLDivElement>(null);
   const renderTaskRef = useRef<any>(null);
   const touchStartX = useRef<number | null>(null);
   const docxInnerRef = useRef<HTMLDivElement>(null);
@@ -83,6 +84,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const epubTotalRef = useRef<number>(0);
   const epubSyncingRef = useRef<boolean>(false);
   const epubTocRef = useRef<EpubTocEntry[]>([]);
+
 
   // Robust extension detection:
   // - Blob URLs from the upload picker append a `#.docx|pdf|epub` marker; honor it first.
@@ -578,9 +580,17 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       const ctx = off.getContext("2d");
       if (!ctx) return null;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Kindle mode: fill the canvas with sepia BEFORE rendering so
+      // transparent PDF backgrounds pick up the paper tint instead of
+      // punching through as white.
+      if (deviceKey === "kindle") {
+        ctx.fillStyle = "#f4ecd8";
+        ctx.fillRect(0, 0, viewport.width, viewport.height);
+      }
       await page.render({ canvasContext: ctx, viewport }).promise;
       cacheSet(key, off);
       return off;
+
     },
     [pdf, cacheGet, cacheSet],
   );
@@ -660,6 +670,14 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   );
 
   useEffect(() => { setLocationInput(String(location)); }, [location]);
+
+  // Reset scroll to top on every page change so users start reading from
+  // the beginning of the new page, not wherever they left off on the last.
+  useEffect(() => {
+    const el = scrollFrameRef.current;
+    if (el) el.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  }, [location]);
+
 
   // Keyboard nav
   useEffect(() => {
@@ -932,18 +950,21 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             onTouchEnd={onTouchEnd}
           >
             <div
+              ref={scrollFrameRef}
               className={`relative ${dev.page} w-full h-full flex items-center justify-center device-frame-inner`}
               style={{
                 background: location === 1 ? "transparent" : dev.bg,
                 overflowY: "auto",
                 overflowX: "hidden",
                 WebkitOverflowScrolling: "touch",
+                scrollBehavior: "smooth",
               }}
             >
               <div
                 key={location}
                 className={`w-full min-h-full flex items-center justify-center ${slideAnim}`}
               >
+
 
               {loading ? (
                 <div className="flex flex-col items-center gap-3 text-black/60 px-6 text-center max-w-xs">
@@ -1066,7 +1087,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   </a>
                 </div>
               ) : (
-                <canvas ref={canvasRef} className="block max-w-full max-h-full" />
+                <canvas ref={canvasRef} className="block max-w-full" />
               )}
             </div>
           </div>
@@ -1077,7 +1098,18 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
               />
             )}
           </div>
+          {fontSize !== 3 && (
+            <button
+              type="button"
+              onClick={() => setFontSize(3)}
+              className="mt-3 mx-auto block rounded-full border border-[#d4af37] text-[#d4af37] text-xs px-3 py-1 hover:bg-[#d4af37]/10 transition"
+              aria-label="Reset zoom"
+            >
+              Reset ×
+            </button>
+          )}
         </div>
+
 
 
         {/* Next-page arrow — visually on the trailing edge (left in RTL, right otherwise) */}
