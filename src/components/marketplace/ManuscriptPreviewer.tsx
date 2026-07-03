@@ -274,9 +274,15 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
           } catch (epubErr: any) {
             console.error("[ManuscriptPreviewer] epub", epubErr);
             if (!cancelled) {
-              setError(
-                "We couldn't preview this EPUB. It may be corrupted or use unsupported features. You can still open the original file in a new tab.",
-              );
+              setError({
+                title: "We couldn't preview this EPUB.",
+                steps: [
+                  "Tap Try again — a network hiccup can prevent the file from loading.",
+                  "Re-export the EPUB from your source tool (EPUB 3 is best supported).",
+                  "Check for DRM — protected EPUBs can't be rendered in the browser.",
+                  "If it still fails, open the original file to view it.",
+                ],
+              });
               setLoading(false);
             }
           }
