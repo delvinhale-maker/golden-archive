@@ -74,6 +74,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [attempt, setAttempt] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const scrollFrameRef = useRef<HTMLDivElement>(null);
   const renderTaskRef = useRef<any>(null);
   const touchStartX = useRef<number | null>(null);
   const docxInnerRef = useRef<HTMLDivElement>(null);
@@ -83,6 +84,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const epubTotalRef = useRef<number>(0);
   const epubSyncingRef = useRef<boolean>(false);
   const epubTocRef = useRef<EpubTocEntry[]>([]);
+
 
   // Robust extension detection:
   // - Blob URLs from the upload picker append a `#.docx|pdf|epub` marker; honor it first.
