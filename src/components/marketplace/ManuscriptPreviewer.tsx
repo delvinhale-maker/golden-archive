@@ -672,23 +672,97 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     };
   }, [goTo, location, onClose, isRTL]);
 
-  const onTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const pinchStartRef = useRef<{ dist: number; startFont: number } | null>(null);
+  const lastTapRef = useRef<number>(0);
+
+  const nearestFontStep = useCallback((zoom: number) => {
+    let best = 3;
+    let diff = Infinity;
+    for (const k of [1, 2, 3, 4, 5]) {
+      const d = Math.abs(zoom - FONT_SCALES[k]);
+      if (d < diff) { diff = d; best = k; }
+    }
+    return best;
+  }, []);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchStartRef.current = { dist: Math.hypot(dx, dy) || 1, startFont: fontSize };
+      touchStartX.current = null;
+      return;
+    }
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      setFontSize((f) => (f >= 5 ? 3 : 5));
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
+    }
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && pinchStartRef.current) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const newDist = Math.hypot(dx, dy);
+      const ratio = newDist / pinchStartRef.current.dist;
+      const startScale = FONT_SCALES[pinchStartRef.current.startFont] ?? 1;
+      const target = Math.min(Math.max(startScale * ratio, 0.6), 2.5);
+      const step = nearestFontStep(target);
+      if (step !== fontSize) setFontSize(step);
+    }
+  };
+
   const onTouchEnd = (e: React.TouchEvent) => {
+    if (pinchStartRef.current) {
+      pinchStartRef.current = null;
+      return;
+    }
     if (touchStartX.current == null) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     if (Math.abs(dx) > 50) {
-      // In RTL, swipe right = next, swipe left = previous.
       const forward = isRTL ? dx > 0 : dx < 0;
       goTo(location + (forward ? 1 : -1));
     }
     touchStartX.current = null;
   };
 
+  // Scale the whole device frame down on narrow viewports so it always fits.
+  const [frameScale, setFrameScale] = useState(1);
+  useEffect(() => {
+    const compute = () => {
+      const vw = window.innerWidth;
+      const avail = vw - 32;
+      if (dev.w > avail) setFrameScale(Math.max(0.5, avail / dev.w));
+      else setFrameScale(1);
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, [dev.w]);
+
+  // Current chapter for header (PDF outline or EPUB toc).
+  const currentChapter = useMemo(() => {
+    if (isEpub && epubCurrentToc != null) return epubToc[epubCurrentToc]?.title ?? null;
+    if (outline.length && location > 1) {
+      let last: string | null = null;
+      for (const o of outline) {
+        if (o.pageIndex <= location) last = o.title;
+        else break;
+      }
+      return last;
+    }
+    return null;
+  }, [isEpub, epubCurrentToc, epubToc, outline, location]);
 
   const slideAnim = useMemo(() => {
     if (!slideDir) return "";
     return slideDir === "left" ? "av-slide-left" : "av-slide-right";
   }, [slideDir]);
+
 
   const commitLocation = () => {
     const n = parseInt(locationInput, 10);
