@@ -130,13 +130,16 @@ async def read_font_step(page) -> int:
 async def open_previewer(browser: Browser):
     ctx = await browser.new_context(**MOBILE_CTX)
     page = await ctx.new_page()
-    # Open with ?url= so the preview mounts immediately (no picker).
-    await page.goto(f"{BASE}?url={SAMPLE_URL}", wait_until="domcontentloaded")
-    # Wait for the touch surface to be present.
-    await page.locator('[data-testid="previewer-touch"]').first.wait_for(timeout=8000)
-    # Give the renderer a beat to hydrate handlers.
+    await page.goto(BASE, wait_until="domcontentloaded")
+    # Load the bundled PDF sample via the picker (the ?url= query is
+    # validated server-side and can race with hydration — the sample
+    # button is the deterministic path).
+    await page.get_by_role("button", name="PDF", exact=True).first.click()
+    await page.locator('[data-testid="previewer-touch"]').first.wait_for(timeout=15000)
+    await page.locator('select[aria-label="Font size"]').first.wait_for(timeout=5000)
     await page.wait_for_timeout(400)
     return ctx, page
+
 
 
 async def run_pinch(page, start: float, end: float, steps: int = 12) -> None:
