@@ -397,39 +397,122 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const pageAreaW = dev.w - dev.pad * 2;
   const pageAreaH = dev.h - dev.pad * 2;
 
-  // Measure DOCX HTML pages whenever html, font size, or device area changes.
-  // Walk block-level children and group them into pages so a page break never
-  // lands in the middle of a paragraph or image. A block taller than the page
-  // area gets its own page (and is allowed to scroll within the frame).
-  useLayoutEffect(() => {
-    if (!isDocx || !docxHtml) return;
+  // DOCX vertical padding: 24px top + 24px bottom. Images must never exceed the
+  // content box height minus this padding so they stay fully inside the page.
+  const DOCX_PAD_V = 48;
+
+  // Measure DOCX HTML pages from the hidden measurement node. Walks block-level
+  // children and groups them into pages so a page break never lands in the
+  // middle of a paragraph or image. A block taller than the page area gets its
+  // own page (and is allowed to scroll within the frame).
+  const measureDocxPages = useCallback(() => {
     const el = docxInnerRef.current;
     if (!el) return;
-    const raf = requestAnimationFrame(() => {
-      const kids = Array.from(el.children) as HTMLElement[];
-      const containerTop = el.getBoundingClientRect().top;
-      const offsets: number[] = [0];
-      let pageStart = 0;
-      for (const kid of kids) {
-        const rect = kid.getBoundingClientRect();
-        const top = rect.top - containerTop;
-        const bottom = top + rect.height;
-        // If adding this block would overflow the current page, start a new
-        // page at this block's top — unless the page is empty (block is
-        // taller than the frame; keep it on its own page).
-        if (bottom - pageStart > pageAreaH && top > pageStart) {
-          pageStart = top;
-          offsets.push(pageStart);
+    const kids = Array.from(el.children) as HTMLElement[];
+    const containerTop = el.getBoundingClientRect().top;
+    const offsets: number[] = [0];
+    let pageStart = 0;
+    for (const kid of kids) {
+      const rect = kid.getBoundingClientRect();
+      const top = rect.top - containerTop;
+      const bottom = top + rect.height;
+      // If adding this block would overflow the current page, start a new
+      // page at this block's top — unless the page is empty (block is
+      // taller than the frame; keep it on its own page).
+      if (bottom - pageStart > pageAreaH && top > pageStart) {
+        pageStart = top;
+        offsets.push(pageStart);
+      }
+    }
+    // Fallback: if no children were measured, keep single page.
+    if (offsets.length === 0) offsets.push(0);
+    setDocxPageOffsets(offsets);
+    setDocxPageCount(offsets.length);
+    setPageCount(offsets.length + 1);
+  }, [pageAreaH]);
+
+  // Layout guard: constrain every DOCX image so it fits inside the page content
+  // height minus vertical padding. Runs against the measurement node (which
+  // drives pagination) and the visible rendered node. A ResizeObserver catches
+  // images that load asynchronously and re-applies the guard + re-measures pages.
+  useLayoutEffect(() => {
+    if (!isDocx || !docxHtml) return;
+    const maxH = Math.max(0, pageAreaH - DOCX_PAD_V);
+    let ro: ResizeObserver | undefined;
+    let raf: number;
+
+    const guardImages = () => {
+      const roots = [
+        docxInnerRef.current,
+        document.querySelector('[data-testid="previewer-scroll"] .av-docx'),
+      ].filter((el): el is HTMLElement => el instanceof HTMLElement);
+      const images = roots.flatMap((root) => Array.from(root.querySelectorAll('img')));
+      let changed = false;
+      for (const img of images) {
+        const rect = img.getBoundingClientRect();
+        if (rect.height > maxH + 0.5) {
+          img.style.maxHeight = `${maxH}px`;
+          img.style.height = 'auto';
+          img.style.objectFit = 'contain';
+          changed = true;
         }
       }
-      // Fallback: if no children were measured, keep single page.
-      if (offsets.length === 0) offsets.push(0);
-      setDocxPageOffsets(offsets);
-      setDocxPageCount(offsets.length);
-      setPageCount(offsets.length + 1);
-    });
+      return changed;
+    };
+
+    const run = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const changed = guardImages();
+        measureDocxPages();
+        // If an image was constrained, it may have changed the page layout, so
+        // re-measure once more after the browser paints the constrained size.
+        if (changed) {
+          raf = requestAnimationFrame(() => measureDocxPages());
+        }
+      });
+    };
+
+    run();
+
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver((entries) => {
+        let needsGuard = false;
+        for (const entry of entries) {
+          if (entry.contentRect.height > maxH + 0.5) {
+            needsGuard = true;
+            break;
+          }
+        }
+        if (needsGuard) run();
+      });
+      // Observe images in both roots so async loads are caught wherever they
+      // appear.
+      const refreshObserver = () => {
+        ro?.disconnect();
+        const roots = [
+          docxInnerRef.current,
+          document.querySelector('[data-testid="previewer-scroll"] .av-docx'),
+        ].filter((el): el is HTMLElement => el instanceof HTMLElement);
+        for (const root of roots) {
+          for (const img of root.querySelectorAll('img')) {
+            ro?.observe(img);
+          }
+        }
+      };
+      refreshObserver();
+      // Re-attach observer when location changes the visible DOM.
+      const interval = window.setInterval(refreshObserver, 500);
+      return () => {
+        cancelAnimationFrame(raf);
+        window.clearInterval(interval);
+        ro?.disconnect();
+      };
+    }
+
     return () => cancelAnimationFrame(raf);
-  }, [isDocx, docxHtml, fontSize, device, pageAreaH, pageAreaW]);
+  }, [isDocx, docxHtml, fontSize, device, pageAreaH, pageAreaW, measureDocxPages]);
+
 
   // Mount / remount the EPUB rendition when it's ready or the frame size changes.
   useEffect(() => {
