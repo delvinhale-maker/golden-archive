@@ -427,13 +427,11 @@ function BookshelfPage() {
       <ConfirmDialog
         state={confirmState}
         busy={!!confirmState && busyId === confirmState.product.id}
-        onCancel={() => setConfirmState(null)}
+        verifyState={verifyState}
+        onCancel={handleCancel}
         onConfirm={handleConfirm}
-        onStepBack={() =>
-          confirmState?.kind === "delete2"
-            ? setConfirmState({ kind: "delete1", product: confirmState.product })
-            : setConfirmState(null)
-        }
+        onStepBack={handleStepBack}
+        onRetryVerify={handleRetryVerify}
       />
 
     </PublisherShell>
