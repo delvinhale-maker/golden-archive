@@ -727,18 +727,21 @@ function busyLabel(kind: ConfirmKind) {
 }
 
 function ConfirmDialog({
-
   state,
   busy = false,
+  verifyState,
   onCancel,
   onConfirm,
   onStepBack,
+  onRetryVerify,
 }: {
   state: { kind: ConfirmKind; product: Product } | null;
   busy?: boolean;
+  verifyState?: { id: string; verifying: boolean; error: string | null } | null;
   onCancel: () => void;
   onConfirm: () => void;
   onStepBack: () => void;
+  onRetryVerify?: () => void;
 }) {
 
   const [typed, setTyped] = useState("");
