@@ -1201,21 +1201,31 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   style={{ width: pageAreaW, height: pageAreaH, overflow: "hidden", position: "relative" }}
                 >
                   <div
-                    className="av-docx text-black"
                     style={{
                       width: pageAreaW,
-                      padding: "24px 22px",
-                      fontSize: `${16 * (FONT_SCALES[fontSize] ?? 1)}px`,
-                      lineHeight: 1.5,
-                      transform: `translateY(-${docxPageOffsets[Math.min(location - 2, docxPageOffsets.length - 1)] ?? 0}px)`,
-                      transition: "transform 150ms ease",
-                      boxSizing: "border-box",
-                      wordWrap: "break-word",
-                      ["--av-docx-img-max-h" as any]: `${Math.max(0, pageAreaH - DOCX_PAD_V)}px`,
+                      height: docxPageHeights[Math.min(location - 2, docxPageHeights.length - 1)] ?? pageAreaH,
+                      overflow: "hidden",
+                      position: "relative",
                     }}
-                    dangerouslySetInnerHTML={{ __html: docxHtml }}
-                  />
+                  >
+                    <div
+                      className="av-docx text-black"
+                      style={{
+                        width: pageAreaW,
+                        padding: "24px 22px",
+                        fontSize: `${16 * (FONT_SCALES[fontSize] ?? 1)}px`,
+                        lineHeight: 1.5,
+                        transform: `translateY(-${docxPageOffsets[Math.min(location - 2, docxPageOffsets.length - 1)] ?? 0}px)`,
+                        transition: "transform 150ms ease",
+                        boxSizing: "border-box",
+                        wordWrap: "break-word",
+                        ["--av-docx-img-max-h" as any]: `${Math.max(0, pageAreaH - DOCX_PAD_V)}px`,
+                      }}
+                      dangerouslySetInnerHTML={{ __html: docxHtml }}
+                    />
+                  </div>
                 </div>
+
 
               ) : isEpub ? (
 
