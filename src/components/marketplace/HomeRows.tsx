@@ -229,7 +229,7 @@ export function HomeContentRows() {
       />
       <Row
         icon={Megaphone}
-        kicker="SPONSORED — ILLUSTRIOUS CAPITAL™"
+        kicker="SPONSORED — AURUMVAULT"
         title="Promoted Picks"
         products={data.sponsored}
         scheme="lightCream"

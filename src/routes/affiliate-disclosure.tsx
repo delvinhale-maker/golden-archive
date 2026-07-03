@@ -9,7 +9,7 @@ export const Route = createFileRoute("/affiliate-disclosure")({
       {
         name: "description",
         content:
-          "AurumVault and Illustrious Capital™ participate in affiliate programs including Amazon Associates and the Walmart Affiliate Program.",
+          "AurumVault participates in affiliate programs including Amazon Associates and the Walmart Affiliate Program.",
       },
       { property: "og:title", content: "Affiliate Disclosure — AurumVault" },
     ],
@@ -29,8 +29,8 @@ function AffiliateDisclosurePage() {
         </h1>
         <div className="prose mt-6 max-w-none text-ink/85">
           <p className="text-lg leading-relaxed">
-            Illustrious Capital™ and AurumVault participate in affiliate
-            programs including <strong>Amazon Associates</strong> and the{" "}
+            AurumVault participates in affiliate programs including{" "}
+            <strong>Amazon Associates</strong> and the{" "}
             <strong>Walmart Affiliate Program</strong>. We earn commissions on
             qualifying purchases made through links on this site. This does not
             affect the price you pay and helps us continue building

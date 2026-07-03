@@ -53,7 +53,7 @@ function toProduct(r: Row, sponsored = false): Product {
         ? r.cover_url
         : `av:${cat}:0`,
     bestseller: sponsored,
-    creator: { id: r.seller_id, name: "Illustrious Capital™", verified: true },
+    creator: { id: r.seller_id, name: "AurumVault", verified: true },
   };
 }
 

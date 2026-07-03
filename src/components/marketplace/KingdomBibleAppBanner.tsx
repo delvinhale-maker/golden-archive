@@ -16,7 +16,7 @@ export function KingdomBibleAppBanner() {
             </div>
             <div className="text-center md:text-left">
               <div className="text-[10px] font-bold uppercase tracking-caps text-gold/80">
-                👑 Also by Illustrious Capital™
+                👑 Also by AurumVault
               </div>
               <div className="font-display text-lg font-bold text-gold md:text-xl">
                 Kingdom Bible App

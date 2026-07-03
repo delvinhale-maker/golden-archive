@@ -21,13 +21,13 @@ type Slide = {
 };
 
 const DEFAULT_HERO_SLIDE: Slide = {
-  kicker: "FEATURED — ILLUSTRIOUS CAPITAL™",
+  kicker: "FEATURED — AURUMVAULT",
   title: (
     <>
       Renew your mind. <span className="gold-gradient">Kingdom Mind</span> is here.
     </>
   ),
-  body: "A purpose-driven eBook from Illustrious Capital™ — built to elevate operators, leaders, and creators walking in their calling.",
+  body: "A purpose-driven eBook from AurumVault — built to elevate operators, leaders, and creators walking in their calling.",
   ctaLabel: "Shop Now →",
   ctaTo: "/products",
   secondaryLabel: "Browse Categories →",

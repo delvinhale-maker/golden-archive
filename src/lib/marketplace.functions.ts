@@ -39,7 +39,7 @@ type DbProductRow = {
   ai_review_score: number | null;
 };
 
-function dbRowToProduct(r: DbProductRow, sellerName = "Illustrious Capital™"): Product {
+function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
   const catLabel = CAT_LABEL[r.category?.toLowerCase()] ?? r.category ?? "eBooks";
   const compareAt =
     r.compare_at_price_cents != null && r.compare_at_price_cents > r.price_cents

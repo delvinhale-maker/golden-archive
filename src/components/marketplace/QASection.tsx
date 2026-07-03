@@ -149,7 +149,7 @@ function QACard({
               <span className="font-semibold text-ink">{q.answerer_name}</span>
               {q.answered_by_admin && (
                 <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold">
-                  <BadgeCheck size={11} /> Illustrious Capital™
+                  <BadgeCheck size={11} /> AurumVault
                 </span>
               )}
               {q.answered_at && (
@@ -201,7 +201,7 @@ function QACard({
               onClick={() => setAnswering(true)}
               className="text-xs font-semibold text-gold hover:underline"
             >
-              + Answer as Illustrious Capital™
+              + Answer as AurumVault
             </button>
           )}
         </div>

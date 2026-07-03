@@ -232,7 +232,7 @@ function ContactPage() {
         <div className="mt-10 rounded-2xl bg-navy p-6 text-white md:p-8">
           <p className="font-display text-xl">Mailing address</p>
           <p className="mt-2 text-sm text-white/70">
-            AurumVault, c/o Illustrious Capital™
+            AurumVault
             <br />
             All correspondence: support@aurumvault.store
           </p>

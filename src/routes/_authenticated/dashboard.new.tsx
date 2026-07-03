@@ -116,7 +116,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
   // Step 1
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
-  const [author, setAuthor] = useState("Illustrious Capital™");
+  const [author, setAuthor] = useState("Delvin Hale");
   const [seriesName, setSeriesName] = useState("");
   const [edition, setEdition] = useState("");
   const [description, setDescription] = useState("");
@@ -362,7 +362,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
       }
       setTitle(data.title ?? "");
       setSubtitle(data.subtitle ?? "");
-      setAuthor(data.creator_name ?? "Illustrious Capital™");
+      setAuthor(data.creator_name ?? "Delvin Hale");
       setDescription(data.description ?? "");
       setLanguage(data.language ?? "English");
       setCategory((data.category as typeof CATEGORIES[number]["value"]) ?? "ebooks");

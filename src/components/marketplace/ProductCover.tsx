@@ -412,7 +412,7 @@ function FinanceCover({
         </text>
       </g>
       <text x="30" y="275" fill="rgba(255,255,255,0.55)" fontSize="9" letterSpacing="3">
-        ILLUSTRIOUS CAPITAL™
+        AURUMVAULT
       </text>
     </g>
   );

@@ -99,14 +99,14 @@ export const Route = createFileRoute("/products/$id")({
           name: p.title,
           description: rawDesc,
           image: [absImage],
-          brand: { "@type": "Brand", name: "Illustrious Capital™" },
+          brand: { "@type": "Brand", name: "AurumVault" },
           offers: {
             "@type": "Offer",
             url,
             priceCurrency: "USD",
             price: Number(p.price).toFixed(2),
             availability: "https://schema.org/InStock",
-            seller: { "@type": "Organization", name: "Illustrious Capital™" },
+            seller: { "@type": "Organization", name: "AurumVault" },
           },
           aggregateRating: {
             "@type": "AggregateRating",

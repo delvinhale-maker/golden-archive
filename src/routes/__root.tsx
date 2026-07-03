@@ -85,17 +85,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#0F1E35" },
       { name: "robots", content: "index, follow" },
       { name: "google-site-verification", content: "TZD7DBctq42sAIhH5gDz3cusg5R4yPL7fAaARnOxEG8" },
-      { name: "author", content: "Illustrious Capital™" },
+      { name: "author", content: "AurumVault" },
       {
         name: "keywords",
         content:
-          "digital products, ebooks, Kingdom resources, faith-based books, purpose-driven, Illustrious Capital",
+          "digital products, ebooks, Kingdom resources, faith-based books, purpose-driven, AurumVault",
       },
       { title: "AurumVault — Gold Standard Digital Commerce" },
       {
         name: "description",
         content:
-          "Discover premium eBooks, courses, templates, and digital resources from verified purpose-driven creators. Powered by Illustrious Capital™.",
+          "Discover premium eBooks, courses, templates, and digital resources from verified purpose-driven creators on AurumVault.",
       },
       { property: "og:site_name", content: "AurumVault" },
       { property: "og:type", content: "website" },
@@ -107,9 +107,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:url", content: "https://www.aurumvault.store" },
       { property: "og:image", content: "https://www.aurumvault.store/og-image.png" },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "AurumVault — Gold Standard Digital Commerce" },
+      { property: "og:image:width", content: "1024" },
+      { property: "og:image:height", content: "1024" },
+      { property: "og:image:alt", content: "AurumVault seal — gold crown and keys on a black medallion." },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@AurumVault" },
       { name: "twitter:title", content: "AurumVault — Gold Standard Digital Commerce" },
@@ -122,6 +122,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "apple-touch-icon", href: "/favicon-180.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -153,10 +155,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
                 representativeOfPage: true,
               },
               slogan: "Gold Standard Digital Commerce",
-              parentOrganization: {
-                "@type": "Organization",
-                name: "Illustrious Capital",
-              },
               sameAs: [
                 "https://x.com/AurumVault",
                 "https://twitter.com/AurumVault",

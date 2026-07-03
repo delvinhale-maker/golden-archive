@@ -73,7 +73,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Discover premium eBooks, courses, templates, and digital resources from verified purpose-driven creators. Powered by Illustrious Capital™.",
+          "Discover premium eBooks, courses, templates, and digital resources from verified purpose-driven creators on AurumVault.",
       },
       { property: "og:title", content: "AurumVault — Gold Standard Digital Commerce" },
       {
@@ -97,11 +97,11 @@ export const Route = createFileRoute("/")({
           "@context": "https://schema.org",
           "@type": "Organization",
           name: "AurumVault",
-          alternateName: "Illustrious Capital™",
+          alternateName: "Aurum Vault",
           url: "https://www.aurumvault.store",
-          logo: "https://www.aurumvault.store/logo.png",
+          logo: "https://www.aurumvault.store/og-image.png",
           description:
-            "AurumVault is the gold-standard marketplace for purpose-driven digital products — curated from verified creators and powered by Illustrious Capital™.",
+            "AurumVault is the gold-standard marketplace for purpose-driven digital products — curated from verified creators.",
           sameAs: [],
         }),
       },
@@ -178,7 +178,7 @@ function RefreshHighlightsBar() {
             queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] })
           }
           disabled={isFetching}
-          aria-label="Refresh hero product and Illustrious Capital count"
+          aria-label="Refresh hero product and AurumVault Originals count"
           className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-white px-3 text-[11px] font-semibold tracking-caps text-navy transition hover:border-gold hover:text-gold disabled:opacity-60"
         >
           <RefreshCw
@@ -554,7 +554,7 @@ function IllustriousCreator() {
   return (
     <section className="bg-bg-page py-16 md:py-24" aria-busy={isFetching}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <SectionHeader kicker="OUR FOUNDING PUBLISHER" title="Illustrious Capital™" />
+        <SectionHeader kicker="OUR ORIGINALS" title="AurumVault Originals" />
         {isFetching && (
           <div className="mb-4 text-center text-[11px] font-semibold tracking-caps text-mute" aria-live="polite">
             Refreshing…
@@ -578,14 +578,18 @@ function IllustriousCreator() {
             />
             <div className="px-6 pb-6">
               <div
-                className="-mt-8 grid h-16 w-16 place-items-center rounded-full border-[3px] border-white bg-navy text-gold font-display text-xl font-bold"
+                className="-mt-8 grid h-16 w-16 place-items-center overflow-hidden rounded-full border-[3px] border-white bg-navy"
                 aria-hidden
               >
-                IC
+                <img
+                  src="/og-image.png"
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
               </div>
               <div className="mt-3 flex items-center gap-1.5">
                 <div className="font-display text-lg font-bold text-white">
-                  Illustrious Capital™
+                  AurumVault Originals
                 </div>
                 <BadgeCheck size={16} className="text-emerald" />
               </div>
