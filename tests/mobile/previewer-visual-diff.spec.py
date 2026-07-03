@@ -82,14 +82,19 @@ async def set_device(page, value: str) -> None:
     sel = page.locator('select[aria-label="Device"]').first
     await sel.scroll_into_view_if_needed()
     await sel.select_option(value, force=True)
-    await page.wait_for_timeout(500)
+    # The device switch remounts the frame with a 150ms transform
+    # transition on the cover. Wait past the transition AND one animation
+    # frame so the pixel buffer is stable.
+    await page.wait_for_timeout(1000)
 
 
 async def goto_location(page, loc: int) -> None:
     inp = page.locator('input[aria-label="Current location"]').first
     await inp.fill(str(loc))
     await inp.press("Enter")
-    await page.wait_for_timeout(700)
+    # PDF.js rasterisation + any CSS transitions on the cover.
+    await page.wait_for_timeout(1000)
+
 
 
 def diff_ratio(a_path: Path, b_path: Path, out_path: Path) -> float:
