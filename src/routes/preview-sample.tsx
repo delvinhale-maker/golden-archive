@@ -170,13 +170,15 @@ function PreviewSamplePage() {
   };
 
 
-  const useBundledSample = () => {
-    setManuscriptPath(
-      typeof window !== "undefined"
-        ? `${window.location.origin}${SAMPLE_URL}`
-        : SAMPLE_URL,
-    );
-    setManuscriptTitle("Sample Manuscript");
+  const loadSample = (sample: (typeof SAMPLES)[number]) => {
+    // Revoke any previous blob URL so switching from an upload → sample doesn't leak.
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+    const base = typeof window !== "undefined" ? window.location.origin : "";
+    setManuscriptPath(`${base}${sample.path}`);
+    setManuscriptTitle(`Sample ${sample.label}`);
     setShowPicker(false);
   };
 
