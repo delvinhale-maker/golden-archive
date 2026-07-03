@@ -131,16 +131,49 @@ function BookshelfPage() {
     return c;
   }, [products]);
 
+  async function verifyUnpublished(productId: string): Promise<boolean> {
+    // Poll: row.published must be false AND product must NOT appear in a
+    // storefront-scoped query, confirming it's gone from the public catalog.
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const [{ data: row }, { data: storefront }] = await Promise.all([
+        supabase
+          .from("marketplace_products")
+          .select("id, published")
+          .eq("id", productId)
+          .maybeSingle(),
+        supabase
+          .from("marketplace_products")
+          .select("id")
+          .eq("id", productId)
+          .eq("published", true)
+          .eq("status", "approved")
+          .maybeSingle(),
+      ]);
+      if (row && row.published === false && !storefront) return true;
+      await new Promise((r) => setTimeout(r, 400 + attempt * 250));
+    }
+    return false;
+  }
+
   async function unpublish(product: Product) {
     setBusyId(product.id);
     const { error } = await supabase
       .from("marketplace_products")
       .update({ published: false })
       .eq("id", product.id);
+    if (error) {
+      setBusyId(null);
+      return toast.error(error.message);
+    }
+    const ok = await verifyUnpublished(product.id);
     setBusyId(null);
-    if (error) return toast.error(error.message);
+    if (!ok) {
+      return toast.error(
+        `${product.title} update didn't propagate to the storefront. Please refresh and try again.`,
+      );
+    }
     setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, published: false } : p)));
-    toast.success(`${product.title} has been unpublished. You can republish from your Bookshelf.`);
+    toast.success(`${product.title} is removed from the storefront. You can republish anytime.`);
   }
 
   async function republish(product: Product) {
