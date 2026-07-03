@@ -516,6 +516,26 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                     No cover uploaded
                   </div>
                 )
+              ) : isDocx && docxHtml ? (
+                <div
+                  style={{ width: pageAreaW, height: pageAreaH, overflow: "hidden", position: "relative" }}
+                >
+                  <div
+                    ref={docxInnerRef}
+                    className="text-black"
+                    style={{
+                      width: pageAreaW,
+                      padding: "8px 12px",
+                      fontSize: `${16 * (FONT_SCALES[fontSize] ?? 1)}px`,
+                      lineHeight: 1.5,
+                      transform: `translateY(-${(location - 2) * pageAreaH}px)`,
+                      transition: "transform 150ms ease",
+                      boxSizing: "border-box",
+                      wordWrap: "break-word",
+                    }}
+                    dangerouslySetInnerHTML={{ __html: docxHtml }}
+                  />
+                </div>
               ) : notPdf ? (
                 <div className="text-center px-6 text-black/70 text-sm">
                   <p className="font-semibold mb-2">
