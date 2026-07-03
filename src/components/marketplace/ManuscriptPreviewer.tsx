@@ -1107,13 +1107,14 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                     className="av-docx text-black"
                     style={{
                       width: pageAreaW,
-                      padding: "8px 12px",
+                      padding: "24px 22px",
                       fontSize: `${16 * (FONT_SCALES[fontSize] ?? 1)}px`,
                       lineHeight: 1.5,
                       transform: `translateY(-${docxPageOffsets[Math.min(location - 2, docxPageOffsets.length - 1)] ?? 0}px)`,
                       transition: "transform 150ms ease",
                       boxSizing: "border-box",
                       wordWrap: "break-word",
+                      ["--av-docx-page-h" as any]: `${pageAreaH}px`,
                     }}
                     dangerouslySetInnerHTML={{ __html: docxHtml }}
                   />
@@ -1199,11 +1200,12 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             className="av-docx"
             style={{
               width: pageAreaW,
-              padding: "8px 12px",
+              padding: "24px 22px",
               fontSize: `${16 * (FONT_SCALES[fontSize] ?? 1)}px`,
               lineHeight: 1.5,
               boxSizing: "border-box",
               wordWrap: "break-word",
+              ["--av-docx-page-h" as any]: `${pageAreaH}px`,
             }}
             dangerouslySetInnerHTML={{ __html: docxHtml }}
           />
@@ -1218,7 +1220,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         .av-slide-right { animation: av-slide-right-kf 150ms ease }
         /* Keep DOCX images flush with the text column: same left/right edges,
            never wider than the paragraph, no inherited margins from Word. */
-        .av-docx img { display: block; max-width: 100%; height: auto; margin: 12px 0; }
+        .av-docx img { display: block; max-width: 100%; height: auto; max-height: calc(var(--av-docx-page-h, 100%) - 48px); object-fit: contain; margin: 12px auto; }
         .av-docx figure { margin: 12px 0; }
         .av-docx p, .av-docx h1, .av-docx h2, .av-docx h3, .av-docx h4, .av-docx ul, .av-docx ol, .av-docx blockquote { margin-left: 0; margin-right: 0; }
         .av-docx table { max-width: 100%; }
