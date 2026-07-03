@@ -165,8 +165,11 @@ def assert_fits_and_centered(m: dict, label: str) -> None:
 
 async def main() -> None:
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        engine = getattr(pw, BROWSER)
+        browser = await engine.launch(headless=True)
+        print(f"Running canvas-fit checks on {BROWSER}")
         ctx, page = await open_previewer(browser)
+
         try:
             for value, label in DEVICES:
                 await set_device(page, value)
