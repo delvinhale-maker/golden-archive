@@ -280,6 +280,90 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     });
   }, [isDocx, docxHtml, fontSize, device, pageAreaH]);
 
+  // Mount / remount the EPUB rendition when it's ready or the frame size changes.
+  useEffect(() => {
+    if (!isEpub || !epubReady) return;
+    const book = epubBookRef.current;
+    const container = epubContainerRef.current;
+    if (!book || !container) return;
+
+    // Tear down any previous rendition.
+    if (epubRenditionRef.current) {
+      try { epubRenditionRef.current.destroy(); } catch { /* noop */ }
+      epubRenditionRef.current = null;
+    }
+    container.innerHTML = "";
+
+    const rendition = book.renderTo(container, {
+      width: pageAreaW,
+      height: pageAreaH,
+      flow: "paginated",
+      spread: "none",
+      allowScriptedContent: false,
+    });
+    epubRenditionRef.current = rendition;
+    rendition.themes.fontSize(`${100 * (FONT_SCALES[fontSize] ?? 1)}%`);
+
+    // Sync location from rendition back to state (guarded to avoid render loops).
+    rendition.on("relocated", (loc: any) => {
+      if (epubSyncingRef.current) return;
+      const total = epubTotalRef.current || 1;
+      try {
+        const pct = book.locations.percentageFromCfi(loc?.start?.cfi);
+        if (typeof pct === "number" && !Number.isNaN(pct)) {
+          const idx = Math.max(1, Math.min(total, Math.round(pct * total) + 1));
+          setLocation(idx + 1); // +1 for cover offset
+        }
+      } catch { /* noop */ }
+    });
+
+    // Display initial page (or the current one if user has already navigated).
+    const total = epubTotalRef.current || 1;
+    const pageIdx = Math.max(1, Math.min(total, location - 1));
+    try {
+      const cfi = book.locations.cfiFromLocation(pageIdx - 1);
+      rendition.display(cfi || undefined);
+    } catch {
+      rendition.display();
+    }
+
+    return () => {
+      try { rendition.destroy(); } catch { /* noop */ }
+      if (epubRenditionRef.current === rendition) epubRenditionRef.current = null;
+    };
+    // Intentionally exclude `location` — location sync is handled by a separate effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEpub, epubReady, device, pageAreaW, pageAreaH]);
+
+  // Push location changes into the EPUB rendition.
+  useEffect(() => {
+    if (!isEpub || !epubReady) return;
+    const rendition = epubRenditionRef.current;
+    const book = epubBookRef.current;
+    if (!rendition || !book) return;
+    if (location < 2) return; // cover slot
+    const total = epubTotalRef.current || 1;
+    const pageIdx = Math.max(1, Math.min(total, location - 1));
+    try {
+      const cfi = book.locations.cfiFromLocation(pageIdx - 1);
+      if (!cfi) return;
+      epubSyncingRef.current = true;
+      rendition.display(cfi).finally(() => {
+        // Release the guard on next tick so relocated event doesn't feed back.
+        setTimeout(() => { epubSyncingRef.current = false; }, 50);
+      });
+    } catch { /* noop */ }
+  }, [isEpub, epubReady, location]);
+
+  // Apply font-size zoom to the EPUB rendition.
+  useEffect(() => {
+    if (!isEpub || !epubReady) return;
+    const rendition = epubRenditionRef.current;
+    if (!rendition) return;
+    try { rendition.themes.fontSize(`${100 * (FONT_SCALES[fontSize] ?? 1)}%`); } catch { /* noop */ }
+  }, [isEpub, epubReady, fontSize]);
+
+
 
   // Rendered-page cache: key = `${pageNum}|${fontSize}|${device}` -> offscreen canvas.
   // Cache survives navigation, so revisiting a page is instant. A miss (new page,
