@@ -144,33 +144,27 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             epubTotalRef.current = total;
             setPageCount(total + 1); // +1 for cover slot
 
-            // Build outline from TOC. Map each href to a "location index" via CFI.
+            // Build TOC entries with hrefs. Page index is best-effort — the
+            // rendition's "relocated" handler updates location after display().
             try {
               const nav = await book.loaded.navigation;
-              const entries: OutlineEntry[] = [];
-              const walk = (items: any[]) => {
+              const entries: EpubTocEntry[] = [];
+              const walk = (items: any[], depth: number) => {
                 for (const item of items) {
-                  try {
-                    // Best-effort: derive a page index. If we can't, fall back to page 2.
-                    let pageIndex = 2;
-                    try {
-                      const cfi = book.spine?.get(item.href)?.cfiFromRange
-                        ? null
-                        : null;
-                      // Use locationFromCfi via percentage if possible; otherwise leave 2.
-                      const pct = book.locations.percentageFromCfi(item.href);
-                      if (typeof pct === "number" && !Number.isNaN(pct)) {
-                        pageIndex = Math.max(2, Math.round(pct * total) + 1);
-                      }
-                    } catch { /* keep default */ }
-                    entries.push({ title: item.label?.trim() || "Section", pageIndex });
-                  } catch { /* skip */ }
-                  if (item.subitems?.length) walk(item.subitems);
+                  if (item?.href) {
+                    entries.push({
+                      title: item.label?.trim() || "Section",
+                      href: item.href,
+                      depth,
+                    });
+                  }
+                  if (item?.subitems?.length) walk(item.subitems, depth + 1);
                 }
               };
-              if (nav?.toc?.length) walk(nav.toc);
-              if (!cancelled && entries.length) setOutline(entries);
+              if (nav?.toc?.length) walk(nav.toc, 0);
+              if (!cancelled) setEpubToc(entries);
             } catch { /* no toc */ }
+
 
             setEpubReady(true);
             setLoading(false);
