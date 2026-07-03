@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -63,13 +63,17 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
   const [locationInput, setLocationInput] = useState("1");
   const [notPdf, setNotPdf] = useState(false);
+  const [docxHtml, setDocxHtml] = useState<string | null>(null);
+  const [docxPageCount, setDocxPageCount] = useState(1);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderTaskRef = useRef<any>(null);
   const touchStartX = useRef<number | null>(null);
+  const docxInnerRef = useRef<HTMLDivElement>(null);
 
   const ext = manuscriptPath.split(".").pop()?.toLowerCase() ?? "";
   const isPdf = ext === "pdf";
+  const isDocx = ext === "docx";
 
   // Sign URL & load PDF
   useEffect(() => {
@@ -82,6 +86,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       setLocation(1);
       setOutline([]);
       setNotPdf(false);
+      setDocxHtml(null);
+      setDocxPageCount(1);
       try {
         const { data, error: signErr } = await supabase.storage
           .from("product-files")
@@ -89,6 +95,17 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         if (signErr || !data?.signedUrl) throw new Error(signErr?.message ?? "Could not load manuscript");
         if (cancelled) return;
         setSignedUrl(data.signedUrl);
+
+        if (isDocx) {
+          const res = await fetch(data.signedUrl);
+          const buf = await res.arrayBuffer();
+          const mammoth: any = await import("mammoth/mammoth.browser");
+          const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+          if (cancelled) return;
+          setDocxHtml(result.value || "<p>(Empty document)</p>");
+          setLoading(false);
+          return;
+        }
 
         if (!isPdf) {
           setNotPdf(true);
@@ -155,11 +172,26 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     return () => {
       cancelled = true;
     };
-  }, [manuscriptPath, isPdf]);
+  }, [manuscriptPath, isPdf, isDocx]);
 
   const dev = DEVICES[device];
   const pageAreaW = dev.w - dev.pad * 2;
   const pageAreaH = dev.h - dev.pad * 2;
+
+  // Measure DOCX HTML pages whenever html, font size, or device area changes.
+  useLayoutEffect(() => {
+    if (!isDocx || !docxHtml) return;
+    const el = docxInnerRef.current;
+    if (!el) return;
+    // Give layout a tick to apply.
+    requestAnimationFrame(() => {
+      const h = el.scrollHeight;
+      const pages = Math.max(1, Math.ceil(h / pageAreaH));
+      setDocxPageCount(pages);
+      setPageCount(pages + 1);
+    });
+  }, [isDocx, docxHtml, fontSize, device, pageAreaH]);
+
 
   // Rendered-page cache: key = `${pageNum}|${fontSize}|${device}` -> offscreen canvas.
   // Cache survives navigation, so revisiting a page is instant. A miss (new page,
@@ -484,6 +516,26 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                     No cover uploaded
                   </div>
                 )
+              ) : isDocx && docxHtml ? (
+                <div
+                  style={{ width: pageAreaW, height: pageAreaH, overflow: "hidden", position: "relative" }}
+                >
+                  <div
+                    ref={docxInnerRef}
+                    className="text-black"
+                    style={{
+                      width: pageAreaW,
+                      padding: "8px 12px",
+                      fontSize: `${16 * (FONT_SCALES[fontSize] ?? 1)}px`,
+                      lineHeight: 1.5,
+                      transform: `translateY(-${(location - 2) * pageAreaH}px)`,
+                      transition: "transform 150ms ease",
+                      boxSizing: "border-box",
+                      wordWrap: "break-word",
+                    }}
+                    dangerouslySetInnerHTML={{ __html: docxHtml }}
+                  />
+                </div>
               ) : notPdf ? (
                 <div className="text-center px-6 text-black/70 text-sm">
                   <p className="font-semibold mb-2">
