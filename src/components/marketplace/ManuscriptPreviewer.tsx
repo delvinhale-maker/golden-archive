@@ -501,17 +501,15 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         }
       };
       refreshObserver();
-      // Re-attach observer when location changes the visible DOM.
-      const interval = window.setInterval(refreshObserver, 500);
       return () => {
         cancelAnimationFrame(raf);
-        window.clearInterval(interval);
         ro?.disconnect();
       };
     }
 
     return () => cancelAnimationFrame(raf);
-  }, [isDocx, docxHtml, fontSize, device, pageAreaH, pageAreaW, measureDocxPages]);
+  }, [isDocx, docxHtml, fontSize, device, pageAreaH, pageAreaW, measureDocxPages, location]);
+
 
 
   // Mount / remount the EPUB rendition when it's ready or the frame size changes.
