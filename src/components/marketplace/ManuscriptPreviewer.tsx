@@ -68,6 +68,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [notPdf, setNotPdf] = useState(false);
   const [docxHtml, setDocxHtml] = useState<string | null>(null);
   const [docxPageCount, setDocxPageCount] = useState(1);
+  // Y-offset (px) of the first block on each DOCX page. Length = page count.
+  // Populated by measuring block-level children so pages break between blocks,
+  // never mid-line or mid-image.
+  const [docxPageOffsets, setDocxPageOffsets] = useState<number[]>([0]);
   const [epubReady, setEpubReady] = useState(false);
   const [epubToc, setEpubToc] = useState<EpubTocEntry[]>([]);
   const [epubCurrentToc, setEpubCurrentToc] = useState<number | null>(null);
