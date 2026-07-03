@@ -1200,11 +1200,12 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             className="av-docx"
             style={{
               width: pageAreaW,
-              padding: "8px 12px",
+              padding: "24px 22px",
               fontSize: `${16 * (FONT_SCALES[fontSize] ?? 1)}px`,
               lineHeight: 1.5,
               boxSizing: "border-box",
               wordWrap: "break-word",
+              ["--av-docx-page-h" as any]: `${pageAreaH}px`,
             }}
             dangerouslySetInnerHTML={{ __html: docxHtml }}
           />
