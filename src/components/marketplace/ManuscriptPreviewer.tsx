@@ -147,11 +147,11 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             epubTotalRef.current = total;
             setPageCount(total + 1); // +1 for cover slot
 
-            // Build TOC entries with hrefs. Page index is best-effort — the
-            // rendition's "relocated" handler updates location after display().
+            // Build TOC entries with hrefs. Prefer nav.toc; fall back to spine
+            // items when the EPUB ships no navigation document.
+            let entries: EpubTocEntry[] = [];
             try {
               const nav = await book.loaded.navigation;
-              const entries: EpubTocEntry[] = [];
               const walk = (items: any[], depth: number) => {
                 for (const item of items) {
                   if (item?.href) {
@@ -165,8 +165,33 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                 }
               };
               if (nav?.toc?.length) walk(nav.toc, 0);
-              if (!cancelled) setEpubToc(entries);
-            } catch { /* no toc */ }
+            } catch { /* nav missing */ }
+
+            if (!entries.length) {
+              try {
+                await book.loaded.spine;
+                const spineItems: any[] =
+                  book.spine?.spineItems ?? book.spine?.items ?? [];
+                const prettify = (href: string) => {
+                  const base = (href.split("/").pop() || href)
+                    .replace(/\.[^.]+$/, "")
+                    .replace(/[-_]+/g, " ")
+                    .trim();
+                  if (!base) return "Section";
+                  return base.charAt(0).toUpperCase() + base.slice(1);
+                };
+                entries = spineItems
+                  .filter((s) => s && (s.href || s.url))
+                  .map((s, i) => ({
+                    title: `${i + 1}. ${prettify(s.href || s.url)}`,
+                    href: s.href || s.url,
+                    depth: 0,
+                  }));
+              } catch { /* spine unavailable */ }
+            }
+
+            if (!cancelled) setEpubToc(entries);
+
 
 
             setEpubReady(true);
