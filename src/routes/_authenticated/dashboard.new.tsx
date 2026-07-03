@@ -80,10 +80,24 @@ type StepNum = 1 | 2 | 3 | 4;
 
 function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const runReview = useServerFn(reviewProduct);
   const editingId = editingIdProp;
   const isEditing = !!editingId;
+
+  // Admin-only: bypass the "pending review" step on edits so changes go live
+  // immediately. Persisted per-browser so it survives reloads while testing.
+  const [adminInstantApprove, setAdminInstantApproveState] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    const raw = window.localStorage.getItem("av:admin-instant-approve");
+    return raw === null ? true : raw === "1";
+  });
+  function setAdminInstantApprove(next: boolean) {
+    setAdminInstantApproveState(next);
+    try { window.localStorage.setItem("av:admin-instant-approve", next ? "1" : "0"); } catch { /* ignore */ }
+  }
+  // Only actually bypass when the user is an admin AND the toggle is on.
+  const bypassReview = isAdmin && adminInstantApprove;
 
   const [step, setStep] = useState<StepNum>(1);
   const accent: PublisherAccent = STEPS.find((s) => s.n === step)!.accent;
@@ -649,7 +663,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
     id: string,
     publish: boolean,
   ): Promise<{ ok: boolean; reason?: string }> {
-    const expectedStatus: "approved" | "pending" = isEditing ? "pending" : "approved";
+    const expectedStatus: "approved" | "pending" = isEditing && !bypassReview ? "pending" : "approved";
     const attempts = 5;
     for (let i = 0; i < attempts; i++) {
       const { data: row, error } = await supabase
@@ -739,7 +753,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
       setUploadProgress(95);
 
       const priceCents = Math.round(priceNum * 100);
-      const status: "draft" | "approved" | "pending" = publish ? (isEditing ? "pending" : "approved") : "draft";
+      const status: "draft" | "approved" | "pending" = publish ? (isEditing && !bypassReview ? "pending" : "approved") : "draft";
       const notes = JSON.stringify({
         seriesName: seriesName || null,
         edition: edition || null,
@@ -764,6 +778,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
           status,
           published: publish,
           admin_notes: notes,
+          ...(publish && status === "approved" ? { approved_at: new Date().toISOString() } : {}),
           ...(fileSize !== undefined ? { file_size_bytes: fileSize } : {}),
         };
         const { error } = await supabase.from("marketplace_products").update(update).eq("id", existingRowId);
@@ -1045,6 +1060,9 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
               isEditing={isEditing}
               lastUpdatedAt={dbUpdatedAt}
               onCancel={() => navigate({ to: "/dashboard" })}
+              isAdmin={isAdmin}
+              adminInstantApprove={adminInstantApprove}
+              onToggleAdminInstantApprove={setAdminInstantApprove}
             />
           )}
 
@@ -1556,7 +1574,7 @@ function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium
 
 /* ---------- Step 4: Review ---------- */
 
-function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, autosaving, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover, onOpenPreview, isEditing, lastUpdatedAt, onCancel }: {
+function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, autosaving, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover, onOpenPreview, isEditing, lastUpdatedAt, onCancel, isAdmin, adminInstantApprove, onToggleAdminInstantApprove }: {
   accent: PublisherAccent;
   cover: string | null; title: string; subtitle: string; author: string;
   price: number; royalty: number; format: string; territory: string;
@@ -1571,6 +1589,9 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
   isEditing?: boolean;
   lastUpdatedAt?: string | null;
   onCancel?: () => void;
+  isAdmin?: boolean;
+  adminInstantApprove?: boolean;
+  onToggleAdminInstantApprove?: (next: boolean) => void;
 }) {
   return (
     <div className="space-y-6">
@@ -1668,6 +1689,26 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
           </div>
         </div>
       )}
+
+      {isAdmin && isEditing && onToggleAdminInstantApprove && (
+        <label className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50/60 p-4 cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 accent-amber-600"
+            checked={!!adminInstantApprove}
+            onChange={(e) => onToggleAdminInstantApprove(e.target.checked)}
+          />
+          <span className="text-sm">
+            <span className="block font-semibold text-amber-900">
+              Admin: skip review on update
+            </span>
+            <span className="block text-amber-800/80 text-xs mt-0.5">
+              Publish this edit as <strong>approved</strong> immediately instead of sending it back to the 24-hour review queue. Only visible to admins.
+            </span>
+          </span>
+        </label>
+      )}
+
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         {isEditing && onCancel && (
