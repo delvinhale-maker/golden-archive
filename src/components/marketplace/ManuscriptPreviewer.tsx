@@ -79,6 +79,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const epubRenditionRef = useRef<any>(null);
   const epubTotalRef = useRef<number>(0);
   const epubSyncingRef = useRef<boolean>(false);
+  const epubTocRef = useRef<EpubTocEntry[]>([]);
 
   const ext = manuscriptPath.split(".").pop()?.toLowerCase() ?? "";
   const isPdf = ext === "pdf";
