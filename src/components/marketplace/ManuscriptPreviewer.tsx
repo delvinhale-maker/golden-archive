@@ -124,8 +124,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       epubTocRef.current = [];
       try {
         let signed: string;
-        if (/^https?:\/\//i.test(manuscriptPath)) {
-          // Direct URL — skip Supabase signing (used by the public sample route).
+        if (/^(https?|blob):/i.test(manuscriptPath)) {
+          // Direct URL (http(s) or blob:) — skip Supabase signing.
           signed = manuscriptPath;
         } else {
           const { data, error: signErr } = await supabase.storage
