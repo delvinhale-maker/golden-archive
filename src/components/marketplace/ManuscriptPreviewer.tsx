@@ -63,13 +63,17 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
   const [locationInput, setLocationInput] = useState("1");
   const [notPdf, setNotPdf] = useState(false);
+  const [docxHtml, setDocxHtml] = useState<string | null>(null);
+  const [docxPageCount, setDocxPageCount] = useState(1);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderTaskRef = useRef<any>(null);
   const touchStartX = useRef<number | null>(null);
+  const docxInnerRef = useRef<HTMLDivElement>(null);
 
   const ext = manuscriptPath.split(".").pop()?.toLowerCase() ?? "";
   const isPdf = ext === "pdf";
+  const isDocx = ext === "docx";
 
   // Sign URL & load PDF
   useEffect(() => {
