@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 type DeviceKind = "phone" | "tablet" | "kindle";
 type OutlineEntry = { title: string; pageIndex: number };
+type EpubTocEntry = { title: string; href: string; depth: number };
 
 // Spec: 1=0.6×, 2=0.8×, 3=1.0×, 4=1.4×, 5=1.8×
 const FONT_SCALES: Record<number, number> = { 1: 0.6, 2: 0.8, 3: 1.0, 4: 1.4, 5: 1.8 };
