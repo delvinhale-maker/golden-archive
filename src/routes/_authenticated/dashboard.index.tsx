@@ -60,6 +60,11 @@ function BookshelfPage() {
     { kind: ConfirmKind; product: Product } | null
   >(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [verifyState, setVerifyState] = useState<{
+    id: string;
+    verifying: boolean;
+    error: string | null;
+  } | null>(null);
   const [historyProduct, setHistoryProduct] = useState<Product | null>(null);
 
   useEffect(() => {
@@ -155,23 +160,55 @@ function BookshelfPage() {
     return false;
   }
 
-  async function unpublish(product: Product) {
+  async function unpublish(product: Product): Promise<boolean> {
     setBusyId(product.id);
+    setVerifyState({ id: product.id, verifying: false, error: null });
     const { error } = await supabase
       .from("marketplace_products")
       .update({ published: false })
       .eq("id", product.id);
     if (error) {
       setBusyId(null);
-      return toast.error(error.message);
+      setVerifyState(null);
+      toast.error(error.message);
+      return false;
     }
+    setVerifyState({ id: product.id, verifying: true, error: null });
     const ok = await verifyUnpublished(product.id);
-    setBusyId(null);
     if (!ok) {
-      return toast.error(
-        `${product.title} update didn't propagate to the storefront. Please refresh and try again.`,
-      );
+      setVerifyState({
+        id: product.id,
+        verifying: false,
+        error: "Verification timeout: the storefront still shows this title after multiple checks. Please retry or contact support.",
+      });
+      setBusyId(null);
+      return false;
     }
+    setBusyId(null);
+    setVerifyState(null);
+    setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, published: false } : p)));
+    toast.success(`${product.title} is removed from the storefront. You can republish anytime.`);
+    return true;
+  }
+
+  async function handleRetryVerify() {
+    if (!confirmState || confirmState.kind !== "unpublish" || !verifyState) return;
+    const { product } = confirmState;
+    setBusyId(product.id);
+    setVerifyState({ id: product.id, verifying: true, error: null });
+    const ok = await verifyUnpublished(product.id);
+    if (!ok) {
+      setVerifyState({
+        id: product.id,
+        verifying: false,
+        error: "Verification timeout: the storefront still shows this title after multiple checks. Please retry or contact support.",
+      });
+      setBusyId(null);
+      return;
+    }
+    setBusyId(null);
+    setVerifyState(null);
+    setConfirmState(null);
     setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, published: false } : p)));
     toast.success(`${product.title} is removed from the storefront. You can republish anytime.`);
   }
@@ -233,14 +270,26 @@ function BookshelfPage() {
       setConfirmState({ kind: "delete2", product });
       return;
     }
-    // Keep the modal mounted so the CTA can show a spinner and stay disabled
-    // until the write settles; close only after the async op completes.
-    if (kind === "unpublish") await unpublish(product);
+    let ok = true;
+    if (kind === "unpublish") ok = await unpublish(product);
     else if (kind === "republish") await republish(product);
     else if (kind === "delete2") await remove(product);
-    setConfirmState(null);
+    if (ok) setConfirmState(null);
   }
 
+  function handleCancel() {
+    setConfirmState(null);
+    setVerifyState(null);
+    setBusyId(null);
+  }
+
+  function handleStepBack() {
+    if (confirmState?.kind === "delete2") {
+      setConfirmState({ kind: "delete1", product: confirmState.product });
+    } else {
+      handleCancel();
+    }
+  }
 
   return (
     <PublisherShell accent={ACCENTS.bookshelf}>
@@ -378,13 +427,11 @@ function BookshelfPage() {
       <ConfirmDialog
         state={confirmState}
         busy={!!confirmState && busyId === confirmState.product.id}
-        onCancel={() => setConfirmState(null)}
+        verifyState={verifyState}
+        onCancel={handleCancel}
         onConfirm={handleConfirm}
-        onStepBack={() =>
-          confirmState?.kind === "delete2"
-            ? setConfirmState({ kind: "delete1", product: confirmState.product })
-            : setConfirmState(null)
-        }
+        onStepBack={handleStepBack}
+        onRetryVerify={handleRetryVerify}
       />
 
     </PublisherShell>
@@ -680,18 +727,21 @@ function busyLabel(kind: ConfirmKind) {
 }
 
 function ConfirmDialog({
-
   state,
   busy = false,
+  verifyState,
   onCancel,
   onConfirm,
   onStepBack,
+  onRetryVerify,
 }: {
   state: { kind: ConfirmKind; product: Product } | null;
   busy?: boolean;
+  verifyState?: { id: string; verifying: boolean; error: string | null } | null;
   onCancel: () => void;
   onConfirm: () => void;
   onStepBack: () => void;
+  onRetryVerify?: () => void;
 }) {
 
   const [typed, setTyped] = useState("");
@@ -814,25 +864,75 @@ function ConfirmDialog({
               )}
             </div>
           </div>
+
+          {verifyState?.verifying && (
+            <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
+              <Loader2 size={18} className="text-amber-600 animate-spin shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-amber-900">Verifying storefront removal…</p>
+                <p className="text-xs text-amber-800 mt-0.5">
+                  Confirming the product is no longer visible to customers before completing unpublish.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {verifyState?.error && (
+            <div className="mt-4 rounded-xl bg-red-50 border border-red-200 p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle size={18} className="text-red-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-red-900">Verification timeout</p>
+                  <p className="text-xs text-red-800 mt-0.5">{verifyState.error}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="mt-6 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={isStep2 ? onStepBack : onCancel}
-              disabled={busy}
-              className="px-4 py-2 rounded-full text-sm font-semibold text-ink/80 border border-ink/15 hover:bg-paper disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={onConfirm}
-              disabled={!canConfirm || busy}
-              aria-busy={busy}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${config.ctaCls} disabled:opacity-60 disabled:cursor-not-allowed`}
-            >
-              {busy && <Loader2 size={14} className="animate-spin" />}
-              {busy ? busyLabel(kind) : config.cta}
-            </button>
+            {verifyState?.error ? (
+              <>
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  className="px-4 py-2 rounded-full text-sm font-semibold text-ink/80 border border-ink/15 hover:bg-paper"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={onRetryVerify}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-red-600 text-white hover:bg-red-700"
+                >
+                  Retry verification
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={isStep2 ? onStepBack : onCancel}
+                  disabled={busy || verifyState?.verifying}
+                  className="px-4 py-2 rounded-full text-sm font-semibold text-ink/80 border border-ink/15 hover:bg-paper disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isStep2 ? "Back" : "Cancel"}
+                </button>
+                <button
+                  type="button"
+                  onClick={onConfirm}
+                  disabled={!canConfirm || busy || verifyState?.verifying}
+                  aria-busy={busy}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${config.ctaCls} disabled:opacity-60 disabled:cursor-not-allowed`}
+                >
+                  {busy && <Loader2 size={14} className="animate-spin" />}
+                  {busy && verifyState?.verifying
+                    ? "Verifying storefront…"
+                    : busy
+                    ? busyLabel(kind)
+                    : config.cta}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
