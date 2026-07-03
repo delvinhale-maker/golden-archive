@@ -218,7 +218,7 @@ async def main() -> None:
                     await goto_location(page, loc)
                     m = await page.evaluate(MEASURE_JS)
                     tag = f"{label} · loc {loc}"
-                    assert_fits_and_centered(m, tag)
+                    assert_fits_and_centered(m, tag, is_cover=(loc == 1))
                     await page.screenshot(
                         path=str(SCREENSHOTS / f"fit_{BROWSER}_{value}_loc{loc}.png")
                     )
