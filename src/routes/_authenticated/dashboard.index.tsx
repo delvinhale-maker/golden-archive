@@ -270,14 +270,26 @@ function BookshelfPage() {
       setConfirmState({ kind: "delete2", product });
       return;
     }
-    // Keep the modal mounted so the CTA can show a spinner and stay disabled
-    // until the write settles; close only after the async op completes.
-    if (kind === "unpublish") await unpublish(product);
+    let ok = true;
+    if (kind === "unpublish") ok = await unpublish(product);
     else if (kind === "republish") await republish(product);
     else if (kind === "delete2") await remove(product);
-    setConfirmState(null);
+    if (ok) setConfirmState(null);
   }
 
+  function handleCancel() {
+    setConfirmState(null);
+    setVerifyState(null);
+    setBusyId(null);
+  }
+
+  function handleStepBack() {
+    if (confirmState?.kind === "delete2") {
+      setConfirmState({ kind: "delete1", product: confirmState.product });
+    } else {
+      handleCancel();
+    }
+  }
 
   return (
     <PublisherShell accent={ACCENTS.bookshelf}>
