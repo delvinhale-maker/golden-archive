@@ -327,8 +327,25 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     epubRenditionRef.current = rendition;
     rendition.themes.fontSize(`${100 * (FONT_SCALES[fontSize] ?? 1)}%`);
 
-    // Sync location from rendition back to state (guarded to avoid render loops).
+    // Sync location + current chapter from rendition back to state.
+    // Guarded so programmatic display() calls don't feed back into location.
     rendition.on("relocated", (loc: any) => {
+      // Match current section to a TOC entry (independent of location guard).
+      try {
+        const currentHref: string | undefined = loc?.start?.href;
+        if (currentHref) {
+          const stripFrag = (h: string) => h.split("#")[0];
+          const cur = stripFrag(currentHref);
+          const toc = epubTocRef.current;
+          let bestIdx = -1;
+          for (let i = 0; i < toc.length; i++) {
+            const tocHref = stripFrag(toc[i].href);
+            if (cur.endsWith(tocHref) || tocHref.endsWith(cur)) bestIdx = i;
+          }
+          setEpubCurrentToc(bestIdx >= 0 ? bestIdx : null);
+        }
+      } catch { /* noop */ }
+
       if (epubSyncingRef.current) return;
       const total = epubTotalRef.current || 1;
       try {
