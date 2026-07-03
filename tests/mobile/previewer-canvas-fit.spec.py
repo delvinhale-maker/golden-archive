@@ -180,8 +180,9 @@ async def main() -> None:
                     tag = f"{label} · loc {loc}"
                     assert_fits_and_centered(m, tag)
                     await page.screenshot(
-                        path=str(SCREENSHOTS / f"fit_{value}_loc{loc}.png")
+                        path=str(SCREENSHOTS / f"fit_{BROWSER}_{value}_loc{loc}.png")
                     )
+
 
         finally:
             await ctx.close()
