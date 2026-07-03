@@ -153,17 +153,18 @@ async def main() -> None:
         browser = await pw.chromium.launch(headless=True)
         ctx, page = await open_previewer(browser)
         try:
-            for device in DEVICES:
-                await set_device(page, device)
+            for value, label in DEVICES:
+                await set_device(page, value)
                 # Cover (location=1) then two PDF pages (2, 3).
                 for loc in (1, 2, 3):
                     await goto_location(page, loc)
                     m = await page.evaluate(MEASURE_JS)
-                    label = f"{device} · loc {loc}"
-                    assert_fits_and_centered(m, label)
+                    tag = f"{label} · loc {loc}"
+                    assert_fits_and_centered(m, tag)
                     await page.screenshot(
-                        path=str(SCREENSHOTS / f"fit_{device.lower()}_loc{loc}.png")
+                        path=str(SCREENSHOTS / f"fit_{value}_loc{loc}.png")
                     )
+
         finally:
             await ctx.close()
             await browser.close()
