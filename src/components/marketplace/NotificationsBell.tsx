@@ -86,7 +86,7 @@ export function NotificationsBell() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-[340px] max-w-[92vw] overflow-hidden rounded-lg border border-black/10 bg-white text-navy shadow-2xl">
+        <div className="fixed left-2 right-2 top-16 z-50 w-auto overflow-hidden rounded-lg border border-black/10 bg-white text-navy shadow-2xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[340px] sm:max-w-[92vw]">
           <div className="flex items-center justify-between border-b border-black/5 px-4 py-2.5">
             <span className="text-sm font-semibold">Notifications</span>
             {unread > 0 && (
@@ -106,9 +106,9 @@ export function NotificationsBell() {
                       n.read_at ? "bg-white" : "bg-gold/5"
                     }`}
                   >
-                    <div className="flex-1">
-                      <div className="font-semibold leading-snug">{n.title}</div>
-                      {n.body && <div className="mt-0.5 text-xs text-navy/60">{n.body}</div>}
+                    <div className="min-w-0 flex-1">
+                      <div className="break-words font-semibold leading-snug">{n.title}</div>
+                      {n.body && <div className="mt-0.5 break-words text-xs text-navy/60">{n.body}</div>}
                       <div className="mt-1 text-[10px] uppercase tracking-wide text-navy/40">
                         {new Date(n.created_at).toLocaleString()}
                       </div>
