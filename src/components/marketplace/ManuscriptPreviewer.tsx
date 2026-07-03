@@ -580,9 +580,17 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       const ctx = off.getContext("2d");
       if (!ctx) return null;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Kindle mode: fill the canvas with sepia BEFORE rendering so
+      // transparent PDF backgrounds pick up the paper tint instead of
+      // punching through as white.
+      if (deviceKey === "kindle") {
+        ctx.fillStyle = "#f4ecd8";
+        ctx.fillRect(0, 0, viewport.width, viewport.height);
+      }
       await page.render({ canvasContext: ctx, viewport }).promise;
       cacheSet(key, off);
       return off;
+
     },
     [pdf, cacheGet, cacheSet],
   );
