@@ -846,6 +846,36 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         </button>
       </div>
 
+      {/* Hidden DOCX measurement node — mounted regardless of current location
+          so page count is computed even while the cover is showing. */}
+      {isDocx && docxHtml && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: -99999,
+            top: 0,
+            width: pageAreaW,
+            visibility: "hidden",
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            ref={docxInnerRef}
+            style={{
+              width: pageAreaW,
+              padding: "8px 12px",
+              fontSize: `${16 * (FONT_SCALES[fontSize] ?? 1)}px`,
+              lineHeight: 1.5,
+              boxSizing: "border-box",
+              wordWrap: "break-word",
+            }}
+            dangerouslySetInnerHTML={{ __html: docxHtml }}
+          />
+        </div>
+      )}
+
+
       <style>{`
         @keyframes av-slide-left-kf { from { transform: translateX(24px); opacity: 0.35 } to { transform: translateX(0); opacity: 1 } }
         @keyframes av-slide-right-kf { from { transform: translateX(-24px); opacity: 0.35 } to { transform: translateX(0); opacity: 1 } }
