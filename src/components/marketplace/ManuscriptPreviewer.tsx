@@ -890,7 +890,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
           onClick={() => goTo(location + 1)}
           aria-label="Next page"
           disabled={location >= pageCount}
-          className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition"
+          className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition"
         >
           <ChevronRight size={30} />
         </button>
