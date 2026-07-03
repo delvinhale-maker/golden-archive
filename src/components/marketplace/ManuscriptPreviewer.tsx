@@ -425,11 +425,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       </div>
 
       {/* Stage */}
-      <div
-        className="relative flex-1 overflow-auto flex items-center justify-center p-6"
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-      >
+      <div className="relative flex-1 overflow-auto flex items-center justify-center p-6">
         {/* Left arrow — 56×56 tap target */}
         <button
           onClick={() => goTo(location - 1)}
@@ -443,8 +439,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         {/* Device frame */}
         <div
           key={device}
-          className={`transition-opacity duration-200 ${dev.frame} relative`}
+          className={`transition-opacity duration-200 ${dev.frame} relative touch-pan-y select-none`}
           style={{ width: dev.w, height: dev.h, maxWidth: "100%", padding: dev.pad }}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
         >
           <div
             className={`relative overflow-hidden ${dev.page} w-full h-full flex items-center justify-center`}
