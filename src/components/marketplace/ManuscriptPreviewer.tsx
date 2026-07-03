@@ -304,6 +304,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     })();
     return () => {
       cancelled = true;
+      window.clearTimeout(slowTimer);
       if (epubRenditionRef.current) {
         try { epubRenditionRef.current.destroy(); } catch { /* noop */ }
         epubRenditionRef.current = null;
@@ -313,7 +314,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         epubBookRef.current = null;
       }
     };
-  }, [manuscriptPath, isPdf, isDocx, isEpub]);
+  }, [manuscriptPath, isPdf, isDocx, isEpub, attempt]);
 
   const dev = DEVICES[device];
   const pageAreaW = dev.w - dev.pad * 2;
