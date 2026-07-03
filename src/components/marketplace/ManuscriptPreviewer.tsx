@@ -597,18 +597,49 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
           <span className="text-white/70">Contents</span>
           <select
             value=""
-            onChange={(e) => { const p = parseInt(e.target.value, 10); if (Number.isFinite(p)) goTo(p); }}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (!v) return;
+              if (v.startsWith("epub:")) {
+                const idx = parseInt(v.slice(5), 10);
+                const entry = epubToc[idx];
+                const rendition = epubRenditionRef.current;
+                if (entry && rendition) {
+                  try { rendition.display(entry.href); } catch { /* noop */ }
+                }
+                return;
+              }
+              if (v === "cover") { goTo(1); return; }
+              const p = parseInt(v, 10);
+              if (Number.isFinite(p)) goTo(p);
+            }}
             className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white max-w-[240px]"
           >
             <option value="">
-              {outline.length ? "Jump to chapter…" : "No contents available"}
+              {isEpub
+                ? (epubToc.length ? "Jump to chapter…" : "No contents available")
+                : (outline.length ? "Jump to chapter…" : "No contents available")}
             </option>
-            {outline.length > 0 && <option value="1">Cover</option>}
-            {outline.map((o, i) => (
-              <option key={i} value={o.pageIndex}>{o.title}</option>
-            ))}
+            {isEpub ? (
+              <>
+                {epubToc.length > 0 && <option value="cover">Cover</option>}
+                {epubToc.map((o, i) => (
+                  <option key={i} value={`epub:${i}`}>
+                    {"\u00A0".repeat(o.depth * 2)}{o.title}
+                  </option>
+                ))}
+              </>
+            ) : (
+              <>
+                {outline.length > 0 && <option value="cover">Cover</option>}
+                {outline.map((o, i) => (
+                  <option key={i} value={o.pageIndex}>{o.title}</option>
+                ))}
+              </>
+            )}
           </select>
         </label>
+
 
         <label className="flex items-center gap-2 ml-auto">
           <span className="text-white/70">Device</span>
