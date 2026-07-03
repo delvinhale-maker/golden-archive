@@ -177,8 +177,22 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                 docxErr?.name === "AbortError" || docxErr?.message === "timeout";
               setError(
                 isTimeout
-                  ? "This Word document is taking too long to convert on this device. Try again, switch to a larger preview size, or open the original file."
-                  : "We couldn't preview this Word document. It may be corrupted or use unsupported features. Try again or open the original file.",
+                  ? {
+                      title: "Word document is taking too long to convert.",
+                      steps: [
+                        "Tap Try again — the conversion may finish on a second attempt.",
+                        "Switch to the Tablet preview size to give the renderer more room.",
+                        "If it keeps timing out, open the original file to view it.",
+                      ],
+                    }
+                  : {
+                      title: "We couldn't preview this Word document.",
+                      steps: [
+                        "Re-export the document from Word as .docx and try again.",
+                        "Remove unsupported features (tracked changes, embedded objects, macros).",
+                        "If it still fails, open the original file to view it.",
+                      ],
+                    },
               );
               setLoading(false);
             }
