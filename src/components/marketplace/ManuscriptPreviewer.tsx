@@ -787,7 +787,6 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   style={{ width: pageAreaW, height: pageAreaH, overflow: "hidden", position: "relative" }}
                 >
                   <div
-                    ref={docxInnerRef}
                     className="text-black"
                     style={{
                       width: pageAreaW,
@@ -803,6 +802,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   />
                 </div>
               ) : isEpub ? (
+
                 <div
                   ref={epubContainerRef}
                   style={{ width: pageAreaW, height: pageAreaH, background: dev.bg }}
