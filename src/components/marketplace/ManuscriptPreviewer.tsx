@@ -779,19 +779,27 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     touchStartX.current = null;
   };
 
-  // Scale the whole device frame down on narrow viewports so it always fits.
+  // Scale the whole device frame down on narrow / short viewports so it always
+  // fits AND stays centered on both axes. We measure the actual stage element
+  // (not window) so header/footer chrome is accounted for on mobile.
+  const stageRef = useRef<HTMLDivElement>(null);
   const [frameScale, setFrameScale] = useState(1);
   useEffect(() => {
     const compute = () => {
-      const vw = window.innerWidth;
-      const avail = vw - 32;
-      if (dev.w > avail) setFrameScale(Math.max(0.5, avail / dev.w));
-      else setFrameScale(1);
+      const stage = stageRef.current;
+      // Fallback to viewport if the stage hasn't mounted yet.
+      const availW = (stage?.clientWidth ?? window.innerWidth) - 32;
+      const availH = (stage?.clientHeight ?? window.innerHeight) - 32;
+      const sW = availW > 0 ? availW / dev.w : 1;
+      const sH = availH > 0 ? availH / dev.h : 1;
+      const s = Math.min(1, sW, sH);
+      setFrameScale(Math.max(0.4, s));
     };
     compute();
     window.addEventListener("resize", compute);
     return () => window.removeEventListener("resize", compute);
-  }, [dev.w]);
+  }, [dev.w, dev.h]);
+
 
   // Current chapter for header (PDF outline or EPUB toc).
   const currentChapter = useMemo(() => {
