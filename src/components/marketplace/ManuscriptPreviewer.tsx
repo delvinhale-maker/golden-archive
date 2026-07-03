@@ -951,7 +951,9 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
           >
             <div
               ref={scrollFrameRef}
+              data-testid="previewer-scroll"
               className={`relative ${dev.page} w-full h-full flex items-center justify-center device-frame-inner`}
+
               style={{
                 background: location === 1 ? "transparent" : dev.bg,
                 overflowY: "auto",
