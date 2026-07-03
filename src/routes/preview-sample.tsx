@@ -66,7 +66,11 @@ export const Route = createFileRoute("/preview-sample")({
   component: PreviewSamplePage,
 });
 
-const SAMPLE_URL = "/samples/sample-manuscript.docx";
+const SAMPLES: { kind: Kind; label: string; path: string }[] = [
+  { kind: "docx", label: "DOCX", path: "/samples/sample-manuscript.docx" },
+  { kind: "pdf", label: "PDF", path: "/samples/sample-manuscript.pdf" },
+  { kind: "epub", label: "EPUB", path: "/samples/sample-manuscript.epub" },
+];
 const ACCEPTED = ".docx,.pdf,.epub";
 
 function PreviewSamplePage() {
@@ -166,13 +170,15 @@ function PreviewSamplePage() {
   };
 
 
-  const useBundledSample = () => {
-    setManuscriptPath(
-      typeof window !== "undefined"
-        ? `${window.location.origin}${SAMPLE_URL}`
-        : SAMPLE_URL,
-    );
-    setManuscriptTitle("Sample Manuscript");
+  const loadSample = (sample: (typeof SAMPLES)[number]) => {
+    // Revoke any previous blob URL so switching from an upload → sample doesn't leak.
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+    const base = typeof window !== "undefined" ? window.location.origin : "";
+    setManuscriptPath(`${base}${sample.path}`);
+    setManuscriptTitle(`Sample ${sample.label}`);
     setShowPicker(false);
   };
 
@@ -246,20 +252,29 @@ function PreviewSamplePage() {
         </div>
 
 
-        <div className="mt-4 flex items-center gap-3">
-          <button
-            onClick={useBundledSample}
-            className="flex-1 h-11 rounded-lg bg-white/10 hover:bg-white/15 text-sm font-medium transition"
-          >
-            Use bundled sample
-          </button>
-          <button
-            onClick={() => navigate({ to: "/" })}
-            className="h-11 px-4 rounded-lg text-sm text-white/70 hover:text-white transition"
-          >
-            Back home
-          </button>
+        <div className="mt-6">
+          <p className="text-xs uppercase tracking-wide text-white/50 mb-2">
+            Sample gallery
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {SAMPLES.map((s) => (
+              <button
+                key={s.kind}
+                onClick={() => loadSample(s)}
+                className="h-11 rounded-lg bg-white/10 hover:bg-white/15 text-sm font-medium transition"
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
         </div>
+
+        <button
+          onClick={() => navigate({ to: "/" })}
+          className="mt-4 w-full h-11 rounded-lg text-sm text-white/70 hover:text-white transition"
+        >
+          Back home
+        </button>
       </div>
       <Toaster theme="dark" position="top-center" richColors closeButton />
     </main>
