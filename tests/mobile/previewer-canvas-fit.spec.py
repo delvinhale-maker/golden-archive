@@ -107,8 +107,15 @@ async def goto_location(page, loc: int) -> None:
 
 
 async def set_device(page, value: str) -> None:
-    await page.locator('select[aria-label="Device"]').first.select_option(value)
+    # The Device select is inside a wrapping toolbar; on narrow mobile
+    # viewports it can be pushed below the fold. Bring it into view first,
+    # then use force=True so Playwright doesn't wait on actionability
+    # (the <select> is fully interactive regardless of scroll position).
+    sel = page.locator('select[aria-label="Device"]').first
+    await sel.scroll_into_view_if_needed()
+    await sel.select_option(value, force=True)
     await page.wait_for_timeout(500)
+
 
 
 
