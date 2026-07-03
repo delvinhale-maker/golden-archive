@@ -950,18 +950,21 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             onTouchEnd={onTouchEnd}
           >
             <div
+              ref={scrollFrameRef}
               className={`relative ${dev.page} w-full h-full flex items-center justify-center device-frame-inner`}
               style={{
                 background: location === 1 ? "transparent" : dev.bg,
                 overflowY: "auto",
                 overflowX: "hidden",
                 WebkitOverflowScrolling: "touch",
+                scrollBehavior: "smooth",
               }}
             >
               <div
                 key={location}
                 className={`w-full min-h-full flex items-center justify-center ${slideAnim}`}
               >
+
 
               {loading ? (
                 <div className="flex flex-col items-center gap-3 text-black/60 px-6 text-center max-w-xs">
