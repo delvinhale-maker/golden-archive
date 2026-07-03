@@ -30,3 +30,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Ephemeral previewer visual-diff artifacts (baselines are checked in;
+# `current/` + `diffs/` are regenerated on every run).
+tests/mobile/screenshots/current/
+tests/mobile/screenshots/diffs/
+tests/mobile/screenshots/fit_*.png
+tests/mobile/screenshots/pinch_*.png
+tests/mobile/screenshots/*.png

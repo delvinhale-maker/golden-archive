@@ -115,6 +115,11 @@ jobs:
           BROWSER: ${{ matrix.browser }}
         run: python tests/mobile/previewer-canvas-fit.spec.py
 
+      - name: Run visual diff vs baseline (${{ matrix.browser }})
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: python tests/mobile/previewer-visual-diff.spec.py
+
       - name: Upload artifacts on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -122,8 +127,10 @@ jobs:
           name: canvas-fit-${{ matrix.browser }}-artifacts
           path: |
             tests/mobile/screenshots/**
+            tests/mobile/baselines/${{ matrix.browser }}/**
             /tmp/dev-server.log
           if-no-files-found: ignore
+
 
       - name: Stop dev server
         if: always()
