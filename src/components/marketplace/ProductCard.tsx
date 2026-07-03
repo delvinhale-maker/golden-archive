@@ -64,10 +64,10 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             animate={liked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
             transition={{ type: "spring", stiffness: 380, damping: 12 }}
             aria-label="Toggle wishlist"
-            className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-mute shadow-card hover:text-gold"
+            className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-navy/70 text-white/90 shadow-card backdrop-blur-sm hover:text-gold"
           >
             <Heart
-              size={16}
+              size={14}
               fill={liked ? "var(--gold)" : "none"}
               stroke={liked ? "var(--gold)" : "currentColor"}
             />
