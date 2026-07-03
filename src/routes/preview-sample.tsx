@@ -66,7 +66,11 @@ export const Route = createFileRoute("/preview-sample")({
   component: PreviewSamplePage,
 });
 
-const SAMPLE_URL = "/samples/sample-manuscript.docx";
+const SAMPLES: { kind: Kind; label: string; path: string }[] = [
+  { kind: "docx", label: "DOCX", path: "/samples/sample-manuscript.docx" },
+  { kind: "pdf", label: "PDF", path: "/samples/sample-manuscript.pdf" },
+  { kind: "epub", label: "EPUB", path: "/samples/sample-manuscript.epub" },
+];
 const ACCEPTED = ".docx,.pdf,.epub";
 
 function PreviewSamplePage() {
