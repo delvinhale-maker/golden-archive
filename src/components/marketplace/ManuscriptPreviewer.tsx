@@ -816,6 +816,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         <button
           onClick={onClose}
           aria-label="Close preview"
+          data-testid="previewer-close"
           className="h-10 w-10 rounded-full inline-flex items-center justify-center hover:bg-white/10 shrink-0"
         >
           <X size={22} />
@@ -834,6 +835,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitLocation(); } }}
             className="w-16 h-9 rounded-md bg-black/40 border border-white/15 px-2 text-center text-white"
             aria-label="Current location"
+            data-testid="previewer-location-input"
           />
           <span className="text-white/60">of {pageCount}</span>
         </label>
@@ -844,6 +846,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             value={fontSize}
             onChange={(e) => setFontSize(parseInt(e.target.value, 10))}
             aria-label="Font size"
+            data-testid="previewer-font-size"
             className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white"
           >
             {[1, 2, 3, 4, 5].map((n) => (
@@ -879,6 +882,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
               if (Number.isFinite(p)) goTo(p);
             }}
             className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white max-w-[240px]"
+            aria-label="Contents"
+            data-testid="previewer-contents"
           >
             <option value="">
               {isEpub
@@ -912,6 +917,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             value={device}
             onChange={(e) => setDevice(e.target.value as DeviceKind)}
             aria-label="Device"
+            data-testid="previewer-device"
             className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white"
           >
             {Object.entries(DEVICES).map(([k, v]) => (
@@ -927,6 +933,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         <button
           onClick={() => goTo(location - 1)}
           aria-label="Previous page"
+          data-testid="previewer-prev"
           disabled={location <= 1}
           className={`absolute ${isRTL ? "right-2 md:right-6" : "left-2 md:left-6"} top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition`}
         >
@@ -1118,6 +1125,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         <button
           onClick={() => goTo(location + 1)}
           aria-label="Next page"
+          data-testid="previewer-next"
           disabled={location >= pageCount}
           className={`absolute ${isRTL ? "left-2 md:left-6" : "right-2 md:right-6"} top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition`}
         >
