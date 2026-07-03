@@ -1087,7 +1087,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   </a>
                 </div>
               ) : (
-                <canvas ref={canvasRef} className="block max-w-full max-h-full" />
+                <canvas ref={canvasRef} className="block max-w-full" />
               )}
             </div>
           </div>
