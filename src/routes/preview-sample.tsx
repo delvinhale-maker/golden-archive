@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { Toaster, toast } from "sonner";
 import { z } from "zod";
 import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
 
