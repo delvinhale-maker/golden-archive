@@ -15,10 +15,18 @@ Requires the dev server on http://localhost:8080.
 """
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 
 from playwright.async_api import async_playwright
+
+# Pick the browser engine at run time — the same assertions run on both
+# Chromium and WebKit (iOS Safari emulation) via `BROWSER=webkit`.
+BROWSER = os.environ.get("BROWSER", "chromium").lower()
+if BROWSER not in {"chromium", "webkit", "firefox"}:
+    raise SystemExit(f"unsupported BROWSER={BROWSER}")
+
 
 BASE = "http://localhost:8080/preview-sample"
 SCREENSHOTS = Path(__file__).parent / "screenshots"
