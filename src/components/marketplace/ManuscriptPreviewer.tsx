@@ -88,6 +88,19 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const isDocx = ext === "docx";
   const isEpub = ext === "epub";
 
+  // Detect RTL from the document / nearest [dir] ancestor at mount.
+  const [isRTL, setIsRTL] = useState(false);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const dir =
+      document.documentElement.getAttribute("dir") ||
+      document.body.getAttribute("dir") ||
+      getComputedStyle(document.documentElement).direction ||
+      "ltr";
+    setIsRTL(dir.toLowerCase() === "rtl");
+  }, []);
+
+
   // Sign URL & load PDF
   useEffect(() => {
     let cancelled = false;
