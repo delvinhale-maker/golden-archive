@@ -755,15 +755,16 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
 
       {/* Stage */}
       <div className="relative flex-1 overflow-hidden flex items-center justify-center p-6">
-        {/* Left arrow — 56×56 tap target */}
+        {/* Previous-page arrow — visually on the leading edge (right in RTL, left otherwise) */}
         <button
           onClick={() => goTo(location - 1)}
           aria-label="Previous page"
           disabled={location <= 1}
-          className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition"
+          className={`absolute ${isRTL ? "right-2 md:right-6" : "left-2 md:left-6"} top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition`}
         >
-          <ChevronLeft size={30} />
+          {isRTL ? <ChevronRight size={30} /> : <ChevronLeft size={30} />}
         </button>
+
 
         {/* Device frame */}
         <div
