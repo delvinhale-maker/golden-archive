@@ -860,13 +860,23 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   )}
                 </div>
               ) : error ? (
-                <div className="text-center px-6 max-w-sm">
-                  <p className="text-red-600 text-sm mb-3">{error}</p>
+                <div className="text-left px-6 max-w-sm w-full" role="alert">
+                  <p className="text-red-600 text-sm font-semibold mb-2 text-center">
+                    {error.title}
+                  </p>
+                  <p className="text-black/70 text-xs mb-2 text-center">
+                    Try these steps:
+                  </p>
+                  <ol className="list-decimal pl-5 space-y-1 text-xs text-black/80 mb-4">
+                    {error.steps.map((step, i) => (
+                      <li key={i}>{step}</li>
+                    ))}
+                  </ol>
                   <div className="flex flex-col items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setAttempt((a) => a + 1)}
-                      className="inline-block rounded-md bg-black text-white text-sm px-3 py-1.5 hover:bg-black/80"
+                      className="inline-block rounded-md bg-black text-white text-sm px-4 py-2 hover:bg-black/80"
                     >
                       Try again
                     </button>
@@ -875,13 +885,14 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                         href={signedUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-block text-sm underline text-black/70 hover:text-black"
+                        className="inline-block text-xs underline text-black/60 hover:text-black"
                       >
                         Open original file in new tab
                       </a>
                     )}
                   </div>
                 </div>
+
 
               ) : location === 1 ? (
                 coverUrl ? (
