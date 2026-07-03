@@ -80,10 +80,24 @@ type StepNum = 1 | 2 | 3 | 4;
 
 function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const runReview = useServerFn(reviewProduct);
   const editingId = editingIdProp;
   const isEditing = !!editingId;
+
+  // Admin-only: bypass the "pending review" step on edits so changes go live
+  // immediately. Persisted per-browser so it survives reloads while testing.
+  const [adminInstantApprove, setAdminInstantApproveState] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    const raw = window.localStorage.getItem("av:admin-instant-approve");
+    return raw === null ? true : raw === "1";
+  });
+  function setAdminInstantApprove(next: boolean) {
+    setAdminInstantApproveState(next);
+    try { window.localStorage.setItem("av:admin-instant-approve", next ? "1" : "0"); } catch { /* ignore */ }
+  }
+  // Only actually bypass when the user is an admin AND the toggle is on.
+  const bypassReview = isAdmin && adminInstantApprove;
 
   const [step, setStep] = useState<StepNum>(1);
   const accent: PublisherAccent = STEPS.find((s) => s.n === step)!.accent;
