@@ -398,18 +398,38 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const pageAreaH = dev.h - dev.pad * 2;
 
   // Measure DOCX HTML pages whenever html, font size, or device area changes.
+  // Walk block-level children and group them into pages so a page break never
+  // lands in the middle of a paragraph or image. A block taller than the page
+  // area gets its own page (and is allowed to scroll within the frame).
   useLayoutEffect(() => {
     if (!isDocx || !docxHtml) return;
     const el = docxInnerRef.current;
     if (!el) return;
-    // Give layout a tick to apply.
-    requestAnimationFrame(() => {
-      const h = el.scrollHeight;
-      const pages = Math.max(1, Math.ceil(h / pageAreaH));
-      setDocxPageCount(pages);
-      setPageCount(pages + 1);
+    const raf = requestAnimationFrame(() => {
+      const kids = Array.from(el.children) as HTMLElement[];
+      const containerTop = el.getBoundingClientRect().top;
+      const offsets: number[] = [0];
+      let pageStart = 0;
+      for (const kid of kids) {
+        const rect = kid.getBoundingClientRect();
+        const top = rect.top - containerTop;
+        const bottom = top + rect.height;
+        // If adding this block would overflow the current page, start a new
+        // page at this block's top — unless the page is empty (block is
+        // taller than the frame; keep it on its own page).
+        if (bottom - pageStart > pageAreaH && top > pageStart) {
+          pageStart = top;
+          offsets.push(pageStart);
+        }
+      }
+      // Fallback: if no children were measured, keep single page.
+      if (offsets.length === 0) offsets.push(0);
+      setDocxPageOffsets(offsets);
+      setDocxPageCount(offsets.length);
+      setPageCount(offsets.length + 1);
     });
-  }, [isDocx, docxHtml, fontSize, device, pageAreaH]);
+    return () => cancelAnimationFrame(raf);
+  }, [isDocx, docxHtml, fontSize, device, pageAreaH, pageAreaW]);
 
   // Mount / remount the EPUB rendition when it's ready or the frame size changes.
   useEffect(() => {
