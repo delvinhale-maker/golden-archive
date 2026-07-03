@@ -671,6 +671,14 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
 
   useEffect(() => { setLocationInput(String(location)); }, [location]);
 
+  // Reset scroll to top on every page change so users start reading from
+  // the beginning of the new page, not wherever they left off on the last.
+  useEffect(() => {
+    const el = scrollFrameRef.current;
+    if (el) el.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  }, [location]);
+
+
   // Keyboard nav
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
