@@ -753,7 +753,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
       setUploadProgress(95);
 
       const priceCents = Math.round(priceNum * 100);
-      const status: "draft" | "approved" | "pending" = publish ? (isEditing ? "pending" : "approved") : "draft";
+      const status: "draft" | "approved" | "pending" = publish ? (isEditing && !bypassReview ? "pending" : "approved") : "draft";
       const notes = JSON.stringify({
         seriesName: seriesName || null,
         edition: edition || null,
