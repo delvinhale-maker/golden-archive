@@ -779,19 +779,27 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     touchStartX.current = null;
   };
 
-  // Scale the whole device frame down on narrow viewports so it always fits.
+  // Scale the whole device frame down on narrow / short viewports so it always
+  // fits AND stays centered on both axes. We measure the actual stage element
+  // (not window) so header/footer chrome is accounted for on mobile.
+  const stageRef = useRef<HTMLDivElement>(null);
   const [frameScale, setFrameScale] = useState(1);
   useEffect(() => {
     const compute = () => {
-      const vw = window.innerWidth;
-      const avail = vw - 32;
-      if (dev.w > avail) setFrameScale(Math.max(0.5, avail / dev.w));
-      else setFrameScale(1);
+      const stage = stageRef.current;
+      // Fallback to viewport if the stage hasn't mounted yet.
+      const availW = (stage?.clientWidth ?? window.innerWidth) - 32;
+      const availH = (stage?.clientHeight ?? window.innerHeight) - 32;
+      const sW = availW > 0 ? availW / dev.w : 1;
+      const sH = availH > 0 ? availH / dev.h : 1;
+      const s = Math.min(1, sW, sH);
+      setFrameScale(Math.max(0.4, s));
     };
     compute();
     window.addEventListener("resize", compute);
     return () => window.removeEventListener("resize", compute);
-  }, [dev.w]);
+  }, [dev.w, dev.h]);
+
 
   // Current chapter for header (PDF outline or EPUB toc).
   const currentChapter = useMemo(() => {
@@ -952,7 +960,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       </div>
 
       {/* Stage */}
-      <div className="relative flex-1 overflow-hidden flex items-center justify-center p-6">
+      <div ref={stageRef} className="relative flex-1 overflow-hidden flex items-center justify-center p-6">
         {/* Previous-page arrow — visually on the leading edge (right in RTL, left otherwise) */}
         <button
           onClick={() => goTo(location - 1)}
@@ -965,13 +973,25 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         </button>
 
 
-        {/* Device frame (scaled down on narrow viewports) */}
+        {/* Device frame (scaled down on narrow viewports).
+            Reserve the scaled bounding box so flex centering works on both
+            axes — CSS transforms don't shrink layout size on their own. */}
         <div
           style={{
-            transform: frameScale < 1 ? `scale(${frameScale})` : undefined,
-            transformOrigin: "top center",
+            width: dev.w * frameScale,
+            height: dev.h * frameScale,
+            flexShrink: 0,
           }}
         >
+          <div
+            style={{
+              transform: frameScale < 1 ? `scale(${frameScale})` : undefined,
+              transformOrigin: "top left",
+              width: dev.w,
+              height: dev.h,
+            }}
+          >
+
           <div
             key={device}
             className={`transition-opacity duration-200 ${dev.frame} relative touch-pan-y select-none`}
@@ -1142,6 +1162,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             </button>
           )}
         </div>
+        </div>
+
 
 
 
