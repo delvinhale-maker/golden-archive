@@ -260,7 +260,10 @@ function PreviewSamplePage() {
             Back home
           </button>
         </div>
+        </div>
       </div>
+      <Toaster theme="dark" position="top-center" richColors closeButton />
     </main>
   );
 }
+
