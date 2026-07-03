@@ -97,15 +97,27 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         setSignedUrl(data.signedUrl);
 
         if (isDocx) {
-          const res = await fetch(data.signedUrl);
-          const buf = await res.arrayBuffer();
-          const mammoth: any = await import("mammoth/mammoth.browser");
-          const result = await mammoth.convertToHtml({ arrayBuffer: buf });
-          if (cancelled) return;
-          setDocxHtml(result.value || "<p>(Empty document)</p>");
-          setLoading(false);
+          try {
+            const res = await fetch(data.signedUrl);
+            if (!res.ok) throw new Error(`Download failed (${res.status})`);
+            const buf = await res.arrayBuffer();
+            const mammoth: any = await import("mammoth/mammoth.browser");
+            const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+            if (cancelled) return;
+            setDocxHtml(result.value || "<p>(Empty document)</p>");
+            setLoading(false);
+          } catch (docxErr: any) {
+            console.error("[ManuscriptPreviewer] docx", docxErr);
+            if (!cancelled) {
+              setError(
+                "We couldn't preview this Word document. It may be corrupted or use unsupported features. You can still open the original file in a new tab.",
+              );
+              setLoading(false);
+            }
+          }
           return;
         }
+
 
         if (!isPdf) {
           setNotPdf(true);
