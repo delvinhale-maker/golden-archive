@@ -1162,6 +1162,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             </button>
           )}
         </div>
+        </div>
+
 
 
 
