@@ -1197,11 +1197,12 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                       transition: "transform 150ms ease",
                       boxSizing: "border-box",
                       wordWrap: "break-word",
-                      ["--av-docx-page-h" as any]: `${pageAreaH}px`,
+                      ["--av-docx-img-max-h" as any]: `${Math.max(0, pageAreaH - DOCX_PAD_V)}px`,
                     }}
                     dangerouslySetInnerHTML={{ __html: docxHtml }}
                   />
                 </div>
+
               ) : isEpub ? (
 
                 <div
