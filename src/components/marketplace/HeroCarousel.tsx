@@ -27,7 +27,7 @@ const DEFAULT_HERO_SLIDE: Slide = {
       Renew your mind. <span className="gold-gradient">Kingdom Mind</span> is here.
     </>
   ),
-  body: "A purpose-driven eBook from Illustrious Capital™ — built to elevate operators, leaders, and creators walking in their calling.",
+  body: "A purpose-driven eBook from AurumVault — built to elevate operators, leaders, and creators walking in their calling.",
   ctaLabel: "Shop Now →",
   ctaTo: "/products",
   secondaryLabel: "Browse Categories →",

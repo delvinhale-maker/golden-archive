@@ -8,13 +8,13 @@ export const Route = createFileRoute("/about")({
       {
         name: "description",
         content:
-          "AurumVault is the curated marketplace for purpose-driven digital products from verified creators, powered by Illustrious Capital™.",
+          "AurumVault is the curated marketplace for purpose-driven digital products from verified creators.",
       },
       { property: "og:title", content: "About AurumVault" },
       {
         property: "og:description",
         content:
-          "Curated digital products from verified creators. Powered by Illustrious Capital™.",
+          "Curated digital products from verified creators.",
       },
       { property: "og:type", content: "website" },
       { rel: "canonical", href: "https://www.aurumvault.store/about" } as never,
@@ -41,12 +41,10 @@ function AboutPage() {
             readers and buyers can trust what they find here.
           </p>
           <p>
-            We're powered by{" "}
-            <span className="font-semibold text-navy">Illustrious Capital™</span>
-            , a family of brands committed to purpose-driven publishing and
-            sustainable creator economics. Sellers keep 91% of every sale; we
-            keep the remaining 9% to maintain the platform, fight fraud, and
-            invest in distribution.
+            AurumVault is committed to purpose-driven publishing and sustainable
+            creator economics. Sellers keep 91% of every sale; we keep the
+            remaining 9% to maintain the platform, fight fraud, and invest in
+            distribution.
           </p>
           <p>
             Whether you're publishing your first ebook, launching a prompt

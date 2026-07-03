@@ -87,7 +87,7 @@ export const answerQuestion = createServerFn({ method: "POST" })
       .update({
         answer: a,
         answerer_user_id: userId,
-        answerer_name: "Illustrious Capital™",
+        answerer_name: "AurumVault",
         answered_by_admin: true,
         answered_at: new Date().toISOString(),
       })

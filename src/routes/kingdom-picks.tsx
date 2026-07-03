@@ -81,7 +81,7 @@ function KingdomPicksPage() {
             <p className="flex-1">
               <strong className="text-navy">Disclosure:</strong> AurumVault earns
               a commission on purchases made through partner links on this page.
-              This helps support Illustrious Capital™ at no extra cost to you.{" "}
+              Curated by AurumVault at no extra cost to you.{" "}
               <Link to="/affiliate-disclosure" className="text-gold underline">
                 Learn more
               </Link>
