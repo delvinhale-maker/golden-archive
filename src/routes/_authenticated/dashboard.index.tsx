@@ -60,6 +60,11 @@ function BookshelfPage() {
     { kind: ConfirmKind; product: Product } | null
   >(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [verifyState, setVerifyState] = useState<{
+    id: string;
+    verifying: boolean;
+    error: string | null;
+  } | null>(null);
   const [historyProduct, setHistoryProduct] = useState<Product | null>(null);
 
   useEffect(() => {
@@ -155,23 +160,55 @@ function BookshelfPage() {
     return false;
   }
 
-  async function unpublish(product: Product) {
+  async function unpublish(product: Product): Promise<boolean> {
     setBusyId(product.id);
+    setVerifyState({ id: product.id, verifying: false, error: null });
     const { error } = await supabase
       .from("marketplace_products")
       .update({ published: false })
       .eq("id", product.id);
     if (error) {
       setBusyId(null);
-      return toast.error(error.message);
+      setVerifyState(null);
+      toast.error(error.message);
+      return false;
     }
+    setVerifyState({ id: product.id, verifying: true, error: null });
     const ok = await verifyUnpublished(product.id);
-    setBusyId(null);
     if (!ok) {
-      return toast.error(
-        `${product.title} update didn't propagate to the storefront. Please refresh and try again.`,
-      );
+      setVerifyState({
+        id: product.id,
+        verifying: false,
+        error: "Verification timeout: the storefront still shows this title after multiple checks. Please retry or contact support.",
+      });
+      setBusyId(null);
+      return false;
     }
+    setBusyId(null);
+    setVerifyState(null);
+    setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, published: false } : p)));
+    toast.success(`${product.title} is removed from the storefront. You can republish anytime.`);
+    return true;
+  }
+
+  async function handleRetryVerify() {
+    if (!confirmState || confirmState.kind !== "unpublish" || !verifyState) return;
+    const { product } = confirmState;
+    setBusyId(product.id);
+    setVerifyState({ id: product.id, verifying: true, error: null });
+    const ok = await verifyUnpublished(product.id);
+    if (!ok) {
+      setVerifyState({
+        id: product.id,
+        verifying: false,
+        error: "Verification timeout: the storefront still shows this title after multiple checks. Please retry or contact support.",
+      });
+      setBusyId(null);
+      return;
+    }
+    setBusyId(null);
+    setVerifyState(null);
+    setConfirmState(null);
     setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, published: false } : p)));
     toast.success(`${product.title} is removed from the storefront. You can republish anytime.`);
   }
