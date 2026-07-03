@@ -1,0 +1,1 @@
+UPDATE public.marketplace_products SET status='approved', published=true, approved_at=now() WHERE id='d4167307-dd4d-4229-8537-fa6eb7eb7143';
