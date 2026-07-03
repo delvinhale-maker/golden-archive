@@ -299,7 +299,6 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       height: pageAreaH,
       flow: "paginated",
       spread: "none",
-      allowScriptedContent: false,
     });
     epubRenditionRef.current = rendition;
     rendition.themes.fontSize(`${100 * (FONT_SCALES[fontSize] ?? 1)}%`);
