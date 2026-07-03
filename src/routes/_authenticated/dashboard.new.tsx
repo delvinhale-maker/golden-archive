@@ -1060,6 +1060,9 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
               isEditing={isEditing}
               lastUpdatedAt={dbUpdatedAt}
               onCancel={() => navigate({ to: "/dashboard" })}
+              isAdmin={isAdmin}
+              adminInstantApprove={adminInstantApprove}
+              onToggleAdminInstantApprove={setAdminInstantApprove}
             />
           )}
 
