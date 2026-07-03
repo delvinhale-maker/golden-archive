@@ -405,6 +405,12 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   // children and groups them into pages so a page break never lands in the
   // middle of a paragraph or image. A block taller than the page area gets its
   // own page (and is allowed to scroll within the frame).
+  // Per-page visible clip heights. Length matches docxPageOffsets. For pages
+  // whose next block starts before pageAreaH is exhausted (because that block
+  // would otherwise overflow), we shorten the clip so the overflowing block
+  // does not visually hang below the page. Falls back to pageAreaH.
+  const [docxPageHeights, setDocxPageHeights] = useState<number[]>([0]);
+
   const measureDocxPages = useCallback(() => {
     const el = docxInnerRef.current;
     if (!el) return;
@@ -412,6 +418,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     const containerTop = el.getBoundingClientRect().top;
     const offsets: number[] = [0];
     let pageStart = 0;
+    let lastBottom = 0;
     for (const kid of kids) {
       const rect = kid.getBoundingClientRect();
       const top = rect.top - containerTop;
@@ -423,13 +430,22 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         pageStart = top;
         offsets.push(pageStart);
       }
+      lastBottom = Math.max(lastBottom, bottom);
     }
-    // Fallback: if no children were measured, keep single page.
     if (offsets.length === 0) offsets.push(0);
+    // Clip height per page = distance to next page start (so an overflowing
+    // block that triggered the break doesn't visually spill into the previous
+    // page). Cap at pageAreaH. The last page keeps pageAreaH.
+    const heights: number[] = offsets.map((off, i) => {
+      const next = i + 1 < offsets.length ? offsets[i + 1] : lastBottom;
+      return Math.min(pageAreaH, Math.max(0, next - off));
+    });
     setDocxPageOffsets(offsets);
+    setDocxPageHeights(heights);
     setDocxPageCount(offsets.length);
     setPageCount(offsets.length + 1);
   }, [pageAreaH]);
+
 
   // Layout guard: constrain every DOCX image so it fits inside the page content
   // height minus vertical padding. Runs against the measurement node (which
