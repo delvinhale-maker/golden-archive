@@ -61,7 +61,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [outline, setOutline] = useState<OutlineEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingSlow, setLoadingSlow] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ title: string; steps: string[] } | null>(null);
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
   const [locationInput, setLocationInput] = useState("1");
   const [notPdf, setNotPdf] = useState(false);
