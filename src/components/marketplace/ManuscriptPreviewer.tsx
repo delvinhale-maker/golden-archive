@@ -925,7 +925,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             key={device}
             className={`transition-opacity duration-200 ${dev.frame} relative touch-pan-y select-none`}
             style={{ width: dev.w, height: dev.h, padding: dev.pad }}
-            onTouchStart={onTouchStart}
+            data-testid="previewer-touch" onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
           >
