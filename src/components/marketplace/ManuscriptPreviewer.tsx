@@ -83,7 +83,16 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const epubSyncingRef = useRef<boolean>(false);
   const epubTocRef = useRef<EpubTocEntry[]>([]);
 
-  const ext = manuscriptPath.split(".").pop()?.toLowerCase() ?? "";
+  // Robust extension detection:
+  // - Blob URLs from the upload picker append a `#.docx|pdf|epub` marker; honor it first.
+  // - Otherwise strip query string + hash before reading the extension so signed/remote
+  //   URLs like `https://.../file.pdf?token=abc` still resolve to "pdf".
+  const ext = (() => {
+    const hashMarker = manuscriptPath.match(/#\.(docx|pdf|epub)(?:$|\?)/i);
+    if (hashMarker) return hashMarker[1].toLowerCase();
+    const cleaned = manuscriptPath.split("#")[0].split("?")[0];
+    return cleaned.split(".").pop()?.toLowerCase() ?? "";
+  })();
   const isPdf = ext === "pdf";
   const isDocx = ext === "docx";
   const isEpub = ext === "epub";
