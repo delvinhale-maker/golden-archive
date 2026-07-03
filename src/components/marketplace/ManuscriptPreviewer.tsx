@@ -88,6 +88,19 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const isDocx = ext === "docx";
   const isEpub = ext === "epub";
 
+  // Detect RTL from the document / nearest [dir] ancestor at mount.
+  const [isRTL, setIsRTL] = useState(false);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const dir =
+      document.documentElement.getAttribute("dir") ||
+      document.body.getAttribute("dir") ||
+      getComputedStyle(document.documentElement).direction ||
+      "ltr";
+    setIsRTL(dir.toLowerCase() === "rtl");
+  }, []);
+
+
   // Sign URL & load PDF
   useEffect(() => {
     let cancelled = false;
@@ -590,8 +603,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       const t = e.target as HTMLElement | null;
       const typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT");
       if (typing) return;
-      if (e.key === "ArrowLeft") { e.preventDefault(); goTo(location - 1); }
-      if (e.key === "ArrowRight") { e.preventDefault(); goTo(location + 1); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); goTo(location + (isRTL ? 1 : -1)); }
+      if (e.key === "ArrowRight") { e.preventDefault(); goTo(location + (isRTL ? -1 : 1)); }
     };
     window.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -599,15 +612,20 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [goTo, location, onClose]);
+  }, [goTo, location, onClose, isRTL]);
 
   const onTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
   const onTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX.current == null) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(dx) > 50) goTo(location + (dx < 0 ? 1 : -1));
+    if (Math.abs(dx) > 50) {
+      // In RTL, swipe right = next, swipe left = previous.
+      const forward = isRTL ? dx > 0 : dx < 0;
+      goTo(location + (forward ? 1 : -1));
+    }
     touchStartX.current = null;
   };
+
 
   const slideAnim = useMemo(() => {
     if (!slideDir) return "";
@@ -737,15 +755,16 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
 
       {/* Stage */}
       <div className="relative flex-1 overflow-hidden flex items-center justify-center p-6">
-        {/* Left arrow — 56×56 tap target */}
+        {/* Previous-page arrow — visually on the leading edge (right in RTL, left otherwise) */}
         <button
           onClick={() => goTo(location - 1)}
           aria-label="Previous page"
           disabled={location <= 1}
-          className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition"
+          className={`absolute ${isRTL ? "right-2 md:right-6" : "left-2 md:left-6"} top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition`}
         >
-          <ChevronLeft size={30} />
+          {isRTL ? <ChevronRight size={30} /> : <ChevronLeft size={30} />}
         </button>
+
 
         {/* Device frame */}
         <div
@@ -885,15 +904,16 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
           )}
         </div>
 
-        {/* Right arrow — 56×56 tap target */}
+        {/* Next-page arrow — visually on the trailing edge (left in RTL, right otherwise) */}
         <button
           onClick={() => goTo(location + 1)}
           aria-label="Next page"
           disabled={location >= pageCount}
-          className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition"
+          className={`absolute ${isRTL ? "left-2 md:left-6" : "right-2 md:right-6"} top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition`}
         >
-          <ChevronRight size={30} />
+          {isRTL ? <ChevronLeft size={30} /> : <ChevronRight size={30} />}
         </button>
+
       </div>
 
       {/* Hidden DOCX measurement node — mounted regardless of current location
