@@ -178,6 +178,21 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const pageAreaW = dev.w - dev.pad * 2;
   const pageAreaH = dev.h - dev.pad * 2;
 
+  // Measure DOCX HTML pages whenever html, font size, or device area changes.
+  useLayoutEffect(() => {
+    if (!isDocx || !docxHtml) return;
+    const el = docxInnerRef.current;
+    if (!el) return;
+    // Give layout a tick to apply.
+    requestAnimationFrame(() => {
+      const h = el.scrollHeight;
+      const pages = Math.max(1, Math.ceil(h / pageAreaH));
+      setDocxPageCount(pages);
+      setPageCount(pages + 1);
+    });
+  }, [isDocx, docxHtml, fontSize, device, pageAreaH]);
+
+
   // Rendered-page cache: key = `${pageNum}|${fontSize}|${device}` -> offscreen canvas.
   // Cache survives navigation, so revisiting a page is instant. A miss (new page,
   // new zoom, or new device frame) is the only path that re-runs pdf.render.
