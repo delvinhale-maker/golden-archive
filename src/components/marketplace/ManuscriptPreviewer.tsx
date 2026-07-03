@@ -347,7 +347,27 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       } catch (err: any) {
         console.error("[ManuscriptPreviewer]", err);
         if (!cancelled) {
-          setError("Unable to load manuscript. Please try again.");
+          const isPdfRenderer = isPdf;
+          setError(
+            isPdfRenderer
+              ? {
+                  title: "We couldn't render this PDF.",
+                  steps: [
+                    "Tap Try again — the PDF worker may not have loaded on the first try.",
+                    "Check your internet connection and reload.",
+                    "Re-save the PDF from the source app (avoid password protection).",
+                    "If it still fails, open the original file to view it.",
+                  ],
+                }
+              : {
+                  title: "Unable to load manuscript.",
+                  steps: [
+                    "Tap Try again — a temporary network issue can cause this.",
+                    "Check your internet connection.",
+                    "If the problem persists, re-upload the file.",
+                  ],
+                },
+          );
           setLoading(false);
         }
       }
