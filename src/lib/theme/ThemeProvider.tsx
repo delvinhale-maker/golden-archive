@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -13,14 +14,31 @@ import {
   type ThemeTokens,
 } from "./theme-config";
 
+type ThemeOverride = Partial<ThemeTokens> | null;
+
 type ThemeContextValue = {
+  /** The theme currently applied to :root (route theme merged with any override). */
   activeTheme: ThemeTokens;
+  /**
+   * Direct setter kept for backward-compatibility. Prefer setThemeOverride for
+   * component-scoped overrides that should unwind on unmount.
+   */
   setActiveTheme: (theme: ThemeTokens) => void;
+  /**
+   * Push a partial theme override on top of the route theme. Pass null to
+   * clear. Overrides are shallow-merged over the route theme so callers only
+   * need to specify the tokens they care about (e.g. { accentColor }).
+   */
+  setThemeOverride: (override: ThemeOverride) => void;
+  /** Convenience: clear any override, returning to the route theme. */
+  clearThemeOverride: () => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue>({
   activeTheme: DEFAULT_THEME,
   setActiveTheme: () => {},
+  setThemeOverride: () => {},
+  clearThemeOverride: () => {},
 });
 
 function applyThemeToRoot(theme: ThemeTokens) {
@@ -31,7 +49,7 @@ function applyThemeToRoot(theme: ThemeTokens) {
   root.style.setProperty("--gradient-end", theme.gradientEnd);
   root.style.setProperty(
     "--page-gradient",
-    `linear-gradient(180deg, ${theme.gradientStart} 0%, ${theme.gradientEnd} 100%)`,
+    `linear-gradient(135deg, ${theme.gradientStart} 0%, ${theme.gradientEnd} 100%)`,
   );
   root.dataset.tab = theme.tabName;
 }
@@ -42,27 +60,46 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     () => resolveThemeForPath(location.pathname, location.search as Record<string, unknown>),
     [location.pathname, location.search],
   );
-  const [activeTheme, setActiveTheme] = useState<ThemeTokens>(routeTheme);
 
-  // Auto-update theme on route or query change
+  const [override, setOverride] = useState<ThemeOverride>(null);
+  // Manual setter path (legacy). When callers use setActiveTheme directly we
+  // treat it as a full override so route changes don't immediately overwrite it.
+  const [manualTheme, setManualTheme] = useState<ThemeTokens | null>(null);
+
+  // Clear manual/override state whenever the route itself changes — the new
+  // route's theme should win unless a component re-installs its override.
   useEffect(() => {
-    setActiveTheme(routeTheme);
+    setManualTheme(null);
+    setOverride(null);
   }, [routeTheme]);
 
-  // Apply CSS custom properties whenever the theme changes (imperative fallback)
+  const activeTheme = useMemo<ThemeTokens>(() => {
+    if (manualTheme) return manualTheme;
+    if (override) return { ...routeTheme, ...override };
+    return routeTheme;
+  }, [routeTheme, override, manualTheme]);
+
   useEffect(() => {
     applyThemeToRoot(activeTheme);
   }, [activeTheme]);
 
-  const value = useMemo(
-    () => ({ activeTheme, setActiveTheme }),
-    [activeTheme],
+  const setActiveTheme = useCallback((theme: ThemeTokens) => {
+    setManualTheme(theme);
+  }, []);
+  const setThemeOverride = useCallback((next: ThemeOverride) => {
+    setOverride(next);
+  }, []);
+  const clearThemeOverride = useCallback(() => setOverride(null), []);
+
+  const value = useMemo<ThemeContextValue>(
+    () => ({ activeTheme, setActiveTheme, setThemeOverride, clearThemeOverride }),
+    [activeTheme, setActiveTheme, setThemeOverride, clearThemeOverride],
   );
 
   // Declarative CSS variables via a <style> tag guarantees the vars apply
   // even if the imperative documentElement.style write is clobbered by
   // hydration or router transitions.
-  const css = `:root{--accent-color:${activeTheme.accentColor};--gradient-start:${activeTheme.gradientStart};--gradient-end:${activeTheme.gradientEnd};--page-gradient:linear-gradient(180deg,${activeTheme.gradientStart} 0%,${activeTheme.gradientEnd} 100%);}`;
+  const css = `:root{--accent-color:${activeTheme.accentColor};--gradient-start:${activeTheme.gradientStart};--gradient-end:${activeTheme.gradientEnd};--page-gradient:linear-gradient(135deg,${activeTheme.gradientStart} 0%,${activeTheme.gradientEnd} 100%);}`;
 
   return (
     <ThemeContext.Provider value={value}>
@@ -74,4 +111,22 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 export function useTheme() {
   return useContext(ThemeContext);
+}
+
+/**
+ * Component-scoped theme override. Applies the override on mount / when
+ * `override` changes and clears it on unmount so the route theme resumes.
+ * Pass `null` to opt out on a given render (e.g. when a category is unknown).
+ */
+export function useThemeOverride(override: ThemeOverride) {
+  const { setThemeOverride, clearThemeOverride } = useContext(ThemeContext);
+  const key = override
+    ? `${override.accentColor ?? ""}|${override.gradientStart ?? ""}|${override.gradientEnd ?? ""}|${override.tabName ?? ""}`
+    : "";
+  useEffect(() => {
+    if (!override) return;
+    setThemeOverride(override);
+    return () => clearThemeOverride();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 }

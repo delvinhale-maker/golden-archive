@@ -1,55 +1,91 @@
-# AurumVault → Full Amazon-Style Marketplace
+# Dynamic Color Transition System
 
-That's 10 large feature areas. Building all at once would take many hours, blow past safe edit batches, and likely break the live site mid-flight. I want to ship this in **5 sequenced waves**, each one independently testable and publishable.
+Ship a single source of truth for accent colors that swaps smoothly on every route, category, hero slide, and dashboard step — with a 300ms transition on the elements that consume it.
 
-## Wave 1 — Discovery & Storefront polish
-- Rotating hero banners (3 slides, autoplay, dot nav)
-- Deals of the Day strip with live countdown timers
-- Category grid (eBooks / Courses / Templates / Audio / Leadership)
-- Bestsellers row (sorted by sales count from `orders`)
-- "Customers Also Bought" on product page (category-matched fallback until we have co-purchase data)
-- Skeleton loaders on all storefront grids
+## 1. Theme source of truth
 
-## Wave 2 — Product page + Reviews
-- Cover zoom on hover/click, format selector (eBook / Audio / Bundle if applicable)
-- Trust badges row + Kingdom Guarantee box (30-day, instant delivery, secure checkout)
-- New `reviews` table (rating, title, body, verified_purchase, helpful_votes)
-- Star breakdown bars, verified-purchase badge, helpful vote button
-- Seed 3–5 launch reviews per existing product
-- Open Graph + Twitter card tags per product (dynamic from loader)
+- New file `src/theme/routeThemes.ts` exporting:
+  - `ROUTE_THEMES` map (exact keys from the spec, including `/products?category=...` variants).
+  - `DASHBOARD_STEP_THEMES` (steps 1–4 → emerald / purple / amber / gold).
+  - `HERO_SLIDE_THEMES` (3 slides).
+  - `CATEGORY_THEMES` derived from the `?category=` entries, so category pills and product-detail pages resolve the same colors.
+  - `DEFAULT_THEME` = gold/navy.
+  - `resolveTheme(pathname, search)` helper that matches exact `path+category` first, then pathname, then default.
 
-## Wave 3 — Cart, Bundles, Promos, Checkout flow
-- Slide-in cart drawer (persisted in localStorage, multi-item)
-- Multi-line Stripe checkout (replaces current single-item buy-now)
-- Promo code field → Stripe coupon lookup
-- 3 pre-built bundles as `marketplace_products` rows with `is_bundle` flag + bundle_items
-  - Kingdom Entrepreneur, Kingdom Kids, Full Access
-- Flash sale banner (admin-toggleable, countdown)
-- Checkout progress steps + gold confetti animation on `/checkout/return`
+## 2. ThemeProvider + context
 
-## Wave 4 — Search, Filters, Buyer Dashboard
-- Live search dropdown in header (debounced, top 6 results)
-- `/search` results page with sidebar filters: category, price slider, rating, format
-- Sort controls (newest, bestselling, price asc/desc, rating)
-- `/library` — buyer's purchased products with download buttons (re-uses existing token system, regenerates on demand)
-- `/orders` — order history with re-download
-- `/wishlist` — already have the hook, add a page
-- In-app notification bell (unread count from new `notifications` table)
+- New `src/theme/ThemeContext.tsx`:
+  - `activeTheme: { accentColor, gradientStart, gradientEnd, tabName }`.
+  - `setThemeOverride(theme | null)` for imperative overrides (hero carousel, dashboard steps, product detail, category pills that pre-empt navigation).
+  - Effect that reads `useRouterState({ select: s => s.location })` (TanStack Router equivalent of `useLocation`), computes the route theme, and — unless an override is active — writes the four CSS custom properties on `document.documentElement`.
+  - The provider mounts in `src/routes/__root.tsx` inside the existing shell (does not touch the SSR html/head/body structure).
 
-## Wave 5 — Admin Seller Central + PWA/SEO
-- `/admin` upgrade: KPI cards (GMV, orders, sellers, pending), tabs for Products / Orders / Coupons / Sellers
-- Coupon manager (creates Stripe coupons via API)
-- `manifest.json`, service worker for install + offline shell
-- Push notifications opt-in (web push, fires on order delivery)
-- Full OG/Twitter metadata pass on every public route
+## 3. Global CSS
 
-## Out of scope (call out now)
-- **Resend**: you already have Lovable Emails wired (notify.www.aurumvault.store). I'll extend that, not swap to Resend, unless you say otherwise.
-- **Stripe Connect payouts**: still tracked-only in `seller_balances`. Real payouts to sellers are a separate buildout — flag for later.
-- **Push notifications** require user permission + an icon set; will use a generated placeholder unless you upload one.
+- Edit `src/styles.css`:
+  - Add `--accent-color`, `--gradient-start`, `--gradient-end` to `:root` with the defaults from the spec.
+  - Add `body { background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%); transition: background 300ms ease; }` — scoped so it does not fight existing surface tokens.
+  - Add utility classes: `.nav-tab-active`, `.btn-primary-accent`, `.card-border-accent`, `.accent-text`, `.section-header-accent`, `.accent-bg`, all with 300ms transitions on the relevant property.
+  - Add `.page-fade-in` keyframe (opacity 0 → 1 over 200ms) used by the root outlet wrapper, keyed on `location.pathname + search`.
 
-## Confirm before I start
+## 4. Bottom navigation
 
-1. **Approve the 5-wave order**, or reorder.
-2. **Start with Wave 1 only** this turn, then publish + smoke-test before Wave 2? (Recommended — each wave is 8–15 files.)
-3. **Resend vs. Lovable Emails** — stay on Lovable Emails? (Recommended.)
+- Update the bottom-nav component (whichever file currently renders the tab bar — will locate via `rg`):
+  - Active icon/text color → `var(--accent-color)` with 300ms transition.
+  - Inactive icons → `#6B7280`.
+  - Bar background stays `#0F1E35`.
+  - Animated underline: absolutely positioned bar under the tab row, translated with CSS transform to the active tab's index (measured via refs), 300ms ease.
+
+## 5. Category pills
+
+- On the products page, tapping a pill:
+  - Calls `setThemeOverride(CATEGORY_THEMES[cat])` synchronously so the color updates before navigation settles.
+  - Also updates the URL to `/products?category=<cat>` so the route-driven theme matches after navigation, then clears the override.
+  - Selected pill uses `.accent-bg`; unselected pills use existing muted style.
+- Section-header left borders on that page use `.section-header-accent`.
+
+## 6. Hero carousel
+
+- Auto-advance every 5s (existing behavior kept or added).
+- On slide change, call `setThemeOverride(HERO_SLIDE_THEMES[i])`. On unmount / leaving the home route, clear the override so route themes resume.
+- Dot indicators: active dot uses `var(--accent-color)`, others muted, 300ms transition.
+
+## 7. Product detail
+
+- Read the product's category, call `setThemeOverride(CATEGORY_THEMES[category])` on mount, clear on unmount.
+- Add-to-cart button uses `.btn-primary-accent`; price, star ratings, and section headers use `.accent-text` / `.section-header-accent`.
+
+## 8. Dashboard publish steps
+
+- Wherever the multi-step publish flow lives (dashboard/new), call `setThemeOverride(DASHBOARD_STEP_THEMES[step])` whenever the step changes; clear on unmount.
+
+## 9. Page entry animation
+
+- Wrap `<Outlet />` in `__root.tsx` with a keyed div (`key={location.pathname + location.searchStr}`) that applies `.page-fade-in`. This gives the 200ms fade combined with the 300ms background shift.
+
+## 10. Accent audit
+
+- `rg -n "#B8860B|#b8860b"` across `src/`; replace hardcoded accent uses in components (buttons, badges, section headers, card borders, dots, pill backgrounds) with the new utility classes or `var(--accent-color)`. Leave base navy `#0F1E35` and cream `#F5F0E8` untouched.
+
+## Technical notes
+
+- TanStack Router, not React Router: use `useRouterState({ select: s => s.location })` in place of `useLocation()`. Category comes from `location.search.category`.
+- CSS variables are written on `document.documentElement` (`:root`) only in a `useEffect`, so SSR is safe.
+- Overrides use a small stack (`useRef<string | null>` per source) so hero → product-detail nested overrides unwind cleanly; last-set wins, cleared on unmount.
+- No changes to tokens in `src/index.css` / theme; the new variables are additive so dark-mode semantic tokens are untouched.
+- Verification: `bun run build:dev`, then Playwright script that navigates `/ → /products?category=Courses → /products?category=Templates → /wishlist` and reads `getComputedStyle(document.documentElement).getPropertyValue('--accent-color')` at each step, plus a screenshot of the bottom nav underline.
+
+## Files touched (approx.)
+
+```text
+new  src/theme/routeThemes.ts
+new  src/theme/ThemeContext.tsx
+edit src/routes/__root.tsx           (mount provider, keyed outlet)
+edit src/styles.css                  (vars, body bg, utility classes, fade keyframe)
+edit src/components/**/BottomNav*    (accent + underline)
+edit src/components/**/CategoryPills* or products route
+edit src/components/**/HeroCarousel*
+edit src/routes/products.$id.tsx (or equivalent product detail)
+edit dashboard new-listing step component
+edit misc components flagged by the #B8860B audit
+```
