@@ -172,7 +172,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     return () => {
       cancelled = true;
     };
-  }, [manuscriptPath, isPdf]);
+  }, [manuscriptPath, isPdf, isDocx]);
 
   const dev = DEVICES[device];
   const pageAreaW = dev.w - dev.pad * 2;
