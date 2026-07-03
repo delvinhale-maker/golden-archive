@@ -39,9 +39,14 @@ BASE = "http://localhost:8080/preview-sample"
 SCREENSHOTS = Path(__file__).parent / "screenshots"
 SCREENSHOTS.mkdir(parents=True, exist_ok=True)
 
-# Stable selectors — tests never key off className.
+# Stable selectors — tests never key off className or ARIA labels.
 FRAME_TESTID = "previewer-scroll"
 TOUCH_TESTID = "previewer-touch"
+NEXT_BTN = "previewer-next"
+PREV_BTN = "previewer-prev"
+LOC_INPUT = "previewer-location-input"
+FONT_SIZE = "previewer-font-size"
+DEVICE = "previewer-device"
 
 MOBILE_CTX = dict(
     viewport={"width": 390, "height": 844},
@@ -103,7 +108,7 @@ async def open_previewer(browser):
     await page.add_init_script(f"({INSTALL_SPY_JS})()")
     await page.goto(BASE, wait_until="networkidle")
     await page.get_by_role("button", name="PDF", exact=True).first.tap()
-    await page.locator('select[aria-label="Font size"]').first.wait_for(timeout=20000)
+    await page.locator(f'[data-testid="{FONT_SIZE}"]').first.wait_for(timeout=20000)
     await page.locator(f'[data-testid="{TOUCH_TESTID}"]').first.wait_for(
         state="attached", timeout=20000,
     )
@@ -168,21 +173,21 @@ async def main() -> None:
         try:
             # 1. Next arrow → reset.
             await clear_spy(page)
-            await page.get_by_role("button", name="Next page").first.click()
+            await page.locator(f'[data-testid="{NEXT_BTN}"]').first.click()
             await page.wait_for_timeout(400)
             await assert_navigation_reset(page, "Next arrow (1 -> 2)")
             await page.screenshot(path=str(SCREENSHOTS / f"scroll_reset_next_{BROWSER}.png"))
 
             # 2. Previous arrow → reset.
             await clear_spy(page)
-            await page.get_by_role("button", name="Previous page").first.click()
+            await page.locator(f'[data-testid="{PREV_BTN}"]').first.click()
             await page.wait_for_timeout(400)
             await assert_navigation_reset(page, "Prev arrow (2 -> 1)")
             await page.screenshot(path=str(SCREENSHOTS / f"scroll_reset_prev_{BROWSER}.png"))
 
             # 3. Location-input jump → reset.
             await clear_spy(page)
-            inp = page.locator('input[aria-label="Current location"]').first
+            inp = page.locator(f'[data-testid="{LOC_INPUT}"]').first
             await inp.fill("3")
             await inp.press("Enter")
             await page.wait_for_timeout(500)
@@ -190,14 +195,14 @@ async def main() -> None:
 
             # 4. Font-size change is NOT a navigation → NO frame scroll.
             await clear_spy(page)
-            await page.locator('select[aria-label="Font size"]').first.select_option("4")
+            await page.locator(f'[data-testid="{FONT_SIZE}"]').first.select_option("4")
             await page.wait_for_timeout(400)
             await assert_no_frame_scroll(page, "font-size 3 -> 4")
 
             # 5. Device switch remounts the frame → NO scrollTo needed on
             #    the old element (freshly mounted elements have scrollTop 0).
             await clear_spy(page)
-            sel = page.locator('select[aria-label="Device"]').first
+            sel = page.locator(f'[data-testid="{DEVICE}"]').first
             await sel.scroll_into_view_if_needed()
             await sel.select_option("tablet", force=True)
             await page.wait_for_timeout(800)
@@ -207,7 +212,7 @@ async def main() -> None:
             #    Location to its current value is a no-op and shouldn't
             #    fire the effect.
             await clear_spy(page)
-            inp = page.locator('input[aria-label="Current location"]').first
+            inp = page.locator(f'[data-testid="{LOC_INPUT}"]').first
             current = await inp.input_value()
             await inp.fill(current)
             await inp.press("Enter")
@@ -241,7 +246,7 @@ async def main() -> None:
             await page.wait_for_timeout(100)
 
             # Font-size change must not clobber scrollTop.
-            await page.locator('select[aria-label="Font size"]').first.select_option("2")
+            await page.locator(f'[data-testid="{FONT_SIZE}"]').first.select_option("2")
             await page.wait_for_timeout(400)
             after_font = await page.evaluate(
                 "(id) => document.querySelector(`[data-testid=\"${id}\"]`).scrollTop",
@@ -252,9 +257,9 @@ async def main() -> None:
             ok(f"font-size change preserved scrollTop at {after_font}")
 
             # Same-location re-entry must not clobber scrollTop.
-            cur = await page.locator('input[aria-label="Current location"]').first.input_value()
-            await page.locator('input[aria-label="Current location"]').first.fill(cur)
-            await page.locator('input[aria-label="Current location"]').first.press("Enter")
+            cur = await page.locator(f'[data-testid="{LOC_INPUT}"]').first.input_value()
+            await page.locator(f'[data-testid="{LOC_INPUT}"]').first.fill(cur)
+            await page.locator(f'[data-testid="{LOC_INPUT}"]').first.press("Enter")
             await page.wait_for_timeout(400)
             after_same = await page.evaluate(
                 "(id) => document.querySelector(`[data-testid=\"${id}\"]`).scrollTop",
@@ -265,7 +270,7 @@ async def main() -> None:
             ok(f"same-location re-entry preserved scrollTop at {after_same}")
 
             # Real navigation MUST reset scrollTop back to 0.
-            await page.get_by_role("button", name="Next page").first.click()
+            await page.locator(f'[data-testid="{NEXT_BTN}"]').first.click()
             await page.wait_for_timeout(500)
             after_nav = await page.evaluate(
                 "(id) => document.querySelector(`[data-testid=\"${id}\"]`).scrollTop",
