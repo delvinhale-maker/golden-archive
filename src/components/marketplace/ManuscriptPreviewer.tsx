@@ -98,19 +98,21 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         }
 
         const pdfjs: any = await import("pdfjs-dist");
-        // Robust worker init: use a module Worker constructed from the bundled URL.
+        // Use the bundled worker URL — Vite emits it as a static asset and the
+        // browser fetches it as a classic script, which works reliably across
+        // dev and production without needing a module Worker.
         try {
-          const workerUrl = new URL(
-            "pdfjs-dist/build/pdf.worker.min.mjs",
-            import.meta.url,
-          );
-          pdfjs.GlobalWorkerOptions.workerPort = new Worker(workerUrl, { type: "module" });
+          const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+          pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
         } catch {
-          const fallback = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
-          pdfjs.GlobalWorkerOptions.workerSrc = fallback;
+          pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
         }
 
-        const loadingTask = pdfjs.getDocument({ url: data.signedUrl });
+        const loadingTask = pdfjs.getDocument({
+          url: data.signedUrl,
+          cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+          cMapPacked: true,
+        });
         const doc = await loadingTask.promise;
         if (cancelled) return;
 
@@ -464,10 +466,11 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   <img
                     src={coverUrl}
                     alt="Cover"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     style={{
+                      objectPosition: "top",
                       transform: `scale(${FONT_SCALES[fontSize] ?? 1})`,
-                      transformOrigin: "center center",
+                      transformOrigin: "top center",
                       transition: "transform 150ms ease",
                     }}
                   />
