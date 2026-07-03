@@ -764,24 +764,49 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
               className={`w-full h-full flex items-center justify-center ${slideAnim}`}
             >
               {loading ? (
-                <div className="flex flex-col items-center gap-2 text-black/60">
+                <div className="flex flex-col items-center gap-3 text-black/60 px-6 text-center max-w-xs">
                   <Loader2 className="animate-spin" size={28} />
-                  <span className="text-xs">Loading manuscript…</span>
+                  <span className="text-xs">
+                    {loadingSlow
+                      ? isDocx
+                        ? "Converting Word document… this is taking longer than usual on this device."
+                        : "Still loading… this is taking longer than usual."
+                      : "Loading manuscript…"}
+                  </span>
+                  {loadingSlow && (
+                    <button
+                      type="button"
+                      onClick={() => setAttempt((a) => a + 1)}
+                      className="text-xs underline text-black/70 hover:text-black"
+                    >
+                      Cancel and retry
+                    </button>
+                  )}
                 </div>
               ) : error ? (
                 <div className="text-center px-6 max-w-sm">
                   <p className="text-red-600 text-sm mb-3">{error}</p>
-                  {signedUrl && (
-                    <a
-                      href={signedUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block text-sm underline text-black/70 hover:text-black"
+                  <div className="flex flex-col items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAttempt((a) => a + 1)}
+                      className="inline-block rounded-md bg-black text-white text-sm px-3 py-1.5 hover:bg-black/80"
                     >
-                      Open original file in new tab
-                    </a>
-                  )}
+                      Try again
+                    </button>
+                    {signedUrl && (
+                      <a
+                        href={signedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block text-sm underline text-black/70 hover:text-black"
+                      >
+                        Open original file in new tab
+                      </a>
+                    )}
+                  </div>
                 </div>
+
               ) : location === 1 ? (
                 coverUrl ? (
                   <img
