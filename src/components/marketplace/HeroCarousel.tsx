@@ -249,12 +249,13 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
             key={idx}
             aria-label={`Go to slide ${idx + 1}`}
             onClick={() => setI(idx)}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
+            {...(idx === i ? { "data-nav-dot": "true" } : {})}
+            className={`h-1.5 rounded-full transition-[width,background-color] duration-300 ease-out ${
               idx === i ? "w-8" : "w-3 bg-white/30 hover:bg-white/60"
             }`}
-            style={idx === i ? { backgroundColor: "var(--accent-color)" } : undefined}
           />
         ))}
+
       </div>
     </section>
   );

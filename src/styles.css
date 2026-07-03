@@ -349,12 +349,13 @@
   }
   [data-nav-underline] {
     background-color: var(--accent-color);
-    transition: background-color 400ms ease;
+    transition: background-color 300ms ease;
   }
   [data-nav-dot] {
     background-color: var(--accent-color);
-    transition: background-color 400ms ease;
+    transition: background-color 300ms ease;
   }
+
   [data-tab-badge] {
     background-color: var(--accent-color);
     color: #0F1E35;
