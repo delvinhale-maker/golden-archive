@@ -32,10 +32,16 @@ BASE = "http://localhost:8080/preview-sample"
 SCREENSHOTS = Path(__file__).parent / "screenshots"
 SCREENSHOTS.mkdir(parents=True, exist_ok=True)
 
-# Sub-pixel tolerance for browser rounding.
+# Sub-pixel tolerance for browser rounding on overflow checks.
 EDGE_TOL = 1.0
-# Max asymmetry between left and right gutter (horizontal centering).
-CENTER_TOL = 2.0
+# Max asymmetry between opposing gutters (horizontal AND vertical
+# centering). Sub-pixel drift is fine; anything visible to a human is not.
+CENTER_TOL = 1.0
+# Cover images stretch to fill the frame — gutters MUST be ~0 on all
+# sides. This tighter budget catches regressions where the cover
+# accidentally letterboxes or gets object-fit:contain'd.
+COVER_EDGE_TOL = 1.5
+
 
 MOBILE_CTX = dict(
     viewport={"width": 390, "height": 844},
@@ -127,40 +133,74 @@ async def set_device(page, value: str) -> None:
 
 
 
-def assert_fits_and_centered(m: dict, label: str) -> None:
+def assert_fits_and_centered(m: dict, label: str, *, is_cover: bool) -> None:
+    """Assert the rendered content is fully inside the device page area AND
+    symmetrically gutter'd on BOTH axes.
+
+    Cover elements (location 1) are additionally required to hug all four
+    edges — they must fill the frame, not letterbox inside it.
+    """
     if not m.get("ok"):
         fail(f"{label}: {m.get('reason')}")
 
     c, p = m["content"], m["page"]
 
-    # 1. Fully inside the page area (no clipping / overflow).
-    if c["left"] < p["left"] - EDGE_TOL:
-        fail(f"{label}: content overflows left ({c['left']:.1f} < {p['left']:.1f})")
-    if c["right"] > p["right"] + EDGE_TOL:
-        fail(f"{label}: content overflows right ({c['right']:.1f} > {p['right']:.1f})")
-    if c["top"] < p["top"] - EDGE_TOL:
-        fail(f"{label}: content overflows top ({c['top']:.1f} < {p['top']:.1f})")
-    if c["bottom"] > p["bottom"] + EDGE_TOL:
-        fail(f"{label}: content overflows bottom ({c['bottom']:.1f} > {p['bottom']:.1f})")
+    # 1. Fully inside the page area (no clipping / overflow) — all 4 sides.
+    for side, cond, detail in (
+        ("left",   c["left"]   < p["left"]   - EDGE_TOL, (c["left"], p["left"])),
+        ("right",  c["right"]  > p["right"]  + EDGE_TOL, (c["right"], p["right"])),
+        ("top",    c["top"]    < p["top"]    - EDGE_TOL, (c["top"], p["top"])),
+        ("bottom", c["bottom"] > p["bottom"] + EDGE_TOL, (c["bottom"], p["bottom"])),
+    ):
+        if cond:
+            fail(f"{label}: content overflows {side} ({detail[0]:.2f} vs page {detail[1]:.2f})")
 
     # 2. Non-degenerate size (something actually rendered).
     if c["w"] < 20 or c["h"] < 20:
         fail(f"{label}: content has degenerate size ({c['w']:.1f}x{c['h']:.1f})")
 
-    # 3. Horizontally centered inside the page area.
-    gutter_left = c["left"] - p["left"]
-    gutter_right = p["right"] - c["right"]
-    if abs(gutter_left - gutter_right) > CENTER_TOL:
+    # 3. Compute all four DOM-bbox gutters.
+    gL = c["left"]   - p["left"]
+    gR = p["right"]  - c["right"]
+    gT = c["top"]    - p["top"]
+    gB = p["bottom"] - c["bottom"]
+
+    # Basic sanity — gutters can't be negative beyond the overflow budget.
+    for name, g in (("L", gL), ("R", gR), ("T", gT), ("B", gB)):
+        if g < -EDGE_TOL:
+            fail(f"{label}: negative {name} gutter {g:.2f}px (content escapes page)")
+
+    # 4. Symmetric gutters (horizontal AND vertical centering).
+    hDelta = abs(gL - gR)
+    vDelta = abs(gT - gB)
+    if hDelta > CENTER_TOL:
         fail(
             f"{label}: not horizontally centered "
-            f"(left gutter {gutter_left:.1f}px vs right {gutter_right:.1f}px)"
+            f"(L {gL:.2f}px vs R {gR:.2f}px, Δ={hDelta:.2f}px > {CENTER_TOL})"
+        )
+    if vDelta > CENTER_TOL:
+        fail(
+            f"{label}: not vertically centered "
+            f"(T {gT:.2f}px vs B {gB:.2f}px, Δ={vDelta:.2f}px > {CENTER_TOL})"
         )
 
+    # 5. Cover-specific: must fill the frame on every side.
+    if is_cover:
+        for name, g in (("L", gL), ("R", gR), ("T", gT), ("B", gB)):
+            if abs(g) > COVER_EDGE_TOL:
+                fail(
+                    f"{label}: cover does not fill frame — "
+                    f"{name} gutter {g:.2f}px > {COVER_EDGE_TOL}px"
+                )
+
     ok(
-        f"{label}: {m['tag']} fits "
-        f"({c['w']:.0f}x{c['h']:.0f} inside {p['w']:.0f}x{p['h']:.0f}, "
-        f"gutters L{gutter_left:.1f}/R{gutter_right:.1f})"
+        f"{label}: {m['tag']} "
+        f"({c['w']:.0f}x{c['h']:.0f} in {p['w']:.0f}x{p['h']:.0f}) "
+        f"gutters L{gL:.2f} R{gR:.2f} T{gT:.2f} B{gB:.2f} "
+        f"(Δh={hDelta:.2f}, Δv={vDelta:.2f})"
     )
+
+
 
 
 async def main() -> None:
@@ -178,7 +218,7 @@ async def main() -> None:
                     await goto_location(page, loc)
                     m = await page.evaluate(MEASURE_JS)
                     tag = f"{label} · loc {loc}"
-                    assert_fits_and_centered(m, tag)
+                    assert_fits_and_centered(m, tag, is_cover=(loc == 1))
                     await page.screenshot(
                         path=str(SCREENSHOTS / f"fit_{BROWSER}_{value}_loc{loc}.png")
                     )
