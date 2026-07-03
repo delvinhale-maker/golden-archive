@@ -864,25 +864,75 @@ function ConfirmDialog({
               )}
             </div>
           </div>
+
+          {verifyState?.verifying && (
+            <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
+              <Loader2 size={18} className="text-amber-600 animate-spin shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-amber-900">Verifying storefront removal…</p>
+                <p className="text-xs text-amber-800 mt-0.5">
+                  Confirming the product is no longer visible to customers before completing unpublish.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {verifyState?.error && (
+            <div className="mt-4 rounded-xl bg-red-50 border border-red-200 p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle size={18} className="text-red-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-red-900">Verification timeout</p>
+                  <p className="text-xs text-red-800 mt-0.5">{verifyState.error}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="mt-6 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={isStep2 ? onStepBack : onCancel}
-              disabled={busy}
-              className="px-4 py-2 rounded-full text-sm font-semibold text-ink/80 border border-ink/15 hover:bg-paper disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={onConfirm}
-              disabled={!canConfirm || busy}
-              aria-busy={busy}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${config.ctaCls} disabled:opacity-60 disabled:cursor-not-allowed`}
-            >
-              {busy && <Loader2 size={14} className="animate-spin" />}
-              {busy ? busyLabel(kind) : config.cta}
-            </button>
+            {verifyState?.error ? (
+              <>
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  className="px-4 py-2 rounded-full text-sm font-semibold text-ink/80 border border-ink/15 hover:bg-paper"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={onRetryVerify}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-red-600 text-white hover:bg-red-700"
+                >
+                  Retry verification
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={isStep2 ? onStepBack : onCancel}
+                  disabled={busy || verifyState?.verifying}
+                  className="px-4 py-2 rounded-full text-sm font-semibold text-ink/80 border border-ink/15 hover:bg-paper disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isStep2 ? "Back" : "Cancel"}
+                </button>
+                <button
+                  type="button"
+                  onClick={onConfirm}
+                  disabled={!canConfirm || busy || verifyState?.verifying}
+                  aria-busy={busy}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${config.ctaCls} disabled:opacity-60 disabled:cursor-not-allowed`}
+                >
+                  {busy && <Loader2 size={14} className="animate-spin" />}
+                  {busy && verifyState?.verifying
+                    ? "Verifying storefront…"
+                    : busy
+                    ? busyLabel(kind)
+                    : config.cta}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
