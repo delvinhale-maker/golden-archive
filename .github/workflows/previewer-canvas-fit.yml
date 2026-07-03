@@ -110,15 +110,27 @@ jobs:
           tail -n 200 /tmp/dev-server.log
           exit 1
 
-      - name: Run canvas-fit test (${{ matrix.browser }})
+      # DOM-bbox check: computes L/R and T/B gutters via
+      # getBoundingClientRect() and fails when either axis drifts beyond
+      # tolerance (CENTER_TOL=1.0px, EDGE_TOL=1.0px, cover fill≤1.5px).
+      # Runs before the pixel diff so a real layout regression is
+      # attributed to geometry, not to raster drift.
+      - name: DOM gutter assertions (${{ matrix.browser }})
+        id: dom_gutters
         env:
           BROWSER: ${{ matrix.browser }}
         run: python tests/mobile/previewer-canvas-fit.spec.py
 
-      - name: Run visual diff vs baseline (${{ matrix.browser }})
+      # Pixel diff runs even if the DOM step failed — surfacing BOTH
+      # signals in one CI run makes it obvious whether a regression is
+      # geometric, rasterisation-only, or both.
+      - name: Visual diff vs baseline (${{ matrix.browser }})
+        id: visual_diff
+        if: always() && steps.dom_gutters.conclusion != 'skipped'
         env:
           BROWSER: ${{ matrix.browser }}
         run: python tests/mobile/previewer-visual-diff.spec.py
+
 
       - name: Upload artifacts on failure
         if: failure()
