@@ -960,7 +960,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       </div>
 
       {/* Stage */}
-      <div className="relative flex-1 overflow-hidden flex items-center justify-center p-6">
+      <div ref={stageRef} className="relative flex-1 overflow-hidden flex items-center justify-center p-6">
         {/* Previous-page arrow — visually on the leading edge (right in RTL, left otherwise) */}
         <button
           onClick={() => goTo(location - 1)}
@@ -973,13 +973,25 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         </button>
 
 
-        {/* Device frame (scaled down on narrow viewports) */}
+        {/* Device frame (scaled down on narrow viewports).
+            Reserve the scaled bounding box so flex centering works on both
+            axes — CSS transforms don't shrink layout size on their own. */}
         <div
           style={{
-            transform: frameScale < 1 ? `scale(${frameScale})` : undefined,
-            transformOrigin: "top center",
+            width: dev.w * frameScale,
+            height: dev.h * frameScale,
+            flexShrink: 0,
           }}
         >
+          <div
+            style={{
+              transform: frameScale < 1 ? `scale(${frameScale})` : undefined,
+              transformOrigin: "top left",
+              width: dev.w,
+              height: dev.h,
+            }}
+          >
+
           <div
             key={device}
             className={`transition-opacity duration-200 ${dev.frame} relative touch-pan-y select-none`}
