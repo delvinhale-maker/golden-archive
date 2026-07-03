@@ -837,7 +837,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   style={{ width: pageAreaW, height: pageAreaH, overflow: "hidden", position: "relative" }}
                 >
                   <div
-                    className="text-black"
+                    className="av-docx text-black"
                     style={{
                       width: pageAreaW,
                       padding: "8px 12px",
@@ -912,6 +912,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         >
           <div
             ref={docxInnerRef}
+            className="av-docx"
             style={{
               width: pageAreaW,
               padding: "8px 12px",
@@ -931,6 +932,12 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         @keyframes av-slide-right-kf { from { transform: translateX(-24px); opacity: 0.35 } to { transform: translateX(0); opacity: 1 } }
         .av-slide-left { animation: av-slide-left-kf 150ms ease }
         .av-slide-right { animation: av-slide-right-kf 150ms ease }
+        /* Keep DOCX images flush with the text column: same left/right edges,
+           never wider than the paragraph, no inherited margins from Word. */
+        .av-docx img { display: block; max-width: 100%; height: auto; margin: 12px 0; }
+        .av-docx figure { margin: 12px 0; }
+        .av-docx p, .av-docx h1, .av-docx h2, .av-docx h3, .av-docx h4, .av-docx ul, .av-docx ol, .av-docx blockquote { margin-left: 0; margin-right: 0; }
+        .av-docx table { max-width: 100%; }
       `}</style>
     </div>
   );
