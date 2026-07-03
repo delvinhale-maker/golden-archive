@@ -127,12 +127,72 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         }
 
 
+        if (isEpub) {
+          try {
+            const res = await fetch(data.signedUrl);
+            if (!res.ok) throw new Error(`Download failed (${res.status})`);
+            const buf = await res.arrayBuffer();
+            const ePubMod: any = await import("epubjs");
+            const ePub = ePubMod.default ?? ePubMod;
+            const book = ePub(buf);
+            epubBookRef.current = book;
+            await book.ready;
+            if (cancelled) { try { book.destroy(); } catch { /* noop */ } return; }
+            // Locations power page counting; 1024 chars/page is epubjs default sizing.
+            await book.locations.generate(1024);
+            const total = book.locations.length() || 1;
+            epubTotalRef.current = total;
+            setPageCount(total + 1); // +1 for cover slot
+
+            // Build outline from TOC. Map each href to a "location index" via CFI.
+            try {
+              const nav = await book.loaded.navigation;
+              const entries: OutlineEntry[] = [];
+              const walk = (items: any[]) => {
+                for (const item of items) {
+                  try {
+                    // Best-effort: derive a page index. If we can't, fall back to page 2.
+                    let pageIndex = 2;
+                    try {
+                      const cfi = book.spine?.get(item.href)?.cfiFromRange
+                        ? null
+                        : null;
+                      // Use locationFromCfi via percentage if possible; otherwise leave 2.
+                      const pct = book.locations.percentageFromCfi(item.href);
+                      if (typeof pct === "number" && !Number.isNaN(pct)) {
+                        pageIndex = Math.max(2, Math.round(pct * total) + 1);
+                      }
+                    } catch { /* keep default */ }
+                    entries.push({ title: item.label?.trim() || "Section", pageIndex });
+                  } catch { /* skip */ }
+                  if (item.subitems?.length) walk(item.subitems);
+                }
+              };
+              if (nav?.toc?.length) walk(nav.toc);
+              if (!cancelled && entries.length) setOutline(entries);
+            } catch { /* no toc */ }
+
+            setEpubReady(true);
+            setLoading(false);
+          } catch (epubErr: any) {
+            console.error("[ManuscriptPreviewer] epub", epubErr);
+            if (!cancelled) {
+              setError(
+                "We couldn't preview this EPUB. It may be corrupted or use unsupported features. You can still open the original file in a new tab.",
+              );
+              setLoading(false);
+            }
+          }
+          return;
+        }
+
         if (!isPdf) {
           setNotPdf(true);
           setPageCount(1);
           setLoading(false);
           return;
         }
+
 
         const pdfjs: any = await import("pdfjs-dist");
         // Use the bundled worker URL — Vite emits it as a static asset and the
