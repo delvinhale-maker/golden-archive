@@ -32,10 +32,16 @@ BASE = "http://localhost:8080/preview-sample"
 SCREENSHOTS = Path(__file__).parent / "screenshots"
 SCREENSHOTS.mkdir(parents=True, exist_ok=True)
 
-# Sub-pixel tolerance for browser rounding.
+# Sub-pixel tolerance for browser rounding on overflow checks.
 EDGE_TOL = 1.0
-# Max asymmetry between left and right gutter (horizontal centering).
-CENTER_TOL = 2.0
+# Max asymmetry between opposing gutters (horizontal AND vertical
+# centering). Sub-pixel drift is fine; anything visible to a human is not.
+CENTER_TOL = 1.0
+# Cover images stretch to fill the frame — gutters MUST be ~0 on all
+# sides. This tighter budget catches regressions where the cover
+# accidentally letterboxes or gets object-fit:contain'd.
+COVER_EDGE_TOL = 1.5
+
 
 MOBILE_CTX = dict(
     viewport={"width": 390, "height": 844},
