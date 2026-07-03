@@ -502,7 +502,19 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   <span className="text-xs">Loading manuscript…</span>
                 </div>
               ) : error ? (
-                <div className="text-red-600 text-sm text-center px-6">{error}</div>
+                <div className="text-center px-6 max-w-sm">
+                  <p className="text-red-600 text-sm mb-3">{error}</p>
+                  {signedUrl && (
+                    <a
+                      href={signedUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block text-sm underline text-black/70 hover:text-black"
+                    >
+                      Open original file in new tab
+                    </a>
+                  )}
+                </div>
               ) : location === 1 ? (
                 coverUrl ? (
                   <img
