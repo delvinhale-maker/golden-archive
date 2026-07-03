@@ -106,10 +106,10 @@ async def goto_location(page, loc: int) -> None:
     await page.wait_for_timeout(600)
 
 
-async def set_device(page, device: str) -> None:
-    # The Device toggle is a segmented control of buttons labeled by name.
-    await page.get_by_role("button", name=device, exact=True).first.tap()
-    await page.wait_for_timeout(400)
+async def set_device(page, value: str) -> None:
+    await page.locator('select[aria-label="Device"]').first.select_option(value)
+    await page.wait_for_timeout(500)
+
 
 
 def assert_fits_and_centered(m: dict, label: str) -> None:
