@@ -68,6 +68,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [docxPageCount, setDocxPageCount] = useState(1);
   const [epubReady, setEpubReady] = useState(false);
   const [epubToc, setEpubToc] = useState<EpubTocEntry[]>([]);
+  const [epubCurrentToc, setEpubCurrentToc] = useState<number | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderTaskRef = useRef<any>(null);
