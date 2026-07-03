@@ -747,10 +747,21 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
       setUploadProgress(100);
 
       if (publish) {
-        toast.success(isEditing ? "Title updated." : "Published to the Vault!");
         if (savedId) {
-          runReview({ data: { productId: savedId } }).catch((err) => console.error("AI review failed", err));
+          // Post-publish verification: re-fetch the row (and confirm it
+          // appears in the storefront list query) before showing success.
+          const verified = await verifyPublished(savedId, publish);
+          if (!verified.ok) {
+            toast.error(
+              `Publish did not verify: ${verified.reason}. Please try again.`,
+            );
+            return;
+          }
+          runReview({ data: { productId: savedId } }).catch((err) =>
+            console.error("AI review failed", err),
+          );
         }
+        toast.success(isEditing ? "Title updated." : "Published to the Vault!");
         setDraftProductId(null);
         setPublishedId(savedId);
       } else {
@@ -758,6 +769,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
 
         navigate({ to: "/dashboard" });
       }
+
 
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
