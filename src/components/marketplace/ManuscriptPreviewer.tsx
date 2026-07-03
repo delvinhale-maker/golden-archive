@@ -1090,7 +1090,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                       padding: "8px 12px",
                       fontSize: `${16 * (FONT_SCALES[fontSize] ?? 1)}px`,
                       lineHeight: 1.5,
-                      transform: `translateY(-${(location - 2) * pageAreaH}px)`,
+                      transform: `translateY(-${docxPageOffsets[Math.min(location - 2, docxPageOffsets.length - 1)] ?? 0}px)`,
                       transition: "transform 150ms ease",
                       boxSizing: "border-box",
                       wordWrap: "break-word",
