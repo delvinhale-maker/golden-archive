@@ -35,7 +35,7 @@ BROWSER = os.environ.get("BROWSER", "chromium").lower()
 if BROWSER not in {"chromium", "webkit", "firefox"}:
     raise SystemExit(f"unsupported BROWSER={BROWSER}")
 
-BASE = "http://localhost:8080/preview-sample"
+BASE = os.environ.get("BASE_URL", "http://localhost:8080/preview-sample")
 SCREENSHOTS = Path(__file__).parent / "screenshots"
 SCREENSHOTS.mkdir(parents=True, exist_ok=True)
 
