@@ -123,12 +123,20 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       setEpubCurrentToc(null);
       epubTocRef.current = [];
       try {
-        const { data, error: signErr } = await supabase.storage
-          .from("product-files")
-          .createSignedUrl(manuscriptPath, 60 * 30);
-        if (signErr || !data?.signedUrl) throw new Error(signErr?.message ?? "Could not load manuscript");
+        let signed: string;
+        if (/^https?:\/\//i.test(manuscriptPath)) {
+          // Direct URL — skip Supabase signing (used by the public sample route).
+          signed = manuscriptPath;
+        } else {
+          const { data, error: signErr } = await supabase.storage
+            .from("product-files")
+            .createSignedUrl(manuscriptPath, 60 * 30);
+          if (signErr || !data?.signedUrl) throw new Error(signErr?.message ?? "Could not load manuscript");
+          signed = data.signedUrl;
+        }
         if (cancelled) return;
-        setSignedUrl(data.signedUrl);
+        setSignedUrl(signed);
+        const data = { signedUrl: signed };
 
         if (isDocx) {
           try {
