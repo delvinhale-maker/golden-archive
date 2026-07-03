@@ -603,8 +603,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       const t = e.target as HTMLElement | null;
       const typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT");
       if (typing) return;
-      if (e.key === "ArrowLeft") { e.preventDefault(); goTo(location - 1); }
-      if (e.key === "ArrowRight") { e.preventDefault(); goTo(location + 1); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); goTo(location + (isRTL ? 1 : -1)); }
+      if (e.key === "ArrowRight") { e.preventDefault(); goTo(location + (isRTL ? -1 : 1)); }
     };
     window.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -612,15 +612,20 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [goTo, location, onClose]);
+  }, [goTo, location, onClose, isRTL]);
 
   const onTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
   const onTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX.current == null) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(dx) > 50) goTo(location + (dx < 0 ? 1 : -1));
+    if (Math.abs(dx) > 50) {
+      // In RTL, swipe right = next, swipe left = previous.
+      const forward = isRTL ? dx > 0 : dx < 0;
+      goTo(location + (forward ? 1 : -1));
+    }
     touchStartX.current = null;
   };
+
 
   const slideAnim = useMemo(() => {
     if (!slideDir) return "";
