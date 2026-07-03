@@ -16,7 +16,7 @@ export function PromotedPicksRow() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="text-[11px] font-semibold tracking-caps text-gold">
-            SPONSORED — ILLUSTRIOUS CAPITAL™
+            SPONSORED — AURUMVAULT
           </div>
           <h2
             className="mt-2 font-display text-3xl font-bold md:text-4xl"

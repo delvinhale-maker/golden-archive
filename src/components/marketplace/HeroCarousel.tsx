@@ -21,7 +21,7 @@ type Slide = {
 };
 
 const DEFAULT_HERO_SLIDE: Slide = {
-  kicker: "FEATURED — ILLUSTRIOUS CAPITAL™",
+  kicker: "FEATURED — AURUMVAULT",
   title: (
     <>
       Renew your mind. <span className="gold-gradient">Kingdom Mind</span> is here.
