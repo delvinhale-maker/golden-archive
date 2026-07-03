@@ -1,0 +1,34 @@
+# BrowserStack Playwright SDK configuration.
+# Credentials come from the BROWSERSTACK_USERNAME / BROWSERSTACK_ACCESS_KEY
+# GitHub Actions secrets — do NOT commit them here.
+
+userName: ${BROWSERSTACK_USERNAME}
+accessKey: ${BROWSERSTACK_ACCESS_KEY}
+
+projectName: AurumVault
+buildName: hero-accent-cross-browser
+buildIdentifier: "#${BUILD_NUMBER}"
+
+framework: playwright
+
+# Real browsers on real OS. Keep the matrix small — this suite is 3 tests.
+platforms:
+  - os: OS X
+    osVersion: Sonoma
+    browserName: playwright-webkit
+    browserVersion: latest
+  - os: OS X
+    osVersion: Sonoma
+    browserName: playwright-firefox
+    browserVersion: latest
+  - os: Windows
+    osVersion: "11"
+    browserName: playwright-firefox
+    browserVersion: latest
+
+parallelsPerPlatform: 1
+browserstackLocal: false
+debug: true
+networkLogs: false
+consoleLogs: errors
+video: true

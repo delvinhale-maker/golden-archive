@@ -1,0 +1,86 @@
+name: Cross-browser hero accent
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily at 06:15 UTC — catches regressions on the live production URL.
+    - cron: "15 6 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "src/components/marketplace/HeroCarousel.tsx"
+      - "src/lib/theme/**"
+      - "src/styles.css"
+      - "tests/cross-browser/**"
+      - "playwright.cross-browser.config.ts"
+      - "browserstack.yml"
+      - ".github/workflows/cross-browser-hero-accent.yml"
+
+concurrency:
+  group: cross-browser-hero-accent-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browserstack:
+    name: BrowserStack (Safari + Firefox)
+    runs-on: ubuntu-latest
+    if: ${{ vars.CROSS_BROWSER_PROVIDER != 'playwright-only' }}
+    env:
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+      CROSS_BROWSER_TARGET_URL: ${{ vars.CROSS_BROWSER_TARGET_URL || 'https://www.aurumvault.store/' }}
+      BUILD_NUMBER: ${{ github.run_number }}
+    steps:
+      - name: Guard on credentials
+        id: guard
+        run: |
+          if [ -z "$BROWSERSTACK_USERNAME" ] || [ -z "$BROWSERSTACK_ACCESS_KEY" ]; then
+            echo "BrowserStack credentials not set — skipping. Add BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY as repo secrets."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.guard.outputs.skip == 'false'
+      - uses: oven-sh/setup-bun@v2
+        if: steps.guard.outputs.skip == 'false'
+        with:
+          bun-version: latest
+      - name: Install deps
+        if: steps.guard.outputs.skip == 'false'
+        run: bun install --frozen-lockfile
+      - name: Install BrowserStack SDK + Playwright
+        if: steps.guard.outputs.skip == 'false'
+        run: bun add -d @playwright/test browserstack-node-sdk
+      - name: Run cross-browser suite on BrowserStack
+        if: steps.guard.outputs.skip == 'false'
+        run: bunx browserstack-node-sdk playwright test --config=playwright.cross-browser.config.ts
+      - name: Upload HTML report
+        if: ${{ !cancelled() && steps.guard.outputs.skip == 'false' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cross-browser-report
+          path: playwright-report-cross-browser
+          if-no-files-found: ignore
+
+  playwright-fallback:
+    name: Playwright WebKit + Firefox (fallback)
+    runs-on: ubuntu-latest
+    if: ${{ vars.CROSS_BROWSER_PROVIDER == 'playwright-only' }}
+    env:
+      CROSS_BROWSER_TARGET_URL: ${{ vars.CROSS_BROWSER_TARGET_URL || 'https://www.aurumvault.store/' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun add -d @playwright/test
+      - run: bunx playwright install --with-deps webkit firefox
+      - run: bunx playwright test --config=playwright.cross-browser.config.ts
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cross-browser-report
+          path: playwright-report-cross-browser
+          if-no-files-found: ignore
