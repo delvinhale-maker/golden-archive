@@ -97,15 +97,27 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         setSignedUrl(data.signedUrl);
 
         if (isDocx) {
-          const res = await fetch(data.signedUrl);
-          const buf = await res.arrayBuffer();
-          const mammoth: any = await import("mammoth/mammoth.browser");
-          const result = await mammoth.convertToHtml({ arrayBuffer: buf });
-          if (cancelled) return;
-          setDocxHtml(result.value || "<p>(Empty document)</p>");
-          setLoading(false);
+          try {
+            const res = await fetch(data.signedUrl);
+            if (!res.ok) throw new Error(`Download failed (${res.status})`);
+            const buf = await res.arrayBuffer();
+            const mammoth: any = await import("mammoth/mammoth.browser");
+            const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+            if (cancelled) return;
+            setDocxHtml(result.value || "<p>(Empty document)</p>");
+            setLoading(false);
+          } catch (docxErr: any) {
+            console.error("[ManuscriptPreviewer] docx", docxErr);
+            if (!cancelled) {
+              setError(
+                "We couldn't preview this Word document. It may be corrupted or use unsupported features. You can still open the original file in a new tab.",
+              );
+              setLoading(false);
+            }
+          }
           return;
         }
+
 
         if (!isPdf) {
           setNotPdf(true);
@@ -490,7 +502,19 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   <span className="text-xs">Loading manuscript…</span>
                 </div>
               ) : error ? (
-                <div className="text-red-600 text-sm text-center px-6">{error}</div>
+                <div className="text-center px-6 max-w-sm">
+                  <p className="text-red-600 text-sm mb-3">{error}</p>
+                  {signedUrl && (
+                    <a
+                      href={signedUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block text-sm underline text-black/70 hover:text-black"
+                    >
+                      Open original file in new tab
+                    </a>
+                  )}
+                </div>
               ) : location === 1 ? (
                 coverUrl ? (
                   <img
