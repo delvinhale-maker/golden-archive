@@ -1690,6 +1690,26 @@ function StepReview({ accent, cover, title, subtitle, author, price, royalty, fo
         </div>
       )}
 
+      {isAdmin && isEditing && onToggleAdminInstantApprove && (
+        <label className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50/60 p-4 cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 accent-amber-600"
+            checked={!!adminInstantApprove}
+            onChange={(e) => onToggleAdminInstantApprove(e.target.checked)}
+          />
+          <span className="text-sm">
+            <span className="block font-semibold text-amber-900">
+              Admin: skip review on update
+            </span>
+            <span className="block text-amber-800/80 text-xs mt-0.5">
+              Publish this edit as <strong>approved</strong> immediately instead of sending it back to the 24-hour review queue. Only visible to admins.
+            </span>
+          </span>
+        </label>
+      )}
+
+
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         {isEditing && onCancel && (
           <button
