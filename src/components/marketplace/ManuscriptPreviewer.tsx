@@ -907,22 +907,35 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         </button>
 
 
-        {/* Device frame */}
+        {/* Device frame (scaled down on narrow viewports) */}
         <div
-          key={device}
-          className={`transition-opacity duration-200 ${dev.frame} relative touch-pan-y select-none`}
-          style={{ width: dev.w, height: dev.h, maxWidth: "100%", padding: dev.pad }}
-          onTouchStart={onTouchStart}
-          onTouchEnd={onTouchEnd}
+          style={{
+            transform: frameScale < 1 ? `scale(${frameScale})` : undefined,
+            transformOrigin: "top center",
+          }}
         >
           <div
-            className={`relative overflow-hidden ${dev.page} w-full h-full flex items-center justify-center`}
-            style={{ background: location === 1 ? "transparent" : dev.bg }}
+            key={device}
+            className={`transition-opacity duration-200 ${dev.frame} relative touch-pan-y select-none`}
+            style={{ width: dev.w, height: dev.h, padding: dev.pad }}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
           >
             <div
-              key={location}
-              className={`w-full h-full flex items-center justify-center ${slideAnim}`}
+              className={`relative ${dev.page} w-full h-full flex items-center justify-center device-frame-inner`}
+              style={{
+                background: location === 1 ? "transparent" : dev.bg,
+                overflowY: "auto",
+                overflowX: "hidden",
+                WebkitOverflowScrolling: "touch",
+              }}
             >
+              <div
+                key={location}
+                className={`w-full min-h-full flex items-center justify-center ${slideAnim}`}
+              >
+
               {loading ? (
                 <div className="flex flex-col items-center gap-3 text-black/60 px-6 text-center max-w-xs">
                   <Loader2 className="animate-spin" size={28} />
