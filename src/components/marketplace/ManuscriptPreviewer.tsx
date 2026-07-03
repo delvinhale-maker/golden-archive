@@ -825,6 +825,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
           <select
             value={fontSize}
             onChange={(e) => setFontSize(parseInt(e.target.value, 10))}
+            aria-label="Font size"
             className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white"
           >
             {[1, 2, 3, 4, 5].map((n) => (
