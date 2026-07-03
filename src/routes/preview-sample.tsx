@@ -1,7 +1,49 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { z } from "zod";
 import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
+
+const MAX_BYTES = 50 * 1024 * 1024; // 50 MB
+type Kind = "docx" | "pdf" | "epub";
+
+const EXT_KIND: Record<string, Kind> = {
+  docx: "docx",
+  pdf: "pdf",
+  epub: "epub",
+};
+
+// Accepted MIME hints (browsers vary; extension + magic bytes are the source of truth).
+const MIME_KIND: Record<string, Kind> = {
+  "application/pdf": "pdf",
+  "application/epub+zip": "epub",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+};
+
+/**
+ * Sniff file type from magic bytes.
+ * - PDF:  "%PDF-" (25 50 44 46 2D)
+ * - DOCX/EPUB: ZIP container "PK\x03\x04" (50 4B 03 04). We distinguish by
+ *   scanning the first few KB for the marker file each format requires:
+ *     EPUB → "mimetype" entry containing "application/epub+zip"
+ *     DOCX → "word/" directory entry
+ */
+async function sniffKind(file: File): Promise<Kind | null> {
+  const head = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+  if (head[0] === 0x25 && head[1] === 0x50 && head[2] === 0x44 && head[3] === 0x46) {
+    return "pdf";
+  }
+  if (head[0] === 0x50 && head[1] === 0x4b && head[2] === 0x03 && head[3] === 0x04) {
+    // ZIP container — look inside the first 64KB for format markers.
+    const probeBytes = await file.slice(0, Math.min(file.size, 64 * 1024)).arrayBuffer();
+    const text = new TextDecoder("latin1").decode(probeBytes);
+    if (text.includes("application/epub+zip")) return "epub";
+    if (text.includes("word/")) return "docx";
+    return null;
+  }
+  return null;
+}
+
 
 const search = z.object({
   url: z.string().url().optional(),
