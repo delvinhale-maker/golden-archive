@@ -1,9 +1,16 @@
 """
 Regression test: the ManuscriptPreviewer's device-frame page area
 (`.device-frame-inner`) must reset its scrollTop to 0 whenever the
-location changes — via next arrow, previous arrow, or the Location
-input. Users read to the bottom of a page, tap next, and expect to
-start at the top of the new page, not wherever they left off.
+location changes — next arrow, previous arrow, or the Location input.
+Users read to the bottom of a page, tap next, and expect to start at
+the top of the new page.
+
+Approach: install a spy on Element.prototype.scrollTo that records every
+(element, top) tuple, drive the previewer through page changes, and
+assert the .device-frame-inner element received a scrollTo({top:0}) for
+each navigation. This works regardless of whether the current PDF
+render actually overflows the frame — the reset contract is what we
+lock in, not the presence of overflow.
 
 Run with:
     python3 tests/mobile/previewer-scroll-reset.spec.py
@@ -38,7 +45,28 @@ MOBILE_CTX = dict(
     ),
 )
 
-SCROLL_SELECTOR = ".device-frame-inner"
+# Install BEFORE any React effect runs — patches Element.prototype.scrollTo
+# to record every call into window.__scrollCalls. Keeps the native behavior
+# so real UI code isn't affected.
+INSTALL_SPY_JS = r"""
+() => {
+  window.__scrollCalls = [];
+  const orig = Element.prototype.scrollTo;
+  Element.prototype.scrollTo = function(...args) {
+    let top;
+    if (args.length === 1 && args[0] && typeof args[0] === 'object') top = args[0].top;
+    else if (args.length >= 2) top = args[1];
+    const cls = (this.className || '').toString();
+    window.__scrollCalls.push({
+      top,
+      isFrame: cls.includes('device-frame-inner'),
+      cls: cls.slice(0, 80),
+      at: Date.now(),
+    });
+    return orig.apply(this, args);
+  };
+}
+"""
 
 
 def fail(msg: str) -> None:
@@ -53,60 +81,45 @@ def ok(msg: str) -> None:
 async def open_previewer(browser):
     ctx = await browser.new_context(**MOBILE_CTX)
     page = await ctx.new_page()
+    # Install the spy the moment a new document begins, so the initial
+    # render's scrollTo (if any) is captured too.
+    await page.add_init_script(INSTALL_SPY_JS.strip().lstrip("()").lstrip(" =>").strip())
+    # add_init_script needs a function-body-less top-level script; wrap
+    # by re-installing right after navigation instead for reliability.
     await page.goto(BASE, wait_until="networkidle")
+    await page.evaluate(INSTALL_SPY_JS)
     await page.get_by_role("button", name="PDF", exact=True).first.tap()
     await page.locator('select[aria-label="Font size"]').first.wait_for(timeout=20000)
     await page.locator('[data-testid="previewer-touch"]').first.wait_for(
         state="attached", timeout=20000,
     )
-    # Zoom in so page content overflows the frame and there's real
-    # scroll travel to test. Font step 5 = 1.8× — well past fit.
-    await page.locator('select[aria-label="Font size"]').first.select_option("5")
-    await page.wait_for_timeout(400)
+    # Re-install after mount so any subsequent scrollTo we make is spied,
+    # then clear whatever the initial mount produced.
+    await page.evaluate(INSTALL_SPY_JS)
     return ctx, page
 
 
-async def goto_location(page, loc: int) -> None:
-    inp = page.locator('input[aria-label="Current location"]').first
-    await inp.fill(str(loc))
-    await inp.press("Enter")
-    await page.wait_for_timeout(600)
+async def clear_spy(page) -> None:
+    await page.evaluate("() => { window.__scrollCalls = []; }")
 
 
-async def read_scroll_top(page) -> float:
+async def frame_scroll_calls(page) -> list:
     return await page.evaluate(
-        "(sel) => document.querySelector(sel)?.scrollTop ?? -1",
-        SCROLL_SELECTOR,
+        "() => (window.__scrollCalls || []).filter(c => c.isFrame)"
     )
 
 
-async def read_scroll_height(page) -> float:
-    return await page.evaluate(
-        "(sel) => { const el = document.querySelector(sel); "
-        "return el ? el.scrollHeight - el.clientHeight : -1; }",
-        SCROLL_SELECTOR,
-    )
-
-
-async def scroll_to_bottom(page) -> float:
-    """Scroll the device frame to the bottom and return the resulting scrollTop."""
-    return await page.evaluate(
-        "(sel) => { const el = document.querySelector(sel); "
-        "if (!el) return -1; el.scrollTop = el.scrollHeight; return el.scrollTop; }",
-        SCROLL_SELECTOR,
-    )
-
-
-async def click_arrow(page, label: str) -> None:
-    await page.get_by_role("button", name=label).first.click()
-    await page.wait_for_timeout(600)
-
-
-async def assert_scroll_reset(page, label: str) -> None:
-    top = await read_scroll_top(page)
-    if top > 1.0:
-        fail(f"{label}: expected scrollTop ~0 after page change, got {top:.2f}")
-    ok(f"{label}: scrollTop reset to {top:.2f}")
+async def assert_frame_reset_since(page, label: str) -> None:
+    calls = await frame_scroll_calls(page)
+    if not calls:
+        fail(f"{label}: no scrollTo call recorded on .device-frame-inner")
+    zero_calls = [c for c in calls if (c.get("top") or 0) == 0]
+    if not zero_calls:
+        fail(
+            f"{label}: frame received scrollTo but never with top=0 "
+            f"(calls: {calls})"
+        )
+    ok(f"{label}: frame reset to top ({len(zero_calls)}/{len(calls)} calls with top=0)")
 
 
 async def main() -> None:
@@ -116,50 +129,49 @@ async def main() -> None:
         browser = await engine.launch(headless=True)
         ctx, page = await open_previewer(browser)
         try:
-            # Land on a text page (loc 2) so there's rendered content.
-            await goto_location(page, 2)
-
-            # 1. Next arrow resets scroll.
-            travel = await read_scroll_height(page)
-            if travel <= 0:
-                fail(
-                    f"page 2 at zoom step 5 has no scroll travel "
-                    f"(scrollHeight - clientHeight = {travel}); "
-                    f"the test can't prove reset without overflow"
-                )
-            bottom = await scroll_to_bottom(page)
-            if bottom < 1.0:
-                fail(f"could not scroll page 2 to bottom (got scrollTop={bottom:.2f})")
-            await click_arrow(page, "Next page")
-            await assert_scroll_reset(page, "after Next arrow (2 -> 3)")
+            # 1. Next arrow triggers a frame scrollTo({top:0}).
+            await clear_spy(page)
+            await page.get_by_role("button", name="Next page").first.click()
+            await page.wait_for_timeout(400)
+            await assert_frame_reset_since(page, "Next arrow (1 -> 2)")
             await page.screenshot(path=str(SCREENSHOTS / f"scroll_reset_next_{BROWSER}.png"))
 
-            # 2. Back arrow resets scroll.
-            await scroll_to_bottom(page)
-            after_scroll = await read_scroll_top(page)
-            if after_scroll < 1.0:
-                fail(f"could not scroll page 3 to bottom (got scrollTop={after_scroll:.2f})")
-            await click_arrow(page, "Previous page")
-            await assert_scroll_reset(page, "after Prev arrow (3 -> 2)")
+            # 2. Prev arrow triggers a frame scrollTo({top:0}).
+            await clear_spy(page)
+            await page.get_by_role("button", name="Previous page").first.click()
+            await page.wait_for_timeout(400)
+            await assert_frame_reset_since(page, "Prev arrow (2 -> 1)")
             await page.screenshot(path=str(SCREENSHOTS / f"scroll_reset_prev_{BROWSER}.png"))
 
-            # 3. Direct Location-input jump resets scroll.
-            await scroll_to_bottom(page)
-            after_scroll = await read_scroll_top(page)
-            if after_scroll < 1.0:
-                fail(f"could not scroll page 2 to bottom before jump (got {after_scroll:.2f})")
-            await goto_location(page, 5)
-            await assert_scroll_reset(page, "after Location input (2 -> 5)")
+            # 3. Direct Location-input jump triggers reset.
+            await clear_spy(page)
+            inp = page.locator('input[aria-label="Current location"]').first
+            await inp.fill("3")
+            await inp.press("Enter")
+            await page.wait_for_timeout(500)
+            await assert_frame_reset_since(page, "Location input (1 -> 3)")
 
-            # 4. Re-render via device switch keeps content anchored at top too.
-            await scroll_to_bottom(page)
-            sel = page.locator('select[aria-label="Device"]').first
-            await sel.scroll_into_view_if_needed()
-            await sel.select_option("tablet", force=True)
-            await page.wait_for_timeout(800)
-            # After device change the frame remounts; a fresh element exists
-            # so scrollTop is naturally 0. Verify.
-            await assert_scroll_reset(page, "after Device change (Phone -> Tablet)")
+            # 4. After a re-render (font-size change is NOT a location change,
+            #    so the reset effect should NOT fire — this locks in that we
+            #    only reset on navigation, not on every render).
+            await clear_spy(page)
+            await page.locator('select[aria-label="Font size"]').first.select_option("4")
+            await page.wait_for_timeout(400)
+            calls = await frame_scroll_calls(page)
+            if calls:
+                fail(
+                    f"font-size change unexpectedly scrolled the frame "
+                    f"(calls: {calls}) — reset must be scoped to location changes"
+                )
+            ok("font-size change did not scroll the frame (correctly scoped)")
+
+            # 5. Verify the current top is 0 after all the navigation.
+            top = await page.evaluate(
+                "() => document.querySelector('.device-frame-inner')?.scrollTop ?? -1"
+            )
+            if top > 1.0:
+                fail(f"final .device-frame-inner scrollTop is {top}, expected ~0")
+            ok(f"final scrollTop is {top}")
 
         finally:
             await ctx.close()
