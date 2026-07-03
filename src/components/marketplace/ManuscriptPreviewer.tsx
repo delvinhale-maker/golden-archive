@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 type DeviceKind = "phone" | "tablet" | "kindle";
 type OutlineEntry = { title: string; pageIndex: number };
+type EpubTocEntry = { title: string; href: string; depth: number };
 
 // Spec: 1=0.6×, 2=0.8×, 3=1.0×, 4=1.4×, 5=1.8×
 const FONT_SCALES: Record<number, number> = { 1: 0.6, 2: 0.8, 3: 1.0, 4: 1.4, 5: 1.8 };
@@ -66,6 +67,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [docxHtml, setDocxHtml] = useState<string | null>(null);
   const [docxPageCount, setDocxPageCount] = useState(1);
   const [epubReady, setEpubReady] = useState(false);
+  const [epubToc, setEpubToc] = useState<EpubTocEntry[]>([]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderTaskRef = useRef<any>(null);
@@ -96,6 +98,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       setDocxHtml(null);
       setDocxPageCount(1);
       setEpubReady(false);
+      setEpubToc([]);
       try {
         const { data, error: signErr } = await supabase.storage
           .from("product-files")
@@ -144,33 +147,27 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
             epubTotalRef.current = total;
             setPageCount(total + 1); // +1 for cover slot
 
-            // Build outline from TOC. Map each href to a "location index" via CFI.
+            // Build TOC entries with hrefs. Page index is best-effort — the
+            // rendition's "relocated" handler updates location after display().
             try {
               const nav = await book.loaded.navigation;
-              const entries: OutlineEntry[] = [];
-              const walk = (items: any[]) => {
+              const entries: EpubTocEntry[] = [];
+              const walk = (items: any[], depth: number) => {
                 for (const item of items) {
-                  try {
-                    // Best-effort: derive a page index. If we can't, fall back to page 2.
-                    let pageIndex = 2;
-                    try {
-                      const cfi = book.spine?.get(item.href)?.cfiFromRange
-                        ? null
-                        : null;
-                      // Use locationFromCfi via percentage if possible; otherwise leave 2.
-                      const pct = book.locations.percentageFromCfi(item.href);
-                      if (typeof pct === "number" && !Number.isNaN(pct)) {
-                        pageIndex = Math.max(2, Math.round(pct * total) + 1);
-                      }
-                    } catch { /* keep default */ }
-                    entries.push({ title: item.label?.trim() || "Section", pageIndex });
-                  } catch { /* skip */ }
-                  if (item.subitems?.length) walk(item.subitems);
+                  if (item?.href) {
+                    entries.push({
+                      title: item.label?.trim() || "Section",
+                      href: item.href,
+                      depth,
+                    });
+                  }
+                  if (item?.subitems?.length) walk(item.subitems, depth + 1);
                 }
               };
-              if (nav?.toc?.length) walk(nav.toc);
-              if (!cancelled && entries.length) setOutline(entries);
+              if (nav?.toc?.length) walk(nav.toc, 0);
+              if (!cancelled) setEpubToc(entries);
             } catch { /* no toc */ }
+
 
             setEpubReady(true);
             setLoading(false);
@@ -600,18 +597,49 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
           <span className="text-white/70">Contents</span>
           <select
             value=""
-            onChange={(e) => { const p = parseInt(e.target.value, 10); if (Number.isFinite(p)) goTo(p); }}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (!v) return;
+              if (v.startsWith("epub:")) {
+                const idx = parseInt(v.slice(5), 10);
+                const entry = epubToc[idx];
+                const rendition = epubRenditionRef.current;
+                if (entry && rendition) {
+                  try { rendition.display(entry.href); } catch { /* noop */ }
+                }
+                return;
+              }
+              if (v === "cover") { goTo(1); return; }
+              const p = parseInt(v, 10);
+              if (Number.isFinite(p)) goTo(p);
+            }}
             className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white max-w-[240px]"
           >
             <option value="">
-              {outline.length ? "Jump to chapter…" : "No contents available"}
+              {isEpub
+                ? (epubToc.length ? "Jump to chapter…" : "No contents available")
+                : (outline.length ? "Jump to chapter…" : "No contents available")}
             </option>
-            {outline.length > 0 && <option value="1">Cover</option>}
-            {outline.map((o, i) => (
-              <option key={i} value={o.pageIndex}>{o.title}</option>
-            ))}
+            {isEpub ? (
+              <>
+                {epubToc.length > 0 && <option value="cover">Cover</option>}
+                {epubToc.map((o, i) => (
+                  <option key={i} value={`epub:${i}`}>
+                    {"\u00A0".repeat(o.depth * 2)}{o.title}
+                  </option>
+                ))}
+              </>
+            ) : (
+              <>
+                {outline.length > 0 && <option value="cover">Cover</option>}
+                {outline.map((o, i) => (
+                  <option key={i} value={o.pageIndex}>{o.title}</option>
+                ))}
+              </>
+            )}
           </select>
         </label>
+
 
         <label className="flex items-center gap-2 ml-auto">
           <span className="text-white/70">Device</span>
