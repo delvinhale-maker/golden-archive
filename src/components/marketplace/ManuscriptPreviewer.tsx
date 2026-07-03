@@ -60,6 +60,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [device, setDevice] = useState<DeviceKind>("tablet");
   const [outline, setOutline] = useState<OutlineEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingSlow, setLoadingSlow] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
   const [locationInput, setLocationInput] = useState("1");
@@ -69,6 +70,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [epubReady, setEpubReady] = useState(false);
   const [epubToc, setEpubToc] = useState<EpubTocEntry[]>([]);
   const [epubCurrentToc, setEpubCurrentToc] = useState<number | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderTaskRef = useRef<any>(null);
@@ -89,6 +91,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   // Sign URL & load PDF
   useEffect(() => {
     let cancelled = false;
+    setLoadingSlow(false);
+    const slowTimer = window.setTimeout(() => {
+      if (!cancelled) setLoadingSlow(true);
+    }, 12000);
     (async () => {
       setLoading(true);
       setError(null);
@@ -113,25 +119,43 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
 
         if (isDocx) {
           try {
-            const res = await fetch(data.signedUrl);
-            if (!res.ok) throw new Error(`Download failed (${res.status})`);
-            const buf = await res.arrayBuffer();
+            const ctrl = new AbortController();
+            const timeoutId = window.setTimeout(() => ctrl.abort(), 30000);
+            let buf: ArrayBuffer;
+            try {
+              const res = await fetch(data.signedUrl, { signal: ctrl.signal });
+              if (!res.ok) throw new Error(`Download failed (${res.status})`);
+              buf = await res.arrayBuffer();
+            } finally {
+              window.clearTimeout(timeoutId);
+            }
             const mammoth: any = await import("mammoth/mammoth.browser");
-            const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+            // Race conversion against a 30s ceiling so slow devices/large docs
+            // surface a clear error instead of hanging indefinitely.
+            const convertPromise = mammoth.convertToHtml({ arrayBuffer: buf });
+            const timeoutPromise = new Promise((_, reject) =>
+              window.setTimeout(() => reject(new Error("timeout")), 30000),
+            );
+            const result: any = await Promise.race([convertPromise, timeoutPromise]);
             if (cancelled) return;
             setDocxHtml(result.value || "<p>(Empty document)</p>");
             setLoading(false);
           } catch (docxErr: any) {
             console.error("[ManuscriptPreviewer] docx", docxErr);
             if (!cancelled) {
+              const isTimeout =
+                docxErr?.name === "AbortError" || docxErr?.message === "timeout";
               setError(
-                "We couldn't preview this Word document. It may be corrupted or use unsupported features. You can still open the original file in a new tab.",
+                isTimeout
+                  ? "This Word document is taking too long to convert on this device. Try again, switch to a larger preview size, or open the original file."
+                  : "We couldn't preview this Word document. It may be corrupted or use unsupported features. Try again or open the original file.",
               );
               setLoading(false);
             }
           }
           return;
         }
+
 
 
         if (isEpub) {
@@ -280,6 +304,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     })();
     return () => {
       cancelled = true;
+      window.clearTimeout(slowTimer);
       if (epubRenditionRef.current) {
         try { epubRenditionRef.current.destroy(); } catch { /* noop */ }
         epubRenditionRef.current = null;
@@ -289,7 +314,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         epubBookRef.current = null;
       }
     };
-  }, [manuscriptPath, isPdf, isDocx, isEpub]);
+  }, [manuscriptPath, isPdf, isDocx, isEpub, attempt]);
 
   const dev = DEVICES[device];
   const pageAreaW = dev.w - dev.pad * 2;
@@ -739,24 +764,49 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
               className={`w-full h-full flex items-center justify-center ${slideAnim}`}
             >
               {loading ? (
-                <div className="flex flex-col items-center gap-2 text-black/60">
+                <div className="flex flex-col items-center gap-3 text-black/60 px-6 text-center max-w-xs">
                   <Loader2 className="animate-spin" size={28} />
-                  <span className="text-xs">Loading manuscript…</span>
+                  <span className="text-xs">
+                    {loadingSlow
+                      ? isDocx
+                        ? "Converting Word document… this is taking longer than usual on this device."
+                        : "Still loading… this is taking longer than usual."
+                      : "Loading manuscript…"}
+                  </span>
+                  {loadingSlow && (
+                    <button
+                      type="button"
+                      onClick={() => setAttempt((a) => a + 1)}
+                      className="text-xs underline text-black/70 hover:text-black"
+                    >
+                      Cancel and retry
+                    </button>
+                  )}
                 </div>
               ) : error ? (
                 <div className="text-center px-6 max-w-sm">
                   <p className="text-red-600 text-sm mb-3">{error}</p>
-                  {signedUrl && (
-                    <a
-                      href={signedUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block text-sm underline text-black/70 hover:text-black"
+                  <div className="flex flex-col items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAttempt((a) => a + 1)}
+                      className="inline-block rounded-md bg-black text-white text-sm px-3 py-1.5 hover:bg-black/80"
                     >
-                      Open original file in new tab
-                    </a>
-                  )}
+                      Try again
+                    </button>
+                    {signedUrl && (
+                      <a
+                        href={signedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block text-sm underline text-black/70 hover:text-black"
+                      >
+                        Open original file in new tab
+                      </a>
+                    )}
+                  </div>
                 </div>
+
               ) : location === 1 ? (
                 coverUrl ? (
                   <img
