@@ -912,6 +912,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         >
           <div
             ref={docxInnerRef}
+            className="av-docx"
             style={{
               width: pageAreaW,
               padding: "8px 12px",
