@@ -556,7 +556,14 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       const base = page.getViewport({ scale: 1 });
       const areaW = DEVICES[deviceKey].w - DEVICES[deviceKey].pad * 2;
       const areaH = DEVICES[deviceKey].h - DEVICES[deviceKey].pad * 2;
-      const fitScale = Math.min(areaW / base.width, areaH / base.height);
+      // Aspect-aware fit: for portrait pages (text) letterbox to fit both
+      // dims; for landscape/image-heavy pages fill width so no side bars —
+      // vertical overflow scrolls inside the device frame.
+      const aspect = base.width / base.height;
+      const fitScale = aspect >= 1
+        ? areaW / base.width
+        : Math.min(areaW / base.width, areaH / base.height);
+
       const zoom = FONT_SCALES[zoomStep] ?? 1;
       const viewport = page.getViewport({ scale: fitScale * zoom });
       const dpr = window.devicePixelRatio || 1;
