@@ -99,7 +99,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         if (isDocx) {
           const res = await fetch(data.signedUrl);
           const buf = await res.arrayBuffer();
-          const mammoth: any = await import("mammoth/mammoth.browser");
+          const mammoth: any = await import(/* @vite-ignore */ "mammoth/mammoth.browser" as string);
           const result = await mammoth.convertToHtml({ arrayBuffer: buf });
           if (cancelled) return;
           setDocxHtml(result.value || "<p>(Empty document)</p>");
