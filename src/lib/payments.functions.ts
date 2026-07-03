@@ -303,6 +303,58 @@ export const createCartCheckout = createServerFn({ method: "POST" })
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+/**
+ * Look up download tokens + product titles for a completed Stripe Checkout
+ * Session. Used by the /checkout/return page to render Download buttons
+ * immediately after payment. The session_id acts as an unguessable capability
+ * — only the buyer receives it in the return URL — so no auth is required.
+ * Returns { pending: true } while the webhook has not yet written the order.
+ */
+export const getOrderTokensBySession = createServerFn({ method: "GET" })
+  .inputValidator((data: { sessionId: string }) => {
+    if (!/^cs_(test|live)_[A-Za-z0-9]{20,}$/.test(data.sessionId)) {
+      throw new Error("Invalid session id");
+    }
+    return data;
+  })
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: order } = await supabaseAdmin
+      .from("orders")
+      .select("id,buyer_email,amount_cents,currency")
+      .eq("stripe_session_id", data.sessionId)
+      .maybeSingle();
+    if (!order) return { pending: true as const };
+
+    const { data: items } = await supabaseAdmin
+      .from("order_items")
+      .select("id,product_title,product_id")
+      .eq("order_id", order.id);
+
+    const itemIds = (items ?? []).map((i) => i.id);
+    const tokens = itemIds.length
+      ? (
+          await supabaseAdmin
+            .from("order_downloads")
+            .select("token,order_item_id")
+            .in("order_item_id", itemIds)
+        ).data ?? []
+      : [];
+
+    const byItem = new Map(tokens.map((t) => [t.order_item_id, t.token]));
+    return {
+      ok: true as const,
+      buyerEmail: order.buyer_email,
+      amountCents: order.amount_cents,
+      currency: order.currency,
+      items: (items ?? []).map((i) => ({
+        title: i.product_title,
+        productId: i.product_id,
+        token: byItem.get(i.id) ?? null,
+      })),
+    };
+  });
+
 // In-memory throttle: per (userId, token) cache the most recent mint until
 // remaining uses changes or TTL expires. Prevents excessive signed-URL minting
 // from repeated tab refreshes / retries.
