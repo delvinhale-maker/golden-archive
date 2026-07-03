@@ -101,6 +101,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       setDocxPageCount(1);
       setEpubReady(false);
       setEpubToc([]);
+      setEpubCurrentToc(null);
+      epubTocRef.current = [];
       try {
         const { data, error: signErr } = await supabase.storage
           .from("product-files")
