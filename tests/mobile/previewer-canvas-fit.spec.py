@@ -41,7 +41,7 @@ MOBILE_CTX = dict(
     ),
 )
 
-DEVICES = ["Phone", "Tablet", "Kindle"]
+DEVICES = [("phone", "Phone"), ("tablet", "Tablet"), ("kindle", "Kindle")]
 
 
 def fail(msg: str) -> None:
