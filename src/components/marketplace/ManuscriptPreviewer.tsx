@@ -17,7 +17,7 @@ const DEVICES: Record<
   phone: {
     label: "Phone",
     w: 340,
-    h: 600,
+    h: 580,
     frame: "bg-black rounded-[44px] shadow-2xl",
     page: "rounded-[28px] bg-white",
     bg: "#ffffff",
@@ -38,10 +38,11 @@ const DEVICES: Record<
     w: 380,
     h: 560,
     frame: "bg-[#c9c8c3] rounded-[20px] shadow-2xl",
-    page: "rounded-[4px] bg-[#f7f1e3]",
-    bg: "#f7f1e3",
+    page: "rounded-[4px] bg-[#f4ecd8]",
+    bg: "#f4ecd8",
     pad: 24,
   },
+
 };
 
 export interface ManuscriptPreviewerProps {
