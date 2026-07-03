@@ -778,6 +778,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
           status,
           published: publish,
           admin_notes: notes,
+          ...(publish && status === "approved" ? { approved_at: new Date().toISOString() } : {}),
           ...(fileSize !== undefined ? { file_size_bytes: fileSize } : {}),
         };
         const { error } = await supabase.from("marketplace_products").update(update).eq("id", existingRowId);
