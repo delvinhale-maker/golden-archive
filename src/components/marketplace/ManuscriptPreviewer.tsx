@@ -91,6 +91,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   // Sign URL & load PDF
   useEffect(() => {
     let cancelled = false;
+    setLoadingSlow(false);
+    const slowTimer = window.setTimeout(() => {
+      if (!cancelled) setLoadingSlow(true);
+    }, 12000);
     (async () => {
       setLoading(true);
       setError(null);
@@ -115,25 +119,43 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
 
         if (isDocx) {
           try {
-            const res = await fetch(data.signedUrl);
-            if (!res.ok) throw new Error(`Download failed (${res.status})`);
-            const buf = await res.arrayBuffer();
+            const ctrl = new AbortController();
+            const timeoutId = window.setTimeout(() => ctrl.abort(), 30000);
+            let buf: ArrayBuffer;
+            try {
+              const res = await fetch(data.signedUrl, { signal: ctrl.signal });
+              if (!res.ok) throw new Error(`Download failed (${res.status})`);
+              buf = await res.arrayBuffer();
+            } finally {
+              window.clearTimeout(timeoutId);
+            }
             const mammoth: any = await import("mammoth/mammoth.browser");
-            const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+            // Race conversion against a 30s ceiling so slow devices/large docs
+            // surface a clear error instead of hanging indefinitely.
+            const convertPromise = mammoth.convertToHtml({ arrayBuffer: buf });
+            const timeoutPromise = new Promise((_, reject) =>
+              window.setTimeout(() => reject(new Error("timeout")), 30000),
+            );
+            const result: any = await Promise.race([convertPromise, timeoutPromise]);
             if (cancelled) return;
             setDocxHtml(result.value || "<p>(Empty document)</p>");
             setLoading(false);
           } catch (docxErr: any) {
             console.error("[ManuscriptPreviewer] docx", docxErr);
             if (!cancelled) {
+              const isTimeout =
+                docxErr?.name === "AbortError" || docxErr?.message === "timeout";
               setError(
-                "We couldn't preview this Word document. It may be corrupted or use unsupported features. You can still open the original file in a new tab.",
+                isTimeout
+                  ? "This Word document is taking too long to convert on this device. Try again, switch to a larger preview size, or open the original file."
+                  : "We couldn't preview this Word document. It may be corrupted or use unsupported features. Try again or open the original file.",
               );
               setLoading(false);
             }
           }
           return;
         }
+
 
 
         if (isEpub) {
