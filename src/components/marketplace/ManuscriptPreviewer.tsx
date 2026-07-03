@@ -194,7 +194,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
               } catch { /* spine unavailable */ }
             }
 
-            if (!cancelled) setEpubToc(entries);
+            if (!cancelled) {
+              setEpubToc(entries);
+              epubTocRef.current = entries;
+            }
 
 
 
