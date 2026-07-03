@@ -837,7 +837,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   style={{ width: pageAreaW, height: pageAreaH, overflow: "hidden", position: "relative" }}
                 >
                   <div
-                    className="text-black"
+                    className="av-docx text-black"
                     style={{
                       width: pageAreaW,
                       padding: "8px 12px",
