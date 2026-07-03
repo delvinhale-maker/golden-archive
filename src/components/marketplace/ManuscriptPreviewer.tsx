@@ -893,6 +893,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
           <select
             value={device}
             onChange={(e) => setDevice(e.target.value as DeviceKind)}
+            aria-label="Device"
             className="h-9 rounded-md bg-black/40 border border-white/15 px-2 text-white"
           >
             {Object.entries(DEVICES).map(([k, v]) => (
