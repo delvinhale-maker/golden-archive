@@ -778,16 +778,25 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       aria-label={`Preview ${title}`}
     >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 md:px-6 h-14 border-b border-white/10 bg-[#0b0b0b]">
-        <span className="font-semibold truncate">{title || "Untitled"}</span>
+      <div className="flex items-center gap-3 px-4 md:px-6 py-2 min-h-14 border-b border-white/10 bg-[#0b0b0b]">
+        <div className="flex flex-col min-w-0 flex-1">
+          <span className="font-semibold truncate leading-tight">{title || "Untitled"}</span>
+          {currentChapter && (
+            <span className="text-xs text-white/60 truncate leading-tight">{currentChapter}</span>
+          )}
+          <span className="text-[10px] text-white/40 leading-tight">
+            Page {location} of {pageCount}
+          </span>
+        </div>
         <button
           onClick={onClose}
           aria-label="Close preview"
-          className="ml-auto h-10 w-10 rounded-full inline-flex items-center justify-center hover:bg-white/10"
+          className="h-10 w-10 rounded-full inline-flex items-center justify-center hover:bg-white/10 shrink-0"
         >
           <X size={22} />
         </button>
       </div>
+
 
       {/* Top controls */}
       <div className="flex flex-wrap items-center gap-3 px-4 md:px-6 py-3 border-b border-white/10 bg-[#161616] text-sm">
