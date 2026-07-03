@@ -17,7 +17,7 @@ const DEVICES: Record<
   phone: {
     label: "Phone",
     w: 340,
-    h: 600,
+    h: 580,
     frame: "bg-black rounded-[44px] shadow-2xl",
     page: "rounded-[28px] bg-white",
     bg: "#ffffff",
@@ -38,10 +38,11 @@ const DEVICES: Record<
     w: 380,
     h: 560,
     frame: "bg-[#c9c8c3] rounded-[20px] shadow-2xl",
-    page: "rounded-[4px] bg-[#f7f1e3]",
-    bg: "#f7f1e3",
+    page: "rounded-[4px] bg-[#f4ecd8]",
+    bg: "#f4ecd8",
     pad: 24,
   },
+
 };
 
 export interface ManuscriptPreviewerProps {
@@ -555,7 +556,14 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       const base = page.getViewport({ scale: 1 });
       const areaW = DEVICES[deviceKey].w - DEVICES[deviceKey].pad * 2;
       const areaH = DEVICES[deviceKey].h - DEVICES[deviceKey].pad * 2;
-      const fitScale = Math.min(areaW / base.width, areaH / base.height);
+      // Aspect-aware fit: for portrait pages (text) letterbox to fit both
+      // dims; for landscape/image-heavy pages fill width so no side bars —
+      // vertical overflow scrolls inside the device frame.
+      const aspect = base.width / base.height;
+      const fitScale = aspect >= 1
+        ? areaW / base.width
+        : Math.min(areaW / base.width, areaH / base.height);
+
       const zoom = FONT_SCALES[zoomStep] ?? 1;
       const viewport = page.getViewport({ scale: fitScale * zoom });
       const dpr = window.devicePixelRatio || 1;
@@ -671,23 +679,97 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     };
   }, [goTo, location, onClose, isRTL]);
 
-  const onTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const pinchStartRef = useRef<{ dist: number; startFont: number } | null>(null);
+  const lastTapRef = useRef<number>(0);
+
+  const nearestFontStep = useCallback((zoom: number) => {
+    let best = 3;
+    let diff = Infinity;
+    for (const k of [1, 2, 3, 4, 5]) {
+      const d = Math.abs(zoom - FONT_SCALES[k]);
+      if (d < diff) { diff = d; best = k; }
+    }
+    return best;
+  }, []);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchStartRef.current = { dist: Math.hypot(dx, dy) || 1, startFont: fontSize };
+      touchStartX.current = null;
+      return;
+    }
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      setFontSize((f) => (f >= 5 ? 3 : 5));
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
+    }
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && pinchStartRef.current) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const newDist = Math.hypot(dx, dy);
+      const ratio = newDist / pinchStartRef.current.dist;
+      const startScale = FONT_SCALES[pinchStartRef.current.startFont] ?? 1;
+      const target = Math.min(Math.max(startScale * ratio, 0.6), 2.5);
+      const step = nearestFontStep(target);
+      if (step !== fontSize) setFontSize(step);
+    }
+  };
+
   const onTouchEnd = (e: React.TouchEvent) => {
+    if (pinchStartRef.current) {
+      pinchStartRef.current = null;
+      return;
+    }
     if (touchStartX.current == null) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     if (Math.abs(dx) > 50) {
-      // In RTL, swipe right = next, swipe left = previous.
       const forward = isRTL ? dx > 0 : dx < 0;
       goTo(location + (forward ? 1 : -1));
     }
     touchStartX.current = null;
   };
 
+  // Scale the whole device frame down on narrow viewports so it always fits.
+  const [frameScale, setFrameScale] = useState(1);
+  useEffect(() => {
+    const compute = () => {
+      const vw = window.innerWidth;
+      const avail = vw - 32;
+      if (dev.w > avail) setFrameScale(Math.max(0.5, avail / dev.w));
+      else setFrameScale(1);
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, [dev.w]);
+
+  // Current chapter for header (PDF outline or EPUB toc).
+  const currentChapter = useMemo(() => {
+    if (isEpub && epubCurrentToc != null) return epubToc[epubCurrentToc]?.title ?? null;
+    if (outline.length && location > 1) {
+      let last: string | null = null;
+      for (const o of outline) {
+        if (o.pageIndex <= location) last = o.title;
+        else break;
+      }
+      return last;
+    }
+    return null;
+  }, [isEpub, epubCurrentToc, epubToc, outline, location]);
 
   const slideAnim = useMemo(() => {
     if (!slideDir) return "";
     return slideDir === "left" ? "av-slide-left" : "av-slide-right";
   }, [slideDir]);
+
 
   const commitLocation = () => {
     const n = parseInt(locationInput, 10);
@@ -703,16 +785,25 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       aria-label={`Preview ${title}`}
     >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 md:px-6 h-14 border-b border-white/10 bg-[#0b0b0b]">
-        <span className="font-semibold truncate">{title || "Untitled"}</span>
+      <div className="flex items-center gap-3 px-4 md:px-6 py-2 min-h-14 border-b border-white/10 bg-[#0b0b0b]">
+        <div className="flex flex-col min-w-0 flex-1">
+          <span className="font-semibold truncate leading-tight">{title || "Untitled"}</span>
+          {currentChapter && (
+            <span className="text-xs text-white/60 truncate leading-tight">{currentChapter}</span>
+          )}
+          <span className="text-[10px] text-white/40 leading-tight">
+            Page {location} of {pageCount}
+          </span>
+        </div>
         <button
           onClick={onClose}
           aria-label="Close preview"
-          className="ml-auto h-10 w-10 rounded-full inline-flex items-center justify-center hover:bg-white/10"
+          className="h-10 w-10 rounded-full inline-flex items-center justify-center hover:bg-white/10 shrink-0"
         >
           <X size={22} />
         </button>
       </div>
+
 
       {/* Top controls */}
       <div className="flex flex-wrap items-center gap-3 px-4 md:px-6 py-3 border-b border-white/10 bg-[#161616] text-sm">
@@ -823,22 +914,35 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         </button>
 
 
-        {/* Device frame */}
+        {/* Device frame (scaled down on narrow viewports) */}
         <div
-          key={device}
-          className={`transition-opacity duration-200 ${dev.frame} relative touch-pan-y select-none`}
-          style={{ width: dev.w, height: dev.h, maxWidth: "100%", padding: dev.pad }}
-          onTouchStart={onTouchStart}
-          onTouchEnd={onTouchEnd}
+          style={{
+            transform: frameScale < 1 ? `scale(${frameScale})` : undefined,
+            transformOrigin: "top center",
+          }}
         >
           <div
-            className={`relative overflow-hidden ${dev.page} w-full h-full flex items-center justify-center`}
-            style={{ background: location === 1 ? "transparent" : dev.bg }}
+            key={device}
+            className={`transition-opacity duration-200 ${dev.frame} relative touch-pan-y select-none`}
+            style={{ width: dev.w, height: dev.h, padding: dev.pad }}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
           >
             <div
-              key={location}
-              className={`w-full h-full flex items-center justify-center ${slideAnim}`}
+              className={`relative ${dev.page} w-full h-full flex items-center justify-center device-frame-inner`}
+              style={{
+                background: location === 1 ? "transparent" : dev.bg,
+                overflowY: "auto",
+                overflowX: "hidden",
+                WebkitOverflowScrolling: "touch",
+              }}
             >
+              <div
+                key={location}
+                className={`w-full min-h-full flex items-center justify-center ${slideAnim}`}
+              >
+
               {loading ? (
                 <div className="flex flex-col items-center gap-3 text-black/60 px-6 text-center max-w-xs">
                   <Loader2 className="animate-spin" size={28} />
@@ -964,13 +1068,15 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
               )}
             </div>
           </div>
-          {dev.homeButton && (
-            <div
-              className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-16 rounded-full bg-white/30"
-              aria-hidden="true"
-            />
-          )}
+            {dev.homeButton && (
+              <div
+                className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-16 rounded-full bg-white/30"
+                aria-hidden="true"
+              />
+            )}
+          </div>
         </div>
+
 
         {/* Next-page arrow — visually on the trailing edge (left in RTL, right otherwise) */}
         <button
