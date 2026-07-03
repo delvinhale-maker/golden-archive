@@ -720,6 +720,12 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                     dangerouslySetInnerHTML={{ __html: docxHtml }}
                   />
                 </div>
+              ) : isEpub ? (
+                <div
+                  ref={epubContainerRef}
+                  style={{ width: pageAreaW, height: pageAreaH, background: dev.bg }}
+                  className="text-black"
+                />
               ) : notPdf ? (
                 <div className="text-center px-6 text-black/70 text-sm">
                   <p className="font-semibold mb-2">
