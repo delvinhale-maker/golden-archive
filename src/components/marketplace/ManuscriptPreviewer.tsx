@@ -1061,13 +1061,15 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
               )}
             </div>
           </div>
-          {dev.homeButton && (
-            <div
-              className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-16 rounded-full bg-white/30"
-              aria-hidden="true"
-            />
-          )}
+            {dev.homeButton && (
+              <div
+                className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-16 rounded-full bg-white/30"
+                aria-hidden="true"
+              />
+            )}
+          </div>
         </div>
+
 
         {/* Next-page arrow — visually on the trailing edge (left in RTL, right otherwise) */}
         <button
