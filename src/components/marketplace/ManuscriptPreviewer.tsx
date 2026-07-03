@@ -466,10 +466,11 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   <img
                     src={coverUrl}
                     alt="Cover"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     style={{
+                      objectPosition: "top",
                       transform: `scale(${FONT_SCALES[fontSize] ?? 1})`,
-                      transformOrigin: "center center",
+                      transformOrigin: "top center",
                       transition: "transform 150ms ease",
                     }}
                   />
