@@ -638,7 +638,51 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
   const checklistPass = checklist.every((c) => c.ok);
 
 
+  /**
+   * Post-publish verification: re-reads the row from the DB and, for brand-new
+   * publishes that land as `approved`, confirms it also shows up in the
+   * storefront list query. Retries briefly to smooth over read-after-write
+   * lag on the Data API. Returns { ok: true } only when the row is actually
+   * live/visible as expected.
+   */
+  async function verifyPublished(
+    id: string,
+    publish: boolean,
+  ): Promise<{ ok: boolean; reason?: string }> {
+    const expectedStatus: "approved" | "pending" = isEditing ? "pending" : "approved";
+    const attempts = 5;
+    for (let i = 0; i < attempts; i++) {
+      const { data: row, error } = await supabase
+        .from("marketplace_products")
+        .select("id, published, status")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) return { ok: false, reason: error.message };
+      if (row && row.published === publish && row.status === expectedStatus) {
+        // For brand-new approved titles, also confirm storefront visibility.
+        if (publish && expectedStatus === "approved") {
+          const { data: listed, error: listErr } = await supabase
+            .from("marketplace_products")
+            .select("id")
+            .eq("id", id)
+            .eq("published", true)
+            .eq("status", "approved")
+            .maybeSingle();
+          if (listErr) return { ok: false, reason: listErr.message };
+          if (!listed) {
+            await new Promise((r) => setTimeout(r, 400));
+            continue;
+          }
+        }
+        return { ok: true };
+      }
+      await new Promise((r) => setTimeout(r, 400));
+    }
+    return { ok: false, reason: "storefront did not reflect the change in time" };
+  }
+
   async function uploadAndSave(publish: boolean) {
+
     if (!user) return;
     // For publish we require everything. For drafts (publish=false) allow
     // partial data — the bookshelf can resume the title later.
