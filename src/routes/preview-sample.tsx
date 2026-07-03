@@ -96,17 +96,75 @@ function PreviewSamplePage() {
     };
   }, []);
 
-  const openFile = (file: File) => {
+  const [validating, setValidating] = useState(false);
+
+  const openFile = async (file: File) => {
+    // 1. Empty / oversized guard.
+    if (file.size === 0) {
+      toast.error("That file is empty", {
+        description: "Choose a DOCX, PDF, or EPUB that has content.",
+      });
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      const mb = (file.size / (1024 * 1024)).toFixed(1);
+      toast.error(`File is too large (${mb} MB)`, {
+        description: `The preview supports files up to ${MAX_BYTES / (1024 * 1024)} MB. Try a smaller export.`,
+      });
+      return;
+    }
+
+    // 2. Extension + MIME check.
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+    const extKind = EXT_KIND[ext];
+    const mimeKind = MIME_KIND[file.type];
+    if (!extKind && !mimeKind) {
+      toast.error("Unsupported file type", {
+        description: `“${file.name || "file"}” isn’t a DOCX, PDF, or EPUB. Export or convert it and try again.`,
+      });
+      return;
+    }
+
+    // 3. Magic-byte sniff — protects against renamed / corrupted files that
+    //    would otherwise fail deep inside the renderer with a cryptic error.
+    setValidating(true);
+    let sniffed: Kind | null = null;
+    try {
+      sniffed = await sniffKind(file);
+    } catch (err) {
+      console.error("[preview-sample] sniff failed", err);
+    } finally {
+      setValidating(false);
+    }
+
+    if (!sniffed) {
+      toast.error("This file looks corrupted", {
+        description:
+          "We couldn’t recognise it as a valid DOCX, PDF, or EPUB. Try re-exporting the source document.",
+      });
+      return;
+    }
+
+    const declared = extKind ?? mimeKind;
+    if (declared && declared !== sniffed) {
+      toast.error("File contents don’t match the extension", {
+        description: `The file is named .${ext || "?"} but appears to be a ${sniffed.toUpperCase()}. Rename it to .${sniffed} and try again.`,
+      });
+      return;
+    }
+
+    // All good — mount the previewer.
     if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
     const blobUrl = URL.createObjectURL(file);
     blobUrlRef.current = blobUrl;
     // Preserve extension so ManuscriptPreviewer picks the right renderer.
-    const ext = file.name.split(".").pop()?.toLowerCase() ?? "docx";
-    const pathWithExt = `${blobUrl}#.${ext}`;
+    const pathWithExt = `${blobUrl}#.${sniffed}`;
     setManuscriptPath(pathWithExt);
-    setManuscriptTitle(file.name.replace(/\.[^.]+$/, ""));
+    setManuscriptTitle(file.name.replace(/\.[^.]+$/, "") || sniffed.toUpperCase());
     setShowPicker(false);
+    toast.success(`Loaded ${sniffed.toUpperCase()} preview`);
   };
+
 
   const useBundledSample = () => {
     setManuscriptPath(
