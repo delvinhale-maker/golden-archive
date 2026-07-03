@@ -95,6 +95,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       setNotPdf(false);
       setDocxHtml(null);
       setDocxPageCount(1);
+      setEpubReady(false);
       try {
         const { data, error: signErr } = await supabase.storage
           .from("product-files")
