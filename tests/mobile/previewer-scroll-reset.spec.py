@@ -214,6 +214,69 @@ async def main() -> None:
             await page.wait_for_timeout(400)
             await assert_no_frame_scroll(page, f"re-enter same location ({current})")
 
+            # 7. Positive-preservation: with real scroll travel in the
+            #    frame (injected spacer forces overflow, since the sample
+            #    PDF's fitted canvas doesn't overflow at baseline zoom),
+            #    scroll to a non-zero position and verify that BOTH a
+            #    font-size change AND a same-location re-entry preserve
+            #    the user's scroll position (they don't just skip
+            #    scrollTo — they leave the actual value alone).
+            await page.evaluate(
+                """
+                (id) => {
+                  const el = document.querySelector(`[data-testid="${id}"]`);
+                  if (!el) throw new Error('frame missing');
+                  let spacer = el.querySelector('#__test_spacer__');
+                  if (!spacer) {
+                    spacer = document.createElement('div');
+                    spacer.id = '__test_spacer__';
+                    spacer.style.cssText = 'height:2000px;width:1px;flex:0 0 auto;';
+                    el.appendChild(spacer);
+                  }
+                  el.scrollTop = 100;
+                }
+                """,
+                FRAME_TESTID,
+            )
+            await page.wait_for_timeout(100)
+
+            # Font-size change must not clobber scrollTop.
+            await page.locator('select[aria-label="Font size"]').first.select_option("2")
+            await page.wait_for_timeout(400)
+            after_font = await page.evaluate(
+                "(id) => document.querySelector(`[data-testid=\"${id}\"]`).scrollTop",
+                FRAME_TESTID,
+            )
+            if after_font != 100:
+                fail(f"font-size change moved scrollTop from 100 -> {after_font}")
+            ok(f"font-size change preserved scrollTop at {after_font}")
+
+            # Same-location re-entry must not clobber scrollTop.
+            cur = await page.locator('input[aria-label="Current location"]').first.input_value()
+            await page.locator('input[aria-label="Current location"]').first.fill(cur)
+            await page.locator('input[aria-label="Current location"]').first.press("Enter")
+            await page.wait_for_timeout(400)
+            after_same = await page.evaluate(
+                "(id) => document.querySelector(`[data-testid=\"${id}\"]`).scrollTop",
+                FRAME_TESTID,
+            )
+            if after_same != 100:
+                fail(f"same-location re-entry moved scrollTop from 100 -> {after_same}")
+            ok(f"same-location re-entry preserved scrollTop at {after_same}")
+
+            # Real navigation MUST reset scrollTop back to 0.
+            await page.get_by_role("button", name="Next page").first.click()
+            await page.wait_for_timeout(500)
+            after_nav = await page.evaluate(
+                "(id) => document.querySelector(`[data-testid=\"${id}\"]`).scrollTop",
+                FRAME_TESTID,
+            )
+            if after_nav != 0:
+                fail(f"Next arrow left scrollTop at {after_nav}, expected 0")
+            ok(f"real navigation reset scrollTop {100} -> {after_nav}")
+
+
+
             # 7. Final sanity: the frame's live scrollTop is 0.
             top = await page.evaluate(
                 "(id) => document.querySelector(`[data-testid=\"${id}\"]`)?.scrollTop ?? -1",
