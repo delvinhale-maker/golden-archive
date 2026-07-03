@@ -65,15 +65,22 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [notPdf, setNotPdf] = useState(false);
   const [docxHtml, setDocxHtml] = useState<string | null>(null);
   const [docxPageCount, setDocxPageCount] = useState(1);
+  const [epubReady, setEpubReady] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderTaskRef = useRef<any>(null);
   const touchStartX = useRef<number | null>(null);
   const docxInnerRef = useRef<HTMLDivElement>(null);
+  const epubContainerRef = useRef<HTMLDivElement>(null);
+  const epubBookRef = useRef<any>(null);
+  const epubRenditionRef = useRef<any>(null);
+  const epubTotalRef = useRef<number>(0);
+  const epubSyncingRef = useRef<boolean>(false);
 
   const ext = manuscriptPath.split(".").pop()?.toLowerCase() ?? "";
   const isPdf = ext === "pdf";
   const isDocx = ext === "docx";
+  const isEpub = ext === "epub";
 
   // Sign URL & load PDF
   useEffect(() => {
@@ -88,6 +95,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       setNotPdf(false);
       setDocxHtml(null);
       setDocxPageCount(1);
+      setEpubReady(false);
       try {
         const { data, error: signErr } = await supabase.storage
           .from("product-files")
@@ -119,12 +127,72 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         }
 
 
+        if (isEpub) {
+          try {
+            const res = await fetch(data.signedUrl);
+            if (!res.ok) throw new Error(`Download failed (${res.status})`);
+            const buf = await res.arrayBuffer();
+            const ePubMod: any = await import("epubjs");
+            const ePub = ePubMod.default ?? ePubMod;
+            const book = ePub(buf);
+            epubBookRef.current = book;
+            await book.ready;
+            if (cancelled) { try { book.destroy(); } catch { /* noop */ } return; }
+            // Locations power page counting; 1024 chars/page is epubjs default sizing.
+            await book.locations.generate(1024);
+            const total = book.locations.length() || 1;
+            epubTotalRef.current = total;
+            setPageCount(total + 1); // +1 for cover slot
+
+            // Build outline from TOC. Map each href to a "location index" via CFI.
+            try {
+              const nav = await book.loaded.navigation;
+              const entries: OutlineEntry[] = [];
+              const walk = (items: any[]) => {
+                for (const item of items) {
+                  try {
+                    // Best-effort: derive a page index. If we can't, fall back to page 2.
+                    let pageIndex = 2;
+                    try {
+                      const cfi = book.spine?.get(item.href)?.cfiFromRange
+                        ? null
+                        : null;
+                      // Use locationFromCfi via percentage if possible; otherwise leave 2.
+                      const pct = book.locations.percentageFromCfi(item.href);
+                      if (typeof pct === "number" && !Number.isNaN(pct)) {
+                        pageIndex = Math.max(2, Math.round(pct * total) + 1);
+                      }
+                    } catch { /* keep default */ }
+                    entries.push({ title: item.label?.trim() || "Section", pageIndex });
+                  } catch { /* skip */ }
+                  if (item.subitems?.length) walk(item.subitems);
+                }
+              };
+              if (nav?.toc?.length) walk(nav.toc);
+              if (!cancelled && entries.length) setOutline(entries);
+            } catch { /* no toc */ }
+
+            setEpubReady(true);
+            setLoading(false);
+          } catch (epubErr: any) {
+            console.error("[ManuscriptPreviewer] epub", epubErr);
+            if (!cancelled) {
+              setError(
+                "We couldn't preview this EPUB. It may be corrupted or use unsupported features. You can still open the original file in a new tab.",
+              );
+              setLoading(false);
+            }
+          }
+          return;
+        }
+
         if (!isPdf) {
           setNotPdf(true);
           setPageCount(1);
           setLoading(false);
           return;
         }
+
 
         const pdfjs: any = await import("pdfjs-dist");
         // Use the bundled worker URL — Vite emits it as a static asset and the
@@ -183,8 +251,16 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
     })();
     return () => {
       cancelled = true;
+      if (epubRenditionRef.current) {
+        try { epubRenditionRef.current.destroy(); } catch { /* noop */ }
+        epubRenditionRef.current = null;
+      }
+      if (epubBookRef.current) {
+        try { epubBookRef.current.destroy(); } catch { /* noop */ }
+        epubBookRef.current = null;
+      }
     };
-  }, [manuscriptPath, isPdf, isDocx]);
+  }, [manuscriptPath, isPdf, isDocx, isEpub]);
 
   const dev = DEVICES[device];
   const pageAreaW = dev.w - dev.pad * 2;
@@ -203,6 +279,89 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       setPageCount(pages + 1);
     });
   }, [isDocx, docxHtml, fontSize, device, pageAreaH]);
+
+  // Mount / remount the EPUB rendition when it's ready or the frame size changes.
+  useEffect(() => {
+    if (!isEpub || !epubReady) return;
+    const book = epubBookRef.current;
+    const container = epubContainerRef.current;
+    if (!book || !container) return;
+
+    // Tear down any previous rendition.
+    if (epubRenditionRef.current) {
+      try { epubRenditionRef.current.destroy(); } catch { /* noop */ }
+      epubRenditionRef.current = null;
+    }
+    container.innerHTML = "";
+
+    const rendition = book.renderTo(container, {
+      width: pageAreaW,
+      height: pageAreaH,
+      flow: "paginated",
+      spread: "none",
+    });
+    epubRenditionRef.current = rendition;
+    rendition.themes.fontSize(`${100 * (FONT_SCALES[fontSize] ?? 1)}%`);
+
+    // Sync location from rendition back to state (guarded to avoid render loops).
+    rendition.on("relocated", (loc: any) => {
+      if (epubSyncingRef.current) return;
+      const total = epubTotalRef.current || 1;
+      try {
+        const pct = book.locations.percentageFromCfi(loc?.start?.cfi);
+        if (typeof pct === "number" && !Number.isNaN(pct)) {
+          const idx = Math.max(1, Math.min(total, Math.round(pct * total) + 1));
+          setLocation(idx + 1); // +1 for cover offset
+        }
+      } catch { /* noop */ }
+    });
+
+    // Display initial page (or the current one if user has already navigated).
+    const total = epubTotalRef.current || 1;
+    const pageIdx = Math.max(1, Math.min(total, location - 1));
+    try {
+      const cfi = book.locations.cfiFromLocation(pageIdx - 1);
+      rendition.display(cfi || undefined);
+    } catch {
+      rendition.display();
+    }
+
+    return () => {
+      try { rendition.destroy(); } catch { /* noop */ }
+      if (epubRenditionRef.current === rendition) epubRenditionRef.current = null;
+    };
+    // Intentionally exclude `location` — location sync is handled by a separate effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEpub, epubReady, device, pageAreaW, pageAreaH]);
+
+  // Push location changes into the EPUB rendition.
+  useEffect(() => {
+    if (!isEpub || !epubReady) return;
+    const rendition = epubRenditionRef.current;
+    const book = epubBookRef.current;
+    if (!rendition || !book) return;
+    if (location < 2) return; // cover slot
+    const total = epubTotalRef.current || 1;
+    const pageIdx = Math.max(1, Math.min(total, location - 1));
+    try {
+      const cfi = book.locations.cfiFromLocation(pageIdx - 1);
+      if (!cfi) return;
+      epubSyncingRef.current = true;
+      rendition.display(cfi).finally(() => {
+        // Release the guard on next tick so relocated event doesn't feed back.
+        setTimeout(() => { epubSyncingRef.current = false; }, 50);
+      });
+    } catch { /* noop */ }
+  }, [isEpub, epubReady, location]);
+
+  // Apply font-size zoom to the EPUB rendition.
+  useEffect(() => {
+    if (!isEpub || !epubReady) return;
+    const rendition = epubRenditionRef.current;
+    if (!rendition) return;
+    try { rendition.themes.fontSize(`${100 * (FONT_SCALES[fontSize] ?? 1)}%`); } catch { /* noop */ }
+  }, [isEpub, epubReady, fontSize]);
+
 
 
   // Rendered-page cache: key = `${pageNum}|${fontSize}|${device}` -> offscreen canvas.
@@ -560,6 +719,12 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                     dangerouslySetInnerHTML={{ __html: docxHtml }}
                   />
                 </div>
+              ) : isEpub ? (
+                <div
+                  ref={epubContainerRef}
+                  style={{ width: pageAreaW, height: pageAreaH, background: dev.bg }}
+                  className="text-black"
+                />
               ) : notPdf ? (
                 <div className="text-center px-6 text-black/70 text-sm">
                   <p className="font-semibold mb-2">
