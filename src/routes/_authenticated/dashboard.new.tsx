@@ -663,7 +663,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
     id: string,
     publish: boolean,
   ): Promise<{ ok: boolean; reason?: string }> {
-    const expectedStatus: "approved" | "pending" = isEditing ? "pending" : "approved";
+    const expectedStatus: "approved" | "pending" = isEditing && !bypassReview ? "pending" : "approved";
     const attempts = 5;
     for (let i = 0; i < attempts; i++) {
       const { data: row, error } = await supabase
