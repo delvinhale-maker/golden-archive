@@ -208,21 +208,30 @@ function PreviewSamplePage() {
 
         <div
           onDragOver={(e) => {
+            if (validating) return;
             e.preventDefault();
             e.dataTransfer.dropEffect = "copy";
           }}
           onDrop={(e) => {
             e.preventDefault();
+            if (validating) return;
             const f = e.dataTransfer.files?.[0];
-            if (f) openFile(f);
+            if (f) void openFile(f);
           }}
-          onClick={() => inputRef.current?.click()}
-          className="cursor-pointer rounded-xl border-2 border-dashed border-white/20 hover:border-white/40 hover:bg-white/[0.03] transition p-8 text-center"
+          onClick={() => !validating && inputRef.current?.click()}
+          aria-busy={validating}
+          className={`rounded-xl border-2 border-dashed p-8 text-center transition ${
+            validating
+              ? "border-white/10 bg-white/[0.02] cursor-wait"
+              : "cursor-pointer border-white/20 hover:border-white/40 hover:bg-white/[0.03]"
+          }`}
         >
           <p className="text-sm text-white/80 mb-1">
-            Drop a file here, or click to browse
+            {validating ? "Checking file…" : "Drop a file here, or click to browse"}
           </p>
-          <p className="text-xs text-white/50">DOCX, PDF, or EPUB</p>
+          <p className="text-xs text-white/50">
+            {validating ? "Verifying it's a valid document" : "DOCX, PDF, or EPUB · up to 50 MB"}
+          </p>
           <input
             ref={inputRef}
             type="file"
@@ -230,11 +239,12 @@ function PreviewSamplePage() {
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
-              if (f) openFile(f);
+              if (f) void openFile(f);
               e.target.value = "";
             }}
           />
         </div>
+
 
         <div className="mt-4 flex items-center gap-3">
           <button
