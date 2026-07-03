@@ -61,7 +61,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [outline, setOutline] = useState<OutlineEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingSlow, setLoadingSlow] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ title: string; steps: string[] } | null>(null);
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
   const [locationInput, setLocationInput] = useState("1");
   const [notPdf, setNotPdf] = useState(false);
@@ -177,8 +177,22 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                 docxErr?.name === "AbortError" || docxErr?.message === "timeout";
               setError(
                 isTimeout
-                  ? "This Word document is taking too long to convert on this device. Try again, switch to a larger preview size, or open the original file."
-                  : "We couldn't preview this Word document. It may be corrupted or use unsupported features. Try again or open the original file.",
+                  ? {
+                      title: "Word document is taking too long to convert.",
+                      steps: [
+                        "Tap Try again — the conversion may finish on a second attempt.",
+                        "Switch to the Tablet preview size to give the renderer more room.",
+                        "If it keeps timing out, open the original file to view it.",
+                      ],
+                    }
+                  : {
+                      title: "We couldn't preview this Word document.",
+                      steps: [
+                        "Re-export the document from Word as .docx and try again.",
+                        "Remove unsupported features (tracked changes, embedded objects, macros).",
+                        "If it still fails, open the original file to view it.",
+                      ],
+                    },
               );
               setLoading(false);
             }
@@ -260,9 +274,15 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
           } catch (epubErr: any) {
             console.error("[ManuscriptPreviewer] epub", epubErr);
             if (!cancelled) {
-              setError(
-                "We couldn't preview this EPUB. It may be corrupted or use unsupported features. You can still open the original file in a new tab.",
-              );
+              setError({
+                title: "We couldn't preview this EPUB.",
+                steps: [
+                  "Tap Try again — a network hiccup can prevent the file from loading.",
+                  "Re-export the EPUB from your source tool (EPUB 3 is best supported).",
+                  "Check for DRM — protected EPUBs can't be rendered in the browser.",
+                  "If it still fails, open the original file to view it.",
+                ],
+              });
               setLoading(false);
             }
           }
@@ -327,7 +347,27 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       } catch (err: any) {
         console.error("[ManuscriptPreviewer]", err);
         if (!cancelled) {
-          setError("Unable to load manuscript. Please try again.");
+          const isPdfRenderer = isPdf;
+          setError(
+            isPdfRenderer
+              ? {
+                  title: "We couldn't render this PDF.",
+                  steps: [
+                    "Tap Try again — the PDF worker may not have loaded on the first try.",
+                    "Check your internet connection and reload.",
+                    "Re-save the PDF from the source app (avoid password protection).",
+                    "If it still fails, open the original file to view it.",
+                  ],
+                }
+              : {
+                  title: "Unable to load manuscript.",
+                  steps: [
+                    "Tap Try again — a temporary network issue can cause this.",
+                    "Check your internet connection.",
+                    "If the problem persists, re-upload the file.",
+                  ],
+                },
+          );
           setLoading(false);
         }
       }
@@ -820,13 +860,23 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                   )}
                 </div>
               ) : error ? (
-                <div className="text-center px-6 max-w-sm">
-                  <p className="text-red-600 text-sm mb-3">{error}</p>
+                <div className="text-left px-6 max-w-sm w-full" role="alert">
+                  <p className="text-red-600 text-sm font-semibold mb-2 text-center">
+                    {error.title}
+                  </p>
+                  <p className="text-black/70 text-xs mb-2 text-center">
+                    Try these steps:
+                  </p>
+                  <ol className="list-decimal pl-5 space-y-1 text-xs text-black/80 mb-4">
+                    {error.steps.map((step, i) => (
+                      <li key={i}>{step}</li>
+                    ))}
+                  </ol>
                   <div className="flex flex-col items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setAttempt((a) => a + 1)}
-                      className="inline-block rounded-md bg-black text-white text-sm px-3 py-1.5 hover:bg-black/80"
+                      className="inline-block rounded-md bg-black text-white text-sm px-4 py-2 hover:bg-black/80"
                     >
                       Try again
                     </button>
@@ -835,13 +885,14 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
                         href={signedUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-block text-sm underline text-black/70 hover:text-black"
+                        className="inline-block text-xs underline text-black/60 hover:text-black"
                       >
                         Open original file in new tab
                       </a>
                     )}
                   </div>
                 </div>
+
 
               ) : location === 1 ? (
                 coverUrl ? (
