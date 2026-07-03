@@ -22,18 +22,17 @@ export function MarketFooter() {
     <footer className="mt-20 bg-navy pb-24 pt-16 text-white md:pb-16">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 md:grid-cols-4 lg:px-8">
         <div className="md:col-span-2">
-          <AVLogo />
+          <AVLogo size={56} />
           <p className="mt-5 max-w-sm text-sm text-white/70">
             AurumVault is the gold-standard marketplace for purpose-driven
-            digital products — curated from verified creators and powered by
-            Illustrious Capital™.
+            digital products — curated from verified creators.
           </p>
         </div>
         <FooterCol title="Marketplace" links={SHOP_LINKS} />
         <FooterCol title="Company" links={COMPANY_LINKS} />
       </div>
       <div className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-3 border-t border-white/10 px-6 pt-6 text-xs text-white/50 md:flex-row lg:px-8">
-        <span>© {new Date().getFullYear()} Illustrious Capital™. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} AurumVault. All rights reserved.</span>
         <div className="flex gap-6 flex-wrap justify-center">
           <a href="/terms" className="hover:text-white">Terms</a>
           <a href="/privacy" className="hover:text-white">Privacy</a>
