@@ -257,15 +257,28 @@ function PreviewSamplePage() {
             Sample gallery
           </p>
           <div className="grid grid-cols-3 gap-2">
-            {SAMPLES.map((s) => (
-              <button
-                key={s.kind}
-                onClick={() => loadSample(s)}
-                className="h-11 rounded-lg bg-white/10 hover:bg-white/15 text-sm font-medium transition"
-              >
-                {s.label}
-              </button>
-            ))}
+            {SAMPLES.map((s) => {
+              const base =
+                typeof window !== "undefined" ? window.location.origin : "";
+              return (
+                <div key={s.kind} className="flex flex-col gap-1.5">
+                  <button
+                    onClick={() => loadSample(s)}
+                    className="h-11 rounded-lg bg-white/10 hover:bg-white/15 text-sm font-medium transition"
+                  >
+                    {s.label}
+                  </button>
+                  <a
+                    href={`${base}${s.path}`}
+                    download
+                    className="text-center text-xs text-white/40 hover:text-white/70 underline-offset-2 hover:underline transition"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Download {s.label}
+                  </a>
+                </div>
+              );
+            })}
           </div>
         </div>
 
