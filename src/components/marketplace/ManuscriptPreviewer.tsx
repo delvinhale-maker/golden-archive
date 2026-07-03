@@ -86,6 +86,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       setLocation(1);
       setOutline([]);
       setNotPdf(false);
+      setDocxHtml(null);
+      setDocxPageCount(1);
       try {
         const { data, error: signErr } = await supabase.storage
           .from("product-files")
@@ -93,6 +95,17 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
         if (signErr || !data?.signedUrl) throw new Error(signErr?.message ?? "Could not load manuscript");
         if (cancelled) return;
         setSignedUrl(data.signedUrl);
+
+        if (isDocx) {
+          const res = await fetch(data.signedUrl);
+          const buf = await res.arrayBuffer();
+          const mammoth: any = await import("mammoth/mammoth.browser");
+          const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+          if (cancelled) return;
+          setDocxHtml(result.value || "<p>(Empty document)</p>");
+          setLoading(false);
+          return;
+        }
 
         if (!isPdf) {
           setNotPdf(true);
