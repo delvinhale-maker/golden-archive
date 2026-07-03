@@ -15,10 +15,18 @@ Requires the dev server on http://localhost:8080.
 """
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 
 from playwright.async_api import async_playwright
+
+# Pick the browser engine at run time — the same assertions run on both
+# Chromium and WebKit (iOS Safari emulation) via `BROWSER=webkit`.
+BROWSER = os.environ.get("BROWSER", "chromium").lower()
+if BROWSER not in {"chromium", "webkit", "firefox"}:
+    raise SystemExit(f"unsupported BROWSER={BROWSER}")
+
 
 BASE = "http://localhost:8080/preview-sample"
 SCREENSHOTS = Path(__file__).parent / "screenshots"
@@ -157,8 +165,11 @@ def assert_fits_and_centered(m: dict, label: str) -> None:
 
 async def main() -> None:
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        engine = getattr(pw, BROWSER)
+        browser = await engine.launch(headless=True)
+        print(f"Running canvas-fit checks on {BROWSER}")
         ctx, page = await open_previewer(browser)
+
         try:
             for value, label in DEVICES:
                 await set_device(page, value)
@@ -169,8 +180,9 @@ async def main() -> None:
                     tag = f"{label} · loc {loc}"
                     assert_fits_and_centered(m, tag)
                     await page.screenshot(
-                        path=str(SCREENSHOTS / f"fit_{value}_loc{loc}.png")
+                        path=str(SCREENSHOTS / f"fit_{BROWSER}_{value}_loc{loc}.png")
                     )
+
 
         finally:
             await ctx.close()
