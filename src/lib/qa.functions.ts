@@ -27,19 +27,14 @@ export const listQA = createServerFn({ method: "GET" })
   .inputValidator((input: { productId: string }) => input)
   .handler(async ({ data }): Promise<{ count: number; items: QARow[] }> => {
     const sb = publicClient();
-    const { data: rows, error } = await (sb as any)
-      .from("product_qa_public")
-      .select(
-        "id,product_id,asker_name,question,answer,answerer_name,answered_by_admin,answered_at,created_at",
-      )
-      .eq("product_id", data.productId)
-      .order("answered_at", { ascending: false, nullsFirst: false })
-      .order("created_at", { ascending: false })
-      .limit(50);
+    const { data: rows, error } = await (sb as any).rpc("list_product_qa", {
+      _product_id: data.productId,
+    });
     if (error) throw error;
     const items = (rows ?? []) as QARow[];
     return { count: items.length, items };
   });
+
 
 
 export const askQuestion = createServerFn({ method: "POST" })
