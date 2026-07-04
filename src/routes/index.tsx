@@ -128,6 +128,7 @@ function Home() {
       <HighlightsBoundary fallback={<HeroCarousel />} errorLabel="hero product">
         <FeaturedHero />
       </HighlightsBoundary>
+      <MissionSection />
       <HeroStatsBar />
       <TrustBar />
       <RefreshHighlightsBar />
