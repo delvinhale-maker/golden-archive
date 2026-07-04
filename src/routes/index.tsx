@@ -27,6 +27,7 @@ import {
 } from "@/components/marketplace/ProductCard";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
+import { MissionSection } from "@/components/marketplace/MissionSection";
 import { DealsStrip } from "@/components/marketplace/DealsStrip";
 import { BestsellersRow } from "@/components/marketplace/BestsellersRow";
 import { KingdomPicksRow, kingdomPicksRowQ } from "@/components/marketplace/KingdomPicksRow";
@@ -127,6 +128,7 @@ function Home() {
       <HighlightsBoundary fallback={<HeroCarousel />} errorLabel="hero product">
         <FeaturedHero />
       </HighlightsBoundary>
+      <MissionSection />
       <HeroStatsBar />
       <TrustBar />
       <RefreshHighlightsBar />
