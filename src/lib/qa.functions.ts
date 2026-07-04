@@ -6,11 +6,9 @@ import type { Database } from "@/integrations/supabase/types";
 export type QARow = {
   id: string;
   product_id: string;
-  asker_user_id: string | null;
   asker_name: string;
   question: string;
   answer: string | null;
-  answerer_user_id: string | null;
   answerer_name: string | null;
   answered_by_admin: boolean;
   answered_at: string | null;
@@ -29,19 +27,15 @@ export const listQA = createServerFn({ method: "GET" })
   .inputValidator((input: { productId: string }) => input)
   .handler(async ({ data }): Promise<{ count: number; items: QARow[] }> => {
     const sb = publicClient();
-    const { data: rows, error } = await sb
-      .from("product_qa")
-      .select(
-        "id,product_id,asker_user_id,asker_name,question,answer,answerer_user_id,answerer_name,answered_by_admin,answered_at,created_at",
-      )
-      .eq("product_id", data.productId)
-      .order("answered_at", { ascending: false, nullsFirst: false })
-      .order("created_at", { ascending: false })
-      .limit(50);
+    const { data: rows, error } = await (sb as any).rpc("list_product_qa", {
+      _product_id: data.productId,
+    });
     if (error) throw error;
     const items = (rows ?? []) as QARow[];
     return { count: items.length, items };
   });
+
+
 
 export const askQuestion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -1172,6 +1172,20 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_product_qa: {
+        Args: { _product_id: string }
+        Returns: {
+          answer: string
+          answered_at: string
+          answered_by_admin: boolean
+          answerer_name: string
+          asker_name: string
+          created_at: string
+          id: string
+          product_id: string
+          question: string
+        }[]
+      }
       mark_abandoned_cart_recovered: {
         Args: { _session_id: string }
         Returns: undefined
