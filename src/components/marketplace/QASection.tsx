@@ -83,7 +83,9 @@ function QACard({
   const del$ = useServerFn(deleteQuestion);
   const qc = useQueryClient();
   const { isAdmin } = useAuth();
-  const isAsker = currentUserId && q.asker_user_id === currentUserId;
+  // asker_user_id is no longer exposed publicly; only admins can moderate from the list UI.
+  const isAsker = false;
+
 
   const m = useMutation({
     mutationFn: () => answer$({ data: { questionId: q.id, answer } }),
