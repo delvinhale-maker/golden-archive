@@ -1152,50 +1152,7 @@ export type Database = {
       }
     }
     Views: {
-      product_qa_public: {
-        Row: {
-          answer: string | null
-          answered_at: string | null
-          answered_by_admin: boolean | null
-          answerer_name: string | null
-          asker_name: string | null
-          created_at: string | null
-          id: string | null
-          product_id: string | null
-          question: string | null
-        }
-        Insert: {
-          answer?: string | null
-          answered_at?: string | null
-          answered_by_admin?: boolean | null
-          answerer_name?: string | null
-          asker_name?: string | null
-          created_at?: string | null
-          id?: string | null
-          product_id?: string | null
-          question?: string | null
-        }
-        Update: {
-          answer?: string | null
-          answered_at?: string | null
-          answered_by_admin?: boolean | null
-          answerer_name?: string | null
-          asker_name?: string | null
-          created_at?: string | null
-          id?: string | null
-          product_id?: string | null
-          question?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_qa_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       confirm_subscriber: { Args: { _token: string }; Returns: Json }
@@ -1214,6 +1171,20 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      list_product_qa: {
+        Args: { _product_id: string }
+        Returns: {
+          answer: string
+          answered_at: string
+          answered_by_admin: boolean
+          answerer_name: string
+          asker_name: string
+          created_at: string
+          id: string
+          product_id: string
+          question: string
+        }[]
       }
       mark_abandoned_cart_recovered: {
         Args: { _session_id: string }
