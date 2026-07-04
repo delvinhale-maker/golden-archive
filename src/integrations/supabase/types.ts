@@ -1152,7 +1152,50 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      product_qa_public: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          answered_by_admin: boolean | null
+          answerer_name: string | null
+          asker_name: string | null
+          created_at: string | null
+          id: string | null
+          product_id: string | null
+          question: string | null
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by_admin?: boolean | null
+          answerer_name?: string | null
+          asker_name?: string | null
+          created_at?: string | null
+          id?: string | null
+          product_id?: string | null
+          question?: string | null
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by_admin?: boolean | null
+          answerer_name?: string | null
+          asker_name?: string | null
+          created_at?: string | null
+          id?: string | null
+          product_id?: string | null
+          question?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_qa_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       confirm_subscriber: { Args: { _token: string }; Returns: Json }
