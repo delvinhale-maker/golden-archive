@@ -13,6 +13,8 @@ export type AccountOrder = {
     unit_amount_cents: number;
     cover_url: string | null;
     file_path: string | null;
+    file_size_bytes: number | null;
+    creator_name: string | null;
     download_token: string | null;
   }[];
 };
