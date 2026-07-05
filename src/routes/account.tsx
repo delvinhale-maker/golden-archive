@@ -7,7 +7,9 @@ import {
   Loader2,
   LogOut,
   Package,
+  Trash2,
   User as UserIcon,
+  X,
 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { useAuth } from "@/hooks/use-auth";
