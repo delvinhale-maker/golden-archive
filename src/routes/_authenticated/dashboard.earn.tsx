@@ -239,12 +239,22 @@ function EarnPage() {
               {overallStatus === "none" && "You'll see your payout status here once you start earning."}
             </p>
             {nextRelease && (readyCents > 0 || pendingCents > 0) && (
-              <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-navy/80">
-                <CalendarDays size={12} /> Next payout cycle: <strong>{fmtDate(nextRelease)}</strong>
-                {!scheduleActive && (
-                  <span className="ml-1 text-amber-700">(schedule confirming…)</span>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 text-xs text-navy/80">
+                  <CalendarDays size={12} /> Next payout: <strong>{fmtDate(nextRelease)}</strong>
+                </span>
+                {countdown && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-2 py-1 text-xs font-semibold text-navy">
+                    <Timer size={12} /> {fmtCountdown(countdown)}
+                  </span>
                 )}
-              </p>
+                {!scheduleActive && (
+                  <span className="text-xs text-amber-700">(schedule confirming…)</span>
+                )}
+                {schedule?.timezone && (
+                  <span className="w-full text-[11px] text-mute">{schedule.timezone}</span>
+                )}
+              </div>
             )}
           </div>
         </div>
