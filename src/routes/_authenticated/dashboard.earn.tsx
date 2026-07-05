@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
-import { DollarSign, ShoppingBag, Clock, CheckCircle2, TrendingUp, CalendarDays } from "lucide-react";
+import { DollarSign, ShoppingBag, Clock, CheckCircle2, TrendingUp, CalendarDays, Timer } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useServerFn } from "@tanstack/react-start";
 import { getPayoutScheduleStatus } from "@/lib/payout-schedule.functions";
@@ -42,6 +42,41 @@ function fmt(cents: number) {
 function fmtDate(iso: string | Date) {
   const d = typeof iso === "string" ? new Date(iso) : iso;
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+function useCountdown(target: Date | null) {
+  const [remaining, setRemaining] = useState(() => (target ? target.getTime() - Date.now() : null));
+
+  useEffect(() => {
+    if (!target) {
+      setRemaining(null);
+      return;
+    }
+    const tick = () => {
+      const ms = target.getTime() - Date.now();
+      setRemaining(Math.max(0, ms));
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [target]);
+
+  if (remaining === null || remaining <= 0) return null;
+  const seconds = Math.floor((remaining / 1000) % 60);
+  const minutes = Math.floor((remaining / (1000 * 60)) % 60);
+  const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24);
+  const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+  return { days, hours, minutes, seconds };
+}
+
+function fmtCountdown({ days, hours, minutes, seconds }: NonNullable<ReturnType<typeof useCountdown>>) {
+  const parts = [
+    days > 0 ? `${days}d` : "",
+    `${hours.toString().padStart(2, "0")}h`,
+    `${minutes.toString().padStart(2, "0")}m`,
+    `${seconds.toString().padStart(2, "0")}s`,
+  ].filter(Boolean);
+  return parts.join(" ");
 }
 
 const STATUS_COPY: Record<ItemStatus, string> = {
@@ -150,6 +185,7 @@ function EarnPage() {
     readyCents > 0 ? "ready" : effectivePending > 0 ? "pending" : paidOut > 0 ? "paid" : "none";
 
   const nextRelease = schedule?.next_release_at ? new Date(schedule.next_release_at) : null;
+  const countdown = useCountdown(nextRelease);
 
   // Monthly chart
   const nowDate = new Date();
@@ -200,12 +236,22 @@ function EarnPage() {
               {overallStatus === "none" && "You'll see your payout status here once you start earning."}
             </p>
             {nextRelease && (readyCents > 0 || pendingCents > 0) && (
-              <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-navy/80">
-                <CalendarDays size={12} /> Next payout cycle: <strong>{fmtDate(nextRelease)}</strong>
-                {!scheduleActive && (
-                  <span className="ml-1 text-amber-700">(schedule confirming…)</span>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 text-xs text-navy/80">
+                  <CalendarDays size={12} /> Next payout: <strong>{fmtDate(nextRelease)}</strong>
+                </span>
+                {countdown && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-2 py-1 text-xs font-semibold text-navy">
+                    <Timer size={12} /> {fmtCountdown(countdown)}
+                  </span>
                 )}
-              </p>
+                {!scheduleActive && (
+                  <span className="text-xs text-amber-700">(schedule confirming…)</span>
+                )}
+                {schedule?.timezone && (
+                  <span className="w-full text-[11px] text-mute">{schedule.timezone}</span>
+                )}
+              </div>
             )}
           </div>
         </div>
