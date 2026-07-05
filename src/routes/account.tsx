@@ -8,7 +8,6 @@ import {
   Loader2,
   LogOut,
   Package,
-  Trash2,
   User as UserIcon,
   X,
 } from "lucide-react";
