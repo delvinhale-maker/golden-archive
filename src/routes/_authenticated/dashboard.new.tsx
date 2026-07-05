@@ -81,6 +81,7 @@ type StepNum = 1 | 2 | 3 | 4;
 
 function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, isAdmin } = useAuth();
   const runReview = useServerFn(reviewProduct);
   const editingId = editingIdProp;
