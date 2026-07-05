@@ -3,16 +3,19 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
-import { ShieldCheck, ArrowLeft, CheckCircle2, Clock, DollarSign, Loader2, History } from "lucide-react";
+import { ShieldCheck, ArrowLeft, CheckCircle2, Clock, DollarSign, Loader2, History, CalendarDays, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { getPayoutScheduleStatus } from "@/lib/payout-schedule.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/payouts")({
   component: AdminPayoutsPage,
 });
 
-// Mirrors the auto-release review window (24h). Balances become eligible for
-// payout once at least one paid order backing them has been settled for >= 24h.
-const READY_WINDOW_MS = 24 * 60 * 60 * 1000;
+// A balance is only "Ready for Release" once (a) at least one paid order
+// backing it has cleared the 24h holding period AND (b) the Friday cron
+// heartbeat has confirmed the schedule is active.
+const HOLDING_MS = 24 * 60 * 60 * 1000;
 
 type BalanceRow = { seller_id: string; pending_cents: number; paid_cents: number; currency: string };
 type Profile = { id: string; display_name: string | null };
