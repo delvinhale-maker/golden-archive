@@ -57,8 +57,7 @@ export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(featuredQ);
     context.queryClient.ensureQueryData(newReleasesRowQ);
-    context.queryClient.ensureQueryData(promotedPicksRowQ);
-    context.queryClient.ensureQueryData(recommendedRowQ);
+    context.queryClient.ensureQueryData(kingdomPicksRowQ);
     context.queryClient.ensureQueryData(kingdomPicksRowQ);
     context.queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] });
     context.queryClient.ensureQueryData(highlightsQ);
