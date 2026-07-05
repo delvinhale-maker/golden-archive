@@ -373,11 +373,13 @@ const FAV_KEY = "av_ai_studio_favorites_v1";
 const USAGE_KEY = "av_ai_studio_usage_v1";
 const DRAFT_KEY = "av_ai_studio_draft_v1";
 
+type OutputStatus = "idle" | "streaming" | "draft" | "interrupted" | "final";
+
 type Draft = {
   category: string;
   tool: string;
   text: string;
-  status: "streaming" | "complete" | "interrupted";
+  status: OutputStatus;
   updatedAt: number;
 };
 
@@ -389,6 +391,7 @@ function AiStudioPage() {
   const [audience, setAudience] = useState<string>(AUDIENCES[4]);
   const [length, setLength] = useState<"short" | "medium" | "long">("medium");
   const [output, setOutput] = useState<string>("");
+  const [outputStatus, setOutputStatus] = useState<OutputStatus>("idle");
   const [loading, setLoading] = useState(false);
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [usageCount, setUsageCount] = useState(0);
