@@ -13,6 +13,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
   const wishlist = useWishlist();
   const cart = useCart();
   const liked = wishlist.has(product.id);
+  const owned = useOwnsProduct(product.id);
   const [imgFailed, setImgFailed] = useState(false);
   const hasImage = !imgFailed && !!product.image && /^https?:\/\//.test(product.image);
 
