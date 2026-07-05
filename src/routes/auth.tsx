@@ -315,6 +315,12 @@ function AuthPage() {
               : "Create your account to buy, sell, and curate Kingdom resources."}
           </p>
 
+          {message && (
+            <div className="mt-4 rounded-lg border border-gold/40 bg-gold/10 px-4 py-3 text-sm font-medium text-navy">
+              {message}
+            </div>
+          )}
+
           <button
             type="button"
             onClick={google}
