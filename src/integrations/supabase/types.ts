@@ -985,9 +985,11 @@ export type Database = {
       }
       seller_applications: {
         Row: {
+          admin_feedback: string | null
           admin_notes: string | null
           applicant_email: string | null
           brand_name: string
+          brand_slug: string | null
           categories: string[] | null
           country: string | null
           created_at: string
@@ -995,6 +997,7 @@ export type Database = {
           pitch: string
           price_range: string | null
           product_types: string | null
+          reapply_after: string | null
           reviewed_at: string | null
           social_links: Json | null
           status: Database["public"]["Enums"]["application_status"]
@@ -1002,9 +1005,11 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          admin_feedback?: string | null
           admin_notes?: string | null
           applicant_email?: string | null
           brand_name: string
+          brand_slug?: string | null
           categories?: string[] | null
           country?: string | null
           created_at?: string
@@ -1012,6 +1017,7 @@ export type Database = {
           pitch: string
           price_range?: string | null
           product_types?: string | null
+          reapply_after?: string | null
           reviewed_at?: string | null
           social_links?: Json | null
           status?: Database["public"]["Enums"]["application_status"]
@@ -1019,9 +1025,11 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          admin_feedback?: string | null
           admin_notes?: string | null
           applicant_email?: string | null
           brand_name?: string
+          brand_slug?: string | null
           categories?: string[] | null
           country?: string | null
           created_at?: string
@@ -1029,6 +1037,7 @@ export type Database = {
           pitch?: string
           price_range?: string | null
           product_types?: string | null
+          reapply_after?: string | null
           reviewed_at?: string | null
           social_links?: Json | null
           status?: Database["public"]["Enums"]["application_status"]
@@ -1248,6 +1257,7 @@ export type Database = {
         }
         Returns: string
       }
+      brand_slugify: { Args: { _name: string }; Returns: string }
       confirm_subscriber: { Args: { _token: string }; Returns: Json }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -1335,7 +1345,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "seller" | "buyer"
-      application_status: "pending" | "approved" | "rejected"
+      application_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "under_review"
+        | "info_requested"
       product_category:
         | "ebooks"
         | "courses"
@@ -1474,7 +1489,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "seller", "buyer"],
-      application_status: ["pending", "approved", "rejected"],
+      application_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "under_review",
+        "info_requested",
+      ],
       product_category: [
         "ebooks",
         "courses",
