@@ -61,16 +61,16 @@ export function KingdomPicksRow() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold">
-            <Crown size={14} /> KINGDOM PICKS
+            <Crown size={14} /> CURATED PICKS
           </div>
           <h2
             className="mt-2 font-display text-3xl font-bold md:text-4xl"
             style={{ color: "#ffffff" }}
           >
-            👑 Kingdom Picks
+            👑 Curated Picks
           </h2>
           <p className="mt-2 max-w-md text-sm text-white/70">
-            Curated resources we recommend — from trusted partners.
+            Handpicked resources we recommend — from trusted partners.
           </p>
           <span className="mt-3 block h-[2px] w-10 bg-gold" />
         </div>
