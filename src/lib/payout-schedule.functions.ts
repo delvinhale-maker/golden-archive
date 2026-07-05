@@ -9,18 +9,20 @@ export const getPayoutScheduleStatus = createServerFn({ method: "GET" }).handler
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const nextRelease = computeNextFridayRelease(new Date());
 
-    // Confirm the schedule is active by looking for a successful run in the
-    // last 8 days (cron runs every Friday). The first cycle after install
-    // may not have run yet, in which case we also treat the presence of the
-    // audit table + a rescheduled run row as "scheduled".
-    const cutoff = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();
+    // Confirm the schedule is active by looking for a run row within the
+    // last 14 days. The heartbeat inserts one every Friday; a one-time
+    // 'scheduled' seed row is inserted when the cron is first installed
+    // so status is truthful before the first Friday fires.
+    const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
     const { data: runs } = await supabaseAdmin
       .from("payout_release_runs")
       .select("id,status")
       .gte("ran_at", cutoff)
       .order("ran_at", { ascending: false })
       .limit(5);
-    const scheduled = !!(runs && runs.some((r) => r.status === "completed"));
+    const scheduled = !!(
+      runs && runs.some((r) => r.status === "completed" || r.status === "scheduled")
+    );
 
     // Last successful run for display
     const { data: lastRun } = await supabaseAdmin
