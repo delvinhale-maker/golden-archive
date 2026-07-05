@@ -403,20 +403,6 @@ function AiStudioPage() {
     [category, toolId],
   );
 
-  useEffect(() => {
-    try {
-      const rawF = localStorage.getItem(FAV_KEY);
-      if (rawF) setFavorites(JSON.parse(rawF));
-      const rawU = localStorage.getItem(USAGE_KEY);
-      if (rawU) {
-        const parsed = JSON.parse(rawU) as { month: string; count: number };
-        const current = new Date().toISOString().slice(0, 7);
-        if (parsed.month === current) setUsageCount(parsed.count);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
 
   useEffect(() => {
     try {
