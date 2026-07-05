@@ -160,7 +160,7 @@ function ProductsPage() {
             <p className="mb-4 text-sm text-mute">
               {query.isFetching && !query.data ? "Loading..." : `${products.length} results`}
             </p>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5">
+            <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-4 md:grid-cols-3 md:gap-5">
               {query.isLoading
                 ? Array.from({ length: 6 }).map((_, i) => (
                     <ProductCardSkeleton key={i} />
