@@ -1,12 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { z } from "zod";
 import { Download, AlertTriangle, Loader2 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
 import { getDownloadInfo, getReadInfo } from "@/lib/payments.functions";
 import { useAuth } from "@/hooks/use-auth";
 
+const PREVIEW_MAX_PAGES = 10;
+
 export const Route = createFileRoute("/download/$token")({
+  validateSearch: z.object({ preview: z.coerce.number().int().optional() }),
   head: () => ({ meta: [{ title: "Your download · AurumVault" }] }),
   component: DownloadPage,
 });
