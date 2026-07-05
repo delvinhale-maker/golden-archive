@@ -56,7 +56,7 @@ export const generateAiStudio = createServerFn({ method: "POST" })
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5",
+        model: "claude-sonnet-4-6",
         max_tokens: data.length === "long" ? 4000 : data.length === "short" ? 800 : 2000,
         system,
         messages: [{ role: "user", content: data.prompt }],
