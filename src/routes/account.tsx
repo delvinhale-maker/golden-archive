@@ -94,6 +94,9 @@ function AccountPage() {
       return new Set<string>();
     }
   });
+  const [confirmRemove, setConfirmRemove] = useState<
+    { id: string; title: string } | null
+  >(null);
 
   useEffect(() => {
     localStorage.setItem("av-removed-downloads", JSON.stringify(Array.from(removedIds)));
