@@ -128,7 +128,7 @@ export function KingdomPicksRow() {
             to="/kingdom-picks"
             className="inline-flex h-11 items-center rounded-full border border-gold px-6 text-sm font-bold text-gold hover:bg-gold hover:text-navy"
           >
-            See all Kingdom Picks →
+            See all Curated Picks →
           </Link>
         </div>
       </div>
