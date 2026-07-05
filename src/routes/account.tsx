@@ -11,6 +11,7 @@ import {
   User as UserIcon,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { useAuth } from "@/hooks/use-auth";
 import { getMyOrders } from "@/lib/account.functions";
