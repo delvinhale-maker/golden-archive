@@ -369,6 +369,15 @@ type FavoriteItem = {
 
 const FAV_KEY = "av_ai_studio_favorites_v1";
 const USAGE_KEY = "av_ai_studio_usage_v1";
+const DRAFT_KEY = "av_ai_studio_draft_v1";
+
+type Draft = {
+  category: string;
+  tool: string;
+  text: string;
+  status: "streaming" | "complete" | "interrupted";
+  updatedAt: number;
+};
 
 function AiStudioPage() {
   const [categoryId, setCategoryId] = useState(CATEGORIES[0].id);
@@ -394,6 +403,7 @@ function AiStudioPage() {
     [category, toolId],
   );
 
+
   useEffect(() => {
     try {
       const rawF = localStorage.getItem(FAV_KEY);
@@ -404,6 +414,18 @@ function AiStudioPage() {
         const current = new Date().toISOString().slice(0, 7);
         if (parsed.month === current) setUsageCount(parsed.count);
       }
+      const rawD = localStorage.getItem(DRAFT_KEY);
+      if (rawD) {
+        const draft = JSON.parse(rawD) as Draft;
+        if (draft?.text) {
+          setOutput(draft.text);
+          if (draft.status !== "complete") {
+            toast.info(
+              `Recovered ${draft.status === "interrupted" ? "interrupted" : "in-progress"} draft from ${draft.tool}.`,
+            );
+          }
+        }
+      }
     } catch {
       /* ignore */
     }
@@ -412,6 +434,22 @@ function AiStudioPage() {
   function persistUsage(next: number) {
     const current = new Date().toISOString().slice(0, 7);
     localStorage.setItem(USAGE_KEY, JSON.stringify({ month: current, count: next }));
+  }
+
+  function persistDraft(draft: Draft) {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch {
+      /* ignore quota */
+    }
+  }
+
+  function clearDraft() {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* ignore */
+    }
   }
 
   function persistFavorites(next: FavoriteItem[]) {
@@ -450,6 +488,9 @@ function AiStudioPage() {
 
     setLoading(true);
     setOutput("");
+    clearDraft();
+    let accumulated = "";
+    let sawAnyChunk = false;
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
@@ -480,24 +521,69 @@ function AiStudioPage() {
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let accumulated = "";
+      let lastPersist = 0;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
         if (chunk) {
           accumulated += chunk;
+          sawAnyChunk = true;
           setOutput(accumulated);
+          // Throttle draft writes so we don't hammer localStorage.
+          const now = Date.now();
+          if (now - lastPersist > 400) {
+            lastPersist = now;
+            persistDraft({
+              category: category.name,
+              tool: tool.name,
+              text: accumulated,
+              status: "streaming",
+              updatedAt: now,
+            });
+          }
         }
       }
+
+      persistDraft({
+        category: category.name,
+        tool: tool.name,
+        text: accumulated,
+        status: "complete",
+        updatedAt: Date.now(),
+      });
 
       const next = usageCount + 1;
       setUsageCount(next);
       persistUsage(next);
     } catch (e) {
-      if ((e as { name?: string })?.name === "AbortError") return;
-      const msg = e instanceof Error ? e.message : "Generation failed.";
-      toast.error(msg);
+      if ((e as { name?: string })?.name === "AbortError") {
+        if (sawAnyChunk) {
+          persistDraft({
+            category: category.name,
+            tool: tool.name,
+            text: accumulated,
+            status: "interrupted",
+            updatedAt: Date.now(),
+          });
+        }
+        return;
+      }
+      if (sawAnyChunk) {
+        persistDraft({
+          category: category.name,
+          tool: tool.name,
+          text: accumulated,
+          status: "interrupted",
+          updatedAt: Date.now(),
+        });
+        toast.error(
+          `${e instanceof Error ? e.message : "Generation failed."} Partial draft kept.`,
+        );
+      } else {
+        const msg = e instanceof Error ? e.message : "Generation failed.";
+        toast.error(msg);
+      }
     } finally {
       if (abortRef.current === controller) abortRef.current = null;
       setLoading(false);
