@@ -31,11 +31,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         params={{ id: product.id }}
         className="relative block"
       >
-        <div
-          className={`relative aspect-[4/3] w-full overflow-hidden ${
-            hasImage ? "bg-navy" : "bg-[#f5f4ef]"
-          }`}
-        >
+        <div className="relative aspect-[2/3] w-full min-h-[280px] md:min-h-[320px] overflow-hidden rounded-md bg-[#F5F0E8] shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
           {hasImage ? (
             <img
               src={product.image}
@@ -50,9 +46,10 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
               category={product.category}
               productId={product.id}
               index={index}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+              className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.04]"
             />
           )}
+
           {product.bestseller && (
             <span className="absolute left-3 top-3 rounded-sm bg-gold px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-navy">
               Bestseller
