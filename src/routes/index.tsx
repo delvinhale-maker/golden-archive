@@ -31,8 +31,6 @@ import { DealsStrip } from "@/components/marketplace/DealsStrip";
 import { BestsellersRow } from "@/components/marketplace/BestsellersRow";
 import { KingdomPicksRow, kingdomPicksRowQ } from "@/components/marketplace/KingdomPicksRow";
 import { NewReleasesRow, newReleasesRowQ } from "@/components/marketplace/NewReleasesRow";
-import { PromotedPicksRow, promotedPicksRowQ } from "@/components/marketplace/PromotedPicksRow";
-import { RecommendedRow, recommendedRowQ } from "@/components/marketplace/RecommendedRow";
 import { KingdomBibleAppBanner } from "@/components/marketplace/KingdomBibleAppBanner";
 import { ContinueBrowsingRow } from "@/components/marketplace/HomeRows";
 import { EmailCaptureBanner } from "@/components/EmailCaptureBanner";
@@ -59,8 +57,7 @@ export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(featuredQ);
     context.queryClient.ensureQueryData(newReleasesRowQ);
-    context.queryClient.ensureQueryData(promotedPicksRowQ);
-    context.queryClient.ensureQueryData(recommendedRowQ);
+    context.queryClient.ensureQueryData(kingdomPicksRowQ);
     context.queryClient.ensureQueryData(kingdomPicksRowQ);
     context.queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] });
     context.queryClient.ensureQueryData(highlightsQ);
@@ -138,12 +135,6 @@ function Home() {
 
       <Suspense fallback={null}>
         <NewReleasesRow />
-      </Suspense>
-      <Suspense fallback={null}>
-        <PromotedPicksRow />
-      </Suspense>
-      <Suspense fallback={null}>
-        <RecommendedRow />
       </Suspense>
       <Suspense fallback={null}>
         <KingdomPicksRow />
