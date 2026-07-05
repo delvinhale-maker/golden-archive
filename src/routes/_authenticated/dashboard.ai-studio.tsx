@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo, useEffect } from "react";
-import { useServerFn } from "@tanstack/react-start";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
-import { generateAiStudio } from "@/lib/ai-studio.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import {
