@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  BookOpen,
   Download,
   LayoutDashboard,
   Loader2,
@@ -106,6 +107,14 @@ function AccountPage() {
             <p className="truncate text-sm text-mute">{user.email}</p>
           </div>
         </section>
+
+        <Link
+          to="/library"
+          className="mt-3 flex items-center gap-2 rounded-xl border border-gold/40 bg-gold/5 p-4 font-semibold text-navy hover:bg-gold/10"
+        >
+          <BookOpen size={18} className="text-gold" />
+          My Kingdom Library
+        </Link>
 
         {(isAdmin || isSeller) && (
           <Link

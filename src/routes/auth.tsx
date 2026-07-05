@@ -36,6 +36,7 @@ async function resolveRedirectForSession(savedRedirect?: string | null): Promise
 
 const authSearchSchema = z.object({
   redirect: z.string().optional(),
+  message: z.string().max(200).optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -58,7 +59,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { redirect } = useSearch({ from: "/auth" });
+  const { redirect, message } = useSearch({ from: "/auth" });
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -313,6 +314,12 @@ function AuthPage() {
               ? "Sign in to access your library and seller tools."
               : "Create your account to buy, sell, and curate Kingdom resources."}
           </p>
+
+          {message && (
+            <div className="mt-4 rounded-lg border border-gold/40 bg-gold/10 px-4 py-3 text-sm font-medium text-navy">
+              {message}
+            </div>
+          )}
 
           <button
             type="button"

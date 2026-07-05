@@ -22,6 +22,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PreviewSampleRouteImport } from './routes/preview-sample'
+import { Route as LibraryRouteImport } from './routes/library'
 import { Route as KingdomPicksRouteImport } from './routes/kingdom-picks'
 import { Route as CreatorAgreementRouteImport } from './routes/creator-agreement'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -126,6 +127,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PreviewSampleRoute = PreviewSampleRouteImport.update({
   id: '/preview-sample',
   path: '/preview-sample',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KingdomPicksRoute = KingdomPicksRouteImport.update({
@@ -358,6 +364,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
   '/kingdom-picks': typeof KingdomPicksRoute
+  '/library': typeof LibraryRoute
   '/preview-sample': typeof PreviewSampleRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
@@ -412,6 +419,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
   '/kingdom-picks': typeof KingdomPicksRoute
+  '/library': typeof LibraryRoute
   '/preview-sample': typeof PreviewSampleRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -467,6 +475,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
   '/kingdom-picks': typeof KingdomPicksRoute
+  '/library': typeof LibraryRoute
   '/preview-sample': typeof PreviewSampleRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
@@ -523,6 +532,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/creator-agreement'
     | '/kingdom-picks'
+    | '/library'
     | '/preview-sample'
     | '/privacy'
     | '/products'
@@ -577,6 +587,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/creator-agreement'
     | '/kingdom-picks'
+    | '/library'
     | '/preview-sample'
     | '/privacy'
     | '/reset-password'
@@ -631,6 +642,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/creator-agreement'
     | '/kingdom-picks'
+    | '/library'
     | '/preview-sample'
     | '/privacy'
     | '/products'
@@ -687,6 +699,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   CreatorAgreementRoute: typeof CreatorAgreementRoute
   KingdomPicksRoute: typeof KingdomPicksRoute
+  LibraryRoute: typeof LibraryRoute
   PreviewSampleRoute: typeof PreviewSampleRoute
   PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRouteWithChildren
@@ -807,6 +820,13 @@ declare module '@tanstack/react-router' {
       path: '/preview-sample'
       fullPath: '/preview-sample'
       preLoaderRoute: typeof PreviewSampleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kingdom-picks': {
@@ -1178,6 +1198,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   CreatorAgreementRoute: CreatorAgreementRoute,
   KingdomPicksRoute: KingdomPicksRoute,
+  LibraryRoute: LibraryRoute,
   PreviewSampleRoute: PreviewSampleRoute,
   PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRouteWithChildren,
