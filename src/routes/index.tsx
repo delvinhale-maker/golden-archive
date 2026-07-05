@@ -573,7 +573,7 @@ function IllustriousCreator() {
   return (
     <section className="bg-bg-page py-16 md:py-24" aria-busy={isFetching}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <SectionHeader kicker="OUR ORIGINALS" title="AurumVault Originals" />
+        <SectionHeader kicker="FEATURED CREATOR" title="Featured Creator" />
         {isFetching && (
           <div className="mb-4 text-center text-[11px] font-semibold tracking-caps text-mute" aria-live="polite">
             Refreshing…
@@ -608,12 +608,12 @@ function IllustriousCreator() {
               </div>
               <div className="mt-3 flex items-center gap-1.5">
                 <div className="font-display text-lg font-bold text-white">
-                  AurumVault Originals
+                  Delvin Hale
                 </div>
                 <BadgeCheck size={16} className="text-emerald" />
               </div>
               <div className="text-[13px] text-white/70">
-                Kingdom-centered digital resources
+                Author · Entrepreneur · Kingdom Builder
               </div>
               <div className="mt-4 flex items-center gap-6 text-[13px]">
                 <div>
