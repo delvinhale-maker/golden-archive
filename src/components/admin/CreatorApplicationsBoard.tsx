@@ -149,11 +149,11 @@ export function CreatorApplicationsBoard() {
   }
 
   async function setStatus(a: App, next: AppStatus, extra?: Partial<App>) {
-    const patch: Record<string, unknown> = {
+    const patch = {
       status: next,
       reviewed_at: new Date().toISOString(),
       ...extra,
-    };
+    } as never;
     const { error } = await supabase.from("seller_applications").update(patch).eq("id", a.id);
     if (error) {
       toast.error(error.message);
