@@ -157,8 +157,8 @@ function AdminPayoutsPage() {
     const { error } = await supabase.rpc("admin_record_seller_payout", {
       _seller_id: row.seller_id,
       _amount_cents: cents,
-      _method: methods[row.seller_id]?.trim() || null,
-      _note: notes[row.seller_id]?.trim() || null,
+      _method: methods[row.seller_id]?.trim() || undefined,
+      _note: notes[row.seller_id]?.trim() || undefined,
     });
     setMarkingId(null);
     if (error) {
