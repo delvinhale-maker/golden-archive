@@ -369,6 +369,15 @@ type FavoriteItem = {
 
 const FAV_KEY = "av_ai_studio_favorites_v1";
 const USAGE_KEY = "av_ai_studio_usage_v1";
+const DRAFT_KEY = "av_ai_studio_draft_v1";
+
+type Draft = {
+  category: string;
+  tool: string;
+  text: string;
+  status: "streaming" | "complete" | "interrupted";
+  updatedAt: number;
+};
 
 function AiStudioPage() {
   const [categoryId, setCategoryId] = useState(CATEGORIES[0].id);
