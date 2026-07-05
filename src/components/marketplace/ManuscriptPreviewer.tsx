@@ -51,9 +51,13 @@ export interface ManuscriptPreviewerProps {
   coverUrl: string | null;
   onClose: () => void;
   readerMode?: boolean;
+  /** Cap the number of content pages (excluding cover) that can be viewed. */
+  maxPages?: number;
 }
 
-export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, readerMode }: ManuscriptPreviewerProps) {
+export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, readerMode, maxPages }: ManuscriptPreviewerProps) {
+  const capContentPages = (n: number) =>
+    typeof maxPages === "number" && maxPages > 0 ? Math.min(n, maxPages) : n;
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [pdf, setPdf] = useState<any>(null);
   const [pageCount, setPageCount] = useState(1); // includes cover as location 1
@@ -225,7 +229,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
             await book.locations.generate(1024);
             const total = book.locations.length() || 1;
             epubTotalRef.current = total;
-            setPageCount(total + 1); // +1 for cover slot
+            setPageCount(capContentPages(total) + 1); // +1 for cover slot
 
             // Build TOC entries with hrefs. Prefer nav.toc; fall back to spine
             // items when the EPUB ships no navigation document.
@@ -325,7 +329,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
         if (cancelled) return;
 
         setPdf(doc);
-        setPageCount(doc.numPages + 1); // +1 for cover as location 1
+        setPageCount(capContentPages(doc.numPages) + 1); // +1 for cover as location 1
 
         // Parse outline (best effort)
         try {
@@ -444,7 +448,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     setDocxPageOffsets(offsets);
     setDocxPageHeights(heights);
     setDocxPageCount(offsets.length);
-    setPageCount(offsets.length + 1);
+    setPageCount(capContentPages(offsets.length) + 1);
   }, [pageAreaH]);
 
 
