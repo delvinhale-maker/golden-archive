@@ -187,6 +187,7 @@ function ProductPage() {
   const cart = useCart();
   const liked = wishlist.has(product.id);
   const inCart = cart.has(product.id);
+  const owned = useOwnsProduct(product.id);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const formats = useMemo(() => formatsFor(product.category), [product.category]);
