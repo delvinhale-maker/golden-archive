@@ -511,9 +511,23 @@ function AiStudioPage() {
           </h1>
           <p className="mt-2 text-slate-600 max-w-2xl">
             Category-specific tools for eBooks, courses, templates, audio, video, design,
-            faith content, coaching, physical goods, software, and marketing. Powered by
-            Claude Sonnet 4.5.
+            faith content, coaching, physical goods, software, and marketing.
           </p>
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              aria-label="Anthropic"
+            >
+              <path
+                d="M12 2L14.5 9.5H22L16 14L18.5 22L12 17L5.5 22L8 14L2 9.5H9.5L12 2Z"
+                fill="currentColor"
+              />
+            </svg>
+            <span>Powered by Claude</span>
+          </div>
         </div>
         <div className="text-right">
           <div className="text-xs text-slate-500">This month</div>
