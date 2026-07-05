@@ -229,7 +229,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
             await book.locations.generate(1024);
             const total = book.locations.length() || 1;
             epubTotalRef.current = total;
-            setPageCount(total + 1); // +1 for cover slot
+            setPageCount(capContentPages(total) + 1); // +1 for cover slot
 
             // Build TOC entries with hrefs. Prefer nav.toc; fall back to spine
             // items when the EPUB ships no navigation document.
