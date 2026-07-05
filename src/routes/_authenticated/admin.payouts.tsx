@@ -211,9 +211,39 @@ function AdminPayoutsPage() {
           <h1 className="font-display text-3xl md:text-4xl text-navy">Seller payouts</h1>
           <p className="mt-1 text-mute">
             Record manual bank / PayPal payouts. This moves funds from pending → paid on the seller's balance
-            and creates an audit record.
+            and creates an audit record. Payouts run every Friday.
           </p>
         </div>
+
+        <div
+          className={`rounded-2xl border p-4 flex flex-wrap items-center gap-3 text-sm ${
+            schedule?.scheduled
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-amber-50 border-amber-200 text-amber-800"
+          }`}
+        >
+          {schedule?.scheduled ? <CalendarDays size={16} /> : <AlertTriangle size={16} />}
+          <div className="flex-1 min-w-[220px]">
+            <div className="font-semibold">
+              {schedule?.scheduled
+                ? "Weekly Friday payout schedule active"
+                : "Weekly Friday payout schedule not confirmed"}
+            </div>
+            <div className="text-xs opacity-80">
+              {schedule?.next_release_at
+                ? `Next cycle: ${new Date(schedule.next_release_at).toLocaleString(undefined, { weekday: "long", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" })}`
+                : "Awaiting schedule confirmation."}
+              {schedule?.timezone ? ` · ${schedule.timezone}` : ""}
+            </div>
+          </div>
+          {schedule?.last_run && (
+            <div className="text-xs opacity-80">
+              Last run: {new Date(schedule.last_run.ran_at).toLocaleString()} ·{" "}
+              {schedule.last_run.eligible_seller_count} eligible seller(s)
+            </div>
+          )}
+        </div>
+
 
         <section>
           <div className="flex items-center gap-2 mb-3">
