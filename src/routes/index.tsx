@@ -28,7 +28,7 @@ import {
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
 import { DealsStrip } from "@/components/marketplace/DealsStrip";
-import { BestsellersRow } from "@/components/marketplace/BestsellersRow";
+
 import { KingdomPicksRow, kingdomPicksRowQ } from "@/components/marketplace/KingdomPicksRow";
 import { NewReleasesRow, newReleasesRowQ } from "@/components/marketplace/NewReleasesRow";
 import { KingdomBibleAppBanner } from "@/components/marketplace/KingdomBibleAppBanner";
@@ -115,7 +115,6 @@ function Home() {
       <Suspense fallback={null}>
         <DealsAndBestsellers />
       </Suspense>
-      <KingdomBibleAppBanner />
       <ContinueBrowsingRow />
 
       <Suspense fallback={null}>
@@ -134,10 +133,12 @@ function Home() {
         <IllustriousCreator />
       </HighlightsBoundary>
       <SocialsSection />
+      <KingdomBibleAppBanner />
       <EmailCaptureBanner />
     </MarketShell>
   );
 }
+
 
 
 function RefreshHighlightsBar() {
@@ -266,13 +267,9 @@ function FeaturedHero() {
 function DealsAndBestsellers() {
   const { data } = useSuspenseQuery(featuredQ);
   const list = data as Product[];
-  return (
-    <>
-      <DealsStrip products={list} />
-      <BestsellersRow products={[...list].reverse()} />
-    </>
-  );
+  return <DealsStrip products={list} />;
 }
+
 
 function HeroStatsBar() {
   const { data } = useSuspenseQuery(highlightsQ);
