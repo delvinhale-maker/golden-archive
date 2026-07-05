@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { BadgeCheck, Heart, Star } from "lucide-react";
+
 import { useState } from "react";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { ProductCover } from "@/components/marketplace/ProductCover";
-import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
+
 import type { Product } from "@/lib/marketplace.functions";
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
@@ -23,18 +24,14 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.4, delay: (index % 8) * 0.04 }}
       whileHover={{ y: -4 }}
-      className="av-card group flex min-w-0 flex-col overflow-hidden"
+      className="av-card group flex min-w-0 flex-col overflow-hidden border border-[rgba(184,134,11,0.3)]"
     >
       <Link
         to="/products/$id"
         params={{ id: product.id }}
         className="relative block"
       >
-        <div
-          className={`relative aspect-[4/3] w-full overflow-hidden ${
-            hasImage ? "bg-navy" : "bg-[#f5f4ef]"
-          }`}
-        >
+        <div className="relative aspect-[2/3] w-full min-h-[280px] md:min-h-[320px] overflow-hidden rounded-md bg-[#F5F0E8] shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
           {hasImage ? (
             <img
               src={product.image}
@@ -49,9 +46,10 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
               category={product.category}
               productId={product.id}
               index={index}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+              className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.04]"
             />
           )}
+
           {product.bestseller && (
             <span className="absolute left-3 top-3 rounded-sm bg-gold px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-navy">
               Bestseller
@@ -80,14 +78,10 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
       </Link>
 
       <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="text-[11px] font-semibold uppercase tracking-caps text-gold">
-            {product.category}
-          </div>
-          <AIReviewBadge status={product.aiReviewStatus} variant="storefront" />
+        <div className="text-[11px] font-semibold uppercase tracking-caps text-gold">
+          {product.category}
         </div>
         <Link
-
           to="/products/$id"
           params={{ id: product.id }}
           className="mt-1 line-clamp-2 min-h-[2.6em] break-words font-display text-[15px] font-bold leading-snug text-ink hover:text-navy"
@@ -97,15 +91,14 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[12px] text-mute">
           <span>{product.creator.name}</span>
           {product.creator.verified && (
-            <span
-              title="Verified creator"
+            <BadgeCheck
+              size={14}
+              className="text-gold shrink-0"
               aria-label="Verified creator"
-              className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold"
-            >
-              <BadgeCheck size={11} className="text-gold" /> Verified
-            </span>
+            />
           )}
         </div>
+
         {product.reviewCount > 0 ? (
           <div
             className="mt-2 flex items-center gap-1.5 text-[12px] text-mute"

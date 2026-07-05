@@ -207,7 +207,7 @@ function SearchPage() {
         {hasQuery && (
           <div className="mt-6">
             {query.isLoading && (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5">
+              <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-4 md:grid-cols-3 md:gap-5">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <ProductCardSkeleton key={i} />
                 ))}
@@ -237,7 +237,7 @@ function SearchPage() {
                   {results.length} {results.length === 1 ? "result" : "results"} for{" "}
                   <span className="font-semibold text-ink">"{q}"</span>
                 </p>
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5">
+                <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-4 md:grid-cols-3 md:gap-5">
                   {results.map((p, i) => (
                     <ProductCard key={p.id} product={p} index={i} />
                   ))}
@@ -256,7 +256,7 @@ function SearchPage() {
                 <p className="mb-4 text-xs text-mute">
                   Curated from Amazon &amp; Walmart. AurumVault earns a commission on qualifying purchases.
                 </p>
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5">
+                <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-4 md:grid-cols-3 md:gap-5">
                   {affiliateMatches.map((p) => (
                     <AffiliateCard key={p.id} product={p} />
                   ))}
