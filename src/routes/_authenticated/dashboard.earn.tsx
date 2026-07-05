@@ -138,8 +138,16 @@ function EarnPage() {
     .filter((i) => i.status === "pending")
     .reduce((s, i) => s + (i.seller_amount_cents || 0), 0);
 
+  // Fallback: balance ledger is the source of truth for pending totals.
+  // If per-item accounting doesn't cover the full pending amount (e.g. legacy
+  // sales), show the remainder as pending too so the badge always reflects
+  // the real ledger.
+  const accountedPending = readyCents + pendingCents;
+  const orphanedPending = Math.max(0, pending - accountedPending);
+  const effectivePending = pendingCents + orphanedPending;
+
   const overallStatus: ItemStatus | "none" =
-    readyCents > 0 ? "ready" : pendingCents > 0 ? "pending" : paidOut > 0 ? "paid" : "none";
+    readyCents > 0 ? "ready" : effectivePending > 0 ? "pending" : paidOut > 0 ? "paid" : "none";
 
   const nextRelease = schedule?.next_release_at ? new Date(schedule.next_release_at) : null;
 
