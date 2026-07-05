@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { BadgeCheck, Heart, Star } from "lucide-react";
+import { BadgeCheck, BookOpen, Heart, Star } from "lucide-react";
 
 import { useState } from "react";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
+import { useOwnsProduct } from "@/hooks/use-owned-products";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 
 import type { Product } from "@/lib/marketplace.functions";
