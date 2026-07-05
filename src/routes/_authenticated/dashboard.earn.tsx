@@ -268,7 +268,7 @@ function EarnPage() {
             {nextRelease && (readyCents > 0 || pendingCents > 0) && (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 text-xs text-navy/80">
-                  <CalendarDays size={12} /> Next payout: <strong>{fmtDate(nextRelease)}</strong>
+                  <CalendarDays size={12} /> Next payout: <strong>{fmtDateTimeTz(nextRelease, tzMode)}</strong>
                 </span>
                 {countdown && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-2 py-1 text-xs font-semibold text-navy">
@@ -278,9 +278,21 @@ function EarnPage() {
                 {!scheduleActive && (
                   <span className="text-xs text-amber-700">(schedule confirming…)</span>
                 )}
-                {schedule?.timezone && (
-                  <span className="w-full text-[11px] text-mute">{schedule.timezone}</span>
-                )}
+                <label className="ml-auto inline-flex items-center gap-1.5 text-[11px] text-mute">
+                  Show in
+                  <select
+                    value={tzMode}
+                    onChange={(e) => setTzMode(e.target.value as TzMode)}
+                    className="rounded border border-ink/10 bg-white px-1.5 py-0.5 text-[11px] text-navy focus:outline-none focus:ring-1 focus:ring-navy/30"
+                  >
+                    {TZ_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <span className="w-full text-[11px] text-mute">
+                  Released Fridays at 14:00 UTC (9:00 AM ET winter / 10:00 AM ET summer). Countdown reflects the exact UTC instant.
+                </span>
               </div>
             )}
           </div>
