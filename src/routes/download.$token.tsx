@@ -121,9 +121,7 @@ function DownloadPage() {
         title={state.title}
         coverUrl={state.coverUrl}
         readerMode
-        onClose={() => {
-          // The reader is the main page; closing it returns to the account page.
-        }}
+        onClose={() => navigate({ to: "/account" })}
       />
       {/* Download trigger helper */}
       <iframe ref={downloadFrameRef} className="hidden" title="download" />
