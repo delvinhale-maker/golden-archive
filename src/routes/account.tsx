@@ -108,6 +108,14 @@ function AccountPage() {
           </div>
         </section>
 
+        <Link
+          to="/library"
+          className="mt-3 flex items-center gap-2 rounded-xl border border-gold/40 bg-gold/5 p-4 font-semibold text-navy hover:bg-gold/10"
+        >
+          <BookOpen size={18} className="text-gold" />
+          My Kingdom Library
+        </Link>
+
         {(isAdmin || isSeller) && (
           <Link
             to="/dashboard"
