@@ -45,23 +45,20 @@ function fmtDate(iso: string | Date) {
 }
 
 function useCountdown(target: Date | null) {
-  const [remaining, setRemaining] = useState(() => target ? target.getTime() - Date.now() : null);
+  const [remaining, setRemaining] = useState(() => (target ? target.getTime() - Date.now() : null));
 
   useEffect(() => {
     if (!target) {
       setRemaining(null);
       return;
     }
-    let raf = 0;
     const tick = () => {
       const ms = target.getTime() - Date.now();
       setRemaining(Math.max(0, ms));
-      if (ms > 0) {
-        raf = requestAnimationFrame(tick);
-      }
     };
     tick();
-    return () => cancelAnimationFrame(raf);
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
   }, [target]);
 
   if (remaining === null || remaining <= 0) return null;
