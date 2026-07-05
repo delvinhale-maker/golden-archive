@@ -188,6 +188,7 @@ function EarnPage() {
     readyCents > 0 ? "ready" : effectivePending > 0 ? "pending" : paidOut > 0 ? "paid" : "none";
 
   const nextRelease = schedule?.next_release_at ? new Date(schedule.next_release_at) : null;
+  const countdown = useCountdown(nextRelease);
 
   // Monthly chart
   const nowDate = new Date();
