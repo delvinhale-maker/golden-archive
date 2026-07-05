@@ -329,7 +329,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
         if (cancelled) return;
 
         setPdf(doc);
-        setPageCount(doc.numPages + 1); // +1 for cover as location 1
+        setPageCount(capContentPages(doc.numPages) + 1); // +1 for cover as location 1
 
         // Parse outline (best effort)
         try {
