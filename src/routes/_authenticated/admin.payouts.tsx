@@ -52,6 +52,8 @@ function AdminPayoutsPage() {
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [refreshing, setRefreshing] = useState(false);
   const [markingId, setMarkingId] = useState<string | null>(null);
+  const [schedule, setSchedule] = useState<Awaited<ReturnType<typeof getPayoutScheduleStatus>> | null>(null);
+  const fetchSchedule = useServerFn(getPayoutScheduleStatus);
 
   // form state per-seller
   const [amounts, setAmounts] = useState<Record<string, string>>({});
