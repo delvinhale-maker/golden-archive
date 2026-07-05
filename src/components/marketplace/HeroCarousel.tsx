@@ -21,13 +21,13 @@ type Slide = {
 };
 
 const DEFAULT_HERO_SLIDE: Slide = {
-  kicker: "FEATURED — AURUMVAULT",
+  kicker: "",
   title: (
     <>
-      Renew your mind. <span className="gold-gradient">Kingdom Mind</span> is here.
+      Knowledge That <span className="gold-gradient">Moves You</span> Forward.
     </>
   ),
-  body: "A purpose-driven eBook from AurumVault — built to elevate operators, leaders, and creators walking in their calling.",
+  body: "Premium digital resources for builders, leaders, and visionaries. Curated. Verified. Instant.",
   ctaLabel: "Shop Now →",
   ctaTo: "/products",
   secondaryLabel: "Browse Categories →",
@@ -38,13 +38,28 @@ const DEFAULT_HERO_SLIDE: Slide = {
 
 const SECONDARY_SLIDES: Slide[] = [
   {
+    kicker: "LIMITED TIME",
+    title: (
+      <>
+        Today's <span className="gold-gradient">Best Deals</span>.
+      </>
+    ),
+    body: "Hand-picked titles at exclusive prices — for a limited time only.",
+    ctaLabel: "Shop Deals →",
+    ctaTo: "/products",
+    secondaryLabel: "Browse Categories →",
+    secondaryHref: "#categories",
+    card: { title: "The Stewardship Codex", cat: "eBook", price: 19 },
+    theme: { accentColor: "#C9A84C", gradientStart: "#0F1629" },
+  },
+  {
     kicker: "AURUMVAULT PREMIUM",
     title: (
       <>
-        Unlock <span className="gold-gradient">AurumVault Premium</span>.
+        One Vault. <span className="gold-gradient">Every Resource</span>.
       </>
     ),
-    body: "Members-only pricing, early access to launches, and exclusive downloads across the vault.",
+    body: "Join AurumVault Premium and access every title in the collection — anytime, anywhere.",
     ctaLabel: "Join Premium →",
     ctaTo: "/products",
     secondaryLabel: "Explore the Store →",
