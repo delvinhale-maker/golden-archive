@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { BadgeCheck, Heart, Star } from "lucide-react";
+
 import { useState } from "react";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { ProductCover } from "@/components/marketplace/ProductCover";
