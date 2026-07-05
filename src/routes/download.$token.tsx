@@ -54,7 +54,7 @@ function DownloadPage() {
   // Preserve the original download-page behavior: the file is still saved to
   // the buyer's device while the reader is shown on screen.
   useEffect(() => {
-    if (state.kind !== "ready" || isPreview) return;
+    if (state.kind !== "ready") return;
     let cancelled = false;
     (async () => {
       try {
@@ -69,7 +69,7 @@ function DownloadPage() {
     return () => {
       cancelled = true;
     };
-  }, [state.kind, token, isPreview]);
+  }, [state.kind, token]);
 
   async function handleDownload() {
     if (state.kind !== "ready") return;
