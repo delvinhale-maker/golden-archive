@@ -115,7 +115,7 @@ export const Route = createFileRoute("/store/$slug")({
 });
 
 function StorefrontPage() {
-  const data = Route.useLoaderData();
+  const data = Route.useLoaderData() as StorefrontData;
 
   return (
     <div className="min-h-screen bg-paper">
