@@ -26,6 +26,7 @@ export const ACCENTS = {
 const NAV_ITEMS = [
   { label: "Bookshelf", to: "/dashboard" as const },
   { label: "Publish", to: "/dashboard/new" as const },
+  { label: "AI Studio", to: "/dashboard/ai-studio" as const },
   { label: "Kingdom Picks", to: "/dashboard/kingdom-picks" as const },
   { label: "Earn", to: "/dashboard/earn" as const },
   { label: "Help", to: "/dashboard/help" as const },
