@@ -30,14 +30,18 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         params={{ id: product.id }}
         className="relative block"
       >
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#f5f4ef]">
+        <div
+          className={`relative aspect-[4/3] w-full overflow-hidden ${
+            hasImage ? "bg-navy" : "bg-[#f5f4ef]"
+          }`}
+        >
           {hasImage ? (
             <img
               src={product.image}
               alt={product.title}
               loading="lazy"
               onError={() => setImgFailed(true)}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+              className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.04]"
             />
           ) : (
             <ProductCover
