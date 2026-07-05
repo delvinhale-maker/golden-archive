@@ -50,14 +50,15 @@ export interface ManuscriptPreviewerProps {
   title: string;
   coverUrl: string | null;
   onClose: () => void;
+  readerMode?: boolean;
 }
 
-export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }: ManuscriptPreviewerProps) {
+export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, readerMode }: ManuscriptPreviewerProps) {
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [pdf, setPdf] = useState<any>(null);
   const [pageCount, setPageCount] = useState(1); // includes cover as location 1
   const [location, setLocation] = useState(1);
-  const [fontSize, setFontSize] = useState(2);
+  const [fontSize, setFontSize] = useState(readerMode ? 2 : 3);
   const [device, setDevice] = useState<DeviceKind>("tablet");
   const [outline, setOutline] = useState<OutlineEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -929,7 +930,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
       className="fixed inset-0 z-[60] flex flex-col bg-[#111] text-white"
       role="dialog"
       aria-modal="true"
-      aria-label={`Preview ${title}`}
+      aria-label={`${readerMode ? "Read" : "Preview"} ${title}`}
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 md:px-6 py-2 min-h-14 border-b border-white/10 bg-[#0b0b0b]">

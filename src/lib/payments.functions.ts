@@ -368,6 +368,62 @@ type CachedMint = {
 const MINT_TTL_MS = 30_000;
 const mintCache = new Map<string, CachedMint>();
 
+/**
+ * Read-only info for the in-browser reader. Verifies the download token and
+ * buyer, but does NOT consume a download — unlike getDownloadInfo, which is
+ * meant for the actual file download.
+ */
+export const getReadInfo = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { token: string }) => {
+    if (!/^[a-f0-9]{32,128}$/.test(data.token)) throw new Error("Invalid token");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const buyerEmail = (context.claims as { email?: string })?.email?.toLowerCase();
+    if (!buyerEmail) return { error: "Sign in to access your download" } as const;
+
+    const { data: dl, error } = await supabaseAdmin
+      .from("order_downloads")
+      .select(
+        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,product:marketplace_products(file_path,cover_url),order:orders(buyer_email))",
+      )
+      .eq("token", data.token)
+      .maybeSingle();
+
+    if (error || !dl) return { error: "Download link not found" } as const;
+
+    const orderBuyerEmail: string | undefined = (dl as any).order_item?.order?.buyer_email;
+    if (!orderBuyerEmail || orderBuyerEmail.toLowerCase() !== buyerEmail) {
+      return { error: "This download link belongs to a different account" } as const;
+    }
+    const expired = new Date(dl.expires_at).getTime() < Date.now();
+    if (expired) return { error: "This download link has expired" } as const;
+
+    const orderItem = (dl as any).order_item;
+    const filePath: string | undefined = orderItem?.product?.file_path;
+    const title: string = orderItem?.product_title ?? "Your purchase";
+    const coverUrl: string | null = orderItem?.product?.cover_url ?? null;
+    if (!filePath) return { error: "File is no longer available" } as const;
+
+    const { data: signed, error: sErr } = await supabaseAdmin.storage
+      .from("product-files")
+      .createSignedUrl(filePath, 60 * 10);
+
+    if (sErr || !signed?.signedUrl) return { error: "Failed to generate download" } as const;
+
+    return {
+      ok: true as const,
+      url: signed.signedUrl,
+      title,
+      coverUrl,
+      remaining: dl.max_downloads - dl.download_count,
+      expiresAt: dl.expires_at,
+    };
+  });
+
 export const getDownloadInfo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { token: string }) => {
