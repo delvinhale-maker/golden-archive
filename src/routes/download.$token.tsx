@@ -147,23 +147,33 @@ function DownloadPage() {
         title={state.title}
         coverUrl={state.coverUrl}
         readerMode
-        onClose={() => navigate({ to: "/account" })}
+        maxPages={isPreview ? PREVIEW_MAX_PAGES : undefined}
+        onClose={() => navigate({ to: "/library" })}
       />
-      {/* Download trigger helper */}
-      <iframe ref={downloadFrameRef} className="hidden" title="download" />
-      {/* Floating download button */}
-      <button
-        onClick={handleDownload}
-        disabled={downloading}
-        className="fixed bottom-6 right-6 z-[70] inline-flex h-12 items-center gap-2 rounded-full bg-gold px-5 text-sm font-bold text-navy shadow-lg hover:brightness-105 disabled:opacity-60"
-        aria-label="Download file"
-      >
-        {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-        Download{downloading ? "ing" : ""}
-      </button>
-      <p className="fixed bottom-6 left-6 z-[70] text-xs text-white/60">
-        {state.remaining} download{state.remaining === 1 ? "" : "s"} remaining
-      </p>
+      {!isPreview && (
+        <>
+          {/* Download trigger helper */}
+          <iframe ref={downloadFrameRef} className="hidden" title="download" />
+          {/* Floating download button */}
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="fixed bottom-6 right-6 z-[70] inline-flex h-12 items-center gap-2 rounded-full bg-gold px-5 text-sm font-bold text-navy shadow-lg hover:brightness-105 disabled:opacity-60"
+            aria-label="Download file"
+          >
+            {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+            Download{downloading ? "ing" : ""}
+          </button>
+          <p className="fixed bottom-6 left-6 z-[70] text-xs text-white/60">
+            {state.remaining} download{state.remaining === 1 ? "" : "s"} remaining
+          </p>
+        </>
+      )}
+      {isPreview && (
+        <p className="fixed bottom-6 left-1/2 z-[70] -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-xs font-medium text-gold">
+          Preview · first {PREVIEW_MAX_PAGES} pages
+        </p>
+      )}
     </>
   );
 }
