@@ -140,12 +140,6 @@ function Home() {
         <NewReleasesRow />
       </Suspense>
       <Suspense fallback={null}>
-        <PromotedPicksRow />
-      </Suspense>
-      <Suspense fallback={null}>
-        <RecommendedRow />
-      </Suspense>
-      <Suspense fallback={null}>
         <KingdomPicksRow />
       </Suspense>
 
