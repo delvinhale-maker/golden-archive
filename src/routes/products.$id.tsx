@@ -349,31 +349,43 @@ function ProductPage() {
 
             <KingdomGuarantee />
 
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              whileHover={{ scale: 1.01 }}
-              onClick={() => setCheckoutOpen(true)}
-              className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full text-base font-bold text-navy shadow-gold-glow"
-              style={{ backgroundColor: "var(--accent-color)" }}
-            >
-              Buy Now · ${product.price}
-            </motion.button>
+            {owned ? (
+              <Link
+                to="/library"
+                className="mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-full border-2 border-gold bg-navy text-base font-bold text-gold shadow-gold-glow hover:bg-navy/90"
+                aria-label="You already own this — open your library"
+              >
+                ✓ You own this · Open Library
+              </Link>
+            ) : (
+              <>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.01 }}
+                  onClick={() => setCheckoutOpen(true)}
+                  className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full text-base font-bold text-navy shadow-gold-glow"
+                  style={{ backgroundColor: "var(--accent-color)" }}
+                >
+                  Buy Now · ${product.price}
+                </motion.button>
 
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={() =>
-                cart.add({
-                  id: product.id,
-                  title: product.title,
-                  price: product.price,
-                  category: product.category,
-                  image: product.image,
-                })
-              }
-              className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-navy text-sm font-bold text-navy hover:bg-navy hover:text-white"
-            >
-              {inCart ? "✓ Added — View Cart" : "Add to Cart"}
-            </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() =>
+                    cart.add({
+                      id: product.id,
+                      title: product.title,
+                      price: product.price,
+                      category: product.category,
+                      image: product.image,
+                    })
+                  }
+                  className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-navy text-sm font-bold text-navy hover:bg-navy hover:text-white"
+                >
+                  {inCart ? "✓ Added — View Cart" : "Add to Cart"}
+                </motion.button>
+              </>
+            )}
 
             <motion.button
               whileTap={{ scale: 0.98 }}
