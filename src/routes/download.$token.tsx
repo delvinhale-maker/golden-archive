@@ -1,24 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { z } from "zod";
 import { Download, AlertTriangle, Loader2 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
 import { getDownloadInfo, getReadInfo } from "@/lib/payments.functions";
 import { useAuth } from "@/hooks/use-auth";
 
-const PREVIEW_MAX_PAGES = 10;
-
 export const Route = createFileRoute("/download/$token")({
-  validateSearch: z.object({ preview: z.coerce.number().int().optional() }),
   head: () => ({ meta: [{ title: "Your download · AurumVault" }] }),
   component: DownloadPage,
 });
 
 function DownloadPage() {
   const { token } = Route.useParams();
-  const { preview } = Route.useSearch();
-  const isPreview = preview === 1;
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [state, setState] = useState<
@@ -60,7 +54,7 @@ function DownloadPage() {
   // Preserve the original download-page behavior: the file is still saved to
   // the buyer's device while the reader is shown on screen.
   useEffect(() => {
-    if (state.kind !== "ready" || isPreview) return;
+    if (state.kind !== "ready") return;
     let cancelled = false;
     (async () => {
       try {
@@ -75,7 +69,7 @@ function DownloadPage() {
     return () => {
       cancelled = true;
     };
-  }, [state.kind, token, isPreview]);
+  }, [state.kind, token]);
 
   async function handleDownload() {
     if (state.kind !== "ready") return;
@@ -147,33 +141,23 @@ function DownloadPage() {
         title={state.title}
         coverUrl={state.coverUrl}
         readerMode
-        maxPages={isPreview ? PREVIEW_MAX_PAGES : undefined}
         onClose={() => navigate({ to: "/library" })}
       />
-      {!isPreview && (
-        <>
-          {/* Download trigger helper */}
-          <iframe ref={downloadFrameRef} className="hidden" title="download" />
-          {/* Floating download button */}
-          <button
-            onClick={handleDownload}
-            disabled={downloading}
-            className="fixed bottom-6 right-6 z-[70] inline-flex h-12 items-center gap-2 rounded-full bg-gold px-5 text-sm font-bold text-navy shadow-lg hover:brightness-105 disabled:opacity-60"
-            aria-label="Download file"
-          >
-            {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-            Download{downloading ? "ing" : ""}
-          </button>
-          <p className="fixed bottom-6 left-6 z-[70] text-xs text-white/60">
-            {state.remaining} download{state.remaining === 1 ? "" : "s"} remaining
-          </p>
-        </>
-      )}
-      {isPreview && (
-        <p className="fixed bottom-6 left-1/2 z-[70] -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-xs font-medium text-gold">
-          Preview · first {PREVIEW_MAX_PAGES} pages
-        </p>
-      )}
+      {/* Download trigger helper */}
+      <iframe ref={downloadFrameRef} className="hidden" title="download" />
+      {/* Floating download button */}
+      <button
+        onClick={handleDownload}
+        disabled={downloading}
+        className="fixed bottom-6 right-6 z-[70] inline-flex h-12 items-center gap-2 rounded-full bg-gold px-5 text-sm font-bold text-navy shadow-lg hover:brightness-105 disabled:opacity-60"
+        aria-label="Download file"
+      >
+        {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+        Download{downloading ? "ing" : ""}
+      </button>
+      <p className="fixed bottom-6 left-6 z-[70] text-xs text-white/60">
+        {state.remaining} download{state.remaining === 1 ? "" : "s"} remaining
+      </p>
     </>
   );
 }
