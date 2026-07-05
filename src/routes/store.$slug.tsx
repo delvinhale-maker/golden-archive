@@ -227,6 +227,8 @@ function StorefrontPage() {
   const [followers, setFollowers] = useState(data.followerCount);
   const [userId, setUserId] = useState<string | null>(null);
 
+  const [busy, setBusy] = useState(false);
+
   useEffect(() => {
     let mounted = true;
     supaBrowser.auth.getUser().then(async ({ data: u }) => {
@@ -248,43 +250,88 @@ function StorefrontPage() {
   }, [data.creatorUserId]);
 
   const toggleFollow = async () => {
+    if (busy) return;
     if (!userId) {
-      toast.error("Sign in to follow creators");
+      toast.error("Sign in to follow creators", {
+        action: { label: "Sign in", onClick: () => (window.location.href = "/auth") },
+      });
       return;
     }
-    if (following) {
-      const { error } = await (supaBrowser.from("creator_followers" as any) as any)
-        .delete()
-        .eq("follower_id", userId)
-        .eq("creator_user_id", data.creatorUserId);
-      if (error) return toast.error(error.message);
-      setFollowing(false);
-      setFollowers((f) => Math.max(0, f - 1));
-    } else {
-      const { error } = await (supaBrowser.from("creator_followers" as any) as any).insert({
-        follower_id: userId,
-        creator_user_id: data.creatorUserId,
-      });
-      if (error) return toast.error(error.message);
-      setFollowing(true);
-      setFollowers((f) => f + 1);
-      toast.success(`Now following ${data.brandName}`);
+    setBusy(true);
+    // Optimistic
+    const wasFollowing = following;
+    setFollowing(!wasFollowing);
+    setFollowers((f) => Math.max(0, f + (wasFollowing ? -1 : 1)));
+    try {
+      if (wasFollowing) {
+        const { error } = await (supaBrowser.from("creator_followers" as any) as any)
+          .delete()
+          .eq("follower_id", userId)
+          .eq("creator_user_id", data.creatorUserId);
+        if (error) throw error;
+      } else {
+        const { error } = await (supaBrowser.from("creator_followers" as any) as any).insert({
+          follower_id: userId,
+          creator_user_id: data.creatorUserId,
+        });
+        // Ignore duplicate-follow errors as a no-op success
+        if (error && !/duplicate|unique/i.test(error.message)) throw error;
+        toast.success(`Now following ${data.brandName}`);
+      }
+    } catch (e: any) {
+      // Roll back optimistic update
+      setFollowing(wasFollowing);
+      setFollowers((f) => Math.max(0, f + (wasFollowing ? 1 : -1)));
+      toast.error(e?.message ?? "Something went wrong");
+    } finally {
+      setBusy(false);
     }
   };
 
+  const storefrontUrl = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    // Canonical storefront URL — strip query/hash so shared links stay clean.
+    return `${window.location.origin}/store/${data.brandSlug}`;
+  }, [data.brandSlug]);
+
   const share = async () => {
-    const url = typeof window !== "undefined" ? window.location.href : "";
+    if (!storefrontUrl) return;
+    // Prefer the native share sheet on mobile; always fall back to clipboard.
     try {
-      if (navigator.share) {
-        await navigator.share({ title: data.brandName, url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        toast.success("Storefront link copied");
+      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+        await navigator.share({
+          title: `${data.brandName} · AurumVault`,
+          text: data.pitch.slice(0, 140),
+          url: storefrontUrl,
+        });
+        return;
       }
+    } catch (e: any) {
+      // User canceled the share sheet — don't fall through to clipboard.
+      if (e?.name === "AbortError") return;
+    }
+    // Clipboard path
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(storefrontUrl);
+      } else {
+        // Legacy fallback for insecure contexts / old browsers
+        const ta = document.createElement("textarea");
+        ta.value = storefrontUrl;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      toast.success("Storefront link copied", { description: storefrontUrl });
     } catch {
-      // canceled
+      toast.error("Couldn't copy link", { description: storefrontUrl });
     }
   };
+
 
   const avgRating = useMemo(() => {
     if (!data.reviews.length) return 0;
