@@ -47,7 +47,7 @@ function AboutPage() {
             AI-powered creator tools, and grow the Kingdom-minded audience
             that buys from you.
           </p>
-        </section>
+        </div>
 
         <section className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
           <Stat label="Creator royalty" value="70%" />
