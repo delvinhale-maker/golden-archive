@@ -81,7 +81,7 @@ function DownloadPage() {
       } else {
         // Trigger the file download without leaving the reader view. The signed
         // URL is cross-origin, so the iframe handles the Content-Disposition.
-        if (downloadFrameRef.current) {
+        if (res.url && downloadFrameRef.current) {
           downloadFrameRef.current.src = res.url;
         }
         setState((prev) =>
