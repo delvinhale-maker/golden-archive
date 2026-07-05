@@ -693,6 +693,42 @@ export type Database = {
         }
         Relationships: []
       }
+      payout_release_runs: {
+        Row: {
+          created_at: string
+          eligible_pending_cents: number
+          eligible_seller_count: number
+          id: string
+          next_release_at: string | null
+          notes: string | null
+          ran_at: string
+          status: string
+          triggered_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          eligible_pending_cents?: number
+          eligible_seller_count?: number
+          id?: string
+          next_release_at?: string | null
+          notes?: string | null
+          ran_at?: string
+          status?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          eligible_pending_cents?: number
+          eligible_seller_count?: number
+          id?: string
+          next_release_at?: string | null
+          notes?: string | null
+          ran_at?: string
+          status?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       product_publish_history: {
         Row: {
           actor_id: string | null
