@@ -629,6 +629,45 @@ function AiStudioPage() {
     toast.success("Saved to swipe file");
   }
 
+  function saveDraft() {
+    if (!output) return;
+    setOutputStatus("draft");
+    persistDraft({
+      category: category.name,
+      tool: tool.name,
+      text: output,
+      status: "draft",
+      updatedAt: Date.now(),
+    });
+    toast.success("Draft saved");
+  }
+
+  function finalizeOutput() {
+    if (!output) return;
+    if (loading) {
+      toast.error("Wait for generation to finish before finalizing.");
+      return;
+    }
+    setOutputStatus("final");
+    persistDraft({
+      category: category.name,
+      tool: tool.name,
+      text: output,
+      status: "final",
+      updatedAt: Date.now(),
+    });
+    // Also auto-save to swipe file so finalized outputs are always kept.
+    const item: FavoriteItem = {
+      id: crypto.randomUUID(),
+      category: category.name,
+      tool: tool.name,
+      text: output,
+      savedAt: Date.now(),
+    };
+    persistFavorites([item, ...favorites].slice(0, 100));
+    toast.success("Output finalized and saved to swipe file");
+  }
+
   function removeFavorite(id: string) {
     persistFavorites(favorites.filter((f) => f.id !== id));
   }
