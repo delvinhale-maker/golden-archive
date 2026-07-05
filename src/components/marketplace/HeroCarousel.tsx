@@ -21,13 +21,13 @@ type Slide = {
 };
 
 const DEFAULT_HERO_SLIDE: Slide = {
-  kicker: "FEATURED — AURUMVAULT",
+  kicker: "",
   title: (
     <>
-      Renew your mind. <span className="gold-gradient">Kingdom Mind</span> is here.
+      Knowledge That <span className="gold-gradient">Moves You</span> Forward.
     </>
   ),
-  body: "A purpose-driven eBook from AurumVault — built to elevate operators, leaders, and creators walking in their calling.",
+  body: "Premium digital resources for builders, leaders, and visionaries. Curated. Verified. Instant.",
   ctaLabel: "Shop Now →",
   ctaTo: "/products",
   secondaryLabel: "Browse Categories →",
@@ -38,13 +38,28 @@ const DEFAULT_HERO_SLIDE: Slide = {
 
 const SECONDARY_SLIDES: Slide[] = [
   {
+    kicker: "LIMITED TIME",
+    title: (
+      <>
+        Today's <span className="gold-gradient">Best Deals</span>.
+      </>
+    ),
+    body: "Hand-picked titles at exclusive prices — for a limited time only.",
+    ctaLabel: "Shop Deals →",
+    ctaTo: "/products",
+    secondaryLabel: "Browse Categories →",
+    secondaryHref: "#categories",
+    card: { title: "The Stewardship Codex", cat: "eBook", price: 19 },
+    theme: { accentColor: "#C9A84C", gradientStart: "#0F1629" },
+  },
+  {
     kicker: "AURUMVAULT PREMIUM",
     title: (
       <>
-        Unlock <span className="gold-gradient">AurumVault Premium</span>.
+        One Vault. <span className="gold-gradient">Every Resource</span>.
       </>
     ),
-    body: "Members-only pricing, early access to launches, and exclusive downloads across the vault.",
+    body: "Join AurumVault Premium and access every title in the collection — anytime, anywhere.",
     ctaLabel: "Join Premium →",
     ctaTo: "/products",
     secondaryLabel: "Explore the Store →",
@@ -116,12 +131,14 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.45 }}
           >
-            <div
-              className="text-[11px] font-semibold tracking-caps"
-              style={{ color: "var(--accent-color)" }}
-            >
-              {slide.kicker}
-            </div>
+            {slide.kicker && (
+              <div
+                className="text-[11px] font-semibold tracking-caps"
+                style={{ color: "var(--accent-color)" }}
+              >
+                {slide.kicker}
+              </div>
+            )}
             <h1 className="mt-6 font-display text-4xl leading-[1.05] text-white sm:text-5xl md:text-6xl lg:text-[64px]">
               {slide.title}
             </h1>

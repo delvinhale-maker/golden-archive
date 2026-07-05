@@ -66,24 +66,24 @@ export const Route = createFileRoute("/")({
 
   head: () => ({
     meta: [
-      { title: "AurumVault — Gold Standard Digital Commerce" },
+      { title: "AurumVault — Premium Digital Resources. Delivered Instantly." },
       {
         name: "description",
         content:
-          "Discover premium eBooks, courses, templates, and digital resources from verified purpose-driven creators on AurumVault.",
+          "Premium digital resources for builders, leaders, and visionaries. Curated eBooks, courses, templates, and tools — verified and instant.",
       },
-      { property: "og:title", content: "AurumVault — Gold Standard Digital Commerce" },
+      { property: "og:title", content: "AurumVault — Premium Digital Resources. Delivered Instantly." },
       {
         property: "og:description",
         content:
-          "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
+          "Premium digital marketplace for eBooks, courses, templates, and audio. Curated. Verified. Instant.",
       },
       { property: "og:url", content: "https://www.aurumvault.store/" },
-      { name: "twitter:title", content: "AurumVault — Gold Standard Digital Commerce" },
+      { name: "twitter:title", content: "AurumVault — Premium Digital Resources. Delivered Instantly." },
       {
         name: "twitter:description",
         content:
-          "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
+          "Premium digital marketplace for eBooks, courses, templates, and audio. Curated. Verified. Instant.",
       },
     ],
     links: [{ rel: "canonical", href: "https://www.aurumvault.store/" }],
@@ -98,7 +98,7 @@ export const Route = createFileRoute("/")({
           url: "https://www.aurumvault.store",
           logo: "https://www.aurumvault.store/og-image.png",
           description:
-            "AurumVault is the gold-standard marketplace for purpose-driven digital products — curated from verified creators.",
+            "AurumVault is a premium digital marketplace — curated resources delivered instantly.",
           sameAs: [],
         }),
       },
@@ -573,7 +573,7 @@ function IllustriousCreator() {
   return (
     <section className="bg-bg-page py-16 md:py-24" aria-busy={isFetching}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <SectionHeader kicker="OUR ORIGINALS" title="AurumVault Originals" />
+        <SectionHeader kicker="FEATURED CREATOR" title="Featured Creator" />
         {isFetching && (
           <div className="mb-4 text-center text-[11px] font-semibold tracking-caps text-mute" aria-live="polite">
             Refreshing…
@@ -608,12 +608,12 @@ function IllustriousCreator() {
               </div>
               <div className="mt-3 flex items-center gap-1.5">
                 <div className="font-display text-lg font-bold text-white">
-                  AurumVault Originals
+                  Delvin Hale
                 </div>
                 <BadgeCheck size={16} className="text-emerald" />
               </div>
               <div className="text-[13px] text-white/70">
-                Kingdom-centered digital resources
+                Author · Entrepreneur · Kingdom Builder
               </div>
               <div className="mt-4 flex items-center gap-6 text-[13px]">
                 <div>
@@ -639,9 +639,10 @@ function IllustriousCreator() {
 function TrustBar() {
   const items = [
     { icon: Lock, label: "Secure Checkout" },
-    { icon: ShieldCheck, label: "Verified Creators" },
     { icon: Download, label: "Instant Download" },
-    { icon: Star, label: "5-Star Support" },
+    { icon: BadgeCheck, label: "Verified Creators" },
+    { icon: ShieldCheck, label: "Curated Quality" },
+    { icon: Star, label: "5-Star Rated" },
   ];
   return (
     <section className="border-y border-white/10 bg-bg-page">

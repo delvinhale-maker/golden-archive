@@ -14,10 +14,10 @@ export function BestsellersRow({ products }: { products: Product[] }) {
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold">
-              <Trophy size={14} /> BESTSELLERS
+              <Trophy size={14} /> BESTSELLING TITLES
             </div>
             <h2 className="mt-1 font-display text-3xl font-bold text-white md:text-4xl">
-              What buyers love right now
+              Bestselling Titles
             </h2>
           </div>
           <Link
