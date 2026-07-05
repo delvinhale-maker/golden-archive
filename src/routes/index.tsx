@@ -639,9 +639,10 @@ function IllustriousCreator() {
 function TrustBar() {
   const items = [
     { icon: Lock, label: "Secure Checkout" },
-    { icon: ShieldCheck, label: "Verified Creators" },
     { icon: Download, label: "Instant Download" },
-    { icon: Star, label: "5-Star Support" },
+    { icon: BadgeCheck, label: "Verified Creators" },
+    { icon: ShieldCheck, label: "Curated Quality" },
+    { icon: Star, label: "5-Star Rated" },
   ];
   return (
     <section className="border-y border-white/10 bg-bg-page">
