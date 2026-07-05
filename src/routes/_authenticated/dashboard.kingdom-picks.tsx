@@ -10,7 +10,7 @@ import {
   type AffiliateProduct,
   type AffiliateSource,
 } from "@/lib/affiliate";
-import { Crown, Plus, Pencil, Trash2, ExternalLink, ShieldAlert, RefreshCw, Clock } from "lucide-react";
+import { Crown, Plus, Pencil, Trash2, ExternalLink, ShieldAlert, RefreshCw, Clock, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/kingdom-picks")({
