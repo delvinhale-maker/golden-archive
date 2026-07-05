@@ -764,6 +764,27 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
       }
       setUploadProgress(95);
 
+      // Server-side manuscript integrity gate. Defense-in-depth against
+      // stale/bypassed client validation: re-open the stored file in the
+      // Worker and confirm it's a well-formed .docx/.epub/.pdf before we
+      // let the row go live. Draft saves skip the gate.
+      if (publish && storedFilePath) {
+        try {
+          const { validateStoredManuscript } = await import("@/lib/manuscript-validate.functions");
+          const check = await validateStoredManuscript({ data: { filePath: storedFilePath } });
+          if (!check.ok) {
+            setFileError(check.reason);
+            setFileUploadError(check.reason);
+            toast.error(`Manuscript rejected: ${check.reason}`);
+            throw new Error(check.reason);
+          }
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Manuscript validation failed.";
+          setFileError(msg);
+          throw e;
+        }
+      }
+
       const priceCents = Math.round(priceNum * 100);
       const status: "draft" | "approved" | "pending" = publish ? (isEditing && !bypassReview ? "pending" : "approved") : "draft";
       const notes = JSON.stringify({
