@@ -49,6 +49,7 @@ import { Route as AuthenticatedDashboardKingdomPicksRouteImport } from './routes
 import { Route as AuthenticatedDashboardHelpRouteImport } from './routes/_authenticated/dashboard.help'
 import { Route as AuthenticatedDashboardEarnRouteImport } from './routes/_authenticated/dashboard.earn'
 import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authenticated/admin.products'
+import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin.payouts'
 import { Route as AuthenticatedAdminMessagesRouteImport } from './routes/_authenticated/admin.messages'
 import { Route as AuthenticatedAdminErrorsRouteImport } from './routes/_authenticated/admin.errors'
 import { Route as AuthenticatedAdminAutoReleaseRouteImport } from './routes/_authenticated/admin.auto-release'
@@ -269,6 +270,12 @@ const AuthenticatedAdminProductsRoute =
     path: '/products',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminPayoutsRoute =
+  AuthenticatedAdminPayoutsRouteImport.update({
+    id: '/payouts',
+    path: '/payouts',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminMessagesRoute =
   AuthenticatedAdminMessagesRouteImport.update({
     id: '/messages',
@@ -389,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
+  '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
@@ -443,6 +451,7 @@ export interface FileRoutesByTo {
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
+  '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
@@ -500,6 +509,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/_authenticated/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/_authenticated/admin/messages': typeof AuthenticatedAdminMessagesRoute
+  '/_authenticated/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
   '/_authenticated/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/_authenticated/dashboard/help': typeof AuthenticatedDashboardHelpRoute
@@ -557,6 +567,7 @@ export interface FileRouteTypes {
     | '/admin/auto-release'
     | '/admin/errors'
     | '/admin/messages'
+    | '/admin/payouts'
     | '/admin/products'
     | '/dashboard/earn'
     | '/dashboard/help'
@@ -611,6 +622,7 @@ export interface FileRouteTypes {
     | '/admin/auto-release'
     | '/admin/errors'
     | '/admin/messages'
+    | '/admin/payouts'
     | '/admin/products'
     | '/dashboard/earn'
     | '/dashboard/help'
@@ -667,6 +679,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/auto-release'
     | '/_authenticated/admin/errors'
     | '/_authenticated/admin/messages'
+    | '/_authenticated/admin/payouts'
     | '/_authenticated/admin/products'
     | '/_authenticated/dashboard/earn'
     | '/_authenticated/dashboard/help'
@@ -1011,6 +1024,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminProductsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/payouts': {
+      id: '/_authenticated/admin/payouts'
+      path: '/payouts'
+      fullPath: '/admin/payouts'
+      preLoaderRoute: typeof AuthenticatedAdminPayoutsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/messages': {
       id: '/_authenticated/admin/messages'
       path: '/messages'
@@ -1131,6 +1151,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAutoReleaseRoute: typeof AuthenticatedAdminAutoReleaseRoute
   AuthenticatedAdminErrorsRoute: typeof AuthenticatedAdminErrorsRoute
   AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
+  AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
   AuthenticatedAdminProductsRoute: typeof AuthenticatedAdminProductsRoute
   AuthenticatedAdminHealthCoversRoute: typeof AuthenticatedAdminHealthCoversRouteWithChildren
 }
@@ -1139,6 +1160,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAutoReleaseRoute: AuthenticatedAdminAutoReleaseRoute,
   AuthenticatedAdminErrorsRoute: AuthenticatedAdminErrorsRoute,
   AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
+  AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
   AuthenticatedAdminProductsRoute: AuthenticatedAdminProductsRoute,
   AuthenticatedAdminHealthCoversRoute:
     AuthenticatedAdminHealthCoversRouteWithChildren,
