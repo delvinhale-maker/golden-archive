@@ -75,7 +75,7 @@ function DownloadPage() {
     return () => {
       cancelled = true;
     };
-  }, [state.kind, token]);
+  }, [state.kind, token, isPreview]);
 
   async function handleDownload() {
     if (state.kind !== "ready") return;
