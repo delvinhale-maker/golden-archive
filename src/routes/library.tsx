@@ -324,10 +324,9 @@ function LibraryCard({
                 <Link
                   to="/download/$token"
                   params={{ token: item.download_token! }}
-                  search={{ preview: 1 }}
                   className="inline-flex items-center gap-1.5 rounded-full border border-navy px-4 py-2 text-xs font-bold text-navy hover:bg-navy hover:text-white"
                 >
-                  <BookOpen size={14} /> Read Preview
+                  <BookOpen size={14} /> Read
                 </Link>
               </>
             ) : (
