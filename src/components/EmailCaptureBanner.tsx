@@ -44,10 +44,10 @@ export function EmailCaptureBanner() {
     <section className="bg-gradient-to-br from-[#0a1f44] via-[#0f2756] to-[#0a1f44] py-14">
       <div className="mx-auto max-w-3xl px-6 text-center text-white">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          Get Kingdom Resources Delivered Free
+          Get Premium Resources Before Everyone Else
         </h2>
         <p className="mt-3 text-white/70">
-          Join the Vault for early drops, free guides, and Kingdom-curated picks.
+          Join the AurumVault insider list. First access to new drops, exclusive deals, and curated picks.
         </p>
         {done ? (
           <p
