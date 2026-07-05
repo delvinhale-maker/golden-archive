@@ -10,7 +10,7 @@ import {
   type AffiliateProduct,
   type AffiliateSource,
 } from "@/lib/affiliate";
-import { Crown, Plus, Pencil, Trash2, ExternalLink, ShieldAlert, RefreshCw, Clock } from "lucide-react";
+import { Crown, Plus, Pencil, Trash2, ExternalLink, ShieldAlert, RefreshCw, Clock, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/kingdom-picks")({
@@ -53,11 +53,41 @@ function KingdomPicksAdminPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [refreshingClicks, setRefreshingClicks] = useState(false);
   const [clicksUpdatedAt, setClicksUpdatedAt] = useState<Date | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [autoRefreshSeconds, setAutoRefreshSeconds] = useState(30);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  async function handleFileUpload(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5 MB");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("kingdom-picks")
+        .upload(path, file, { cacheControl: "31536000", contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from("kingdom-picks").getPublicUrl(path);
+      setForm((f) => ({ ...f, image_url: data.publicUrl }));
+      toast.success("Image uploaded");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
 
   async function refreshClicks(showToast = false) {
     setRefreshingClicks(true);
@@ -329,8 +359,44 @@ function KingdomPicksAdminPage() {
               <Field label="Original Price (optional)">
                 <input type="number" step="0.01" value={form.original_price} onChange={(e) => setForm({ ...form, original_price: e.target.value })} className="input" />
               </Field>
-              <Field label="Image URL" className="col-span-2">
-                <input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://…" className="input" />
+              <Field label="Product Image" className="col-span-2">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    {form.image_url ? (
+                      <img src={form.image_url} alt="" className="h-16 w-16 rounded-md border border-ink/10 object-cover bg-paper" />
+                    ) : (
+                      <div className="h-16 w-16 rounded-md border border-dashed border-ink/20 bg-paper" />
+                    )}
+                    <div className="flex flex-col gap-1.5">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleFileUpload(f);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="inline-flex items-center gap-2 rounded-full border border-navy/20 px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5 disabled:opacity-50"
+                      >
+                        {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                        {uploading ? "Uploading…" : form.image_url ? "Replace image" : "Upload image"}
+                      </button>
+                      <span className="text-[10px] text-mute">JPG/PNG/WebP · max 5 MB</span>
+                    </div>
+                  </div>
+                  <input
+                    value={form.image_url}
+                    onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                    placeholder="…or paste an image URL"
+                    className="input"
+                  />
+                </div>
               </Field>
               <Field label="Affiliate URL" className="col-span-2">
                 <input value={form.affiliate_url} onChange={(e) => setForm({ ...form, affiliate_url: e.target.value })} placeholder="https://www.amazon.com/dp/…?tag=…" className="input" />
