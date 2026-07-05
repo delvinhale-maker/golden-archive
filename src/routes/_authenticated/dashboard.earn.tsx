@@ -44,6 +44,28 @@ function fmtDate(iso: string | Date) {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+type TzMode = "local" | "eastern" | "utc";
+const TZ_STORAGE_KEY = "aurumvault.payoutTzDisplay";
+const TZ_OPTIONS: { value: TzMode; label: string; zone: string | undefined }[] = [
+  { value: "local", label: "Local time", zone: undefined },
+  { value: "eastern", label: "US Eastern", zone: "America/New_York" },
+  { value: "utc", label: "UTC", zone: "UTC" },
+];
+
+function fmtDateTimeTz(d: Date, mode: TzMode) {
+  const opt = TZ_OPTIONS.find((o) => o.value === mode) ?? TZ_OPTIONS[0];
+  const parts: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: opt.zone,
+    timeZoneName: "short",
+  };
+  return d.toLocaleString(undefined, parts);
+}
+
 function useCountdown(target: Date | null) {
   const [remaining, setRemaining] = useState(() => (target ? target.getTime() - Date.now() : null));
 
@@ -186,6 +208,14 @@ function EarnPage() {
 
   const nextRelease = schedule?.next_release_at ? new Date(schedule.next_release_at) : null;
   const countdown = useCountdown(nextRelease);
+  const [tzMode, setTzMode] = useState<TzMode>(() => {
+    if (typeof window === "undefined") return "local";
+    const stored = window.localStorage.getItem(TZ_STORAGE_KEY) as TzMode | null;
+    return stored && TZ_OPTIONS.some((o) => o.value === stored) ? stored : "local";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem(TZ_STORAGE_KEY, tzMode);
+  }, [tzMode]);
 
   // Monthly chart
   const nowDate = new Date();
@@ -238,7 +268,7 @@ function EarnPage() {
             {nextRelease && (readyCents > 0 || pendingCents > 0) && (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 text-xs text-navy/80">
-                  <CalendarDays size={12} /> Next payout: <strong>{fmtDate(nextRelease)}</strong>
+                  <CalendarDays size={12} /> Next payout: <strong>{fmtDateTimeTz(nextRelease, tzMode)}</strong>
                 </span>
                 {countdown && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-2 py-1 text-xs font-semibold text-navy">
@@ -248,9 +278,21 @@ function EarnPage() {
                 {!scheduleActive && (
                   <span className="text-xs text-amber-700">(schedule confirming…)</span>
                 )}
-                {schedule?.timezone && (
-                  <span className="w-full text-[11px] text-mute">{schedule.timezone}</span>
-                )}
+                <label className="ml-auto inline-flex items-center gap-1.5 text-[11px] text-mute">
+                  Show in
+                  <select
+                    value={tzMode}
+                    onChange={(e) => setTzMode(e.target.value as TzMode)}
+                    className="rounded border border-ink/10 bg-white px-1.5 py-0.5 text-[11px] text-navy focus:outline-none focus:ring-1 focus:ring-navy/30"
+                  >
+                    {TZ_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <span className="w-full text-[11px] text-mute">
+                  Released Fridays at 14:00 UTC (9:00 AM ET winter / 10:00 AM ET summer). Countdown reflects the exact UTC instant.
+                </span>
               </div>
             )}
           </div>
