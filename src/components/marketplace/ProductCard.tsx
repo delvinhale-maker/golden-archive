@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { BadgeCheck, Heart, Star } from "lucide-react";
+import { BadgeCheck, BookOpen, Heart, Star } from "lucide-react";
 
 import { useState } from "react";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
+import { useOwnsProduct } from "@/hooks/use-owned-products";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 
 import type { Product } from "@/lib/marketplace.functions";
@@ -12,6 +13,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
   const wishlist = useWishlist();
   const cart = useCart();
   const liked = wishlist.has(product.id);
+  const owned = useOwnsProduct(product.id);
   const [imgFailed, setImgFailed] = useState(false);
   const hasImage = !imgFailed && !!product.image && /^https?:\/\//.test(product.image);
 
@@ -136,22 +138,33 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             </span>
           )}
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() =>
-            cart.add({
-              id: product.id,
-              title: product.title,
-              price: product.price,
-              category: product.category,
-              image: product.image,
-            })
-          }
-          className="mt-4 w-full rounded-full bg-gold py-2.5 text-[13px] font-bold text-navy hover:shadow-gold-glow"
-        >
-          {cart.has(product.id) ? "✓ In Cart" : "Add to Cart"}
-        </motion.button>
+        {owned ? (
+          <Link
+            to="/library"
+            className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-full border-2 border-gold bg-navy py-2.5 text-[13px] font-bold text-gold hover:bg-navy/90"
+            aria-label={`You own ${product.title} — open your library`}
+          >
+            <BookOpen size={14} />
+            Owned · Open Library
+          </Link>
+        ) : (
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() =>
+              cart.add({
+                id: product.id,
+                title: product.title,
+                price: product.price,
+                category: product.category,
+                image: product.image,
+              })
+            }
+            className="mt-4 w-full rounded-full bg-gold py-2.5 text-[13px] font-bold text-navy hover:shadow-gold-glow"
+          >
+            {cart.has(product.id) ? "✓ In Cart" : "Add to Cart"}
+          </motion.button>
+        )}
       </div>
     </motion.article>
   );
