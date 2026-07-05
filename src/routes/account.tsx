@@ -11,6 +11,7 @@ import {
   User as UserIcon,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { useAuth } from "@/hooks/use-auth";
 import { getMyOrders } from "@/lib/account.functions";
@@ -362,6 +363,7 @@ function AccountPage() {
                   setRemovedIds((prev) => new Set([...prev, confirmRemove.id]));
                   setIsRemoving(false);
                   setConfirmRemove(null);
+                  toast.success(`"${confirmRemove.title}" removed from My Downloads`);
                 }}
                 className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-red-600 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60"
               >
