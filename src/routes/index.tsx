@@ -86,24 +86,9 @@ export const Route = createFileRoute("/")({
           "Premium digital marketplace for eBooks, courses, templates, and audio. Curated. Verified. Instant.",
       },
     ],
-    links: [{ rel: "canonical", href: "https://www.aurumvault.store/" }],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "AurumVault",
-          alternateName: "Aurum Vault",
-          url: "https://www.aurumvault.store",
-          logo: "https://www.aurumvault.store/og-image.png",
-          description:
-            "AurumVault is a premium digital marketplace — curated resources delivered instantly.",
-          sameAs: [],
-        }),
-      },
-    ],
+  links: [{ rel: "canonical", href: "https://www.aurumvault.store/" }],
   }),
+
   component: Home,
 });
 
