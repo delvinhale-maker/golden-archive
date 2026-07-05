@@ -299,12 +299,20 @@ function BookshelfPage() {
           <p className="mt-1 text-mute">Manage your published and draft titles.</p>
         </div>
         {canPublish && (
-          <Link
-            to="/dashboard/new"
-            className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 bg-gold text-navy shadow-md transition-all duration-300 hover:shadow-lg hover:bg-gold/90"
-          >
-            <Plus size={16} /> Create New Title
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/dashboard/storefront"
+              className="inline-flex items-center gap-2 rounded-full font-medium px-4 py-2.5 bg-white border border-ink/15 text-navy hover:border-gold/40"
+            >
+              Storefront
+            </Link>
+            <Link
+              to="/dashboard/new"
+              className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 bg-gold text-navy shadow-md transition-all duration-300 hover:shadow-lg hover:bg-gold/90"
+            >
+              <Plus size={16} /> Create New Title
+            </Link>
+          </div>
         )}
       </div>
 
