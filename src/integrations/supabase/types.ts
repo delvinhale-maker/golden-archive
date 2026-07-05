@@ -1013,6 +1013,42 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_payouts: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          id: string
+          method: string | null
+          note: string | null
+          paid_at: string
+          paid_by: string | null
+          seller_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          id?: string
+          method?: string | null
+          note?: string | null
+          paid_at?: string
+          paid_by?: string | null
+          seller_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          method?: string | null
+          note?: string | null
+          paid_at?: string
+          paid_by?: string | null
+          seller_id?: string
+        }
+        Relationships: []
+      }
       slug_integrity_alerts: {
         Row: {
           details: Json
@@ -1155,6 +1191,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_record_seller_payout: {
+        Args: {
+          _amount_cents: number
+          _method?: string
+          _note?: string
+          _seller_id: string
+        }
+        Returns: string
+      }
       confirm_subscriber: { Args: { _token: string }; Returns: Json }
       delete_email: {
         Args: { message_id: number; queue_name: string }
