@@ -222,28 +222,28 @@ function ProductPage() {
             <ImageZoom
               ariaLabel={product.title}
               renderExpanded={() => (
-                <div className="aspect-[1.6/1] w-full overflow-hidden rounded-xl bg-[#f5f4ef]">
+                <div className="aspect-[2/3] w-full overflow-hidden rounded-xl bg-[#f5f4ef]">
                   {product.image && /^https?:\/\//.test(product.image) ? (
-                    <img src={product.image} alt={product.title} className="h-full w-full object-cover" />
+                    <img src={product.image} alt={product.title} className="h-full w-full object-contain" />
                   ) : (
                     <ProductCover
                       title={product.title}
                       category={product.category}
                       productId={product.id}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain"
                     />
                   )}
                 </div>
               )}
             >
               {product.image && /^https?:\/\//.test(product.image) ? (
-                <img src={product.image} alt={product.title} className="h-full w-full object-cover" />
+                <img src={product.image} alt={product.title} className="h-full w-full object-contain" />
               ) : (
                 <ProductCover
                   title={product.title}
                   category={product.category}
                   productId={product.id}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-contain"
                 />
               )}
               {product.bestseller && (
