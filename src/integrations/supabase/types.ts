@@ -289,6 +289,96 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_bundle_items: {
+        Row: {
+          bundle_id: string
+          position: number
+          product_id: string
+        }
+        Insert: {
+          bundle_id: string
+          position?: number
+          product_id: string
+        }
+        Update: {
+          bundle_id?: string
+          position?: number
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_bundle_items_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "creator_bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_bundle_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_bundles: {
+        Row: {
+          compare_at_price_cents: number | null
+          created_at: string
+          description: string | null
+          id: string
+          price_cents: number
+          published: boolean
+          seller_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          compare_at_price_cents?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          price_cents: number
+          published?: boolean
+          seller_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          compare_at_price_cents?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          price_cents?: number
+          published?: boolean
+          seller_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      creator_followers: {
+        Row: {
+          created_at: string
+          creator_user_id: string
+          follower_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          creator_user_id: string
+          follower_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          creator_user_id?: string
+          follower_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -992,7 +1082,11 @@ export type Database = {
           brand_slug: string | null
           categories: string[] | null
           country: string | null
+          cover_url: string | null
           created_at: string
+          credentials: string[] | null
+          extended_bio: string | null
+          featured_media_url: string | null
           id: string
           pitch: string
           price_range: string | null
@@ -1001,6 +1095,7 @@ export type Database = {
           reviewed_at: string | null
           social_links: Json | null
           status: Database["public"]["Enums"]["application_status"]
+          story: string | null
           user_id: string
           website: string | null
         }
@@ -1012,7 +1107,11 @@ export type Database = {
           brand_slug?: string | null
           categories?: string[] | null
           country?: string | null
+          cover_url?: string | null
           created_at?: string
+          credentials?: string[] | null
+          extended_bio?: string | null
+          featured_media_url?: string | null
           id?: string
           pitch: string
           price_range?: string | null
@@ -1021,6 +1120,7 @@ export type Database = {
           reviewed_at?: string | null
           social_links?: Json | null
           status?: Database["public"]["Enums"]["application_status"]
+          story?: string | null
           user_id: string
           website?: string | null
         }
@@ -1032,7 +1132,11 @@ export type Database = {
           brand_slug?: string | null
           categories?: string[] | null
           country?: string | null
+          cover_url?: string | null
           created_at?: string
+          credentials?: string[] | null
+          extended_bio?: string | null
+          featured_media_url?: string | null
           id?: string
           pitch?: string
           price_range?: string | null
@@ -1041,6 +1145,7 @@ export type Database = {
           reviewed_at?: string | null
           social_links?: Json | null
           status?: Database["public"]["Enums"]["application_status"]
+          story?: string | null
           user_id?: string
           website?: string | null
         }
