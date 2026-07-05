@@ -42,22 +42,18 @@ function AboutPage() {
           </p>
           <p>
             AurumVault is committed to purpose-driven publishing and sustainable
-            creator economics. Sellers keep 91% of every sale; we keep the
-            remaining 9% to maintain the platform, fight fraud, and invest in
-            distribution.
-          </p>
-          <p>
-            Whether you're publishing your first ebook, launching a prompt
-            pack, or building a course library, AurumVault gives your work the
-            premium home it deserves.
+            creator economics. Sellers keep 70% of every sale; we keep the
+            remaining 30% to maintain the platform, fight fraud, invest in
+            AI-powered creator tools, and grow the Kingdom-minded audience
+            that buys from you.
           </p>
         </div>
 
-        <div className="mt-12 grid gap-4 md:grid-cols-3">
-          <Stat label="Creator royalty" value="91%" />
+        <section className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Stat label="Creator royalty" value="70%" />
           <Stat label="AI-reviewed titles" value="100%" />
           <Stat label="Verified creators" value="Curated" />
-        </div>
+        </section>
       </main>
     </MarketShell>
   );

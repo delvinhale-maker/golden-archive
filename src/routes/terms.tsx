@@ -48,8 +48,8 @@ function TermsPage() {
           <Section title="2. Marketplace Overview">
             AurumVault is a digital marketplace operated by AurumVault.
             The Platform connects creators who sell digital products with buyers who
-            purchase them. We charge a 9% platform fee on each sale; creators keep
-            the remaining 91%.
+            purchase them. We charge a 30% platform fee on each sale; creators keep
+            the remaining 70%.
           </Section>
 
           <Section title="3. Buyer Obligations">

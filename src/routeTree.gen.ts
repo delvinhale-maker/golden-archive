@@ -27,6 +27,7 @@ import { Route as KingdomPicksRouteImport } from './routes/kingdom-picks'
 import { Route as CreatorAgreementRouteImport } from './routes/creator-agreement'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as BecomeACreatorRouteImport } from './routes/become-a-creator'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AffiliateDisclosureRouteImport } from './routes/affiliate-disclosure'
 import { Route as AccountRouteImport } from './routes/account'
@@ -154,6 +155,11 @@ const ContactRoute = ContactRouteImport.update({
 const CartRoute = CartRouteImport.update({
   id: '/cart',
   path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BecomeACreatorRoute = BecomeACreatorRouteImport.update({
+  id: '/become-a-creator',
+  path: '/become-a-creator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -374,6 +380,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/auth': typeof AuthRoute
+  '/become-a-creator': typeof BecomeACreatorRoute
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
@@ -431,6 +438,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/auth': typeof AuthRoute
+  '/become-a-creator': typeof BecomeACreatorRoute
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
@@ -489,6 +497,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/auth': typeof AuthRoute
+  '/become-a-creator': typeof BecomeACreatorRoute
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
@@ -548,6 +557,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/affiliate-disclosure'
     | '/auth'
+    | '/become-a-creator'
     | '/cart'
     | '/contact'
     | '/creator-agreement'
@@ -605,6 +615,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/affiliate-disclosure'
     | '/auth'
+    | '/become-a-creator'
     | '/cart'
     | '/contact'
     | '/creator-agreement'
@@ -662,6 +673,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/affiliate-disclosure'
     | '/auth'
+    | '/become-a-creator'
     | '/cart'
     | '/contact'
     | '/creator-agreement'
@@ -721,6 +733,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   AffiliateDisclosureRoute: typeof AffiliateDisclosureRoute
   AuthRoute: typeof AuthRoute
+  BecomeACreatorRoute: typeof BecomeACreatorRoute
   CartRoute: typeof CartRoute
   ContactRoute: typeof ContactRoute
   CreatorAgreementRoute: typeof CreatorAgreementRoute
@@ -882,6 +895,13 @@ declare module '@tanstack/react-router' {
       path: '/cart'
       fullPath: '/cart'
       preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/become-a-creator': {
+      id: '/become-a-creator'
+      path: '/become-a-creator'
+      fullPath: '/become-a-creator'
+      preLoaderRoute: typeof BecomeACreatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -1228,6 +1248,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   AffiliateDisclosureRoute: AffiliateDisclosureRoute,
   AuthRoute: AuthRoute,
+  BecomeACreatorRoute: BecomeACreatorRoute,
   CartRoute: CartRoute,
   ContactRoute: ContactRoute,
   CreatorAgreementRoute: CreatorAgreementRoute,

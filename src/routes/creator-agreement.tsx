@@ -31,7 +31,7 @@ const POINTS = [
   "You must own or have licensed all rights to the content you upload.",
   "Covers and manuscripts must meet the minimum quality standards shown in the publish flow.",
   "All products are reviewed by AI and may be manually audited before going live.",
-  "You keep 91% of every sale; AurumVault retains 9% to operate the platform.",
+  "You keep 70% of every sale; AurumVault retains 30% to operate the platform.",
   "Payouts are issued on the schedule shown in your dashboard after payment holds clear.",
   "You may not sell illegal, hateful, fraudulent, or infringing content.",
   "AurumVault may remove listings that violate these standards or receive buyer complaints.",
@@ -57,8 +57,8 @@ function CreatorAgreementPage() {
           <section>
             <h2 className="font-display text-xl text-navy">1. Royalty Split</h2>
             <p className="mt-2 text-sm">
-              AurumVault charges a 9% platform fee on each sale. The creator
-              receives 91% of the gross transaction amount, less payment processing
+              AurumVault charges a 30% platform fee on each sale. The creator
+              receives 70% of the gross transaction amount, less payment processing
               fees charged by Stripe. Net payout amounts are shown in your dashboard
               before you withdraw.
             </p>

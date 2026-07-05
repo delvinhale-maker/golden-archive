@@ -988,11 +988,15 @@ export type Database = {
           admin_notes: string | null
           applicant_email: string | null
           brand_name: string
+          categories: string[] | null
+          country: string | null
           created_at: string
           id: string
           pitch: string
+          price_range: string | null
           product_types: string | null
           reviewed_at: string | null
+          social_links: Json | null
           status: Database["public"]["Enums"]["application_status"]
           user_id: string
           website: string | null
@@ -1001,11 +1005,15 @@ export type Database = {
           admin_notes?: string | null
           applicant_email?: string | null
           brand_name: string
+          categories?: string[] | null
+          country?: string | null
           created_at?: string
           id?: string
           pitch: string
+          price_range?: string | null
           product_types?: string | null
           reviewed_at?: string | null
+          social_links?: Json | null
           status?: Database["public"]["Enums"]["application_status"]
           user_id: string
           website?: string | null
@@ -1014,11 +1022,15 @@ export type Database = {
           admin_notes?: string | null
           applicant_email?: string | null
           brand_name?: string
+          categories?: string[] | null
+          country?: string | null
           created_at?: string
           id?: string
           pitch?: string
+          price_range?: string | null
           product_types?: string | null
           reviewed_at?: string | null
+          social_links?: Json | null
           status?: Database["public"]["Enums"]["application_status"]
           user_id?: string
           website?: string | null
