@@ -39,7 +39,7 @@ export const getMyOrders = createServerFn({ method: "GET" })
     const { data: items } = await supabaseAdmin
       .from("order_items")
       .select(
-        "id,order_id,product_id,product_title,unit_amount_cents,marketplace_products(cover_url,file_path)",
+        "id,order_id,product_id,product_title,unit_amount_cents,marketplace_products(cover_url,file_path,file_size_bytes,creator_name)",
       )
       .in("order_id", orderIds);
 
@@ -65,7 +65,7 @@ export const getMyOrders = createServerFn({ method: "GET" })
         .filter((i) => i.order_id === o.id)
         .map((i) => {
           const mp = (i.marketplace_products ?? null) as
-            | { cover_url: string | null; file_path: string | null }
+            | { cover_url: string | null; file_path: string | null; file_size_bytes: number | null; creator_name: string | null }
             | null;
           return {
             id: i.id,
@@ -74,6 +74,8 @@ export const getMyOrders = createServerFn({ method: "GET" })
             unit_amount_cents: i.unit_amount_cents,
             cover_url: mp?.cover_url ?? null,
             file_path: mp?.file_path ?? null,
+            file_size_bytes: mp?.file_size_bytes ?? null,
+            creator_name: mp?.creator_name ?? null,
             download_token: tokenByItem.get(i.id) ?? null,
           };
         }),
