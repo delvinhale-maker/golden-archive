@@ -58,13 +58,11 @@ function DownloadPage() {
       if ("error" in res) {
         setState({ kind: "error", message: res.error ?? "Download unavailable" });
       } else {
-        // Trigger the file download without leaving the reader view.
-        const a = document.createElement("a");
-        a.href = res.url;
-        a.download = state.title;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        // Trigger the file download without leaving the reader view. The signed
+        // URL is cross-origin, so the iframe handles the Content-Disposition.
+        if (downloadFrameRef.current) {
+          downloadFrameRef.current.src = res.url;
+        }
         setState((prev) =>
           prev.kind === "ready" ? { ...prev, remaining: res.remaining } : prev
         );
