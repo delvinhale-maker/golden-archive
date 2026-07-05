@@ -301,14 +301,38 @@ function DealsAndBestsellers() {
 function HeroStatsBar() {
   const { data } = useSuspenseQuery(highlightsQ);
   const productCount = data.illustriousProductCount;
-  const stats = [
+  const stats: {
+    icon: typeof BookOpen;
+    label: string;
+    to: string;
+    hash?: string;
+    ariaLabel: string;
+  }[] = [
     {
       icon: BookOpen,
       label: `${productCount} Product${productCount === 1 ? "" : "s"}`,
+      to: "/products",
+      ariaLabel: "Browse all products",
     },
-    { icon: LayoutTemplate, label: "18 Categories" },
-    { icon: BadgeCheck, label: "Verified Creators" },
-    { icon: Download, label: "Instant Download" },
+    {
+      icon: LayoutTemplate,
+      label: "18 Categories",
+      to: "/",
+      hash: "categories",
+      ariaLabel: "Browse categories",
+    },
+    {
+      icon: BadgeCheck,
+      label: "Verified Creators",
+      to: "/about",
+      ariaLabel: "Learn about our verified creators",
+    },
+    {
+      icon: Download,
+      label: "Instant Download",
+      to: "/library",
+      ariaLabel: "Go to your library of instant downloads",
+    },
   ];
   return (
     <section
@@ -320,22 +344,26 @@ function HeroStatsBar() {
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
         <ul className="grid grid-cols-2 gap-y-5 sm:grid-cols-4 sm:gap-y-0">
           {stats.map((s) => (
-            <li
-              key={s.label}
-              className="flex flex-col items-center gap-2 text-center"
-            >
-              <span
-                className="grid h-10 w-10 place-items-center rounded-full"
-                style={{
-                  background: "rgba(201,168,76,0.12)",
-                  border: "1px solid rgba(201,168,76,0.45)",
-                }}
+            <li key={s.label} className="flex">
+              <Link
+                to={s.to}
+                hash={s.hash}
+                aria-label={s.ariaLabel}
+                className="flex flex-1 flex-col items-center gap-2 rounded-lg p-2 text-center transition-all duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               >
-                <s.icon size={18} className="text-gold" />
-              </span>
-              <span className="text-[12px] font-semibold tracking-wide text-white sm:text-[13px]">
-                {s.label}
-              </span>
+                <span
+                  className="grid h-10 w-10 place-items-center rounded-full transition-colors duration-200"
+                  style={{
+                    background: "rgba(201,168,76,0.12)",
+                    border: "1px solid rgba(201,168,76,0.45)",
+                  }}
+                >
+                  <s.icon size={18} className="text-gold" />
+                </span>
+                <span className="text-[12px] font-semibold tracking-wide text-white sm:text-[13px]">
+                  {s.label}
+                </span>
+              </Link>
             </li>
           ))}
         </ul>
