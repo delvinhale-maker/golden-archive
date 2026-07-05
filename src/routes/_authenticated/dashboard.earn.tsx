@@ -208,6 +208,14 @@ function EarnPage() {
 
   const nextRelease = schedule?.next_release_at ? new Date(schedule.next_release_at) : null;
   const countdown = useCountdown(nextRelease);
+  const [tzMode, setTzMode] = useState<TzMode>(() => {
+    if (typeof window === "undefined") return "local";
+    const stored = window.localStorage.getItem(TZ_STORAGE_KEY) as TzMode | null;
+    return stored && TZ_OPTIONS.some((o) => o.value === stored) ? stored : "local";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem(TZ_STORAGE_KEY, tzMode);
+  }, [tzMode]);
 
   // Monthly chart
   const nowDate = new Date();
