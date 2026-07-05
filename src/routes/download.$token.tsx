@@ -59,7 +59,7 @@ function DownloadPage() {
     (async () => {
       try {
         const res = await getDownloadInfo({ data: { token } });
-        if (!cancelled && "ok" in res && downloadFrameRef.current) {
+        if (!cancelled && "ok" in res && res.url && downloadFrameRef.current) {
           downloadFrameRef.current.src = res.url;
         }
       } catch (e) {
