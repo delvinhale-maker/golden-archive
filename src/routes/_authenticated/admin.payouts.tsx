@@ -125,12 +125,15 @@ function AdminPayoutsPage() {
     setProfiles(profMap);
 
     const now = Date.now();
+    const scheduleActive = !!schedule?.scheduled;
     const summaries: SellerSummary[] = balances.map((b) => {
       const oldest = oldestBySeller.get(b.seller_id) ?? null;
-      const ready =
+      const cleared =
         b.pending_cents > 0 &&
         !!oldest &&
-        now - new Date(oldest).getTime() >= READY_WINDOW_MS;
+        now - new Date(oldest).getTime() >= HOLDING_MS;
+      // "Ready" only if the Friday schedule is confirmed active.
+      const ready = cleared && scheduleActive;
       return {
         ...b,
         display_name: profMap[b.seller_id]?.display_name ?? null,
@@ -143,8 +146,10 @@ function AdminPayoutsPage() {
   }
 
   useEffect(() => {
-    if (isAdmin) refresh();
-  }, [isAdmin]);
+    if (!isAdmin) return;
+    fetchSchedule().then(setSchedule).catch(() => setSchedule(null));
+    refresh();
+  }, [isAdmin, fetchSchedule]);
 
   async function markPaid(row: SellerSummary) {
     const raw = amounts[row.seller_id]?.trim();
