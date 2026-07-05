@@ -16,13 +16,13 @@ export function NewReleasesRow() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="text-[11px] font-semibold tracking-caps text-gold">
-            JUST IN
+            JUST DROPPED
           </div>
           <h2
             className="mt-2 font-display text-3xl font-bold md:text-4xl"
             style={{ color: "#ffffff" }}
           >
-            New Releases
+            Just Dropped
           </h2>
           <span className="mt-3 block h-[2px] w-10 bg-gold" />
         </div>
