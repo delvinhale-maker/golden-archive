@@ -31,8 +31,6 @@ import { DealsStrip } from "@/components/marketplace/DealsStrip";
 import { BestsellersRow } from "@/components/marketplace/BestsellersRow";
 import { KingdomPicksRow, kingdomPicksRowQ } from "@/components/marketplace/KingdomPicksRow";
 import { NewReleasesRow, newReleasesRowQ } from "@/components/marketplace/NewReleasesRow";
-import { PromotedPicksRow, promotedPicksRowQ } from "@/components/marketplace/PromotedPicksRow";
-import { RecommendedRow, recommendedRowQ } from "@/components/marketplace/RecommendedRow";
 import { KingdomBibleAppBanner } from "@/components/marketplace/KingdomBibleAppBanner";
 import { ContinueBrowsingRow } from "@/components/marketplace/HomeRows";
 import { EmailCaptureBanner } from "@/components/EmailCaptureBanner";
