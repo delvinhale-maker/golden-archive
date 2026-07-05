@@ -57,7 +57,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }
   const [pdf, setPdf] = useState<any>(null);
   const [pageCount, setPageCount] = useState(1); // includes cover as location 1
   const [location, setLocation] = useState(1);
-  const [fontSize, setFontSize] = useState(3);
+  const [fontSize, setFontSize] = useState(2);
   const [device, setDevice] = useState<DeviceKind>("tablet");
   const [outline, setOutline] = useState<OutlineEntry[]>([]);
   const [loading, setLoading] = useState(true);
