@@ -454,7 +454,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
     setCover(f);
   }
 
-  function handleFileChange(f: File | null) {
+  async function handleFileChange(f: File | null) {
     setFileError(null);
     setFileUploadError(null);
     setUploadedFilePath(null);
@@ -466,6 +466,18 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
     if (!FILE_EXT.includes(ext)) return setFileError(`Unsupported .${ext}. Accepted: PDF, EPUB, DOCX.`);
     if (f.type && !FILE_MIMES.includes(f.type)) return setFileError(`File content (${f.type}) doesn't match a manuscript.`);
     if (f.size > MAX_FILE_MB * 1024 * 1024) return setFileError(`File exceeds ${MAX_FILE_MB} MB limit.`);
+    // Structural validation: unzip .docx / .epub and check required parts,
+    // sniff %PDF- header for .pdf. Prevents malformed manuscripts from ever
+    // reaching Storage, so buyers never receive a file Word/Reader can't open.
+    try {
+      const { validateManuscriptFile } = await import("@/lib/manuscript-validate");
+      const res = await validateManuscriptFile(f);
+      if (!res.ok) return setFileError(res.reason);
+    } catch (e) {
+      return setFileError(
+        `Couldn't read that file (${(e as Error).message}). Re-save from the original app and try again.`,
+      );
+    }
     setFile(f);
     // Kick off the upload immediately so each zone operates independently.
     void uploadManuscript(f);
@@ -751,6 +763,27 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
         }
       }
       setUploadProgress(95);
+
+      // Server-side manuscript integrity gate. Defense-in-depth against
+      // stale/bypassed client validation: re-open the stored file in the
+      // Worker and confirm it's a well-formed .docx/.epub/.pdf before we
+      // let the row go live. Draft saves skip the gate.
+      if (publish && storedFilePath) {
+        try {
+          const { validateStoredManuscript } = await import("@/lib/manuscript-validate.functions");
+          const check = await validateStoredManuscript({ data: { filePath: storedFilePath } });
+          if (!check.ok) {
+            setFileError(check.reason);
+            setFileUploadError(check.reason);
+            toast.error(`Manuscript rejected: ${check.reason}`);
+            throw new Error(check.reason);
+          }
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Manuscript validation failed.";
+          setFileError(msg);
+          throw e;
+        }
+      }
 
       const priceCents = Math.round(priceNum * 100);
       const status: "draft" | "approved" | "pending" = publish ? (isEditing && !bypassReview ? "pending" : "approved") : "draft";
