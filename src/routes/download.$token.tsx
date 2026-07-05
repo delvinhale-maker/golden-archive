@@ -13,6 +13,7 @@ export const Route = createFileRoute("/download/$token")({
 
 function DownloadPage() {
   const { token } = Route.useParams();
+  const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [state, setState] = useState<
     | { kind: "loading" }
