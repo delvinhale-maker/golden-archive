@@ -51,6 +51,26 @@ function DownloadPage() {
     };
   }, [token, user, authLoading]);
 
+  // Preserve the original download-page behavior: the file is still saved to
+  // the buyer's device while the reader is shown on screen.
+  useEffect(() => {
+    if (state.kind !== "ready") return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getDownloadInfo({ data: { token } });
+        if (!cancelled && "ok" in res && downloadFrameRef.current) {
+          downloadFrameRef.current.src = res.url;
+        }
+      } catch (e) {
+        console.error("Auto-download failed", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [state.kind, token]);
+
   async function handleDownload() {
     if (state.kind !== "ready") return;
     setDownloading(true);
