@@ -250,7 +250,7 @@ function AccountPage() {
                     <button
                       type="button"
                       onClick={() =>
-                        setRemovedIds((prev) => new Set([...prev, d.id]))
+                        setConfirmRemove({ id: d.id, title: d.product_title })
                       }
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full text-mute hover:bg-muted hover:text-red-600"
                       aria-label={`Remove ${d.product_title} from My Downloads`}
