@@ -37,6 +37,28 @@ function AccountPage() {
     enabled: !!user,
   });
 
+  const [removedIds, setRemovedIds] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set<string>();
+    try {
+      const raw = localStorage.getItem("av-removed-downloads");
+      return raw ? new Set(JSON.parse(raw)) : new Set<string>();
+    } catch {
+      return new Set<string>();
+    }
+  });
+  const [confirmRemove, setConfirmRemove] = useState<
+    { id: string; title: string } | null
+  >(null);
+  const [isRemoving, setIsRemoving] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("av-removed-downloads", JSON.stringify(Array.from(removedIds)));
+    } catch {
+      // ignore
+    }
+  }, [removedIds]);
+
   if (loading) {
     return (
       <MarketShell>
@@ -87,24 +109,8 @@ function AccountPage() {
     (o.items ?? []).map((it) => ({ ...it, orderId: o.id })),
   );
 
-  const [removedIds, setRemovedIds] = useState<Set<string>>(() => {
-    try {
-      const raw = localStorage.getItem("av-removed-downloads");
-      return raw ? new Set(JSON.parse(raw)) : new Set<string>();
-    } catch {
-      return new Set<string>();
-    }
-  });
-  const [confirmRemove, setConfirmRemove] = useState<
-    { id: string; title: string } | null
-  >(null);
-  const [isRemoving, setIsRemoving] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem("av-removed-downloads", JSON.stringify(Array.from(removedIds)));
-  }, [removedIds]);
-
   const visibleDownloads = downloads.filter((d) => !removedIds.has(d.id));
+
 
   return (
     <MarketShell>
