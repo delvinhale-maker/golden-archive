@@ -28,7 +28,7 @@ import {
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
 import { DealsStrip } from "@/components/marketplace/DealsStrip";
-import { BestsellersRow } from "@/components/marketplace/BestsellersRow";
+
 import { KingdomPicksRow, kingdomPicksRowQ } from "@/components/marketplace/KingdomPicksRow";
 import { NewReleasesRow, newReleasesRowQ } from "@/components/marketplace/NewReleasesRow";
 import { KingdomBibleAppBanner } from "@/components/marketplace/KingdomBibleAppBanner";
