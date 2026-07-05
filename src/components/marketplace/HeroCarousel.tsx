@@ -38,21 +38,6 @@ const DEFAULT_HERO_SLIDE: Slide = {
 
 const SECONDARY_SLIDES: Slide[] = [
   {
-    kicker: "DEALS OF THE DAY",
-    title: (
-      <>
-        Deals of the <span className="gold-gradient">Day</span> — limited time savings.
-      </>
-    ),
-    body: "Featured picks at lower prices for a limited time. Grab a title before the timer runs out.",
-    ctaLabel: "Shop Deals →",
-    ctaTo: "/products",
-    secondaryLabel: "Browse All →",
-    secondaryHref: "/products",
-    card: { title: "Sovereign Leadership", cat: "Course", price: 199 },
-    theme: { accentColor: "#B8860B", gradientStart: "#1A1000" },
-  },
-  {
     kicker: "AURUMVAULT PREMIUM",
     title: (
       <>
