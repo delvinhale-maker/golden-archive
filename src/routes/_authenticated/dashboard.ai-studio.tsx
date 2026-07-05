@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo, useEffect } from "react";
-import { useServerFn } from "@tanstack/react-start";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
-import { generateAiStudio } from "@/lib/ai-studio.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import {
@@ -384,7 +383,7 @@ function AiStudioPage() {
   const [usageCount, setUsageCount] = useState(0);
   const [showFavorites, setShowFavorites] = useState(false);
 
-  const runGenerate = useServerFn(generateAiStudio);
+  const abortRef = useRef<AbortController | null>(null);
 
   const category = useMemo(
     () => CATEGORIES.find((c) => c.id === categoryId)!,
@@ -444,27 +443,63 @@ function AiStudioPage() {
       toast.error(`Fill in: ${missing.map((m) => m.label).join(", ")}`);
       return;
     }
+    // Cancel any prior in-flight stream.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
+    setOutput("");
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error("You must be signed in.");
+
       const prompt = tool.buildPrompt(values);
-      const res = await runGenerate({
-        data: {
+      const res = await fetch("/api/ai-studio-stream", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
           category: category.name,
           tool: tool.name,
           prompt,
           tone,
           audience,
           length,
-        },
+        }),
+        signal: controller.signal,
       });
-      setOutput(res.text);
+
+      if (!res.ok || !res.body) {
+        const errText = await res.text().catch(() => "");
+        throw new Error(errText || `Request failed (${res.status})`);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        if (chunk) {
+          accumulated += chunk;
+          setOutput(accumulated);
+        }
+      }
+
       const next = usageCount + 1;
       setUsageCount(next);
       persistUsage(next);
     } catch (e) {
+      if ((e as { name?: string })?.name === "AbortError") return;
       const msg = e instanceof Error ? e.message : "Generation failed.";
       toast.error(msg);
     } finally {
+      if (abortRef.current === controller) abortRef.current = null;
       setLoading(false);
     }
   }

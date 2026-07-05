@@ -41,6 +41,7 @@ import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as ApiAiStudioStreamRouteImport } from './routes/api/ai-studio-stream'
 import { Route as AuthenticatedReferRouteImport } from './routes/_authenticated/refer'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -227,6 +228,11 @@ const DownloadTokenRoute = DownloadTokenRouteImport.update({
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
   path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiStudioStreamRoute = ApiAiStudioStreamRouteImport.update({
+  id: '/api/ai-studio-stream',
+  path: '/api/ai-studio-stream',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedReferRoute = AuthenticatedReferRouteImport.update({
@@ -420,6 +426,7 @@ export interface FileRoutesByFullPath {
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
+  '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -480,6 +487,7 @@ export interface FileRoutesByTo {
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
+  '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -543,6 +551,7 @@ export interface FileRoutesById {
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
   '/_authenticated/refer': typeof AuthenticatedReferRoute
+  '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -606,6 +615,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/wishlist'
     | '/refer'
+    | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/download/$token'
     | '/email/unsubscribe'
@@ -666,6 +676,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/wishlist'
     | '/refer'
+    | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/download/$token'
     | '/email/unsubscribe'
@@ -728,6 +739,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/wishlist'
     | '/_authenticated/refer'
+    | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/download/$token'
     | '/email/unsubscribe'
@@ -790,6 +802,7 @@ export interface RootRouteChildren {
   UnsubscribeRoute: typeof UnsubscribeRoute
   VaultRoute: typeof VaultRoute
   WishlistRoute: typeof WishlistRoute
+  ApiAiStudioStreamRoute: typeof ApiAiStudioStreamRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
@@ -1032,6 +1045,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout/return'
       fullPath: '/checkout/return'
       preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai-studio-stream': {
+      id: '/api/ai-studio-stream'
+      path: '/api/ai-studio-stream'
+      fullPath: '/api/ai-studio-stream'
+      preLoaderRoute: typeof ApiAiStudioStreamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/refer': {
@@ -1331,6 +1351,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnsubscribeRoute: UnsubscribeRoute,
   VaultRoute: VaultRoute,
   WishlistRoute: WishlistRoute,
+  ApiAiStudioStreamRoute: ApiAiStudioStreamRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
@@ -1352,13 +1373,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
