@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  Download,
+  BookOpen,
   LayoutDashboard,
   Loader2,
   LogOut,
@@ -209,7 +209,7 @@ function AccountPage() {
                       params={{ token: d.download_token }}
                       className="inline-flex items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-xs font-bold text-navy"
                     >
-                      <Download size={14} /> Download
+                      <BookOpen size={14} /> Read
                     </Link>
                   ) : (
                     <span className="text-xs text-mute">Expired</span>
