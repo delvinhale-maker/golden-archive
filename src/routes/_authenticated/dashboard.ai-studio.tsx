@@ -424,10 +424,13 @@ function AiStudioPage() {
         const draft = JSON.parse(rawD) as Draft;
         if (draft?.text) {
           setOutput(draft.text);
-          if (draft.status !== "complete") {
-            toast.info(
-              `Recovered ${draft.status === "interrupted" ? "interrupted" : "in-progress"} draft from ${draft.tool}.`,
-            );
+          setOutputStatus(draft.status);
+          if (draft.status === "interrupted") {
+            toast.info(`Recovered interrupted draft from ${draft.tool}.`);
+          } else if (draft.status === "streaming") {
+            toast.info(`Recovered in-progress draft from ${draft.tool}.`);
+          } else if (draft.status === "draft") {
+            toast.info(`Loaded saved draft from ${draft.tool}.`);
           }
         }
       }
