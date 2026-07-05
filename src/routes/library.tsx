@@ -338,3 +338,27 @@ function LibraryCard({
     </li>
   );
 }
+
+function LibraryCardSkeleton() {
+  return (
+    <li className="relative overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
+      <span aria-hidden className="absolute inset-y-0 left-0 w-1.5 bg-gold/40" />
+      <div className="flex gap-4 p-4 pl-5">
+        <div className="h-28 w-20 flex-shrink-0 animate-pulse rounded-md bg-muted sm:h-32 sm:w-24" />
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+          <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
+          <div className="h-3 w-1/3 animate-pulse rounded bg-muted" />
+          <div className="mt-1 flex gap-1.5">
+            <div className="h-4 w-10 animate-pulse rounded-full bg-muted" />
+            <div className="h-4 w-12 animate-pulse rounded-full bg-muted" />
+          </div>
+          <div className="mt-auto flex gap-2 pt-3">
+            <div className="h-8 w-24 animate-pulse rounded-full bg-muted" />
+            <div className="h-8 w-28 animate-pulse rounded-full bg-muted" />
+          </div>
+        </div>
+      </div>
+    </li>
+  );
+}
