@@ -44,6 +44,44 @@ function fmtDate(iso: string | Date) {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+function useCountdown(target: Date | null) {
+  const [remaining, setRemaining] = useState(() => target ? target.getTime() - Date.now() : null);
+
+  useEffect(() => {
+    if (!target) {
+      setRemaining(null);
+      return;
+    }
+    let raf = 0;
+    const tick = () => {
+      const ms = target.getTime() - Date.now();
+      setRemaining(Math.max(0, ms));
+      if (ms > 0) {
+        raf = requestAnimationFrame(tick);
+      }
+    };
+    tick();
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
+
+  if (remaining === null || remaining <= 0) return null;
+  const seconds = Math.floor((remaining / 1000) % 60);
+  const minutes = Math.floor((remaining / (1000 * 60)) % 60);
+  const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24);
+  const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+  return { days, hours, minutes, seconds };
+}
+
+function fmtCountdown({ days, hours, minutes, seconds }: NonNullable<ReturnType<typeof useCountdown>>) {
+  const parts = [
+    days > 0 ? `${days}d` : "",
+    `${hours.toString().padStart(2, "0")}h`,
+    `${minutes.toString().padStart(2, "0")}m`,
+    `${seconds.toString().padStart(2, "0")}s`,
+  ].filter(Boolean);
+  return parts.join(" ");
+}
+
 const STATUS_COPY: Record<ItemStatus, string> = {
   pending:
     "This sale was just made and is still within our standard holding period. This helps protect against refunds or order issues before your earnings are finalized.",
