@@ -50,14 +50,15 @@ export interface ManuscriptPreviewerProps {
   title: string;
   coverUrl: string | null;
   onClose: () => void;
+  readerMode?: boolean;
 }
 
-export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose }: ManuscriptPreviewerProps) {
+export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, readerMode }: ManuscriptPreviewerProps) {
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [pdf, setPdf] = useState<any>(null);
   const [pageCount, setPageCount] = useState(1); // includes cover as location 1
   const [location, setLocation] = useState(1);
-  const [fontSize, setFontSize] = useState(2);
+  const [fontSize, setFontSize] = useState(readerMode ? 2 : 3);
   const [device, setDevice] = useState<DeviceKind>("tablet");
   const [outline, setOutline] = useState<OutlineEntry[]>([]);
   const [loading, setLoading] = useState(true);
