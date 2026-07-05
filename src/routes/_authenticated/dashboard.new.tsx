@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS, type PublisherAccent } from "@/components/marketplace/PublisherShell";
@@ -80,6 +81,7 @@ type StepNum = 1 | 2 | 3 | 4;
 
 function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, isAdmin } = useAuth();
   const runReview = useServerFn(reviewProduct);
   const editingId = editingIdProp;
@@ -856,6 +858,9 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
         toast.success(isEditing ? "Title updated." : "Published to the Vault!");
         setDraftProductId(null);
         setPublishedId(savedId);
+        // Refresh storefront grid so the new upload appears immediately in the 2-column mobile layout
+        void queryClient.invalidateQueries({ queryKey: ["mp", "products"] });
+        void queryClient.invalidateQueries({ queryKey: ["mp"] });
       } else {
         toast.success("Draft saved.");
 
