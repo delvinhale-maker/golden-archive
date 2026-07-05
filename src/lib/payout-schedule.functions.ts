@@ -32,7 +32,7 @@ export const getPayoutScheduleStatus = createServerFn({ method: "GET" }).handler
 
     return {
       scheduled,
-      cron: cronExpr ?? "0 14 * * 5",
+      cron: "0 14 * * 5",
       timezone: "UTC (Fri 14:00 UTC ≈ 10:00 AM Eastern)",
       next_release_at: nextRelease.toISOString(),
       last_run: lastRun ?? null,
