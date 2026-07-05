@@ -10,6 +10,8 @@ import {
   RefreshCw,
   Star,
   Loader2,
+  Save,
+  CheckCircle2,
   BookOpen,
   GraduationCap,
   FileText,
@@ -371,11 +373,13 @@ const FAV_KEY = "av_ai_studio_favorites_v1";
 const USAGE_KEY = "av_ai_studio_usage_v1";
 const DRAFT_KEY = "av_ai_studio_draft_v1";
 
+type OutputStatus = "idle" | "streaming" | "draft" | "interrupted" | "final";
+
 type Draft = {
   category: string;
   tool: string;
   text: string;
-  status: "streaming" | "complete" | "interrupted";
+  status: OutputStatus;
   updatedAt: number;
 };
 
@@ -387,6 +391,7 @@ function AiStudioPage() {
   const [audience, setAudience] = useState<string>(AUDIENCES[4]);
   const [length, setLength] = useState<"short" | "medium" | "long">("medium");
   const [output, setOutput] = useState<string>("");
+  const [outputStatus, setOutputStatus] = useState<OutputStatus>("idle");
   const [loading, setLoading] = useState(false);
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [usageCount, setUsageCount] = useState(0);
@@ -419,10 +424,13 @@ function AiStudioPage() {
         const draft = JSON.parse(rawD) as Draft;
         if (draft?.text) {
           setOutput(draft.text);
-          if (draft.status !== "complete") {
-            toast.info(
-              `Recovered ${draft.status === "interrupted" ? "interrupted" : "in-progress"} draft from ${draft.tool}.`,
-            );
+          setOutputStatus(draft.status);
+          if (draft.status === "interrupted") {
+            toast.info(`Recovered interrupted draft from ${draft.tool}.`);
+          } else if (draft.status === "streaming") {
+            toast.info(`Recovered in-progress draft from ${draft.tool}.`);
+          } else if (draft.status === "draft") {
+            toast.info(`Loaded saved draft from ${draft.tool}.`);
           }
         }
       }
@@ -488,6 +496,7 @@ function AiStudioPage() {
 
     setLoading(true);
     setOutput("");
+    setOutputStatus("streaming");
     clearDraft();
     let accumulated = "";
     let sawAnyChunk = false;
@@ -530,7 +539,6 @@ function AiStudioPage() {
           accumulated += chunk;
           sawAnyChunk = true;
           setOutput(accumulated);
-          // Throttle draft writes so we don't hammer localStorage.
           const now = Date.now();
           if (now - lastPersist > 400) {
             lastPersist = now;
@@ -545,11 +553,14 @@ function AiStudioPage() {
         }
       }
 
+      // Stream finished. Leave as unsaved draft until the user explicitly
+      // saves or finalizes — auto-persist as a safety net only.
+      setOutputStatus("draft");
       persistDraft({
         category: category.name,
         tool: tool.name,
         text: accumulated,
-        status: "complete",
+        status: "draft",
         updatedAt: Date.now(),
       });
 
@@ -559,6 +570,7 @@ function AiStudioPage() {
     } catch (e) {
       if ((e as { name?: string })?.name === "AbortError") {
         if (sawAnyChunk) {
+          setOutputStatus("interrupted");
           persistDraft({
             category: category.name,
             tool: tool.name,
@@ -566,10 +578,13 @@ function AiStudioPage() {
             status: "interrupted",
             updatedAt: Date.now(),
           });
+        } else {
+          setOutputStatus("idle");
         }
         return;
       }
       if (sawAnyChunk) {
+        setOutputStatus("interrupted");
         persistDraft({
           category: category.name,
           tool: tool.name,
@@ -581,6 +596,7 @@ function AiStudioPage() {
           `${e instanceof Error ? e.message : "Generation failed."} Partial draft kept.`,
         );
       } else {
+        setOutputStatus("idle");
         const msg = e instanceof Error ? e.message : "Generation failed.";
         toast.error(msg);
       }
@@ -611,6 +627,45 @@ function AiStudioPage() {
     };
     persistFavorites([item, ...favorites].slice(0, 100));
     toast.success("Saved to swipe file");
+  }
+
+  function saveDraft() {
+    if (!output) return;
+    setOutputStatus("draft");
+    persistDraft({
+      category: category.name,
+      tool: tool.name,
+      text: output,
+      status: "draft",
+      updatedAt: Date.now(),
+    });
+    toast.success("Draft saved");
+  }
+
+  function finalizeOutput() {
+    if (!output) return;
+    if (loading) {
+      toast.error("Wait for generation to finish before finalizing.");
+      return;
+    }
+    setOutputStatus("final");
+    persistDraft({
+      category: category.name,
+      tool: tool.name,
+      text: output,
+      status: "final",
+      updatedAt: Date.now(),
+    });
+    // Also auto-save to swipe file so finalized outputs are always kept.
+    const item: FavoriteItem = {
+      id: crypto.randomUUID(),
+      category: category.name,
+      tool: tool.name,
+      text: output,
+      savedAt: Date.now(),
+    };
+    persistFavorites([item, ...favorites].slice(0, 100));
+    toast.success("Output finalized and saved to swipe file");
   }
 
   function removeFavorite(id: string) {
@@ -842,8 +897,11 @@ function AiStudioPage() {
           {output && (
             <div className="rounded-xl border border-slate-200 bg-white p-5">
               <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
-                <h3 className="font-serif text-lg text-navy">Output</h3>
                 <div className="flex items-center gap-2">
+                  <h3 className="font-serif text-lg text-navy">Output</h3>
+                  <StatusPill status={outputStatus} />
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     onClick={copyToClipboard}
                     className="text-sm inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-3 py-1.5 hover:bg-slate-50"
@@ -851,10 +909,26 @@ function AiStudioPage() {
                     <Copy size={14} /> Copy
                   </button>
                   <button
+                    onClick={saveDraft}
+                    disabled={loading}
+                    className="text-sm inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-3 py-1.5 hover:bg-slate-50 disabled:opacity-60"
+                  >
+                    <Save size={14} /> Save draft
+                  </button>
+                  <button
+                    onClick={finalizeOutput}
+                    disabled={loading || outputStatus === "final"}
+                    className="text-sm inline-flex items-center gap-1.5 rounded-full bg-navy text-white px-3 py-1.5 hover:opacity-90 disabled:opacity-60"
+                  >
+                    <CheckCircle2 size={14} />
+                    {outputStatus === "final" ? "Finalized" : "Finalize"}
+                  </button>
+                  <button
                     onClick={saveFavorite}
                     className="text-sm inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-3 py-1.5 hover:bg-slate-50"
+                    title="Save to swipe file"
                   >
-                    <Star size={14} /> Save
+                    <Star size={14} /> Swipe
                   </button>
                   <button
                     onClick={handleGenerate}
@@ -873,5 +947,21 @@ function AiStudioPage() {
         </section>
       </div>
     </PublisherShell>
+  );
+}
+
+function StatusPill({ status }: { status: OutputStatus }) {
+  if (status === "idle") return null;
+  const map: Record<Exclude<OutputStatus, "idle">, { label: string; cls: string }> = {
+    streaming: { label: "Streaming…", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+    draft: { label: "Unsaved draft", cls: "bg-slate-50 text-slate-700 border-slate-200" },
+    interrupted: { label: "Interrupted", cls: "bg-rose-50 text-rose-700 border-rose-200" },
+    final: { label: "Final", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  };
+  const s = map[status];
+  return (
+    <span className={`text-[11px] uppercase tracking-wide font-semibold border rounded-full px-2 py-0.5 ${s.cls}`}>
+      {s.label}
+    </span>
   );
 }
