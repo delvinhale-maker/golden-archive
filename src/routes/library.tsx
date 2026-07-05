@@ -1,5 +1,5 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -82,6 +82,16 @@ function LibraryPage() {
   const [sort, setSort] = useState<SortKey>("recent");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const dl = useServerFn(getDownloadInfo);
+  const errorToastedRef = useRef(false);
+
+  useEffect(() => {
+    if (ordersQ.isError && !errorToastedRef.current) {
+      errorToastedRef.current = true;
+      const msg = ordersQ.error instanceof Error ? ordersQ.error.message : "Couldn't load your library";
+      toast.error(msg);
+    }
+    if (!ordersQ.isError) errorToastedRef.current = false;
+  }, [ordersQ.isError, ordersQ.error]);
 
   const items = useMemo<LibraryItem[]>(() => {
     const orders = ordersQ.data ?? [];
@@ -105,17 +115,26 @@ function LibraryPage() {
   }, [ordersQ.data, query, sort]);
 
   async function handleDownload(item: LibraryItem) {
-    if (!item.download_token) return;
+    if (!item.download_token) {
+      toast.error("Download link unavailable for this item");
+      return;
+    }
     setDownloadingId(item.id);
+    const t = toast.loading(`Preparing "${item.product_title}"…`);
     try {
       const res = await dl({ data: { token: item.download_token } });
       if ("error" in res) {
-        toast.error(res.error ?? "Download unavailable");
+        toast.error(res.error ?? "Download unavailable", { id: t });
         return;
       }
+      if (!res.url) {
+        toast.error("Signed URL missing", { id: t });
+        return;
+      }
+      toast.success("Download ready", { id: t });
       window.location.href = res.url;
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Download failed");
+      toast.error(e instanceof Error ? e.message : "Download failed", { id: t });
     } finally {
       setDownloadingId(null);
     }
@@ -165,9 +184,11 @@ function LibraryPage() {
         {/* Content */}
         <section className="mt-6">
           {ordersQ.isLoading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="animate-spin text-gold" />
-            </div>
+            <ul className="grid grid-cols-1 gap-4 md:grid-cols-2" aria-busy="true" aria-label="Loading library">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <LibraryCardSkeleton key={i} />
+              ))}
+            </ul>
           ) : ordersQ.isError ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-800">
               We couldn't load your library right now.{" "}
@@ -311,6 +332,30 @@ function LibraryCard({
             ) : (
               <span className="text-xs text-mute">Download link expired</span>
             )}
+          </div>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function LibraryCardSkeleton() {
+  return (
+    <li className="relative overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
+      <span aria-hidden className="absolute inset-y-0 left-0 w-1.5 bg-gold/40" />
+      <div className="flex gap-4 p-4 pl-5">
+        <div className="h-28 w-20 flex-shrink-0 animate-pulse rounded-md bg-muted sm:h-32 sm:w-24" />
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+          <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
+          <div className="h-3 w-1/3 animate-pulse rounded bg-muted" />
+          <div className="mt-1 flex gap-1.5">
+            <div className="h-4 w-10 animate-pulse rounded-full bg-muted" />
+            <div className="h-4 w-12 animate-pulse rounded-full bg-muted" />
+          </div>
+          <div className="mt-auto flex gap-2 pt-3">
+            <div className="h-8 w-24 animate-pulse rounded-full bg-muted" />
+            <div className="h-8 w-28 animate-pulse rounded-full bg-muted" />
           </div>
         </div>
       </div>
