@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useState } from "react";
 import {
   BookOpen,
   LayoutDashboard,
@@ -8,6 +9,7 @@ import {
   LogOut,
   Package,
   User as UserIcon,
+  X,
 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { useAuth } from "@/hooks/use-auth";
@@ -84,6 +86,20 @@ function AccountPage() {
     (o.items ?? []).map((it) => ({ ...it, orderId: o.id })),
   );
 
+  const [removedIds, setRemovedIds] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem("av-removed-downloads");
+      return raw ? new Set(JSON.parse(raw)) : new Set<string>();
+    } catch {
+      return new Set<string>();
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("av-removed-downloads", JSON.stringify(Array.from(removedIds)));
+  }, [removedIds]);
+
+  const visibleDownloads = downloads.filter((d) => !removedIds.has(d.id));
 
   return (
     <MarketShell>
@@ -176,14 +192,27 @@ function AccountPage() {
               We couldn't load your downloads right now.{" "}
               <button type="button" onClick={() => ordersQ.refetch()} className="underline">Try again</button>
             </p>
-          ) : downloads.length === 0 ? (
-            <p className="mt-3 text-sm text-mute">
-              No purchases yet. Items you buy will appear here for download.
-            </p>
+          ) : visibleDownloads.length === 0 ? (
+            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-line bg-white p-4">
+              <p className="text-sm text-mute">
+                {downloads.length === 0
+                  ? "No purchases yet. Items you buy will appear here for download."
+                  : `All ${downloads.length} item${downloads.length === 1 ? "" : "s"} hidden. You can still find them in your Library.`}
+              </p>
+              {downloads.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setRemovedIds(new Set())}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold underline"
+                >
+                  Show all
+                </button>
+              )}
+            </div>
 
           ) : (
             <ul className="mt-3 divide-y divide-line rounded-2xl border border-line bg-white">
-              {downloads.map((d) => (
+              {visibleDownloads.map((d) => (
                 <li
                   key={d.id}
                   className="flex items-center gap-3 p-4"
@@ -203,20 +232,42 @@ function AccountPage() {
                       ${(d.unit_amount_cents / 100).toFixed(2)}
                     </p>
                   </div>
-                  {d.download_token ? (
-                    <Link
-                      to="/download/$token"
-                      params={{ token: d.download_token }}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-xs font-bold text-navy"
+                  <div className="flex items-center gap-2">
+                    {d.download_token ? (
+                      <Link
+                        to="/download/$token"
+                        params={{ token: d.download_token }}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-xs font-bold text-navy"
+                      >
+                        <BookOpen size={14} /> Read
+                      </Link>
+                    ) : (
+                      <span className="text-xs text-mute">Expired</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setRemovedIds((prev) => new Set([...prev, d.id]))
+                      }
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-mute hover:bg-muted hover:text-red-600"
+                      aria-label={`Remove ${d.product_title} from My Downloads`}
+                      title="Remove from My Downloads"
                     >
-                      <BookOpen size={14} /> Read
-                    </Link>
-                  ) : (
-                    <span className="text-xs text-mute">Expired</span>
-                  )}
+                      <X size={14} />
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
+          )}
+          {visibleDownloads.length > 0 && removedIds.size > 0 && (
+            <button
+              type="button"
+              onClick={() => setRemovedIds(new Set())}
+              className="mt-3 text-xs font-semibold text-gold underline"
+            >
+              Show {removedIds.size} hidden item{removedIds.size === 1 ? "" : "s"}
+            </button>
           )}
         </section>
 
