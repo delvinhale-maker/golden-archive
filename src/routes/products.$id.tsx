@@ -23,6 +23,7 @@ import { QASection } from "@/components/marketplace/QASection";
 import { FrequentlyBoughtTogether } from "@/components/marketplace/FrequentlyBoughtTogether";
 import { ShareButtons, ReportIssueLink } from "@/components/marketplace/ShareButtons";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
+import { useOwnsProduct } from "@/hooks/use-owned-products";
 import { getProduct, type Product, type ProductDetailResult } from "@/lib/marketplace.functions";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 import { CATEGORY_THEMES, DEFAULT_THEME } from "@/lib/theme/theme-config";
