@@ -858,6 +858,9 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
         toast.success(isEditing ? "Title updated." : "Published to the Vault!");
         setDraftProductId(null);
         setPublishedId(savedId);
+        // Refresh storefront grid so the new upload appears immediately in the 2-column mobile layout
+        void queryClient.invalidateQueries({ queryKey: ["mp", "products"] });
+        void queryClient.invalidateQueries({ queryKey: ["mp"] });
       } else {
         toast.success("Draft saved.");
 
