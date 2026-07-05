@@ -1,18 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
-import { DollarSign, ShoppingBag, Clock, CheckCircle2, TrendingUp } from "lucide-react";
+import { DollarSign, ShoppingBag, Clock, CheckCircle2, TrendingUp, CalendarDays } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { useServerFn } from "@tanstack/react-start";
+import { getPayoutScheduleStatus } from "@/lib/payout-schedule.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/earn")({
   component: EarnPage,
 });
 
+const HOLDING_MS = 24 * 60 * 60 * 1000;
+const SUPPORT_EMAIL = "illcapitalllc@mail.com";
+
 type OrderItemRow = {
+  id: string;
   seller_amount_cents: number;
   unit_amount_cents: number;
+  product_title: string | null;
   created_at: string;
   orders: { status: string; updated_at: string } | null;
 };
@@ -25,30 +32,45 @@ type PayoutRow = {
   note: string | null;
   paid_at: string;
 };
+type ScheduleStatus = Awaited<ReturnType<typeof getPayoutScheduleStatus>>;
 
-// Mirrors the auto-release review window (24h) — surface-only.
-const READY_WINDOW_MS = 24 * 60 * 60 * 1000;
+type ItemStatus = "pending" | "ready" | "paid";
 
 function fmt(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
 }
+function fmtDate(iso: string | Date) {
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+const STATUS_COPY: Record<ItemStatus, string> = {
+  pending:
+    "This sale was just made and is still within our standard holding period. This helps protect against refunds or order issues before your earnings are finalized.",
+  ready:
+    "Your earnings have cleared and are ready to be paid out in the next payout cycle. Payouts are processed every Friday.",
+  paid: `This amount was sent to you. If you haven't received it within 3–5 business days, reach out to us at ${SUPPORT_EMAIL} and we'll look into it.`,
+};
 
 function EarnPage() {
   const { user } = useAuth();
+  const fetchSchedule = useServerFn(getPayoutScheduleStatus);
   const [items, setItems] = useState<OrderItemRow[]>([]);
   const [balance, setBalance] = useState<BalanceRow | null>(null);
   const [payouts, setPayouts] = useState<PayoutRow[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: oi }, { data: bal }, { data: po }] = await Promise.all([
+      const [{ data: oi }, { data: bal }, { data: po }, sched] = await Promise.all([
         supabase
           .from("order_items")
-          .select("seller_amount_cents,unit_amount_cents,created_at,orders!inner(status,updated_at)")
+          .select("id,seller_amount_cents,unit_amount_cents,product_title,created_at,orders!inner(status,updated_at)")
           .eq("seller_id", user.id)
-          .eq("orders.status", "paid"),
+          .eq("orders.status", "paid")
+          .order("created_at", { ascending: false }),
         supabase
           .from("seller_balances")
           .select("pending_cents,paid_cents,currency")
@@ -60,36 +82,76 @@ function EarnPage() {
           .eq("seller_id", user.id)
           .order("paid_at", { ascending: false })
           .limit(50),
+        fetchSchedule().catch(() => null),
       ]);
       setItems((oi ?? []) as unknown as OrderItemRow[]);
       setBalance((bal as BalanceRow | null) ?? { pending_cents: 0, paid_cents: 0, currency: "usd" });
       setPayouts((po ?? []) as PayoutRow[]);
+      setSchedule(sched as ScheduleStatus | null);
       setLoading(false);
     })();
-  }, [user]);
+  }, [user, fetchSchedule]);
 
   const lifetimeGross = items.reduce((s, i) => s + (i.unit_amount_cents || 0), 0);
   const lifetimeEarned = items.reduce((s, i) => s + (i.seller_amount_cents || 0), 0);
   const unitsSold = items.length;
   const pending = balance?.pending_cents ?? 0;
   const paidOut = balance?.paid_cents ?? 0;
+  const scheduleActive = !!schedule?.scheduled;
 
-  // "Ready for Release" = pending > 0 AND at least one paid order older than 24h
+  // Per-item status. "Ready for Release" requires BOTH a cleared holding
+  // period AND a confirmed active Friday schedule.
   const now = Date.now();
-  const hasMatureOrder = items.some((i) => {
-    const t = i.orders?.updated_at ? new Date(i.orders.updated_at).getTime() : 0;
-    return t > 0 && now - t >= READY_WINDOW_MS;
-  });
-  const payoutStatus: "paid" | "ready" | "pending" | "none" =
-    pending === 0 && paidOut > 0
-      ? "paid"
-      : pending > 0 && hasMatureOrder
-        ? "ready"
-        : pending > 0
-          ? "pending"
-          : "none";
+  const perItem = useMemo(() => {
+    const totalPending = pending;
+    let remainingPending = totalPending;
+    // Oldest first so oldest earnings are matched to remaining pending
+    const sorted = [...items].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    );
+    return sorted
+      .map((it) => {
+        const paidAt = it.orders?.updated_at ? new Date(it.orders.updated_at).getTime() : 0;
+        const cleared = paidAt > 0 && now - paidAt >= HOLDING_MS;
+        const cents = it.seller_amount_cents || 0;
+        // If we still have pending remaining, this item is (pending or ready).
+        // Otherwise it's already been paid out.
+        let status: ItemStatus;
+        if (remainingPending >= cents && remainingPending > 0) {
+          remainingPending -= cents;
+          status = cleared && scheduleActive ? "ready" : "pending";
+        } else if (remainingPending > 0) {
+          remainingPending = 0;
+          status = cleared && scheduleActive ? "ready" : "pending";
+        } else {
+          status = "paid";
+        }
+        return { ...it, status, paidAt };
+      })
+      .sort((a, b) => b.paidAt - a.paidAt);
+  }, [items, pending, now, scheduleActive]);
 
-  // Monthly earnings chart
+  const readyCents = perItem
+    .filter((i) => i.status === "ready")
+    .reduce((s, i) => s + (i.seller_amount_cents || 0), 0);
+  const pendingCents = perItem
+    .filter((i) => i.status === "pending")
+    .reduce((s, i) => s + (i.seller_amount_cents || 0), 0);
+
+  // Fallback: balance ledger is the source of truth for pending totals.
+  // If per-item accounting doesn't cover the full pending amount (e.g. legacy
+  // sales), show the remainder as pending too so the badge always reflects
+  // the real ledger.
+  const accountedPending = readyCents + pendingCents;
+  const orphanedPending = Math.max(0, pending - accountedPending);
+  const effectivePending = pendingCents + orphanedPending;
+
+  const overallStatus: ItemStatus | "none" =
+    readyCents > 0 ? "ready" : effectivePending > 0 ? "pending" : paidOut > 0 ? "paid" : "none";
+
+  const nextRelease = schedule?.next_release_at ? new Date(schedule.next_release_at) : null;
+
+  // Monthly chart
   const nowDate = new Date();
   const months: { key: string; label: string; earnings: number }[] = [];
   for (let i = 5; i >= 0; i--) {
@@ -112,52 +174,40 @@ function EarnPage() {
 
   return (
     <PublisherShell accent={ACCENTS.earn}>
-      <h1 className="font-display text-3xl md:text-4xl text-navy">Earn</h1>
-      <p className="mt-1 text-mute">Your AurumVault sales, earnings, and payouts.</p>
+      <h1 className="font-display text-3xl md:text-4xl text-navy">Your Earnings</h1>
+      <p className="mt-1 text-mute">
+        Track your sales and payout status below. Payouts are processed every Friday.
+      </p>
 
       {/* Summary cards */}
       <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          icon={<ShoppingBag size={18} />}
-          label="Lifetime Sales"
-          value={fmt(lifetimeGross)}
-          sub={`${unitsSold} unit${unitsSold === 1 ? "" : "s"}`}
-        />
-        <StatCard
-          icon={<DollarSign size={18} />}
-          label="Total Earned"
-          value={fmt(lifetimeEarned)}
-          sub="After 9% fee"
-        />
-        <StatCard
-          icon={<Clock size={18} />}
-          label="Pending Balance"
-          value={fmt(pending)}
-        />
-        <StatCard
-          icon={<CheckCircle2 size={18} />}
-          label="Paid Out"
-          value={fmt(paidOut)}
-        />
+        <StatCard icon={<ShoppingBag size={18} />} label="Lifetime Sales" value={fmt(lifetimeGross)} sub={`${unitsSold} unit${unitsSold === 1 ? "" : "s"}`} />
+        <StatCard icon={<DollarSign size={18} />} label="Total Earned" value={fmt(lifetimeEarned)} sub="After 9% fee" />
+        <StatCard icon={<Clock size={18} />} label="Pending Balance" value={fmt(pending)} sub={readyCents > 0 ? `${fmt(readyCents)} ready` : undefined} />
+        <StatCard icon={<CheckCircle2 size={18} />} label="Paid Out" value={fmt(paidOut)} />
       </div>
 
       {/* Payout status */}
-      <section className="mt-6 rounded-2xl bg-white border border-ink/10 p-6 flex items-start gap-4">
-        <PayoutStatusBadge status={payoutStatus} />
-        <div className="flex-1">
-          <h2 className="font-display text-lg text-navy">Payout status</h2>
-          <p className="mt-1 text-sm text-mute">
-            {payoutStatus === "ready" && (
-              <>Your pending balance of <strong className="text-navy">{fmt(pending)}</strong> is ready for release. Payouts are sent manually by an admin.</>
+      <section className="mt-6 rounded-2xl bg-white border border-ink/10 p-6">
+        <div className="flex items-start gap-4">
+          <PayoutStatusBadge status={overallStatus} />
+          <div className="flex-1">
+            <h2 className="font-display text-lg text-navy">Payout status</h2>
+            <p className="mt-1 text-sm text-mute">
+              {overallStatus === "ready" && STATUS_COPY.ready}
+              {overallStatus === "pending" && STATUS_COPY.pending}
+              {overallStatus === "paid" && STATUS_COPY.paid}
+              {overallStatus === "none" && "You'll see your payout status here once you start earning."}
+            </p>
+            {nextRelease && (readyCents > 0 || pendingCents > 0) && (
+              <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-navy/80">
+                <CalendarDays size={12} /> Next payout cycle: <strong>{fmtDate(nextRelease)}</strong>
+                {!scheduleActive && (
+                  <span className="ml-1 text-amber-700">(schedule confirming…)</span>
+                )}
+              </p>
             )}
-            {payoutStatus === "pending" && (
-              <>You have <strong className="text-navy">{fmt(pending)}</strong> pending. It becomes releasable 24 hours after the sale clears.</>
-            )}
-            {payoutStatus === "paid" && (
-              <>All caught up — you've been paid <strong className="text-navy">{fmt(paidOut)}</strong> lifetime.</>
-            )}
-            {payoutStatus === "none" && <>You'll see your payout status here once you start earning.</>}
-          </p>
+          </div>
         </div>
       </section>
 
@@ -191,6 +241,43 @@ function EarnPage() {
         </div>
       </section>
 
+      {/* Sales breakdown by status */}
+      <section className="mt-6 rounded-2xl bg-white border border-ink/10 p-6">
+        <h3 className="font-display text-lg text-navy">Sales breakdown</h3>
+        <p className="mt-1 text-xs text-mute">Per-sale payout status. Hover a status for what it means.</p>
+        {perItem.length === 0 ? (
+          <p className="mt-3 text-sm text-mute">No sales yet.</p>
+        ) : (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wider text-mute border-b border-ink/10">
+                  <th className="py-2 pr-4">Date</th>
+                  <th className="py-2 pr-4">Product</th>
+                  <th className="py-2 pr-4">You earned</th>
+                  <th className="py-2">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {perItem.slice(0, 25).map((it) => (
+                  <tr key={it.id} className="border-b border-ink/5 last:border-0 align-top">
+                    <td className="py-3 pr-4 text-navy whitespace-nowrap">{fmtDate(it.created_at)}</td>
+                    <td className="py-3 pr-4 text-navy">{it.product_title ?? "—"}</td>
+                    <td className="py-3 pr-4 font-medium text-navy">{fmt(it.seller_amount_cents || 0)}</td>
+                    <td className="py-3">
+                      <PayoutStatusBadge status={it.status} title={STATUS_COPY[it.status]} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {perItem.length > 25 && (
+              <p className="mt-3 text-xs text-mute">Showing 25 of {perItem.length} sales.</p>
+            )}
+          </div>
+        )}
+      </section>
+
       {/* Payout history */}
       <section className="mt-6 rounded-2xl bg-white border border-ink/10 p-6">
         <h3 className="font-display text-lg text-navy">Payout history</h3>
@@ -210,13 +297,11 @@ function EarnPage() {
               <tbody>
                 {payouts.map((p) => (
                   <tr key={p.id} className="border-b border-ink/5 last:border-0">
-                    <td className="py-3 pr-4 text-navy">{new Date(p.paid_at).toLocaleDateString()}</td>
+                    <td className="py-3 pr-4 text-navy">{fmtDate(p.paid_at)}</td>
                     <td className="py-3 pr-4 font-medium text-navy">{fmt(p.amount_cents)}</td>
                     <td className="py-3 pr-4 text-mute">{p.method ?? "—"}</td>
                     <td className="py-3">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs font-medium">
-                        <CheckCircle2 size={12} /> Paid
-                      </span>
+                      <PayoutStatusBadge status="paid" title={STATUS_COPY.paid} />
                     </td>
                   </tr>
                 ))}
@@ -230,14 +315,27 @@ function EarnPage() {
         <h3 className="font-display text-lg text-navy">How payouts work</h3>
         <p className="mt-2 text-sm text-mute">
           AurumVault takes <strong className="text-navy">9%</strong> per sale. You keep <strong className="text-navy">91%</strong>.
-          Payouts are sent manually by our team after the 24-hour clearance window.
+          Payouts are processed every Friday after each sale clears our standard holding period.
+        </p>
+        <p className="mt-3 text-xs text-mute">
+          Have a question about your balance or a payout? Contact us at{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="text-navy underline">
+            {SUPPORT_EMAIL}
+          </a>{" "}
+          — we're happy to help.
         </p>
       </section>
     </PublisherShell>
   );
 }
 
-function PayoutStatusBadge({ status }: { status: "paid" | "ready" | "pending" | "none" }) {
+function PayoutStatusBadge({
+  status,
+  title,
+}: {
+  status: "paid" | "ready" | "pending" | "none";
+  title?: string;
+}) {
   const map = {
     ready: { bg: "bg-amber-50", fg: "text-amber-700", label: "Ready for Release" },
     pending: { bg: "bg-slate-50", fg: "text-slate-600", label: "Pending" },
@@ -245,7 +343,10 @@ function PayoutStatusBadge({ status }: { status: "paid" | "ready" | "pending" | 
     none: { bg: "bg-slate-50", fg: "text-slate-500", label: "No balance" },
   }[status];
   return (
-    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${map.bg} ${map.fg}`}>
+    <span
+      title={title}
+      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${map.bg} ${map.fg}`}
+    >
       {map.label}
     </span>
   );
