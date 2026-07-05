@@ -100,6 +100,8 @@ function AccountPage() {
   }, [removedIds]);
 
   const visibleDownloads = downloads.filter((d) => !removedIds.has(d.id));
+
+  return (
     <MarketShell>
       <div className="mx-auto max-w-4xl px-4 py-8 md:px-8">
         {/* Profile */}
