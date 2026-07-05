@@ -894,7 +894,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
       <p className="text-mute mt-1">
         {isEditing
           ? "Update any field and re-publish. Republishing sends the title back through AI review."
-          : "A KDP-style flow. AurumVault keeps 9%; you keep 91%."}
+          : "A KDP-style flow. AurumVault keeps 30%; you keep 70%."}
       </p>
       {loadingEdit && (
         <p className="mt-2 text-xs text-mute">Loading title…</p>

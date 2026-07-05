@@ -53,7 +53,7 @@ function AboutPage() {
           <Stat label="Creator royalty" value="70%" />
           <Stat label="AI-reviewed titles" value="100%" />
           <Stat label="Verified creators" value="Curated" />
-        </div>
+        </section>
       </main>
     </MarketShell>
   );

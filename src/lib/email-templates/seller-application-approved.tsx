@@ -25,7 +25,7 @@ const Email = ({ brandName = "Creator", siteUrl = "https://aurumvault.store" }: 
             catalog, and start earning on AurumVault.
           </Text>
           <Text style={styles.text}>
-            You keep <strong>91%</strong> of every sale. Payouts and analytics are available
+            You keep <strong>70%</strong> of every sale. Payouts and analytics are available
             from your seller dashboard.
           </Text>
           <div style={{ textAlign: "center", margin: "24px 0 8px" }}>

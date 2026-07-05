@@ -312,7 +312,7 @@ function BookshelfPage() {
         <div className="mt-8 rounded-2xl bg-white border border-ink/10 p-7">
           <h2 className="font-display text-xl text-navy">Become an AurumVault Creator</h2>
           <p className="mt-1 text-sm text-mute">
-            Apply once — get reviewed within 48 hours. We keep 9%, you keep 91%.
+            Apply once — get reviewed within 48 hours. We keep 30%, you keep 70%.
           </p>
           <Link
             to="/sell"

@@ -26,7 +26,7 @@ const Email = ({ brandName = "there", siteUrl = "https://aurumvault.store" }: Pr
           </Text>
           <Text style={styles.text}>
             Once approved, you'll be able to upload products, set pricing, and start selling.
-            You keep <strong>91%</strong> of every sale; AurumVault retains a 9% platform fee.
+            You keep <strong>70%</strong> of every sale; AurumVault retains a 30% platform fee.
           </Text>
           <div style={{ textAlign: "center", margin: "20px 0 8px" }}>
             <Button href={`${siteUrl}/dashboard`} style={styles.button}>Open your dashboard</Button>
