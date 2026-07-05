@@ -30,14 +30,19 @@ function pad(n: number) {
   return n.toString().padStart(2, "0");
 }
 
+function pctDiscount(p: Product) {
+  if (!p.compareAtPrice || p.compareAtPrice <= p.price) return null;
+  return Math.round(((p.compareAtPrice - p.price) / p.compareAtPrice) * 100);
+}
+
 export function DealsStrip({ products }: { products: Product[] }) {
   const [target] = useState(() => endOfDayMs());
   const { h, m, s, ready } = useCountdown(target);
 
-  const deals = products.slice(0, 4).map((p) => ({
-    ...p,
-    dealPrice: Math.max(7, Math.round(p.price * 0.7 * 100) / 100),
-  }));
+  const deals = products
+    .map((p) => ({ product: p, discount: pctDiscount(p) }))
+    .filter((d): d is { product: Product; discount: number } => d.discount !== null)
+    .slice(0, 4);
 
   if (!deals.length) return null;
 
