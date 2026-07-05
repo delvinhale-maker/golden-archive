@@ -407,7 +407,9 @@ function StorefrontPage() {
           <div className="flex gap-2">
             <button
               onClick={toggleFollow}
-              className={`px-5 py-2.5 rounded-lg font-medium text-sm transition ${
+              disabled={busy}
+              aria-pressed={following}
+              className={`px-5 py-2.5 rounded-lg font-medium text-sm transition disabled:opacity-60 disabled:cursor-not-allowed ${
                 following
                   ? "bg-white border border-gold/40 text-navy hover:bg-gold/5"
                   : "bg-gradient-to-r from-gold to-[#c99a3b] text-navy hover:brightness-105 shadow"
