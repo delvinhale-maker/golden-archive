@@ -40,8 +40,8 @@ import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AuthenticatedReferRouteImport } from './routes/_authenticated/refer'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
 import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authenticated/dashboard.new'
@@ -219,17 +219,17 @@ const AuthenticatedReferRoute = AuthenticatedReferRouteImport.update({
   path: '/refer',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedDashboardIndexRoute =
   AuthenticatedDashboardIndexRouteImport.update({
     id: '/dashboard/',
     path: '/dashboard/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
@@ -266,33 +266,33 @@ const AuthenticatedDashboardEarnRoute =
   } as any)
 const AuthenticatedAdminProductsRoute =
   AuthenticatedAdminProductsRouteImport.update({
-    id: '/products',
-    path: '/products',
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: '/admin/products',
+    path: '/admin/products',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminPayoutsRoute =
   AuthenticatedAdminPayoutsRouteImport.update({
-    id: '/payouts',
-    path: '/payouts',
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: '/admin/payouts',
+    path: '/admin/payouts',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminMessagesRoute =
   AuthenticatedAdminMessagesRouteImport.update({
-    id: '/messages',
-    path: '/messages',
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: '/admin/messages',
+    path: '/admin/messages',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminErrorsRoute =
   AuthenticatedAdminErrorsRouteImport.update({
-    id: '/errors',
-    path: '/errors',
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: '/admin/errors',
+    path: '/admin/errors',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminAutoReleaseRoute =
   AuthenticatedAdminAutoReleaseRouteImport.update({
-    id: '/auto-release',
-    path: '/auto-release',
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: '/admin/auto-release',
+    path: '/admin/auto-release',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
@@ -350,9 +350,9 @@ const AuthenticatedDashboardEditIdRoute =
   } as any)
 const AuthenticatedAdminHealthCoversRoute =
   AuthenticatedAdminHealthCoversRouteImport.update({
-    id: '/health/covers',
-    path: '/health/covers',
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: '/admin/health/covers',
+    path: '/admin/health/covers',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminHealthCoversAlertsRoute =
   AuthenticatedAdminHealthCoversAlertsRouteImport.update({
@@ -385,7 +385,6 @@ export interface FileRoutesByFullPath {
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/refer': typeof AuthenticatedReferRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -404,6 +403,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
@@ -440,7 +440,6 @@ export interface FileRoutesByTo {
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/refer': typeof AuthenticatedReferRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -459,6 +458,7 @@ export interface FileRoutesByTo {
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
@@ -498,7 +498,6 @@ export interface FileRoutesById {
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/refer': typeof AuthenticatedReferRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -517,6 +516,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/_authenticated/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
@@ -556,7 +556,6 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/vault'
     | '/wishlist'
-    | '/admin'
     | '/refer'
     | '/checkout/return'
     | '/download/$token'
@@ -575,6 +574,7 @@ export interface FileRouteTypes {
     | '/dashboard/new'
     | '/api/public/contact'
     | '/lovable/email/suppression'
+    | '/admin/'
     | '/dashboard/'
     | '/admin/health/covers'
     | '/dashboard/edit/$id'
@@ -611,7 +611,6 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/vault'
     | '/wishlist'
-    | '/admin'
     | '/refer'
     | '/checkout/return'
     | '/download/$token'
@@ -630,6 +629,7 @@ export interface FileRouteTypes {
     | '/dashboard/new'
     | '/api/public/contact'
     | '/lovable/email/suppression'
+    | '/admin'
     | '/dashboard'
     | '/admin/health/covers'
     | '/dashboard/edit/$id'
@@ -668,7 +668,6 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/vault'
     | '/wishlist'
-    | '/_authenticated/admin'
     | '/_authenticated/refer'
     | '/checkout/return'
     | '/download/$token'
@@ -687,6 +686,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/new'
     | '/api/public/contact'
     | '/lovable/email/suppression'
+    | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/admin/health/covers'
     | '/_authenticated/dashboard/edit/$id'
@@ -961,18 +961,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReferRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/dashboard/': {
       id: '/_authenticated/dashboard/'
       path: '/dashboard'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/lovable/email/suppression': {
@@ -1019,38 +1019,38 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/admin/products': {
       id: '/_authenticated/admin/products'
-      path: '/products'
+      path: '/admin/products'
       fullPath: '/admin/products'
       preLoaderRoute: typeof AuthenticatedAdminProductsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/payouts': {
       id: '/_authenticated/admin/payouts'
-      path: '/payouts'
+      path: '/admin/payouts'
       fullPath: '/admin/payouts'
       preLoaderRoute: typeof AuthenticatedAdminPayoutsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/messages': {
       id: '/_authenticated/admin/messages'
-      path: '/messages'
+      path: '/admin/messages'
       fullPath: '/admin/messages'
       preLoaderRoute: typeof AuthenticatedAdminMessagesRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/errors': {
       id: '/_authenticated/admin/errors'
-      path: '/errors'
+      path: '/admin/errors'
       fullPath: '/admin/errors'
       preLoaderRoute: typeof AuthenticatedAdminErrorsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/auto-release': {
       id: '/_authenticated/admin/auto-release'
-      path: '/auto-release'
+      path: '/admin/auto-release'
       fullPath: '/admin/auto-release'
       preLoaderRoute: typeof AuthenticatedAdminAutoReleaseRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
@@ -1117,10 +1117,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/admin/health/covers': {
       id: '/_authenticated/admin/health/covers'
-      path: '/health/covers'
+      path: '/admin/health/covers'
       fullPath: '/admin/health/covers'
       preLoaderRoute: typeof AuthenticatedAdminHealthCoversRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/health/covers/alerts': {
       id: '/_authenticated/admin/health/covers/alerts'
@@ -1147,48 +1147,39 @@ const AuthenticatedAdminHealthCoversRouteWithChildren =
     AuthenticatedAdminHealthCoversRouteChildren,
   )
 
-interface AuthenticatedAdminRouteChildren {
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedReferRoute: typeof AuthenticatedReferRoute
   AuthenticatedAdminAutoReleaseRoute: typeof AuthenticatedAdminAutoReleaseRoute
   AuthenticatedAdminErrorsRoute: typeof AuthenticatedAdminErrorsRoute
   AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
   AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
   AuthenticatedAdminProductsRoute: typeof AuthenticatedAdminProductsRoute
+  AuthenticatedDashboardEarnRoute: typeof AuthenticatedDashboardEarnRoute
+  AuthenticatedDashboardHelpRoute: typeof AuthenticatedDashboardHelpRoute
+  AuthenticatedDashboardKingdomPicksRoute: typeof AuthenticatedDashboardKingdomPicksRoute
+  AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedAdminHealthCoversRoute: typeof AuthenticatedAdminHealthCoversRouteWithChildren
+  AuthenticatedDashboardEditIdRoute: typeof AuthenticatedDashboardEditIdRoute
 }
 
-const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedReferRoute: AuthenticatedReferRoute,
   AuthenticatedAdminAutoReleaseRoute: AuthenticatedAdminAutoReleaseRoute,
   AuthenticatedAdminErrorsRoute: AuthenticatedAdminErrorsRoute,
   AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
   AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
   AuthenticatedAdminProductsRoute: AuthenticatedAdminProductsRoute,
-  AuthenticatedAdminHealthCoversRoute:
-    AuthenticatedAdminHealthCoversRouteWithChildren,
-}
-
-const AuthenticatedAdminRouteWithChildren =
-  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
-
-interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
-  AuthenticatedReferRoute: typeof AuthenticatedReferRoute
-  AuthenticatedDashboardEarnRoute: typeof AuthenticatedDashboardEarnRoute
-  AuthenticatedDashboardHelpRoute: typeof AuthenticatedDashboardHelpRoute
-  AuthenticatedDashboardKingdomPicksRoute: typeof AuthenticatedDashboardKingdomPicksRoute
-  AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
-  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
-  AuthenticatedDashboardEditIdRoute: typeof AuthenticatedDashboardEditIdRoute
-}
-
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
-  AuthenticatedReferRoute: AuthenticatedReferRoute,
   AuthenticatedDashboardEarnRoute: AuthenticatedDashboardEarnRoute,
   AuthenticatedDashboardHelpRoute: AuthenticatedDashboardHelpRoute,
   AuthenticatedDashboardKingdomPicksRoute:
     AuthenticatedDashboardKingdomPicksRoute,
   AuthenticatedDashboardNewRoute: AuthenticatedDashboardNewRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+  AuthenticatedAdminHealthCoversRoute:
+    AuthenticatedAdminHealthCoversRouteWithChildren,
   AuthenticatedDashboardEditIdRoute: AuthenticatedDashboardEditIdRoute,
 }
 

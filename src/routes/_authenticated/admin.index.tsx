@@ -12,7 +12,7 @@ import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { runSlugIntegrityCheck, listSlugIntegrityAlerts } from "@/lib/slug-integrity.functions";
 
-export const Route = createFileRoute("/_authenticated/admin")({
+export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminPage,
 });
 
