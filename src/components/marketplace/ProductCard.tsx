@@ -78,14 +78,10 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
       </Link>
 
       <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="text-[11px] font-semibold uppercase tracking-caps text-gold">
-            {product.category}
-          </div>
-          <AIReviewBadge status={product.aiReviewStatus} variant="storefront" />
+        <div className="text-[11px] font-semibold uppercase tracking-caps text-gold">
+          {product.category}
         </div>
         <Link
-
           to="/products/$id"
           params={{ id: product.id }}
           className="mt-1 line-clamp-2 min-h-[2.6em] break-words font-display text-[15px] font-bold leading-snug text-ink hover:text-navy"
@@ -95,15 +91,14 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[12px] text-mute">
           <span>{product.creator.name}</span>
           {product.creator.verified && (
-            <span
-              title="Verified creator"
+            <BadgeCheck
+              size={14}
+              className="text-gold shrink-0"
               aria-label="Verified creator"
-              className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold"
-            >
-              <BadgeCheck size={11} className="text-gold" /> Verified
-            </span>
+            />
           )}
         </div>
+
         {product.reviewCount > 0 ? (
           <div
             className="mt-2 flex items-center gap-1.5 text-[12px] text-mute"
