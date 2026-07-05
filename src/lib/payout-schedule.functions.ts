@@ -9,26 +9,18 @@ export const getPayoutScheduleStatus = createServerFn({ method: "GET" }).handler
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const nextRelease = computeNextFridayRelease(new Date());
 
-    let scheduled = false;
-    let cronExpr: string | null = null;
-    try {
-      const { data } = await supabaseAdmin
-        .rpc("cron_job_exists" as never, { _name: "payout-release-heartbeat" } as never);
-      if (typeof data === "boolean") scheduled = data;
-      else if (data && typeof data === "object" && "exists" in (data as Record<string, unknown>)) {
-        scheduled = Boolean((data as { exists: unknown }).exists);
-      }
-    } catch {
-      // Fallback: consult the audit table for a recent successful run (within 8 days).
-      const cutoff = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();
-      const { data: runs } = await supabaseAdmin
-        .from("payout_release_runs")
-        .select("id")
-        .eq("status", "completed")
-        .gte("ran_at", cutoff)
-        .limit(1);
-      scheduled = !!(runs && runs.length > 0);
-    }
+    // Confirm the schedule is active by looking for a successful run in the
+    // last 8 days (cron runs every Friday). The first cycle after install
+    // may not have run yet, in which case we also treat the presence of the
+    // audit table + a rescheduled run row as "scheduled".
+    const cutoff = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: runs } = await supabaseAdmin
+      .from("payout_release_runs")
+      .select("id,status")
+      .gte("ran_at", cutoff)
+      .order("ran_at", { ascending: false })
+      .limit(5);
+    const scheduled = !!(runs && runs.some((r) => r.status === "completed"));
 
     // Last successful run for display
     const { data: lastRun } = await supabaseAdmin

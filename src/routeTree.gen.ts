@@ -58,6 +58,7 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicSubscribersSubscribeRouteImport } from './routes/api/public/subscribers/subscribe'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicHooksPayoutReleaseHeartbeatRouteImport } from './routes/api/public/hooks/payout-release-heartbeat'
 import { Route as ApiPublicHooksAutoReleaseReviewsRouteImport } from './routes/api/public/hooks/auto-release-reviews'
 import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/public/hooks/audit-covers'
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
@@ -324,6 +325,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPayoutReleaseHeartbeatRoute =
+  ApiPublicHooksPayoutReleaseHeartbeatRouteImport.update({
+    id: '/api/public/hooks/payout-release-heartbeat',
+    path: '/api/public/hooks/payout-release-heartbeat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksAutoReleaseReviewsRoute =
   ApiPublicHooksAutoReleaseReviewsRouteImport.update({
     id: '/api/public/hooks/auto-release-reviews',
@@ -410,6 +417,7 @@ export interface FileRoutesByFullPath {
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
+  '/api/public/hooks/payout-release-heartbeat': typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -465,6 +473,7 @@ export interface FileRoutesByTo {
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
+  '/api/public/hooks/payout-release-heartbeat': typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -523,6 +532,7 @@ export interface FileRoutesById {
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
+  '/api/public/hooks/payout-release-heartbeat': typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -581,6 +591,7 @@ export interface FileRouteTypes {
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
+    | '/api/public/hooks/payout-release-heartbeat'
     | '/api/public/payments/webhook'
     | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
@@ -636,6 +647,7 @@ export interface FileRouteTypes {
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
+    | '/api/public/hooks/payout-release-heartbeat'
     | '/api/public/payments/webhook'
     | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
@@ -693,6 +705,7 @@ export interface FileRouteTypes {
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
+    | '/api/public/hooks/payout-release-heartbeat'
     | '/api/public/payments/webhook'
     | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
@@ -735,6 +748,7 @@ export interface RootRouteChildren {
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
   ApiPublicHooksAuditCoversRoute: typeof ApiPublicHooksAuditCoversRoute
   ApiPublicHooksAutoReleaseReviewsRoute: typeof ApiPublicHooksAutoReleaseReviewsRoute
+  ApiPublicHooksPayoutReleaseHeartbeatRoute: typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicSubscribersSubscribeRoute: typeof ApiPublicSubscribersSubscribeRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -1087,6 +1101,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/payout-release-heartbeat': {
+      id: '/api/public/hooks/payout-release-heartbeat'
+      path: '/api/public/hooks/payout-release-heartbeat'
+      fullPath: '/api/public/hooks/payout-release-heartbeat'
+      preLoaderRoute: typeof ApiPublicHooksPayoutReleaseHeartbeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/auto-release-reviews': {
       id: '/api/public/hooks/auto-release-reviews'
       path: '/api/public/hooks/auto-release-reviews'
@@ -1234,6 +1255,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
   ApiPublicHooksAuditCoversRoute: ApiPublicHooksAuditCoversRoute,
   ApiPublicHooksAutoReleaseReviewsRoute: ApiPublicHooksAutoReleaseReviewsRoute,
+  ApiPublicHooksPayoutReleaseHeartbeatRoute:
+    ApiPublicHooksPayoutReleaseHeartbeatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicSubscribersSubscribeRoute: ApiPublicSubscribersSubscribeRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
