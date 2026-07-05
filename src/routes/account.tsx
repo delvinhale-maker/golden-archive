@@ -86,8 +86,20 @@ function AccountPage() {
     (o.items ?? []).map((it) => ({ ...it, orderId: o.id })),
   );
 
+  const [removedIds, setRemovedIds] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem("av-removed-downloads");
+      return raw ? new Set(JSON.parse(raw)) : new Set<string>();
+    } catch {
+      return new Set<string>();
+    }
+  });
 
-  return (
+  useEffect(() => {
+    localStorage.setItem("av-removed-downloads", JSON.stringify(Array.from(removedIds)));
+  }, [removedIds]);
+
+  const visibleDownloads = downloads.filter((d) => !removedIds.has(d.id));
     <MarketShell>
       <div className="mx-auto max-w-4xl px-4 py-8 md:px-8">
         {/* Profile */}
