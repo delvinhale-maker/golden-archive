@@ -82,6 +82,16 @@ function LibraryPage() {
   const [sort, setSort] = useState<SortKey>("recent");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const dl = useServerFn(getDownloadInfo);
+  const errorToastedRef = useRef(false);
+
+  useEffect(() => {
+    if (ordersQ.isError && !errorToastedRef.current) {
+      errorToastedRef.current = true;
+      const msg = ordersQ.error instanceof Error ? ordersQ.error.message : "Couldn't load your library";
+      toast.error(msg);
+    }
+    if (!ordersQ.isError) errorToastedRef.current = false;
+  }, [ordersQ.isError, ordersQ.error]);
 
   const items = useMemo<LibraryItem[]>(() => {
     const orders = ordersQ.data ?? [];
