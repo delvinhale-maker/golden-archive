@@ -496,6 +496,7 @@ function AiStudioPage() {
 
     setLoading(true);
     setOutput("");
+    setOutputStatus("streaming");
     clearDraft();
     let accumulated = "";
     let sawAnyChunk = false;
@@ -538,7 +539,6 @@ function AiStudioPage() {
           accumulated += chunk;
           sawAnyChunk = true;
           setOutput(accumulated);
-          // Throttle draft writes so we don't hammer localStorage.
           const now = Date.now();
           if (now - lastPersist > 400) {
             lastPersist = now;
@@ -553,11 +553,14 @@ function AiStudioPage() {
         }
       }
 
+      // Stream finished. Leave as unsaved draft until the user explicitly
+      // saves or finalizes — auto-persist as a safety net only.
+      setOutputStatus("draft");
       persistDraft({
         category: category.name,
         tool: tool.name,
         text: accumulated,
-        status: "complete",
+        status: "draft",
         updatedAt: Date.now(),
       });
 
@@ -567,6 +570,7 @@ function AiStudioPage() {
     } catch (e) {
       if ((e as { name?: string })?.name === "AbortError") {
         if (sawAnyChunk) {
+          setOutputStatus("interrupted");
           persistDraft({
             category: category.name,
             tool: tool.name,
@@ -574,10 +578,13 @@ function AiStudioPage() {
             status: "interrupted",
             updatedAt: Date.now(),
           });
+        } else {
+          setOutputStatus("idle");
         }
         return;
       }
       if (sawAnyChunk) {
+        setOutputStatus("interrupted");
         persistDraft({
           category: category.name,
           tool: tool.name,
@@ -589,6 +596,7 @@ function AiStudioPage() {
           `${e instanceof Error ? e.message : "Generation failed."} Partial draft kept.`,
         );
       } else {
+        setOutputStatus("idle");
         const msg = e instanceof Error ? e.message : "Generation failed.";
         toast.error(msg);
       }
