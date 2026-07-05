@@ -107,54 +107,54 @@ function AccountPage() {
           </div>
         </section>
 
-      {/* My Library */}
-      <section className="mt-8">
-        <h2 className="font-display text-xl font-bold text-ink">My Library</h2>
-        <div className="mt-3 rounded-2xl border border-line bg-white p-5">
-          {ordersQ.isLoading ? (
-            <div className="flex items-center gap-3">
-              <Loader2 size={18} className="animate-spin text-gold" />
-              <span className="text-sm text-mute">Loading your library…</span>
-            </div>
-          ) : ordersQ.isError ? (
-            <p className="text-sm text-red-700">
-              We couldn't load your library.{" "}
-              <button
-                type="button"
-                onClick={() => ordersQ.refetch()}
-                className="underline"
-              >
-                Try again
-              </button>
-            </p>
-          ) : downloads.length === 0 ? (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-mute">
-                Your library is empty — browse the Vault
+        {/* My Library */}
+        <section className="mt-8">
+          <h2 className="font-display text-xl font-bold text-ink">My Library</h2>
+          <div className="mt-3 rounded-2xl border border-line bg-white p-5">
+            {ordersQ.isLoading ? (
+              <div className="flex items-center gap-3">
+                <Loader2 size={18} className="animate-spin text-gold" />
+                <span className="text-sm text-mute">Loading your library…</span>
+              </div>
+            ) : ordersQ.isError ? (
+              <p className="text-sm text-red-700">
+                We couldn't load your library.{" "}
+                <button
+                  type="button"
+                  onClick={() => ordersQ.refetch()}
+                  className="underline"
+                >
+                  Try again
+                </button>
               </p>
-              <Link
-                to="/products"
-                className="inline-flex items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-sm font-bold text-navy"
-              >
-                Browse the Vault →
-              </Link>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="font-semibold text-ink">
-                You own {downloads.length} Kingdom resource
-                {downloads.length === 1 ? "" : "s"}
-              </p>
-              <Link
-                to="/library"
-                className="inline-flex items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-sm font-bold text-navy"
-              >
-                Open Library →
-              </Link>
-            </div>
-          )}
-        </div>
-      </section>
+            ) : downloads.length === 0 ? (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-mute">
+                  Your library is empty — browse the Vault
+                </p>
+                <Link
+                  to="/products"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-sm font-bold text-navy"
+                >
+                  Browse the Vault →
+                </Link>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="font-semibold text-ink">
+                  You own {downloads.length} Kingdom resource
+                  {downloads.length === 1 ? "" : "s"}
+                </p>
+                <Link
+                  to="/library"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-sm font-bold text-navy"
+                >
+                  Open Library →
+                </Link>
+              </div>
+            )}
+          </div>
+        </section>
 
       {(isAdmin || isSeller) && (
         <Link
