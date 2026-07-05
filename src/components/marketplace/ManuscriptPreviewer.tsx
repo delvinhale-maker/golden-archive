@@ -51,9 +51,13 @@ export interface ManuscriptPreviewerProps {
   coverUrl: string | null;
   onClose: () => void;
   readerMode?: boolean;
+  /** Cap the number of content pages (excluding cover) that can be viewed. */
+  maxPages?: number;
 }
 
-export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, readerMode }: ManuscriptPreviewerProps) {
+export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, readerMode, maxPages }: ManuscriptPreviewerProps) {
+  const capContentPages = (n: number) =>
+    typeof maxPages === "number" && maxPages > 0 ? Math.min(n, maxPages) : n;
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [pdf, setPdf] = useState<any>(null);
   const [pageCount, setPageCount] = useState(1); // includes cover as location 1
