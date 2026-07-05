@@ -36,6 +36,7 @@ async function resolveRedirectForSession(savedRedirect?: string | null): Promise
 
 const authSearchSchema = z.object({
   redirect: z.string().optional(),
+  message: z.string().max(200).optional(),
 });
 
 export const Route = createFileRoute("/auth")({
