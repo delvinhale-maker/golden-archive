@@ -66,24 +66,24 @@ export const Route = createFileRoute("/")({
 
   head: () => ({
     meta: [
-      { title: "AurumVault — Gold Standard Digital Commerce" },
+      { title: "AurumVault — Premium Digital Resources. Delivered Instantly." },
       {
         name: "description",
         content:
-          "Discover premium eBooks, courses, templates, and digital resources from verified purpose-driven creators on AurumVault.",
+          "Premium digital resources for builders, leaders, and visionaries. Curated eBooks, courses, templates, and tools — verified and instant.",
       },
-      { property: "og:title", content: "AurumVault — Gold Standard Digital Commerce" },
+      { property: "og:title", content: "AurumVault — Premium Digital Resources. Delivered Instantly." },
       {
         property: "og:description",
         content:
-          "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
+          "Premium digital marketplace for eBooks, courses, templates, and audio. Curated. Verified. Instant.",
       },
       { property: "og:url", content: "https://www.aurumvault.store/" },
-      { name: "twitter:title", content: "AurumVault — Gold Standard Digital Commerce" },
+      { name: "twitter:title", content: "AurumVault — Premium Digital Resources. Delivered Instantly." },
       {
         name: "twitter:description",
         content:
-          "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
+          "Premium digital marketplace for eBooks, courses, templates, and audio. Curated. Verified. Instant.",
       },
     ],
     links: [{ rel: "canonical", href: "https://www.aurumvault.store/" }],
@@ -98,7 +98,7 @@ export const Route = createFileRoute("/")({
           url: "https://www.aurumvault.store",
           logo: "https://www.aurumvault.store/og-image.png",
           description:
-            "AurumVault is the gold-standard marketplace for purpose-driven digital products — curated from verified creators.",
+            "AurumVault is a premium digital marketplace — curated resources delivered instantly.",
           sameAs: [],
         }),
       },
