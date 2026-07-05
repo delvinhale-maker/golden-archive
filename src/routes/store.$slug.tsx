@@ -221,13 +221,13 @@ function StorefrontPage() {
             {data.products.map((p) => (
               <Link
                 key={p.id}
-                to="/p/$slug"
-                params={{ slug: p.slug ?? p.id }}
+                to="/products/$id"
+                params={{ id: p.id }}
                 className="group bg-white border border-ink/10 rounded-2xl overflow-hidden hover:shadow-lg hover:border-gold/40 transition"
               >
                 <div
                   className="aspect-[3/4] bg-gradient-to-br from-navy to-[#22335A] bg-cover bg-center"
-                  style={p.cover_url ? { backgroundImage: `url(${p.cover_url})` } : {}}
+                  style={p.cover_url ? { backgroundImage: `url(${p.cover_url})` } : undefined}
                 />
                 <div className="p-3">
                   <p className="text-[10px] uppercase tracking-wider text-mute">{p.category}</p>
