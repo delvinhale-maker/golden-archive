@@ -949,3 +949,19 @@ function AiStudioPage() {
     </PublisherShell>
   );
 }
+
+function StatusPill({ status }: { status: OutputStatus }) {
+  if (status === "idle") return null;
+  const map: Record<Exclude<OutputStatus, "idle">, { label: string; cls: string }> = {
+    streaming: { label: "Streaming…", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+    draft: { label: "Unsaved draft", cls: "bg-slate-50 text-slate-700 border-slate-200" },
+    interrupted: { label: "Interrupted", cls: "bg-rose-50 text-rose-700 border-rose-200" },
+    final: { label: "Final", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  };
+  const s = map[status];
+  return (
+    <span className={`text-[11px] uppercase tracking-wide font-semibold border rounded-full px-2 py-0.5 ${s.cls}`}>
+      {s.label}
+    </span>
+  );
+}
