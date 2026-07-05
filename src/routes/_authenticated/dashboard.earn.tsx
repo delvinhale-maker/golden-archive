@@ -44,6 +44,28 @@ function fmtDate(iso: string | Date) {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+type TzMode = "local" | "eastern" | "utc";
+const TZ_STORAGE_KEY = "aurumvault.payoutTzDisplay";
+const TZ_OPTIONS: { value: TzMode; label: string; zone: string | undefined }[] = [
+  { value: "local", label: "Local time", zone: undefined },
+  { value: "eastern", label: "US Eastern", zone: "America/New_York" },
+  { value: "utc", label: "UTC", zone: "UTC" },
+];
+
+function fmtDateTimeTz(d: Date, mode: TzMode) {
+  const opt = TZ_OPTIONS.find((o) => o.value === mode) ?? TZ_OPTIONS[0];
+  const parts: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: opt.zone,
+    timeZoneName: "short",
+  };
+  return d.toLocaleString(undefined, parts);
+}
+
 function useCountdown(target: Date | null) {
   const [remaining, setRemaining] = useState(() => (target ? target.getTime() - Date.now() : null));
 
