@@ -30,14 +30,19 @@ function pad(n: number) {
   return n.toString().padStart(2, "0");
 }
 
+function pctDiscount(p: Product) {
+  if (!p.compareAtPrice || p.compareAtPrice <= p.price) return null;
+  return Math.round(((p.compareAtPrice - p.price) / p.compareAtPrice) * 100);
+}
+
 export function DealsStrip({ products }: { products: Product[] }) {
   const [target] = useState(() => endOfDayMs());
   const { h, m, s, ready } = useCountdown(target);
 
-  const deals = products.slice(0, 4).map((p) => ({
-    ...p,
-    dealPrice: Math.max(7, Math.round(p.price * 0.7 * 100) / 100),
-  }));
+  const deals = products
+    .map((p) => ({ product: p, discount: pctDiscount(p) }))
+    .filter((d): d is { product: Product; discount: number } => d.discount !== null)
+    .slice(0, 4);
 
   if (!deals.length) return null;
 
@@ -67,9 +72,9 @@ export function DealsStrip({ products }: { products: Product[] }) {
         </div>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">
-          {deals.map((d, i) => (
+          {deals.map(({ product, discount }, i) => (
             <motion.div
-              key={d.id}
+              key={product.id}
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -77,32 +82,32 @@ export function DealsStrip({ products }: { products: Product[] }) {
             >
               <Link
                 to="/products/$id"
-                params={{ id: d.id }}
+                params={{ id: product.id }}
                 className="av-card group block overflow-hidden border border-transparent transition hover:-translate-y-1 hover:border-gold hover:shadow-card-hover"
               >
                 <div className="relative aspect-[1.6/1] bg-[#f5f4ef]">
                   <ProductCover
-                    title={d.title}
-                    category={d.category}
+                    title={product.title}
+                    category={product.category}
                     className="h-full w-full object-cover"
                   />
                   <span className="absolute left-2 top-2 rounded-full bg-gold px-2 py-0.5 text-[10px] font-bold text-navy">
-                    -30%
+                    -{discount}%
                   </span>
                 </div>
                 <div className="p-4">
                   <div className="text-[10px] font-semibold tracking-caps text-gold">
-                    {d.category.toUpperCase()}
+                    {product.category.toUpperCase()}
                   </div>
                   <div className="mt-1 line-clamp-2 font-display text-sm font-bold text-ink">
-                    {d.title}
+                    {product.title}
                   </div>
                   <div className="mt-3 flex items-baseline gap-2">
                     <span className="font-display text-lg font-bold text-gold">
-                      ${d.dealPrice.toFixed(2)}
+                      ${product.price.toFixed(2)}
                     </span>
                     <span className="text-xs text-mute line-through">
-                      ${d.price.toFixed(2)}
+                      ${product.compareAtPrice?.toFixed(2)}
                     </span>
                   </div>
                 </div>
