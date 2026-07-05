@@ -85,7 +85,7 @@ export function EmailCaptureBanner() {
               className="rounded-full px-6 py-3 font-semibold text-[#0a1f44] shadow-lg transition hover:brightness-105 disabled:opacity-60"
               style={{ backgroundColor: "var(--accent-color)" }}
             >
-              {busy ? "Joining…" : "Join the Vault"}
+              {busy ? "Joining…" : "Join the Vault →"}
             </button>
           </form>
         )}
