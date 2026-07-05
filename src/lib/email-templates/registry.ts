@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import { template as sellerApplicationReceived } from './seller-application-received'
 import { template as sellerApplicationApproved } from './seller-application-approved'
 import { template as sellerApplicationRejected } from './seller-application-rejected'
+import { template as sellerApplicationInfoRequested } from './seller-application-info-requested'
 import { template as orderDelivery } from './order-delivery'
 import { template as coverAuditAlert } from './cover-audit-alert'
 import { template as productReviewUpdate } from './product-review-update'
@@ -22,6 +23,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'seller-application-received': sellerApplicationReceived,
   'seller-application-approved': sellerApplicationApproved,
   'seller-application-rejected': sellerApplicationRejected,
+  'seller-application-info-requested': sellerApplicationInfoRequested,
   'order-delivery': orderDelivery,
   'cover-audit-alert': coverAuditAlert,
   'product-review-update': productReviewUpdate,

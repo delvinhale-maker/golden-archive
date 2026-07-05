@@ -36,6 +36,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm'
+import { Route as StoreSlugRouteImport } from './routes/store.$slug'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
@@ -199,6 +200,11 @@ const ProductsIndexRoute = ProductsIndexRouteImport.update({
 const SubscribeConfirmRoute = SubscribeConfirmRouteImport.update({
   id: '/subscribe/confirm',
   path: '/subscribe/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreSlugRoute = StoreSlugRouteImport.update({
+  id: '/store/$slug',
+  path: '/store/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsIdRoute = ProductsIdRouteImport.update({
@@ -404,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products/': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
@@ -461,6 +468,7 @@ export interface FileRoutesByTo {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
@@ -521,6 +529,7 @@ export interface FileRoutesById {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
@@ -581,6 +590,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/store/$slug'
     | '/subscribe/confirm'
     | '/products/'
     | '/admin/auto-release'
@@ -638,6 +648,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/store/$slug'
     | '/subscribe/confirm'
     | '/products'
     | '/admin/auto-release'
@@ -697,6 +708,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/store/$slug'
     | '/subscribe/confirm'
     | '/products/'
     | '/_authenticated/admin/auto-release'
@@ -755,6 +767,7 @@ export interface RootRouteChildren {
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  StoreSlugRoute: typeof StoreSlugRoute
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
@@ -958,6 +971,13 @@ declare module '@tanstack/react-router' {
       path: '/subscribe/confirm'
       fullPath: '/subscribe/confirm'
       preLoaderRoute: typeof SubscribeConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store/$slug': {
+      id: '/store/$slug'
+      path: '/store/$slug'
+      fullPath: '/store/$slug'
+      preLoaderRoute: typeof StoreSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products/$id': {
@@ -1270,6 +1290,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutReturnRoute: CheckoutReturnRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  StoreSlugRoute: StoreSlugRoute,
   SubscribeConfirmRoute: SubscribeConfirmRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,

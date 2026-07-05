@@ -6,10 +6,11 @@ import { styles } from "./_shared";
 interface Props {
   brandName?: string;
   reason?: string;
+  reapplyAfter?: string;
   siteUrl?: string;
 }
 
-const Email = ({ brandName = "there", reason, siteUrl = "https://aurumvault.store" }: Props) => (
+const Email = ({ brandName = "there", reason, reapplyAfter, siteUrl = "https://aurumvault.store" }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>Update on your AurumVault application</Preview>
@@ -31,10 +32,17 @@ const Email = ({ brandName = "there", reason, siteUrl = "https://aurumvault.stor
               <div style={styles.reasonBox}>{reason}</div>
             </>
           ) : null}
-          <Text style={styles.text}>
-            You're welcome to refine your submission and reapply. We review every reapplication
-            with fresh eyes.
-          </Text>
+          {reapplyAfter ? (
+            <Text style={styles.text}>
+              You're welcome to reapply on or after <strong>{reapplyAfter}</strong>. We review
+              every reapplication with fresh eyes.
+            </Text>
+          ) : (
+            <Text style={styles.text}>
+              You're welcome to refine your submission and reapply. We review every reapplication
+              with fresh eyes.
+            </Text>
+          )}
           <div style={{ textAlign: "center", margin: "20px 0 8px" }}>
             <Button href={`${siteUrl}/sell`} style={styles.button}>Reapply</Button>
           </div>
@@ -51,5 +59,5 @@ export const template = {
   component: Email,
   subject: "Update on your AurumVault application",
   displayName: "Seller application rejected",
-  previewData: { brandName: "Delvin", reason: "We need more detail about the products you plan to sell." },
+  previewData: { brandName: "Delvin", reason: "We need more detail about the products you plan to sell.", reapplyAfter: "August 5, 2026" },
 } satisfies TemplateEntry;

@@ -11,6 +11,7 @@ import { reviewProduct } from "@/lib/ai-review.functions";
 import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { runSlugIntegrityCheck, listSlugIntegrityAlerts } from "@/lib/slug-integrity.functions";
+import { CreatorApplicationsBoard } from "@/components/admin/CreatorApplicationsBoard";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminPage,
@@ -239,24 +240,7 @@ function AdminPage() {
             ))}
           </div>
         ) : (
-          apps.length === 0 ? <Empty msg="No seller applications pending." /> :
-          <div className="grid gap-4">
-            {apps.map((a) => (
-              <div key={a.id} className="bg-white border border-ink/10 rounded-2xl p-5">
-                <p className="font-display text-xl text-navy">{a.brand_name}</p>
-                {a.product_types && <p className="text-[12px] text-mute mt-1">Selling: {a.product_types}</p>}
-                <p className="text-sm text-ink/80 mt-3 whitespace-pre-wrap">{a.pitch}</p>
-                <div className="flex gap-2 mt-4">
-                  <button onClick={() => approveApp(a)} className="inline-flex items-center gap-1 text-sm rounded-full bg-emerald-600 text-white px-3 py-1.5 hover:bg-emerald-700">
-                    <CheckCircle2 size={14} /> Approve seller
-                  </button>
-                  <button onClick={() => rejectApp(a)} className="inline-flex items-center gap-1 text-sm rounded-full bg-red-600 text-white px-3 py-1.5 hover:bg-red-700">
-                    <XCircle size={14} /> Reject
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <CreatorApplicationsBoard />
         )}
       </main>
     </div>
