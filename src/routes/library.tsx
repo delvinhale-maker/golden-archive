@@ -184,9 +184,11 @@ function LibraryPage() {
         {/* Content */}
         <section className="mt-6">
           {ordersQ.isLoading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="animate-spin text-gold" />
-            </div>
+            <ul className="grid grid-cols-1 gap-4 md:grid-cols-2" aria-busy="true" aria-label="Loading library">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <LibraryCardSkeleton key={i} />
+              ))}
+            </ul>
           ) : ordersQ.isError ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-800">
               We couldn't load your library right now.{" "}
