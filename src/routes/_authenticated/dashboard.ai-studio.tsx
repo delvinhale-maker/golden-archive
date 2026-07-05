@@ -418,9 +418,52 @@ function AiStudioPage() {
     }
   }, []);
 
+  useEffect(() => {
+    try {
+      const rawF = localStorage.getItem(FAV_KEY);
+      if (rawF) setFavorites(JSON.parse(rawF));
+      const rawU = localStorage.getItem(USAGE_KEY);
+      if (rawU) {
+        const parsed = JSON.parse(rawU) as { month: string; count: number };
+        const current = new Date().toISOString().slice(0, 7);
+        if (parsed.month === current) setUsageCount(parsed.count);
+      }
+      const rawD = localStorage.getItem(DRAFT_KEY);
+      if (rawD) {
+        const draft = JSON.parse(rawD) as Draft;
+        if (draft?.text) {
+          setOutput(draft.text);
+          if (draft.status !== "complete") {
+            toast.info(
+              `Recovered ${draft.status === "interrupted" ? "interrupted" : "in-progress"} draft from ${draft.tool}.`,
+            );
+          }
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   function persistUsage(next: number) {
     const current = new Date().toISOString().slice(0, 7);
     localStorage.setItem(USAGE_KEY, JSON.stringify({ month: current, count: next }));
+  }
+
+  function persistDraft(draft: Draft) {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch {
+      /* ignore quota */
+    }
+  }
+
+  function clearDraft() {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* ignore */
+    }
   }
 
   function persistFavorites(next: FavoriteItem[]) {
