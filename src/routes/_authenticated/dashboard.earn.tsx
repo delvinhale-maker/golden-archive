@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
-import { DollarSign, ShoppingBag, Clock, CheckCircle2, TrendingUp, CalendarDays } from "lucide-react";
+import { DollarSign, ShoppingBag, Clock, CheckCircle2, TrendingUp, CalendarDays, Timer } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useServerFn } from "@tanstack/react-start";
 import { getPayoutScheduleStatus } from "@/lib/payout-schedule.functions";
