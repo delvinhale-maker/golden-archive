@@ -383,7 +383,7 @@ function AiStudioPage() {
   const [usageCount, setUsageCount] = useState(0);
   const [showFavorites, setShowFavorites] = useState(false);
 
-  const runGenerate = useServerFn(generateAiStudio);
+  const abortRef = useRef<AbortController | null>(null);
 
   const category = useMemo(
     () => CATEGORIES.find((c) => c.id === categoryId)!,
