@@ -897,8 +897,11 @@ function AiStudioPage() {
           {output && (
             <div className="rounded-xl border border-slate-200 bg-white p-5">
               <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
-                <h3 className="font-serif text-lg text-navy">Output</h3>
                 <div className="flex items-center gap-2">
+                  <h3 className="font-serif text-lg text-navy">Output</h3>
+                  <StatusPill status={outputStatus} />
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     onClick={copyToClipboard}
                     className="text-sm inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-3 py-1.5 hover:bg-slate-50"
@@ -906,10 +909,26 @@ function AiStudioPage() {
                     <Copy size={14} /> Copy
                   </button>
                   <button
+                    onClick={saveDraft}
+                    disabled={loading}
+                    className="text-sm inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-3 py-1.5 hover:bg-slate-50 disabled:opacity-60"
+                  >
+                    <Save size={14} /> Save draft
+                  </button>
+                  <button
+                    onClick={finalizeOutput}
+                    disabled={loading || outputStatus === "final"}
+                    className="text-sm inline-flex items-center gap-1.5 rounded-full bg-navy text-white px-3 py-1.5 hover:opacity-90 disabled:opacity-60"
+                  >
+                    <CheckCircle2 size={14} />
+                    {outputStatus === "final" ? "Finalized" : "Finalize"}
+                  </button>
+                  <button
                     onClick={saveFavorite}
                     className="text-sm inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-3 py-1.5 hover:bg-slate-50"
+                    title="Save to swipe file"
                   >
-                    <Star size={14} /> Save
+                    <Star size={14} /> Swipe
                   </button>
                   <button
                     onClick={handleGenerate}
