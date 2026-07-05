@@ -52,8 +52,8 @@ const step3Schema = z.object({
   youtube: z.string().trim().max(120).optional().or(z.literal("")),
 });
 const step4Schema = z.object({
-  agree: z.literal(true, { errorMap: () => ({ message: "You must accept the creator agreement" }) }),
-  tax: z.literal(true, { errorMap: () => ({ message: "Please acknowledge the tax notice" }) }),
+  agree: z.literal(true, { message: "You must accept the creator agreement" }),
+  tax: z.literal(true, { message: "Please acknowledge the tax notice" }),
 });
 
 function SellPage() {
