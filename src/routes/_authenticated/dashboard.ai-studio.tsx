@@ -488,6 +488,9 @@ function AiStudioPage() {
 
     setLoading(true);
     setOutput("");
+    clearDraft();
+    let accumulated = "";
+    let sawAnyChunk = false;
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
@@ -518,24 +521,69 @@ function AiStudioPage() {
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let accumulated = "";
+      let lastPersist = 0;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
         if (chunk) {
           accumulated += chunk;
+          sawAnyChunk = true;
           setOutput(accumulated);
+          // Throttle draft writes so we don't hammer localStorage.
+          const now = Date.now();
+          if (now - lastPersist > 400) {
+            lastPersist = now;
+            persistDraft({
+              category: category.name,
+              tool: tool.name,
+              text: accumulated,
+              status: "streaming",
+              updatedAt: now,
+            });
+          }
         }
       }
+
+      persistDraft({
+        category: category.name,
+        tool: tool.name,
+        text: accumulated,
+        status: "complete",
+        updatedAt: Date.now(),
+      });
 
       const next = usageCount + 1;
       setUsageCount(next);
       persistUsage(next);
     } catch (e) {
-      if ((e as { name?: string })?.name === "AbortError") return;
-      const msg = e instanceof Error ? e.message : "Generation failed.";
-      toast.error(msg);
+      if ((e as { name?: string })?.name === "AbortError") {
+        if (sawAnyChunk) {
+          persistDraft({
+            category: category.name,
+            tool: tool.name,
+            text: accumulated,
+            status: "interrupted",
+            updatedAt: Date.now(),
+          });
+        }
+        return;
+      }
+      if (sawAnyChunk) {
+        persistDraft({
+          category: category.name,
+          tool: tool.name,
+          text: accumulated,
+          status: "interrupted",
+          updatedAt: Date.now(),
+        });
+        toast.error(
+          `${e instanceof Error ? e.message : "Generation failed."} Partial draft kept.`,
+        );
+      } else {
+        const msg = e instanceof Error ? e.message : "Generation failed.";
+        toast.error(msg);
+      }
     } finally {
       if (abortRef.current === controller) abortRef.current = null;
       setLoading(false);
