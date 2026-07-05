@@ -115,7 +115,6 @@ function Home() {
       <Suspense fallback={null}>
         <DealsAndBestsellers />
       </Suspense>
-      <KingdomBibleAppBanner />
       <ContinueBrowsingRow />
 
       <Suspense fallback={null}>
@@ -134,10 +133,12 @@ function Home() {
         <IllustriousCreator />
       </HighlightsBoundary>
       <SocialsSection />
+      <KingdomBibleAppBanner />
       <EmailCaptureBanner />
     </MarketShell>
   );
 }
+
 
 
 function RefreshHighlightsBar() {
