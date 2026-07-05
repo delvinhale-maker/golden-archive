@@ -131,12 +131,14 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.45 }}
           >
-            <div
-              className="text-[11px] font-semibold tracking-caps"
-              style={{ color: "var(--accent-color)" }}
-            >
-              {slide.kicker}
-            </div>
+            {slide.kicker && (
+              <div
+                className="text-[11px] font-semibold tracking-caps"
+                style={{ color: "var(--accent-color)" }}
+              >
+                {slide.kicker}
+              </div>
+            )}
             <h1 className="mt-6 font-display text-4xl leading-[1.05] text-white sm:text-5xl md:text-6xl lg:text-[64px]">
               {slide.title}
             </h1>
