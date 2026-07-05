@@ -250,10 +250,11 @@ function AccountPage() {
                     )}
                     <button
                       type="button"
+                      disabled={isRemoving && confirmRemove?.id === d.id}
                       onClick={() =>
                         setConfirmRemove({ id: d.id, title: d.product_title })
                       }
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-mute hover:bg-muted hover:text-red-600"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-mute hover:bg-muted hover:text-red-600 disabled:opacity-50"
                       aria-label={`Remove ${d.product_title} from My Downloads`}
                       title="Remove from My Downloads"
                     >
