@@ -360,10 +360,25 @@ function AccountPage() {
                   if (!confirmRemove || isRemoving) return;
                   setIsRemoving(true);
                   await new Promise((resolve) => setTimeout(resolve, 300));
-                  setRemovedIds((prev) => new Set([...prev, confirmRemove.id]));
+                  const removedId = confirmRemove.id;
+                  const removedTitle = confirmRemove.title;
+                  setRemovedIds((prev) => new Set([...prev, removedId]));
                   setIsRemoving(false);
                   setConfirmRemove(null);
-                  toast.success(`"${confirmRemove.title}" removed from My Downloads`);
+                  toast.success(`"${removedTitle}" removed from My Downloads`, {
+                    duration: 10000,
+                    action: {
+                      label: "Undo",
+                      onClick: () => {
+                        setRemovedIds((prev) => {
+                          const next = new Set(prev);
+                          next.delete(removedId);
+                          return next;
+                        });
+                        toast.info(`"${removedTitle}" restored to My Downloads`);
+                      },
+                    },
+                  });
                 }}
                 className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-red-600 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60"
               >
