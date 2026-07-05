@@ -317,6 +317,52 @@ function AccountPage() {
           <LogOut size={16} /> Sign Out
         </button>
       </div>
+
+      {confirmRemove && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="remove-download-title"
+          onClick={() => setConfirmRemove(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              id="remove-download-title"
+              className="font-display text-lg font-bold text-ink"
+            >
+              Remove from My Downloads?
+            </h3>
+            <p className="mt-2 text-sm text-mute">
+              <span className="font-semibold text-ink">{confirmRemove.title}</span>{" "}
+              will be removed from this list. You'll still own it and can access it
+              anytime from your Library.
+            </p>
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmRemove(null)}
+                className="flex-1 rounded-full border border-line py-2.5 text-sm font-semibold text-ink hover:bg-muted"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRemovedIds((prev) => new Set([...prev, confirmRemove.id]));
+                  setConfirmRemove(null);
+                }}
+                className="flex-1 rounded-full bg-red-600 py-2.5 text-sm font-bold text-white hover:bg-red-700"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </MarketShell>
   );
 }
