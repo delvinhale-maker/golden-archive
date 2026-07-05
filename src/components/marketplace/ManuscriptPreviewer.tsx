@@ -448,7 +448,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     setDocxPageOffsets(offsets);
     setDocxPageHeights(heights);
     setDocxPageCount(offsets.length);
-    setPageCount(offsets.length + 1);
+    setPageCount(capContentPages(offsets.length) + 1);
   }, [pageAreaH]);
 
 
