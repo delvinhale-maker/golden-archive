@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { useOwnsProduct } from "@/hooks/use-owned-products";
 import { ProductCover } from "@/components/marketplace/ProductCover";
+import { categoryDisplay } from "@/lib/product-types";
 
 import type { Product } from "@/lib/marketplace.functions";
 
@@ -80,9 +81,17 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
       </Link>
 
       <div className="flex flex-1 flex-col p-4">
-        <div className="text-[11px] font-semibold uppercase tracking-caps text-gold">
-          {product.category}
-        </div>
+        {(() => {
+          const d = categoryDisplay(product.category);
+          return (
+            <div
+              className="text-[11px] font-semibold uppercase tracking-caps"
+              style={{ color: d.accent }}
+            >
+              {d.label}
+            </div>
+          );
+        })()}
         <Link
           to="/products/$id"
           params={{ id: product.id }}

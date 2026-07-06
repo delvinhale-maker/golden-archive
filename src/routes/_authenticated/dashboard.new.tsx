@@ -16,6 +16,7 @@ import { isListPriceValid } from "@/lib/publish-validation";
 import { PublishSuccessScreen as SuccessScreen } from "@/components/marketplace/PublishSuccessScreen";
 import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
 import { useTheme } from "@/lib/theme/ThemeProvider";
+import { getProductType, categoryDisplay, type ProductTypeKey } from "@/lib/product-types";
 
 const PUBLISH_STEP_ACCENTS: Record<1 | 2 | 3 | 4, string> = {
   1: "#1A6B3A", // Emerald
@@ -33,23 +34,36 @@ const DESC_WARN = 1800;
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
   validateSearch: (s: Record<string, unknown>) => ({
     id: typeof s.id === "string" ? s.id : undefined,
+    type: typeof s.type === "string" ? (s.type as ProductTypeKey) : undefined,
   }),
   component: PublishFlowRoute,
 });
 
 function PublishFlowRoute() {
-  const { id } = Route.useSearch();
-  return <PublishFlow editingId={id} />;
+  const { id, type } = Route.useSearch();
+  return <PublishFlow editingId={id} productTypeKey={type} />;
 }
 
-export function PublishFlow({ editingId: editingIdProp }: { editingId?: string } = {}) {
-  return <PublishFlowImpl editingId={editingIdProp} />;
+export function PublishFlow({ editingId: editingIdProp, productTypeKey }: { editingId?: string; productTypeKey?: ProductTypeKey } = {}) {
+  return <PublishFlowImpl editingId={editingIdProp} productTypeKey={productTypeKey} />;
 }
 
 
 
-const CATEGORIES: { label: string; value: "ebooks" | "finance" | "leadership" | "purpose" | "business" }[] = [
+const CATEGORIES: { label: string; value: import("@/lib/product-types").ProductCategoryEnum }[] = [
   { label: "eBooks", value: "ebooks" },
+  { label: "Financial Planners", value: "financial_planners" },
+  { label: "AI Prompt Packs", value: "ai_prompt_packs" },
+  { label: "Budget Spreadsheets", value: "budget_spreadsheets" },
+  { label: "Printable Journals", value: "printable_journals" },
+  { label: "Children's Educational", value: "childrens_educational" },
+  { label: "Bible Studies", value: "bible_studies" },
+  { label: "Courses", value: "courses" },
+  { label: "Digital Toolkits", value: "digital_toolkits" },
+  { label: "Business Operating Systems", value: "business_operating_systems" },
+  { label: "Business Templates", value: "business_templates" },
+  { label: "Audio", value: "audio" },
+  { label: "Templates", value: "templates" },
   { label: "Finance", value: "finance" },
   { label: "Leadership", value: "leadership" },
   { label: "Purpose", value: "purpose" },
@@ -59,17 +73,11 @@ const LANGUAGES = ["English", "Spanish", "French", "German", "Portuguese", "Ital
 const AGE_RANGES = ["All ages", "Children (5-12)", "Teen (13-17)", "Adult (18+)", "Professional"];
 
 const MAX_COVER_MB = 10;
-const MAX_FILE_MB = 100;
+const MAX_FILE_MB = 650;
 const MIN_COVER_W = 1600;
 const MIN_COVER_H = 2560;
 const TARGET_RATIO = 1600 / 2560;
 const RATIO_TOL = 0.03;
-const FILE_EXT = ["pdf", "epub", "docx"];
-const FILE_MIMES = [
-  "application/pdf",
-  "application/epub+zip",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
 
 const STEPS = [
   { n: 1 as const, title: "Book Details", accent: ACCENTS.publishStep1 },
@@ -79,7 +87,8 @@ const STEPS = [
 ];
 type StepNum = 1 | 2 | 3 | 4;
 
-function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
+function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editingId?: string; productTypeKey?: ProductTypeKey }) {
+  const typeCfg = getProductType(productTypeKey);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, isAdmin } = useAuth();
@@ -123,7 +132,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
   const [edition, setEdition] = useState("");
   const [description, setDescription] = useState("");
   const [language, setLanguage] = useState("English");
-  const [category, setCategory] = useState<typeof CATEGORIES[number]["value"]>("ebooks");
+  const [category, setCategory] = useState<import("@/lib/product-types").ProductCategoryEnum>(typeCfg.category);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [kwInput, setKwInput] = useState("");
   const [ageRange, setAgeRange] = useState("All ages");
@@ -141,7 +150,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
   const [coverLightbox, setCoverLightbox] = useState(false);
 
   // Step 3
-  const [price, setPrice] = useState("");
+  const [price, setPrice] = useState<string>(() => (productTypeKey && !editingIdProp ? (typeCfg.suggestedPriceCents / 100).toFixed(2) : ""));
   const [premium, setPremium] = useState(false);
   const [territory] = useState("Worldwide");
 
@@ -465,16 +474,19 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
     if (!f) { setFile(null); return; }
     if (f.size === 0) return setFileError("File is empty.");
     const ext = f.name.toLowerCase().split(".").pop() ?? "";
-    if (!FILE_EXT.includes(ext)) return setFileError(`Unsupported .${ext}. Accepted: PDF, EPUB, DOCX.`);
-    if (f.type && !FILE_MIMES.includes(f.type)) return setFileError(`File content (${f.type}) doesn't match a manuscript.`);
+    if (!typeCfg.fileExts.includes(ext)) return setFileError(`Unsupported .${ext}. Accepted: ${typeCfg.acceptedHint}.`);
+    if (f.type && typeCfg.fileMimes.length > 0 && !typeCfg.fileMimes.includes(f.type)) {
+      return setFileError(`File content (${f.type}) doesn't match ${typeCfg.label}.`);
+    }
     if (f.size > MAX_FILE_MB * 1024 * 1024) return setFileError(`File exceeds ${MAX_FILE_MB} MB limit.`);
-    // Structural validation: unzip .docx / .epub and check required parts,
-    // sniff %PDF- header for .pdf. Prevents malformed manuscripts from ever
-    // reaching Storage, so buyers never receive a file Word/Reader can't open.
+    // Structural validation is only meaningful for ebook manuscripts (pdf/epub/docx).
+    // For other product types, skip the deep validation to allow zip/mp3/mp4/etc.
     try {
-      const { validateManuscriptFile } = await import("@/lib/manuscript-validate");
-      const res = await validateManuscriptFile(f);
-      if (!res.ok) return setFileError(res.reason);
+      if (typeCfg.isEbook) {
+        const { validateManuscriptFile } = await import("@/lib/manuscript-validate");
+        const res = await validateManuscriptFile(f);
+        if (!res.ok) return setFileError(res.reason);
+      }
     } catch (e) {
       return setFileError(
         `Couldn't read that file (${(e as Error).message}). Re-save from the original app and try again.`,
@@ -1068,6 +1080,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
               uploadedFilePath={uploadedFilePath}
               uploadedFileMeta={uploadedFileMeta}
               title={title}
+              typeCfg={typeCfg}
             />
 
           )}
@@ -1084,7 +1097,7 @@ function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
               accent={accent}
               cover={coverPreview} title={title} subtitle={subtitle} author={author}
               price={priceNum} royalty={royalty}
-              format="eBook" territory={territory}
+              format={typeCfg.categoryLabel} territory={territory}
               category={category}
               uploading={uploading} uploadProgress={uploadProgress}
               submitting={submitting} disabled={canSell === false}
@@ -1343,6 +1356,7 @@ function StepContent(p: {
   uploadedFilePath: string | null;
   uploadedFileMeta: { name: string; size: number } | null;
   title: string;
+  typeCfg: import("@/lib/product-types").ProductTypeConfig;
 }) {
   const coverDone = !!p.uploadedCoverUrl && !p.coverUploading && !p.coverUploadError;
   const fileDone = !!p.uploadedFilePath && !p.fileUploading && !p.fileUploadError;
@@ -1367,8 +1381,8 @@ function StepContent(p: {
       />
 
       <div>
-        <h3 className="font-display text-lg text-navy mb-2">Manuscript</h3>
-        <p className="text-xs text-mute mb-3">Accepted: PDF, EPUB, DOCX. Max {MAX_FILE_MB} MB.</p>
+        <h3 className="font-display text-lg text-navy mb-2">{p.typeCfg.isEbook ? "Manuscript" : "Product file"}</h3>
+        <p className="text-xs text-mute mb-3">Accepted: {p.typeCfg.acceptedHint}. Max {MAX_FILE_MB} MB.</p>
         {(p.fileUploading || (fileDone && (p.uploadedFileMeta || p.file))) ? (
           <div className="space-y-2">
             <UploadSuccess
@@ -1395,9 +1409,9 @@ function StepContent(p: {
           <FileInput
             file={p.file}
             onFile={p.handleFileChange}
-            accept=".pdf,.epub,.docx,application/pdf,application/epub+zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            hint="Drag & drop or tap to choose your manuscript"
-            acceptedHint=".PDF, .EPUB, .DOCX"
+            accept={p.typeCfg.acceptString}
+            hint={p.typeCfg.isEbook ? "Drag & drop or tap to choose your manuscript" : `Drag & drop or tap to choose your ${p.typeCfg.label.toLowerCase()} file`}
+            acceptedHint={p.typeCfg.acceptedHint}
           />
         )}
         {p.fileError && (
@@ -2218,13 +2232,18 @@ function PrePublishPreview(props: {
 
               {/* Body */}
               <div className="flex flex-1 flex-col p-4">
-                {/* Category badge — gold uppercase, matches live storefront */}
-                <div
-                  className="text-[11px] font-semibold uppercase tracking-[0.14em]"
-                  style={{ color: "#C9A84C" }}
-                >
-                  {props.category || "Uncategorized"}
-                </div>
+                {/* Category badge — color-coded per product type */}
+                {(() => {
+                  const d = categoryDisplay(props.category);
+                  return (
+                    <div
+                      className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                      style={{ color: d.accent }}
+                    >
+                      {d.label}
+                    </div>
+                  );
+                })()}
 
                 {/* Title — navy, 2-line clamp */}
                 <h3
