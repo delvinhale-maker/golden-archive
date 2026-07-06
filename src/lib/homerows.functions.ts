@@ -3,17 +3,7 @@ import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { Product } from "@/lib/marketplace.functions";
-
-const CAT_LABEL: Record<string, string> = {
-  ebooks: "eBooks",
-  courses: "Courses",
-  templates: "Templates",
-  audio: "Audio",
-  finance: "Finance",
-  leadership: "Leadership",
-  purpose: "Purpose",
-  business: "Business",
-};
+import { slugToLabel } from "@/lib/categories";
 
 function serverSupabase() {
   return createClient<Database>(
@@ -35,7 +25,7 @@ type Row = {
 };
 
 function toProduct(r: Row, sponsored = false): Product {
-  const cat = CAT_LABEL[r.category?.toLowerCase()] ?? r.category ?? "eBooks";
+  const cat = slugToLabel(r.category);
   const compareAt =
     r.compare_at_price_cents != null && r.compare_at_price_cents > r.price_cents
       ? r.compare_at_price_cents / 100

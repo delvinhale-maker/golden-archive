@@ -1802,6 +1802,15 @@ export type Database = {
         | "finance"
         | "purpose"
         | "business"
+        | "financial_planners"
+        | "ai_prompt_packs"
+        | "business_templates"
+        | "budget_spreadsheets"
+        | "printable_journals"
+        | "childrens_educational"
+        | "bible_studies"
+        | "digital_toolkits"
+        | "business_operating_systems"
       product_license_type: "personal" | "commercial" | "extended"
       product_status: "draft" | "pending" | "approved" | "rejected"
     }
@@ -1948,6 +1957,15 @@ export const Constants = {
         "finance",
         "purpose",
         "business",
+        "financial_planners",
+        "ai_prompt_packs",
+        "business_templates",
+        "budget_spreadsheets",
+        "printable_journals",
+        "childrens_educational",
+        "bible_studies",
+        "digital_toolkits",
+        "business_operating_systems",
       ],
       product_license_type: ["personal", "commercial", "extended"],
       product_status: ["draft", "pending", "approved", "rejected"],
