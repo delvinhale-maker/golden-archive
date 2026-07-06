@@ -702,7 +702,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
           // itself, so the sync-back effect doesn't re-issue display() and
           // snap the page (this caused the "jumps to end" after prev()).
           epubLocFromRelocatedRef.current = true;
-          setLocation(idx + 1); // +1 for cover offset
+          setLocation((prev) => {
+            recordEpubNavRelocated(idx + 1, prev, null);
+            return idx + 1; // +1 for cover offset
+          });
         }
       } catch { /* noop */ }
     });
