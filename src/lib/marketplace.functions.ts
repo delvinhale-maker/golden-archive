@@ -476,10 +476,11 @@ export const getProduct = createServerFn({ method: "GET" })
     const { data: row } = await supabaseAdmin
       .from("marketplace_products")
       .select(
-        "id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note",
+        "id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes",
       )
       .eq("id", data.id)
       .maybeSingle();
+
     if (!row) return { kind: "notFound" } as ProductDetailResult;
     if (row.status !== "approved" || !row.published) {
       return { kind: "unpublished", title: row.title } as ProductDetailResult;
