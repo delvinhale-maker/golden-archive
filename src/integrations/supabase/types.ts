@@ -678,11 +678,15 @@ export type Database = {
           file_path: string | null
           file_size_bytes: number | null
           id: string
+          is_preorder: boolean
           language: string
           platform_fee_pct: number
+          preorder_note: string | null
           price_cents: number
           published: boolean
           rejected_reason: string | null
+          release_date: string | null
+          released_at: string | null
           seller_id: string
           slug: string
           status: Database["public"]["Enums"]["product_status"]
@@ -710,11 +714,15 @@ export type Database = {
           file_path?: string | null
           file_size_bytes?: number | null
           id?: string
+          is_preorder?: boolean
           language?: string
           platform_fee_pct?: number
+          preorder_note?: string | null
           price_cents: number
           published?: boolean
           rejected_reason?: string | null
+          release_date?: string | null
+          released_at?: string | null
           seller_id: string
           slug?: string
           status?: Database["public"]["Enums"]["product_status"]
@@ -742,11 +750,15 @@ export type Database = {
           file_path?: string | null
           file_size_bytes?: number | null
           id?: string
+          is_preorder?: boolean
           language?: string
           platform_fee_pct?: number
+          preorder_note?: string | null
           price_cents?: number
           published?: boolean
           rejected_reason?: string | null
+          release_date?: string | null
+          released_at?: string | null
           seller_id?: string
           slug?: string
           status?: Database["public"]["Enums"]["product_status"]
@@ -834,6 +846,8 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_bump: boolean
+          is_preorder_at_purchase: boolean
           order_id: string
           platform_fee_cents: number
           product_id: string
@@ -850,6 +864,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_bump?: boolean
+          is_preorder_at_purchase?: boolean
           order_id: string
           platform_fee_cents: number
           product_id: string
@@ -866,6 +882,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_bump?: boolean
+          is_preorder_at_purchase?: boolean
           order_id?: string
           platform_fee_cents?: number
           product_id?: string
@@ -983,6 +1001,57 @@ export type Database = {
           triggered_by?: string | null
         }
         Relationships: []
+      }
+      product_order_bumps: {
+        Row: {
+          bump_product_id: string
+          created_at: string
+          discount_percent: number
+          id: string
+          is_active: boolean
+          product_id: string
+          seller_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          bump_product_id: string
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          is_active?: boolean
+          product_id: string
+          seller_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          bump_product_id?: string
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          is_active?: boolean
+          product_id?: string
+          seller_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_order_bumps_bump_product_id_fkey"
+            columns: ["bump_product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_order_bumps_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_publish_history: {
         Row: {
@@ -1296,6 +1365,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "review_helpful_votes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "product_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_photos: {
+        Row: {
+          created_at: string
+          height: number | null
+          id: string
+          review_id: string
+          sort_order: number
+          storage_path: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          review_id: string
+          sort_order?: number
+          storage_path: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          review_id?: string
+          sort_order?: number
+          storage_path?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_photos_review_id_fkey"
             columns: ["review_id"]
             isOneToOne: false
             referencedRelation: "product_reviews"
