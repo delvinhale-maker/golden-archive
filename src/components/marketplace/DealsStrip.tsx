@@ -3,7 +3,12 @@ import { Link } from "@tanstack/react-router";
 import { ExternalLink, Flame } from "lucide-react";
 import { motion } from "framer-motion";
 import { ProductCover } from "./ProductCover";
+import {
+  AffiliateBookPlaceholder,
+  isPlaceholderImage,
+} from "./AffiliateBookPlaceholder";
 import type { Product } from "@/lib/marketplace.functions";
+
 import type { AffiliateProduct } from "@/lib/affiliate";
 import { logAffiliateClick } from "@/lib/affiliate";
 
