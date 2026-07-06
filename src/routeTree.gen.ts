@@ -60,6 +60,7 @@ import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authent
 import { Route as AuthenticatedDashboardKingdomPicksRouteImport } from './routes/_authenticated/dashboard.kingdom-picks'
 import { Route as AuthenticatedDashboardHelpRouteImport } from './routes/_authenticated/dashboard.help'
 import { Route as AuthenticatedDashboardEarnRouteImport } from './routes/_authenticated/dashboard.earn'
+import { Route as AuthenticatedDashboardCreatorReferralsRouteImport } from './routes/_authenticated/dashboard.creator-referrals'
 import { Route as AuthenticatedDashboardCommunityRouteImport } from './routes/_authenticated/dashboard.community'
 import { Route as AuthenticatedDashboardAiStudioRouteImport } from './routes/_authenticated/dashboard.ai-studio'
 import { Route as AuthenticatedDashboardAffiliateRouteImport } from './routes/_authenticated/dashboard.affiliate'
@@ -348,6 +349,12 @@ const AuthenticatedDashboardEarnRoute =
     path: '/dashboard/earn',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardCreatorReferralsRoute =
+  AuthenticatedDashboardCreatorReferralsRouteImport.update({
+    id: '/dashboard/creator-referrals',
+    path: '/dashboard/creator-referrals',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardCommunityRoute =
   AuthenticatedDashboardCommunityRouteImport.update({
     id: '/dashboard/community',
@@ -556,6 +563,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
   '/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
+  '/dashboard/creator-referrals': typeof AuthenticatedDashboardCreatorReferralsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
@@ -633,6 +641,7 @@ export interface FileRoutesByTo {
   '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
   '/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
+  '/dashboard/creator-referrals': typeof AuthenticatedDashboardCreatorReferralsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
@@ -713,6 +722,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/_authenticated/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
   '/_authenticated/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
+  '/_authenticated/dashboard/creator-referrals': typeof AuthenticatedDashboardCreatorReferralsRoute
   '/_authenticated/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/_authenticated/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/_authenticated/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
@@ -793,6 +803,7 @@ export interface FileRouteTypes {
     | '/dashboard/affiliate'
     | '/dashboard/ai-studio'
     | '/dashboard/community'
+    | '/dashboard/creator-referrals'
     | '/dashboard/earn'
     | '/dashboard/help'
     | '/dashboard/kingdom-picks'
@@ -870,6 +881,7 @@ export interface FileRouteTypes {
     | '/dashboard/affiliate'
     | '/dashboard/ai-studio'
     | '/dashboard/community'
+    | '/dashboard/creator-referrals'
     | '/dashboard/earn'
     | '/dashboard/help'
     | '/dashboard/kingdom-picks'
@@ -949,6 +961,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/affiliate'
     | '/_authenticated/dashboard/ai-studio'
     | '/_authenticated/dashboard/community'
+    | '/_authenticated/dashboard/creator-referrals'
     | '/_authenticated/dashboard/earn'
     | '/_authenticated/dashboard/help'
     | '/_authenticated/dashboard/kingdom-picks'
@@ -1389,6 +1402,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardEarnRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/creator-referrals': {
+      id: '/_authenticated/dashboard/creator-referrals'
+      path: '/dashboard/creator-referrals'
+      fullPath: '/dashboard/creator-referrals'
+      preLoaderRoute: typeof AuthenticatedDashboardCreatorReferralsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/community': {
       id: '/_authenticated/dashboard/community'
       path: '/dashboard/community'
@@ -1601,6 +1621,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardAffiliateRoute: typeof AuthenticatedDashboardAffiliateRoute
   AuthenticatedDashboardAiStudioRoute: typeof AuthenticatedDashboardAiStudioRoute
   AuthenticatedDashboardCommunityRoute: typeof AuthenticatedDashboardCommunityRoute
+  AuthenticatedDashboardCreatorReferralsRoute: typeof AuthenticatedDashboardCreatorReferralsRoute
   AuthenticatedDashboardEarnRoute: typeof AuthenticatedDashboardEarnRoute
   AuthenticatedDashboardHelpRoute: typeof AuthenticatedDashboardHelpRoute
   AuthenticatedDashboardKingdomPicksRoute: typeof AuthenticatedDashboardKingdomPicksRoute
@@ -1628,6 +1649,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardAffiliateRoute: AuthenticatedDashboardAffiliateRoute,
   AuthenticatedDashboardAiStudioRoute: AuthenticatedDashboardAiStudioRoute,
   AuthenticatedDashboardCommunityRoute: AuthenticatedDashboardCommunityRoute,
+  AuthenticatedDashboardCreatorReferralsRoute:
+    AuthenticatedDashboardCreatorReferralsRoute,
   AuthenticatedDashboardEarnRoute: AuthenticatedDashboardEarnRoute,
   AuthenticatedDashboardHelpRoute: AuthenticatedDashboardHelpRoute,
   AuthenticatedDashboardKingdomPicksRoute:
