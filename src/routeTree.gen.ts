@@ -55,6 +55,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
 import { Route as AuthenticatedDashboardStorefrontRouteImport } from './routes/_authenticated/dashboard.storefront'
+import { Route as AuthenticatedDashboardPayoutsRouteImport } from './routes/_authenticated/dashboard.payouts'
 import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authenticated/dashboard.new'
 import { Route as AuthenticatedDashboardKingdomPicksRouteImport } from './routes/_authenticated/dashboard.kingdom-picks'
 import { Route as AuthenticatedDashboardHelpRouteImport } from './routes/_authenticated/dashboard.help'
@@ -316,6 +317,12 @@ const AuthenticatedDashboardStorefrontRoute =
     path: '/dashboard/storefront',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardPayoutsRoute =
+  AuthenticatedDashboardPayoutsRouteImport.update({
+    id: '/dashboard/payouts',
+    path: '/dashboard/payouts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardNewRoute =
   AuthenticatedDashboardNewRouteImport.update({
     id: '/dashboard/new',
@@ -545,6 +552,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
+  '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -620,6 +628,7 @@ export interface FileRoutesByTo {
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
+  '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -698,6 +707,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/_authenticated/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
+  '/_authenticated/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/_authenticated/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -776,6 +786,7 @@ export interface FileRouteTypes {
     | '/dashboard/help'
     | '/dashboard/kingdom-picks'
     | '/dashboard/new'
+    | '/dashboard/payouts'
     | '/dashboard/storefront'
     | '/api/public/contact'
     | '/lovable/email/suppression'
@@ -851,6 +862,7 @@ export interface FileRouteTypes {
     | '/dashboard/help'
     | '/dashboard/kingdom-picks'
     | '/dashboard/new'
+    | '/dashboard/payouts'
     | '/dashboard/storefront'
     | '/api/public/contact'
     | '/lovable/email/suppression'
@@ -928,6 +940,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/help'
     | '/_authenticated/dashboard/kingdom-picks'
     | '/_authenticated/dashboard/new'
+    | '/_authenticated/dashboard/payouts'
     | '/_authenticated/dashboard/storefront'
     | '/api/public/contact'
     | '/lovable/email/suppression'
@@ -1328,6 +1341,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardStorefrontRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/payouts': {
+      id: '/_authenticated/dashboard/payouts'
+      path: '/dashboard/payouts'
+      fullPath: '/dashboard/payouts'
+      preLoaderRoute: typeof AuthenticatedDashboardPayoutsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/new': {
       id: '/_authenticated/dashboard/new'
       path: '/dashboard/new'
@@ -1564,6 +1584,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardHelpRoute: typeof AuthenticatedDashboardHelpRoute
   AuthenticatedDashboardKingdomPicksRoute: typeof AuthenticatedDashboardKingdomPicksRoute
   AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
+  AuthenticatedDashboardPayoutsRoute: typeof AuthenticatedDashboardPayoutsRoute
   AuthenticatedDashboardStorefrontRoute: typeof AuthenticatedDashboardStorefrontRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
@@ -1590,6 +1611,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardKingdomPicksRoute:
     AuthenticatedDashboardKingdomPicksRoute,
   AuthenticatedDashboardNewRoute: AuthenticatedDashboardNewRoute,
+  AuthenticatedDashboardPayoutsRoute: AuthenticatedDashboardPayoutsRoute,
   AuthenticatedDashboardStorefrontRoute: AuthenticatedDashboardStorefrontRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
