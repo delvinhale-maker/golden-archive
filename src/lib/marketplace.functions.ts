@@ -30,7 +30,24 @@ type DbProductRow = {
   release_date?: string | null;
   released_at?: string | null;
   preorder_note?: string | null;
+  admin_notes?: string | null;
 };
+
+function parseWhatsIncluded(adminNotes?: string | null): string[] | undefined {
+  if (!adminNotes) return undefined;
+  try {
+    const parsed = JSON.parse(adminNotes) as Record<string, unknown>;
+    const raw = parsed.whatsIncluded;
+    if (typeof raw !== "string" || !raw.trim()) return undefined;
+    return raw
+      .split(/\r?\n|•|-\s|\*\s/)
+      .map((s) => s.replace(/^[•\-\*]\s*/, "").trim())
+      .filter(Boolean);
+  } catch {
+    return undefined;
+  }
+}
+
 
 function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
   const catLabel = slugToLabel(r.category);
