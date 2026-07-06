@@ -1301,12 +1301,59 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
 
 
               ) : isEpub ? (
-
                 <div
-                  ref={epubContainerRef}
+                  className="relative"
                   style={{ width: pageAreaW, height: pageAreaH, background: dev.bg }}
-                  className="text-black"
-                />
+                >
+                  <div
+                    ref={epubContainerRef}
+                    style={{ width: pageAreaW, height: pageAreaH, background: dev.bg }}
+                    className="text-black"
+                  />
+                  {(epubRendering || epubRenderError) && (
+                    <div
+                      className="absolute inset-0 flex items-center justify-center bg-white/95 px-6"
+                      role={epubRenderError ? "alert" : "status"}
+                      aria-live="polite"
+                    >
+                      {epubRenderError ? (
+                        <div className="text-center max-w-xs">
+                          <p className="text-red-600 text-sm font-semibold mb-2">
+                            {epubRenderError}
+                          </p>
+                          <div className="flex flex-col items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEpubRenderError(null);
+                                setAttempt((a) => a + 1);
+                              }}
+                              className="inline-block rounded-md bg-black text-white text-sm px-4 py-2 hover:bg-black/80"
+                            >
+                              Retry
+                            </button>
+                            {signedUrl && (
+                              <a
+                                href={signedUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs underline text-black/60 hover:text-black"
+                              >
+                                Open original file in new tab
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 text-black/60">
+                          <Loader2 className="animate-spin" size={24} />
+                          <span className="text-xs">Rendering page…</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
               ) : notPdf ? (
                 <div className="text-center px-6 text-black/70 text-sm">
                   <p className="font-semibold mb-2">
