@@ -213,11 +213,30 @@ function PayoutsPage() {
         </div>
       ) : (
         <>
+          {!summary.email_verified ? (
+            <div className="mt-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 flex flex-wrap items-center gap-3">
+              <Mail className="text-amber-700" size={18} />
+              <div className="text-sm text-amber-900 flex-1 min-w-[220px]">
+                <strong>Verify your email</strong> {summary.email ? `(${summary.email})` : ""} to request
+                payouts and receive payout notifications.
+              </div>
+              <button
+                onClick={resendVerification}
+                disabled={resendingVerify}
+                className="inline-flex items-center gap-2 rounded-lg bg-amber-700 text-white px-3 py-1.5 text-sm disabled:opacity-60"
+              >
+                {resendingVerify ? <Loader2 className="animate-spin" size={14} /> : <Mail size={14} />}
+                Resend verification
+              </button>
+            </div>
+          ) : null}
+
           <section className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
             <StatCard icon={<Wallet size={18} />} label="Available balance" value={fmt(summary.pending_cents)} accent="text-emerald-700" />
             <StatCard icon={<Banknote size={18} />} label="Lifetime earnings" value={fmt(summary.lifetime_cents)} />
             <StatCard icon={<CheckCircle2 size={18} />} label="Paid out" value={fmt(summary.paid_cents)} />
           </section>
+
 
           {/* Payout method */}
           <section className="mt-10 rounded-2xl border border-navy/10 bg-white p-6">
