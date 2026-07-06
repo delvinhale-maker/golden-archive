@@ -33,7 +33,7 @@ type DbProductRow = {
 };
 
 function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
-  const catLabel = CAT_LABEL[r.category?.toLowerCase()] ?? r.category ?? "eBooks";
+  const catLabel = slugToLabel(r.category);
   const compareAt =
     r.compare_at_price_cents != null && r.compare_at_price_cents > r.price_cents
       ? r.compare_at_price_cents / 100
@@ -114,7 +114,11 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
       .eq("published", true)
       .order("created_at", { ascending: false });
     if (opts.category && opts.category !== "All") {
-      query = query.eq("category", opts.category.toLowerCase() as "ebooks" | "courses" | "templates" | "audio" | "leadership");
+      const slug = labelToSlug(opts.category) ?? opts.category.toLowerCase();
+      query = query.eq(
+        "category",
+        slug as Database["public"]["Enums"]["product_category"],
+      );
     }
     if (opts.q) query = query.ilike("title", `%${opts.q}%`);
     const { data, error } = await query;
