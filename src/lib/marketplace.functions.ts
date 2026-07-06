@@ -30,7 +30,24 @@ type DbProductRow = {
   release_date?: string | null;
   released_at?: string | null;
   preorder_note?: string | null;
+  admin_notes?: string | null;
 };
+
+function parseWhatsIncluded(adminNotes?: string | null): string[] | undefined {
+  if (!adminNotes) return undefined;
+  try {
+    const parsed = JSON.parse(adminNotes) as Record<string, unknown>;
+    const raw = parsed.whatsIncluded;
+    if (typeof raw !== "string" || !raw.trim()) return undefined;
+    return raw
+      .split(/\r?\n|•|-\s|\*\s/)
+      .map((s) => s.replace(/^[•\-\*]\s*/, "").trim())
+      .filter(Boolean);
+  } catch {
+    return undefined;
+  }
+}
+
 
 function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
   const catLabel = slugToLabel(r.category);
@@ -42,6 +59,8 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
     !!r.is_preorder &&
     !r.released_at &&
     (!r.release_date || new Date(r.release_date).getTime() > Date.now());
+  const isEbook = r.category.toLowerCase() === "ebooks";
+  const included = isEbook ? undefined : parseWhatsIncluded(r.admin_notes);
   return {
     id: r.id,
     title: r.title,
@@ -57,7 +76,7 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
     bestseller: false,
     creator: { id: r.seller_id, name: sellerName, verified: true },
     description: r.description ?? undefined,
-    included: ["Instant digital download", "Lifetime access"],
+    included,
     aiReviewStatus: (r.ai_review_status as Product["aiReviewStatus"]) ?? null,
     aiReviewScore: r.ai_review_score ?? null,
     isPreorder,
@@ -65,6 +84,7 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
     preorderNote: r.preorder_note ?? null,
   };
 }
+
 
 // Fetch real aggregate rating/review counts for a set of product IDs.
 // product_reviews has a public SELECT policy, so the publishable-key client
@@ -456,10 +476,11 @@ export const getProduct = createServerFn({ method: "GET" })
     const { data: row } = await supabaseAdmin
       .from("marketplace_products")
       .select(
-        "id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note",
+        "id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes",
       )
       .eq("id", data.id)
       .maybeSingle();
+
     if (!row) return { kind: "notFound" } as ProductDetailResult;
     if (row.status !== "approved" || !row.published) {
       return { kind: "unpublished", title: row.title } as ProductDetailResult;
