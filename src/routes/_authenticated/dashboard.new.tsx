@@ -1097,7 +1097,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
               accent={accent}
               cover={coverPreview} title={title} subtitle={subtitle} author={author}
               price={priceNum} royalty={royalty}
-              format="eBook" territory={territory}
+              format={typeCfg.categoryLabel} territory={territory}
               category={category}
               uploading={uploading} uploadProgress={uploadProgress}
               submitting={submitting} disabled={canSell === false}
