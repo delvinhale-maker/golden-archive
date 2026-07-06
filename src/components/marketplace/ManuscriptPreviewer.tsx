@@ -863,6 +863,32 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     [pageCount],
   );
 
+  // Relative page nav. For EPUB paginated flow, epubjs handles intra-chapter
+  // column flips via next()/prev(); calling display(cfi) inside the same
+  // section doesn't visibly advance, which was causing the reader to appear
+  // stuck. Fall back to goTo() for PDF/DOCX or when the rendition isn't ready.
+  const goRelative = useCallback(
+    (dir: 1 | -1) => {
+      if (isEpub) {
+        const rendition = epubRenditionRef.current;
+        // On the cover slot, step into the book instead of calling next/prev.
+        if (rendition && location > 1) {
+          try {
+            const p = dir === 1 ? rendition.next() : rendition.prev();
+            if (p && typeof p.then === "function") {
+              // relocated handler will sync `location`; ignore errors silently.
+              p.catch(() => { /* noop */ });
+            }
+            return;
+          } catch { /* fall through to goTo */ }
+        }
+      }
+      goTo(location + dir);
+    },
+    [isEpub, location, goTo],
+  );
+
+
   useEffect(() => { setLocationInput(String(location)); }, [location]);
 
   // Reset scroll to top on every page change so users start reading from
@@ -880,8 +906,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       const t = e.target as HTMLElement | null;
       const typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT");
       if (typing) return;
-      if (e.key === "ArrowLeft") { e.preventDefault(); goTo(location + (isRTL ? 1 : -1)); }
-      if (e.key === "ArrowRight") { e.preventDefault(); goTo(location + (isRTL ? -1 : 1)); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); goRelative(isRTL ? 1 : -1); }
+      if (e.key === "ArrowRight") { e.preventDefault(); goRelative(isRTL ? -1 : 1); }
     };
     window.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -889,7 +915,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [goTo, location, onClose, isRTL]);
+  }, [goRelative, onClose, isRTL]);
+
 
   const pinchStartRef = useRef<{ dist: number; startFont: number } | null>(null);
   const lastTapRef = useRef<number>(0);
@@ -944,7 +971,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     if (Math.abs(dx) > 50) {
       const forward = isRTL ? dx > 0 : dx < 0;
-      goTo(location + (forward ? 1 : -1));
+      goRelative(forward ? 1 : -1);
     }
     touchStartX.current = null;
   };
@@ -1133,7 +1160,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       <div ref={stageRef} className="relative flex-1 overflow-hidden flex items-center justify-center p-6">
         {/* Previous-page arrow — visually on the leading edge (right in RTL, left otherwise) */}
         <button
-          onClick={() => goTo(location - 1)}
+          onClick={() => goRelative(-1)}
           aria-label="Previous page"
           data-testid="previewer-prev"
           disabled={location <= 1}
@@ -1398,7 +1425,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
 
         {/* Next-page arrow — visually on the trailing edge (left in RTL, right otherwise) */}
         <button
-          onClick={() => goTo(location + 1)}
+          onClick={() => goRelative(1)}
           aria-label="Next page"
           data-testid="previewer-next"
           disabled={location >= pageCount}
