@@ -60,6 +60,12 @@ function KingdomPicksAdminPage() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [autoRefreshSeconds, setAutoRefreshSeconds] = useState(30);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [tab, setTab] = useState<"all" | "deals">("all");
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   async function handleFileUpload(file: File) {
     if (!file.type.startsWith("image/")) {
