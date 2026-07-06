@@ -80,12 +80,32 @@ function PayoutsPage() {
 
   const canRequest = useMemo(() => {
     if (!summary) return false;
+    if (!summary.email_verified) return false;
     if (summary.open_request) return false;
     if (!summary.has_method) return false;
     if (!summary.has_tax_form) return false;
     const cents = Math.round(parseFloat(requestAmount || "0") * 100);
     return cents >= 2500 && cents <= summary.pending_cents;
   }, [summary, requestAmount]);
+
+  const [resendingVerify, setResendingVerify] = useState(false);
+  async function resendVerification() {
+    if (!summary?.email) return;
+    setResendingVerify(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: summary.email,
+        options: { emailRedirectTo: `${window.location.origin}/dashboard/payouts` },
+      });
+      if (error) throw error;
+      toast.success("Verification email sent — check your inbox.");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not send verification email");
+    } finally {
+      setResendingVerify(false);
+    }
+  }
 
   async function saveMethod() {
     setSavingMethod(true);
