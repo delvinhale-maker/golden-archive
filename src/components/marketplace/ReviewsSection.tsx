@@ -185,7 +185,7 @@ function ReviewCard({
   const remove = useServerFn(deleteReview);
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
-  const [lightbox, setLightbox] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
   const onVote = async () => {
     if (!canVote) {
