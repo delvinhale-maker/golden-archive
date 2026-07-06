@@ -605,7 +605,7 @@ export const getDownloadInfo = createServerFn({ method: "GET" })
     const { data: dl, error } = await supabaseAdmin
       .from("order_downloads")
       .select(
-        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,variant_id,is_preorder_at_purchase,product:marketplace_products(file_path,is_preorder,release_date,released_at)),order:orders(buyer_email)",
+        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,variant_id,is_preorder_at_purchase,product:marketplace_products(file_path,is_preorder,release_date,released_at),order:orders(buyer_email))",
       )
       .eq("token", data.token)
       .maybeSingle();
