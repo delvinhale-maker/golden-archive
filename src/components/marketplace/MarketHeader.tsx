@@ -278,6 +278,23 @@ export function MarketHeader() {
 
                 </button>
               ))}
+              <div className="mt-2 pt-4 text-[11px] font-semibold tracking-caps text-gold/80">
+                CREATORS
+              </div>
+              {[
+                { to: "/creators", label: "Browse Creators" },
+                { to: "/become-a-creator", label: "Become a Creator" },
+                { to: "/creator-dashboard", label: "Creator Dashboard" },
+              ].map((it) => (
+                <Link
+                  key={it.to}
+                  to={it.to}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex w-full items-center justify-between border-b border-white/10 py-3 text-base"
+                >
+                  <span>{it.label}</span>
+                </Link>
+              ))}
             </nav>
             <div className="space-y-3 p-6 pt-0">
               {canUpload ? (
