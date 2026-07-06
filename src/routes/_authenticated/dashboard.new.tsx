@@ -927,6 +927,15 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           ? "Update any field and re-publish. Republishing sends the title back through AI review."
           : "A KDP-style flow. AurumVault keeps 30%; you keep 70%."}
       </p>
+
+      {!isEditing && productTypeKey && (
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-ink/10 bg-paper px-3 py-1.5 text-sm text-navy">
+          <span aria-hidden="true">{typeCfg.emoji}</span>
+          <span className="font-semibold">{typeCfg.label}</span>
+          <span className="text-mute text-xs hidden sm:inline">· {typeCfg.tagline}</span>
+        </div>
+      )}
+
       {loadingEdit && (
         <p className="mt-2 text-xs text-mute">Loading title…</p>
       )}
