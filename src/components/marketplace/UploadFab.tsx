@@ -126,12 +126,11 @@ export function UploadFab() {
                   {PRODUCT_TYPE_ORDER.map((key) => {
                     const t = PRODUCT_TYPES[key];
                     return (
-                      <Link
+                      <button
                         key={key}
-                        to="/dashboard/new"
-                        search={{ type: key } as never}
-                        onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 rounded-xl border border-line bg-white p-3.5 transition hover:border-gold hover:bg-gold/5"
+                        type="button"
+                        onClick={() => goToNew(key)}
+                        className="flex items-center gap-3 rounded-xl border border-line bg-white p-3.5 text-left transition hover:border-gold hover:bg-gold/5"
                       >
                         <span
                           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl"
@@ -139,11 +138,11 @@ export function UploadFab() {
                         >
                           {t.emoji}
                         </span>
-                        <span className="flex-1 min-w-0">
+                        <span className="flex-1 min-w-0 text-left">
                           <span className="block font-semibold text-ink">{t.label}</span>
                           <span className="block text-xs text-mute truncate">{t.tagline}</span>
                         </span>
-                      </Link>
+                      </button>
                     );
                   })}
                 </div>
