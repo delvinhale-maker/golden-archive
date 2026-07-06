@@ -601,6 +601,16 @@ function StorefrontPage() {
           <ReviewsTab reviews={data.reviews} products={data.products} avgRating={avgRating} />
         )}
       </main>
+
+      {/* Powered-by attribution */}
+      <footer className="border-t border-ink/10 bg-white/60 py-6">
+        <div className="mx-auto max-w-6xl px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-mute">
+          <Link to="/" className="inline-flex items-center gap-1.5 hover:text-navy">
+            Powered by <span className="font-display text-navy">AurumVault</span>
+          </Link>
+          <span>© {new Date().getFullYear()} {data.brandName} · Verified creator on AurumVault</span>
+        </div>
+      </footer>
     </div>
   );
 }
