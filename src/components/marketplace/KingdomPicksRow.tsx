@@ -2,7 +2,12 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Crown, ExternalLink } from "lucide-react";
 import { getKingdomPicksRowFn, type AffiliatePick } from "@/lib/marketplace.functions";
+import {
+  AffiliateBookPlaceholder,
+  isPlaceholderImage,
+} from "./AffiliateBookPlaceholder";
 import { supabase } from "@/integrations/supabase/client";
+
 
 export const kingdomPicksRowQ = queryOptions({
   queryKey: ["mp", "row", "kingdom-picks"],
@@ -82,15 +87,18 @@ export function KingdomPicksRow() {
               className="flex flex-col overflow-hidden rounded-xl border border-white/10 bg-white/5 shadow-card"
             >
               <div className="aspect-[4/5] w-full overflow-hidden bg-[#0F1E35]">
-                {p.imageUrl ? (
+                {isPlaceholderImage(p.imageUrl) ? (
+                  <AffiliateBookPlaceholder title={p.title} />
+                ) : (
                   <img
-                    src={p.imageUrl}
+                    src={p.imageUrl!}
                     alt={p.title}
                     loading="lazy"
                     className="h-full w-full object-cover"
                   />
-                ) : null}
+                )}
               </div>
+
               <div className="flex flex-1 flex-col p-4">
                 {p.source && (
                   <span className="mb-2 inline-flex w-fit items-center rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold">
