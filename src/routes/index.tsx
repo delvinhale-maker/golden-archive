@@ -134,6 +134,7 @@ function Home() {
       <HighlightsBoundary fallback={<CreatorSkeleton />} errorLabel="featured creator">
         <IllustriousCreator />
       </HighlightsBoundary>
+      <CreatorSpotlight />
       <SocialsSection />
       <KingdomBibleAppBanner />
       <EmailCaptureBanner />
