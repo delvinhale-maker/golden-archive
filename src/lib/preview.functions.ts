@@ -107,11 +107,15 @@ export const getPublicPreview = createServerFn({ method: "POST" })
       const angleDeg = -30;
       const angleRad = (angleDeg * Math.PI) / 180;
       const diag = Math.sqrt(width * width + height * height);
-      const targetWidth = diag * 0.85;
-      // Iteratively pick a size that fits our width budget.
-      const baseSize = Math.min(width, height) * 0.06;
+      // Leave ~15% margin on each end so the stripe never clips the edge.
+      const targetWidth = diag * 0.70;
+      const baseSize = Math.min(width, height) * 0.055;
       let stripeSize = baseSize;
       let stripeWidth = font.widthOfTextAtSize(diagonalText, stripeSize);
+      if (stripeWidth > targetWidth) {
+        stripeSize = (baseSize * targetWidth) / stripeWidth;
+        stripeWidth = font.widthOfTextAtSize(diagonalText, stripeSize);
+      }
       if (stripeWidth > targetWidth) {
         stripeSize = (baseSize * targetWidth) / stripeWidth;
         stripeWidth = font.widthOfTextAtSize(diagonalText, stripeSize);
