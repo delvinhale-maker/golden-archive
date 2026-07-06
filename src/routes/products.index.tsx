@@ -103,7 +103,11 @@ function ProductsPage() {
         category={search.category}
         query={search.q}
         resultCount={products.length}
+        products={products}
+        activeSub={search.sub ?? null}
+        onSubChange={(sub) => updateSearch({ sub: sub ?? undefined })}
       />
+
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
@@ -337,6 +341,14 @@ function applyClientFilters(
   if (typeof s.minPrice === "number") out = out.filter((p) => p.price >= s.minPrice!);
   if (typeof s.rating === "number" && s.rating > 0) {
     out = out.filter((p) => (p.rating ?? 0) >= s.rating!);
+  }
+  if (s.sub) {
+    const needle = s.sub.toLowerCase();
+    out = out.filter(
+      (p) =>
+        p.title.toLowerCase().includes(needle) ||
+        (p.description ?? "").toLowerCase().includes(needle),
+    );
   }
   switch (s.sort) {
     case "price-asc":
