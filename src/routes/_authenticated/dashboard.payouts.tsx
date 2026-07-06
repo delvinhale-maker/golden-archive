@@ -15,7 +15,7 @@ import {
 } from "@/lib/earnings.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Banknote, Wallet, Send, FileText, Loader2, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { Banknote, Wallet, Send, FileText, Loader2, CheckCircle2, Clock, XCircle, Mail } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/payouts")({
   component: PayoutsPage,
