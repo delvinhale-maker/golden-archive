@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookPlus, Package, Plus, X } from "lucide-react";
+import { BookPlus, Package, Plus, X, ChevronLeft } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { PRODUCT_TYPES, PRODUCT_TYPE_ORDER } from "@/lib/product-types";
+
+type View = "root" | "digital";
 
 export function UploadFab() {
   const { isAdmin, isSeller, loading } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const [view, setView] = useState<View>("root");
 
   useEffect(() => {
     if (!open) return;
@@ -16,8 +20,11 @@ export function UploadFab() {
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
+  useEffect(() => {
+    if (!open) setView("root");
+  }, [open]);
+
   if (loading || (!isAdmin && !isSeller)) return null;
-  // Hide across the entire publisher dashboard — the shell provides its own primary CTA.
   if (pathname.startsWith("/dashboard") || pathname.startsWith("/publish")) return null;
 
   return (
@@ -43,19 +50,32 @@ export function UploadFab() {
             onClick={() => setOpen(false)}
           >
             <motion.div
+              key={view}
               initial={{ y: 60, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 28 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md rounded-t-2xl bg-white p-5 shadow-2xl md:rounded-2xl"
+              className="w-full max-w-md rounded-t-2xl bg-white p-5 shadow-2xl md:rounded-2xl max-h-[85vh] flex flex-col"
               role="dialog"
               aria-label="Upload product"
             >
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="font-display text-lg font-bold text-ink">
-                  Upload to AurumVault
-                </h3>
+                <div className="flex items-center gap-2">
+                  {view === "digital" && (
+                    <button
+                      type="button"
+                      onClick={() => setView("root")}
+                      aria-label="Back"
+                      className="rounded-full p-1.5 hover:bg-muted"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                  )}
+                  <h3 className="font-display text-lg font-bold text-ink">
+                    {view === "root" ? "Upload to AurumVault" : "Choose product type"}
+                  </h3>
+                </div>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
@@ -65,41 +85,64 @@ export function UploadFab() {
                   <X size={18} />
                 </button>
               </div>
-              <div className="grid gap-3">
-                <Link
-                  to="/dashboard/new"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 transition hover:border-gold hover:bg-gold/5"
-                >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gold/15 text-gold">
-                    <BookPlus size={20} />
-                  </span>
-                  <span className="flex-1">
-                    <span className="block font-semibold text-ink">Upload eBook</span>
-                    <span className="block text-xs text-mute">
-                      KDP-style publish flow
+
+              {view === "root" ? (
+                <div className="grid gap-3">
+                  <Link
+                    to="/dashboard/new"
+                    search={{ type: "ebook" } as never}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 transition hover:border-gold hover:bg-gold/5"
+                  >
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gold/15 text-gold">
+                      <BookPlus size={20} />
                     </span>
-                  </span>
-                </Link>
-                <Link
-                  to="/dashboard/new"
-                  search={{ type: "other" } as never}
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 transition hover:border-gold hover:bg-gold/5"
-                >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy/10 text-navy">
-                    <Package size={20} />
-                  </span>
-                  <span className="flex-1">
-                    <span className="block font-semibold text-ink">
-                      Upload Digital Product
+                    <span className="flex-1">
+                      <span className="block font-semibold text-ink">Upload eBook</span>
+                      <span className="block text-xs text-mute">KDP-style publish flow</span>
                     </span>
-                    <span className="block text-xs text-mute">
-                      Course, template, audio, prompt pack, or other
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setView("digital")}
+                    className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 text-left transition hover:border-gold hover:bg-gold/5"
+                  >
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy/10 text-navy">
+                      <Package size={20} />
                     </span>
-                  </span>
-                </Link>
-              </div>
+                    <span className="flex-1">
+                      <span className="block font-semibold text-ink">Upload Digital Product</span>
+                      <span className="block text-xs text-mute">Choose from 12 product types</span>
+                    </span>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid gap-2 overflow-y-auto pr-1 -mr-1">
+                  {PRODUCT_TYPE_ORDER.map((key) => {
+                    const t = PRODUCT_TYPES[key];
+                    return (
+                      <Link
+                        key={key}
+                        to="/dashboard/new"
+                        search={{ type: key } as never}
+                        onClick={() => setOpen(false)}
+                        className="flex items-center gap-3 rounded-xl border border-line bg-white p-3.5 transition hover:border-gold hover:bg-gold/5"
+                      >
+                        <span
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl"
+                          style={{ backgroundColor: `${t.accent}1a`, color: t.accent }}
+                        >
+                          {t.emoji}
+                        </span>
+                        <span className="flex-1 min-w-0">
+                          <span className="block font-semibold text-ink">{t.label}</span>
+                          <span className="block text-xs text-mute truncate">{t.tagline}</span>
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}
