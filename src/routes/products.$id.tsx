@@ -193,6 +193,7 @@ function ProductPage() {
   const inCart = cart.has(product.id);
   const owned = useOwnsProduct(product.id);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [bumpIds, setBumpIds] = useState<string[]>([]);
 
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [selected, setSelected] = useState<SelectedVariant | null>(null);
