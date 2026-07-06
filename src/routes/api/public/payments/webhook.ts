@@ -122,6 +122,31 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     return;
   }
 
+  // Record affiliate commission if the referral code matches a creator affiliate
+  // for this product's seller. Cross-creator referrals are ignored.
+  if (referralCode) {
+    try {
+      const { resolveAffiliateForOrderItem } = await import("@/lib/creator-affiliate.server");
+      const aff = await resolveAffiliateForOrderItem(referralCode, sellerId);
+      if (aff) {
+        const commissionCents = Math.round((unitAmount * aff.commission_rate_pct) / 100);
+        await supabaseAdmin.from("affiliate_commissions" as any).insert({
+          order_id: order.id,
+          order_item_id: item.id,
+          creator_id: aff.creator_id,
+          affiliate_user_id: aff.affiliate_user_id,
+          referral_code: aff.referral_code,
+          sale_amount_cents: unitAmount,
+          commission_rate_pct: aff.commission_rate_pct,
+          commission_cents: commissionCents,
+          status: "pending",
+        } as any);
+      }
+    } catch (e) {
+      console.error("Failed to record affiliate commission", e);
+    }
+  }
+
   // Generate download token
   const token = generateToken();
   await supabaseAdmin.from("order_downloads").insert({

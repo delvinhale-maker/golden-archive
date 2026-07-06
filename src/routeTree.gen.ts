@@ -42,6 +42,7 @@ import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ApiAiStudioStreamRouteImport } from './routes/api/ai-studio-stream'
+import { Route as ABrandSlugRouteImport } from './routes/a.$brandSlug'
 import { Route as AuthenticatedReferRouteImport } from './routes/_authenticated/refer'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -53,6 +54,7 @@ import { Route as AuthenticatedDashboardKingdomPicksRouteImport } from './routes
 import { Route as AuthenticatedDashboardHelpRouteImport } from './routes/_authenticated/dashboard.help'
 import { Route as AuthenticatedDashboardEarnRouteImport } from './routes/_authenticated/dashboard.earn'
 import { Route as AuthenticatedDashboardAiStudioRouteImport } from './routes/_authenticated/dashboard.ai-studio'
+import { Route as AuthenticatedDashboardAffiliateRouteImport } from './routes/_authenticated/dashboard.affiliate'
 import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authenticated/admin.products'
 import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin.payouts'
 import { Route as AuthenticatedAdminMessagesRouteImport } from './routes/_authenticated/admin.messages'
@@ -235,6 +237,11 @@ const ApiAiStudioStreamRoute = ApiAiStudioStreamRouteImport.update({
   path: '/api/ai-studio-stream',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ABrandSlugRoute = ABrandSlugRouteImport.update({
+  id: '/a/$brandSlug',
+  path: '/a/$brandSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedReferRoute = AuthenticatedReferRouteImport.update({
   id: '/refer',
   path: '/refer',
@@ -295,6 +302,12 @@ const AuthenticatedDashboardAiStudioRoute =
   AuthenticatedDashboardAiStudioRouteImport.update({
     id: '/dashboard/ai-studio',
     path: '/dashboard/ai-studio',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardAffiliateRoute =
+  AuthenticatedDashboardAffiliateRouteImport.update({
+    id: '/dashboard/affiliate',
+    path: '/dashboard/affiliate',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminProductsRoute =
@@ -426,6 +439,7 @@ export interface FileRoutesByFullPath {
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
+  '/a/$brandSlug': typeof ABrandSlugRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -439,6 +453,7 @@ export interface FileRoutesByFullPath {
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
+  '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
@@ -487,6 +502,7 @@ export interface FileRoutesByTo {
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
+  '/a/$brandSlug': typeof ABrandSlugRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -500,6 +516,7 @@ export interface FileRoutesByTo {
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
+  '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
@@ -551,6 +568,7 @@ export interface FileRoutesById {
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
   '/_authenticated/refer': typeof AuthenticatedReferRoute
+  '/a/$brandSlug': typeof ABrandSlugRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -564,6 +582,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/_authenticated/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
+  '/_authenticated/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/_authenticated/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
   '/_authenticated/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/_authenticated/dashboard/help': typeof AuthenticatedDashboardHelpRoute
@@ -615,6 +634,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/wishlist'
     | '/refer'
+    | '/a/$brandSlug'
     | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/download/$token'
@@ -628,6 +648,7 @@ export interface FileRouteTypes {
     | '/admin/messages'
     | '/admin/payouts'
     | '/admin/products'
+    | '/dashboard/affiliate'
     | '/dashboard/ai-studio'
     | '/dashboard/earn'
     | '/dashboard/help'
@@ -676,6 +697,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/wishlist'
     | '/refer'
+    | '/a/$brandSlug'
     | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/download/$token'
@@ -689,6 +711,7 @@ export interface FileRouteTypes {
     | '/admin/messages'
     | '/admin/payouts'
     | '/admin/products'
+    | '/dashboard/affiliate'
     | '/dashboard/ai-studio'
     | '/dashboard/earn'
     | '/dashboard/help'
@@ -739,6 +762,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/wishlist'
     | '/_authenticated/refer'
+    | '/a/$brandSlug'
     | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/download/$token'
@@ -752,6 +776,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/messages'
     | '/_authenticated/admin/payouts'
     | '/_authenticated/admin/products'
+    | '/_authenticated/dashboard/affiliate'
     | '/_authenticated/dashboard/ai-studio'
     | '/_authenticated/dashboard/earn'
     | '/_authenticated/dashboard/help'
@@ -802,6 +827,7 @@ export interface RootRouteChildren {
   UnsubscribeRoute: typeof UnsubscribeRoute
   VaultRoute: typeof VaultRoute
   WishlistRoute: typeof WishlistRoute
+  ABrandSlugRoute: typeof ABrandSlugRoute
   ApiAiStudioStreamRoute: typeof ApiAiStudioStreamRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
@@ -1054,6 +1080,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAiStudioStreamRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/a/$brandSlug': {
+      id: '/a/$brandSlug'
+      path: '/a/$brandSlug'
+      fullPath: '/a/$brandSlug'
+      preLoaderRoute: typeof ABrandSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/refer': {
       id: '/_authenticated/refer'
       path: '/refer'
@@ -1129,6 +1162,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard/ai-studio'
       fullPath: '/dashboard/ai-studio'
       preLoaderRoute: typeof AuthenticatedDashboardAiStudioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/affiliate': {
+      id: '/_authenticated/dashboard/affiliate'
+      path: '/dashboard/affiliate'
+      fullPath: '/dashboard/affiliate'
+      preLoaderRoute: typeof AuthenticatedDashboardAffiliateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/products': {
@@ -1275,6 +1315,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
   AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
   AuthenticatedAdminProductsRoute: typeof AuthenticatedAdminProductsRoute
+  AuthenticatedDashboardAffiliateRoute: typeof AuthenticatedDashboardAffiliateRoute
   AuthenticatedDashboardAiStudioRoute: typeof AuthenticatedDashboardAiStudioRoute
   AuthenticatedDashboardEarnRoute: typeof AuthenticatedDashboardEarnRoute
   AuthenticatedDashboardHelpRoute: typeof AuthenticatedDashboardHelpRoute
@@ -1294,6 +1335,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
   AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
   AuthenticatedAdminProductsRoute: AuthenticatedAdminProductsRoute,
+  AuthenticatedDashboardAffiliateRoute: AuthenticatedDashboardAffiliateRoute,
   AuthenticatedDashboardAiStudioRoute: AuthenticatedDashboardAiStudioRoute,
   AuthenticatedDashboardEarnRoute: AuthenticatedDashboardEarnRoute,
   AuthenticatedDashboardHelpRoute: AuthenticatedDashboardHelpRoute,
@@ -1351,6 +1393,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnsubscribeRoute: UnsubscribeRoute,
   VaultRoute: VaultRoute,
   WishlistRoute: WishlistRoute,
+  ABrandSlugRoute: ABrandSlugRoute,
   ApiAiStudioStreamRoute: ApiAiStudioStreamRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   DownloadTokenRoute: DownloadTokenRoute,
