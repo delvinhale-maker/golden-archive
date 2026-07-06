@@ -15,8 +15,24 @@ export type AffiliateProduct = {
   badge: string | null;
   featured: boolean;
   active: boolean;
+  deal_active: boolean;
+  deal_expires_at: string | null;
   created_at: string;
 };
+
+export async function fetchAmazonDealsOfTheDay(limit = 6): Promise<AffiliateProduct[]> {
+  const { data, error } = await supabase
+    .from("affiliate_products")
+    .select("*")
+    .eq("active", true)
+    .eq("source", "amazon")
+    .eq("deal_active", true)
+    .or(`deal_expires_at.is.null,deal_expires_at.gt.${new Date().toISOString()}`)
+    .order("deal_expires_at", { ascending: true, nullsFirst: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []) as AffiliateProduct[];
+}
 
 export const AFFILIATE_CATEGORIES = [
   "eBooks",
