@@ -555,7 +555,23 @@ function BookshelfTable({
                       {badge.label}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-ink/80">eBook</td>
+                  <td className="px-4 py-3">
+                    {(() => {
+                      const d = categoryDisplay(p.category);
+                      return (
+                        <span
+                          className="inline-flex items-center text-[11px] font-semibold rounded-full px-2.5 py-1 border"
+                          style={{
+                            color: d.accent,
+                            backgroundColor: `${d.accent}15`,
+                            borderColor: `${d.accent}40`,
+                          }}
+                        >
+                          {d.label}
+                        </span>
+                      );
+                    })()}
+                  </td>
                   <td className="px-4 py-3 text-mute whitespace-nowrap">
                     {new Date(p.created_at).toLocaleDateString(undefined, {
                       month: "short",
