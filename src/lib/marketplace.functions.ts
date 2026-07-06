@@ -59,6 +59,8 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
     !!r.is_preorder &&
     !r.released_at &&
     (!r.release_date || new Date(r.release_date).getTime() > Date.now());
+  const isEbook = r.category.toLowerCase() === "ebooks";
+  const included = isEbook ? undefined : parseWhatsIncluded(r.admin_notes);
   return {
     id: r.id,
     title: r.title,
@@ -74,7 +76,7 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
     bestseller: false,
     creator: { id: r.seller_id, name: sellerName, verified: true },
     description: r.description ?? undefined,
-    included: ["Instant digital download", "Lifetime access"],
+    included,
     aiReviewStatus: (r.ai_review_status as Product["aiReviewStatus"]) ?? null,
     aiReviewScore: r.ai_review_score ?? null,
     isPreorder,
@@ -82,6 +84,7 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
     preorderNote: r.preorder_note ?? null,
   };
 }
+
 
 // Fetch real aggregate rating/review counts for a set of product IDs.
 // product_reviews has a public SELECT policy, so the publishable-key client
