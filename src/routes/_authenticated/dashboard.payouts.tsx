@@ -370,8 +370,8 @@ function PayoutsPage() {
                 <span className="block text-navy/70 mb-1">File</span>
                 <input
                   type="file"
-                  accept="application/pdf,image/*"
-                  onChange={(e) => setTaxFile(e.target.files?.[0] ?? null)}
+                  accept="application/pdf,image/png,image/jpeg,.pdf,.png,.jpg,.jpeg"
+                  onChange={(e) => pickTaxFile(e.target.files?.[0] ?? null)}
                   className="text-sm"
                 />
               </label>
