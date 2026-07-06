@@ -17,7 +17,7 @@ export type PayoutRequestRow = {
   status: "pending" | "approved" | "rejected" | "paid";
   seller_note: string | null;
   admin_note: string | null;
-  method_snapshot: Record<string, unknown> | null;
+  method_snapshot: Record<string, string> | null;
   decided_at: string | null;
   created_at: string;
   seller_payout_id: string | null;
@@ -115,9 +115,9 @@ export const getMyPayoutMethod = createServerFn({ method: "GET" })
 
 const upsertMethodSchema = z.object({
   method: z.enum(["bank", "paypal", "wise", "other"]),
-  details: z.record(z.string().max(500)).refine((d) => Object.keys(d).length <= 20, {
-    message: "too many fields",
-  }),
+  details: z
+    .record(z.string(), z.string().max(500))
+    .refine((d) => Object.keys(d).length <= 20, { message: "too many fields" }),
 });
 
 export const upsertPayoutMethod = createServerFn({ method: "POST" })
@@ -198,5 +198,5 @@ export const listMyTaxForms = createServerFn({ method: "GET" })
       .eq("seller_id", context.userId)
       .order("submitted_at", { ascending: false })
       .limit(20);
-    return (data ?? []) as TaxFormRow[];
+    return ((data ?? []) as unknown) as TaxFormRow[];
   });
