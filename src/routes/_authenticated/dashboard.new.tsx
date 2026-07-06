@@ -164,6 +164,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [coverLightbox, setCoverLightbox] = useState(false);
+  // Step 2 (bonus): preview page selection — 0..5 ordered 1-indexed page numbers
+  const [previewPages, setPreviewPages] = useState<number[]>([]);
 
   // Step 3
   const [price, setPrice] = useState<string>(() => (productTypeKey && !editingIdProp ? (typeCfg.suggestedPriceCents / 100).toFixed(2) : ""));
