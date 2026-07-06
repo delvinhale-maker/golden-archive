@@ -412,6 +412,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     return () => {
       cancelled = true;
       window.clearTimeout(slowTimer);
+      if (epubNavUnlockTimerRef.current != null) {
+        window.clearTimeout(epubNavUnlockTimerRef.current);
+        epubNavUnlockTimerRef.current = null;
+      }
       if (epubRenditionRef.current) {
         try { epubRenditionRef.current.destroy(); } catch { /* noop */ }
         epubRenditionRef.current = null;
