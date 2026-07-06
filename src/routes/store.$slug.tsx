@@ -20,6 +20,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { supabase as supaBrowser } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { StorefrontBadgeRow } from "@/components/marketplace/StorefrontBadgeRow";
 
 // ---- Types ----
 type Product = {
@@ -402,6 +403,7 @@ function StorefrontPage() {
                 ))}
               </div>
             ) : null}
+            <StorefrontBadgeRow sellerId={data.creatorUserId} className="mt-3" />
           </div>
 
           <div className="flex gap-2">
