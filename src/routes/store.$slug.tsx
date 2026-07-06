@@ -179,7 +179,13 @@ export const Route = createFileRoute("/store/$slug")({
     const SITE_URL = "https://www.aurumvault.store";
     const url = `${SITE_URL}/store/${params.slug}`;
     if (!loaderData) {
-      return { meta: [{ title: "Storefront · AurumVault" }] };
+      // Non-approved / missing storefronts should never enter the index.
+      return {
+        meta: [
+          { title: "Storefront unavailable · AurumVault" },
+          { name: "robots", content: "noindex, follow" },
+        ],
+      };
     }
     const d = loaderData;
     const desc = d.pitch.slice(0, 155);
