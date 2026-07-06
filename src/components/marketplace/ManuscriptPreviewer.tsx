@@ -971,7 +971,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     if (Math.abs(dx) > 50) {
       const forward = isRTL ? dx > 0 : dx < 0;
-      goTo(location + (forward ? 1 : -1));
+      goRelative(forward ? 1 : -1);
     }
     touchStartX.current = null;
   };
