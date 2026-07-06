@@ -50,8 +50,20 @@ export function PublishFlow({ editingId: editingIdProp, productTypeKey }: { edit
 
 
 
-const CATEGORIES: { label: string; value: "ebooks" | "finance" | "leadership" | "purpose" | "business" }[] = [
+const CATEGORIES: { label: string; value: import("@/lib/product-types").ProductCategoryEnum }[] = [
   { label: "eBooks", value: "ebooks" },
+  { label: "Financial Planners", value: "financial_planners" },
+  { label: "AI Prompt Packs", value: "ai_prompt_packs" },
+  { label: "Budget Spreadsheets", value: "budget_spreadsheets" },
+  { label: "Printable Journals", value: "printable_journals" },
+  { label: "Children's Educational", value: "childrens_educational" },
+  { label: "Bible Studies", value: "bible_studies" },
+  { label: "Courses", value: "courses" },
+  { label: "Digital Toolkits", value: "digital_toolkits" },
+  { label: "Business Operating Systems", value: "business_operating_systems" },
+  { label: "Business Templates", value: "business_templates" },
+  { label: "Audio", value: "audio" },
+  { label: "Templates", value: "templates" },
   { label: "Finance", value: "finance" },
   { label: "Leadership", value: "leadership" },
   { label: "Purpose", value: "purpose" },
