@@ -654,6 +654,12 @@ function ActionsMenu({
           <MenuItem to="/dashboard/variants/$id" params={{ id: productId }} icon={<Pencil size={14} />}>
             Variants
           </MenuItem>
+          <MenuItem to="/dashboard/preorder/$id" params={{ id: productId }} icon={<Pencil size={14} />}>
+            Pre-order
+          </MenuItem>
+          <MenuItem to="/dashboard/bumps/$id" params={{ id: productId }} icon={<Pencil size={14} />}>
+            Order bumps
+          </MenuItem>
 
           {isLive && (
             <MenuItem to="/products/$id" params={{ id: productId }} icon={<ExternalLink size={14} />}>
