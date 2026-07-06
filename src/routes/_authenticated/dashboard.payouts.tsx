@@ -82,6 +82,7 @@ function PayoutsPage() {
     if (!summary) return false;
     if (summary.open_request) return false;
     if (!summary.has_method) return false;
+    if (!summary.has_tax_form) return false;
     const cents = Math.round(parseFloat(requestAmount || "0") * 100);
     return cents >= 2500 && cents <= summary.pending_cents;
   }, [summary, requestAmount]);
@@ -124,8 +125,36 @@ function PayoutsPage() {
     }
   }
 
+  const ALLOWED_TAX_MIMES = ["application/pdf", "image/png", "image/jpeg"];
+  const MAX_TAX_BYTES = 10 * 1024 * 1024; // 10 MB
+
+  function pickTaxFile(f: File | null) {
+    if (!f) {
+      setTaxFile(null);
+      return;
+    }
+    const mime = f.type || "";
+    const ext = f.name.toLowerCase().split(".").pop() ?? "";
+    const okMime = ALLOWED_TAX_MIMES.includes(mime);
+    const okExt = ["pdf", "png", "jpg", "jpeg"].includes(ext);
+    if (!okMime || !okExt) {
+      toast.error("Only PDF, PNG, or JPG files are accepted for W-9 / W-8BEN.");
+      return;
+    }
+    if (f.size > MAX_TAX_BYTES) {
+      toast.error("File is too large. Max 10 MB.");
+      return;
+    }
+    setTaxFile(f);
+  }
+
   async function uploadTax() {
     if (!taxFile) return;
+    // Re-check on submit in case something slipped through.
+    if (!ALLOWED_TAX_MIMES.includes(taxFile.type) || taxFile.size > MAX_TAX_BYTES) {
+      toast.error("Invalid file. Only PDF/PNG/JPG up to 10 MB.");
+      return;
+    }
     setUploadingTax(true);
     try {
       const { data: u } = await supabase.auth.getUser();
@@ -135,7 +164,7 @@ function PayoutsPage() {
       const path = `${uid}/${taxType}-${Date.now()}-${safeName}`;
       const { error } = await supabase.storage.from("tax-forms").upload(path, taxFile, {
         upsert: false,
-        contentType: taxFile.type || "application/pdf",
+        contentType: taxFile.type,
       });
       if (error) throw error;
       await submitTaxFn({ data: { form_type: taxType, file_path: path } });
@@ -230,6 +259,10 @@ function PayoutsPage() {
             ) : !summary.has_method ? (
               <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
                 Save a payout method above before requesting.
+              </div>
+            ) : !summary.has_tax_form ? (
+              <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
+                Submit a W-9 (US) or W-8BEN (international) tax form below before requesting a payout.
               </div>
             ) : (
               <div className="mt-4 grid grid-cols-1 md:grid-cols-[160px_1fr_auto] gap-3 items-end">
@@ -337,8 +370,8 @@ function PayoutsPage() {
                 <span className="block text-navy/70 mb-1">File</span>
                 <input
                   type="file"
-                  accept="application/pdf,image/*"
-                  onChange={(e) => setTaxFile(e.target.files?.[0] ?? null)}
+                  accept="application/pdf,image/png,image/jpeg,.pdf,.png,.jpg,.jpeg"
+                  onChange={(e) => pickTaxFile(e.target.files?.[0] ?? null)}
                   className="text-sm"
                 />
               </label>

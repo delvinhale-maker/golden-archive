@@ -48,6 +48,7 @@ export type MyEarningsSummary = {
   lifetime_cents: number;
   currency: string;
   has_method: boolean;
+  has_tax_form: boolean;
   open_request: PayoutRequestRow | null;
   requests: PayoutRequestRow[];
   payouts: PayoutHistoryRow[];
@@ -59,7 +60,7 @@ export const getMyEarnings = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const uid = context.userId;
 
-    const [bal, method, requests, payouts] = await Promise.all([
+    const [bal, method, requests, payouts, tax] = await Promise.all([
       supabaseAdmin
         .from("seller_balances")
         .select("pending_cents, paid_cents, currency")
@@ -82,6 +83,12 @@ export const getMyEarnings = createServerFn({ method: "GET" })
         .eq("seller_id", uid)
         .order("paid_at", { ascending: false })
         .limit(50),
+      supabaseAdmin
+        .from("creator_tax_forms" as any)
+        .select("id")
+        .eq("seller_id", uid)
+        .neq("status", "rejected")
+        .limit(1),
     ]);
 
     const pending = Number(bal.data?.pending_cents ?? 0);
@@ -95,6 +102,7 @@ export const getMyEarnings = createServerFn({ method: "GET" })
       lifetime_cents: pending + paid,
       currency: bal.data?.currency ?? "usd",
       has_method: !!method.data,
+      has_tax_form: ((tax.data ?? []) as unknown[]).length > 0,
       open_request: openReq,
       requests: reqs,
       payouts: (payouts.data ?? []) as PayoutHistoryRow[],
