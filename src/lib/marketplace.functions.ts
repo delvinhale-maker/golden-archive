@@ -37,6 +37,10 @@ type DbProductRow = {
   created_at: string;
   ai_review_status: string | null;
   ai_review_score: number | null;
+  is_preorder?: boolean | null;
+  release_date?: string | null;
+  released_at?: string | null;
+  preorder_note?: string | null;
 };
 
 function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
@@ -45,6 +49,10 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
     r.compare_at_price_cents != null && r.compare_at_price_cents > r.price_cents
       ? r.compare_at_price_cents / 100
       : undefined;
+  const isPreorder =
+    !!r.is_preorder &&
+    !r.released_at &&
+    (!r.release_date || new Date(r.release_date).getTime() > Date.now());
   return {
     id: r.id,
     title: r.title,
@@ -63,6 +71,9 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
     included: ["Instant digital download", "Lifetime access"],
     aiReviewStatus: (r.ai_review_status as Product["aiReviewStatus"]) ?? null,
     aiReviewScore: r.ai_review_score ?? null,
+    isPreorder,
+    releaseDate: r.release_date ?? null,
+    preorderNote: r.preorder_note ?? null,
   };
 }
 
