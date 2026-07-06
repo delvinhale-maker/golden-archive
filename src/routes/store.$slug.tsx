@@ -530,6 +530,41 @@ function StorefrontPage() {
               );
             })}
         </div>
+
+        {/* Social share row */}
+        <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-ink/5 pt-4">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-mute">
+            Share this storefront
+          </span>
+          {storefrontUrl && (
+            <>
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${data.brandName} on AurumVault`)}&url=${encodeURIComponent(storefrontUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:border-gold"
+              >
+                <Twitter size={12} /> X
+              </a>
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(storefrontUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:border-gold"
+              >
+                Facebook
+              </a>
+              <a
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(storefrontUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:border-gold"
+              >
+                <Linkedin size={12} /> LinkedIn
+              </a>
+            </>
+          )}
+        </div>
       </section>
 
       {/* Tabs */}
