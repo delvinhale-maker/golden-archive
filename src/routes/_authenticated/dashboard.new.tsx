@@ -32,20 +32,28 @@ const DESC_WARN = 1800;
 
 
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    id: typeof s.id === "string" ? s.id : undefined,
-    type: typeof s.type === "string" ? (s.type as ProductTypeKey) : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>) => {
+    const rawType = typeof s.type === "string" ? s.type : undefined;
+    const type = isProductTypeKey(rawType) ? rawType : undefined;
+    return {
+      id: typeof s.id === "string" ? s.id : undefined,
+      type,
+      // Signals that a `type` param was present but did not match a known
+      // product type key. The component surfaces a toast so the user knows
+      // we ignored it and fell back to the default selection.
+      invalidType: rawType !== undefined && type === undefined ? rawType : undefined,
+    };
+  },
   component: PublishFlowRoute,
 });
 
 function PublishFlowRoute() {
-  const { id, type } = Route.useSearch();
-  return <PublishFlow editingId={id} productTypeKey={type} />;
+  const { id, type, invalidType } = Route.useSearch();
+  return <PublishFlow editingId={id} productTypeKey={type} invalidType={invalidType} />;
 }
 
-export function PublishFlow({ editingId: editingIdProp, productTypeKey }: { editingId?: string; productTypeKey?: ProductTypeKey } = {}) {
-  return <PublishFlowImpl editingId={editingIdProp} productTypeKey={productTypeKey} />;
+export function PublishFlow({ editingId: editingIdProp, productTypeKey, invalidType }: { editingId?: string; productTypeKey?: ProductTypeKey; invalidType?: string } = {}) {
+  return <PublishFlowImpl editingId={editingIdProp} productTypeKey={productTypeKey} invalidType={invalidType} />;
 }
 
 
