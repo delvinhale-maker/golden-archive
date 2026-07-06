@@ -130,6 +130,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
   const [author, setAuthor] = useState("Delvin Hale");
   const [seriesName, setSeriesName] = useState("");
   const [edition, setEdition] = useState("");
+  const [whatsIncluded, setWhatsIncluded] = useState("");
   const [description, setDescription] = useState("");
   const [language, setLanguage] = useState("English");
   const [category, setCategory] = useState<import("@/lib/product-types").ProductCategoryEnum>(typeCfg.category);
