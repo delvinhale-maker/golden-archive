@@ -100,24 +100,38 @@ export const getPublicPreview = createServerFn({ method: "POST" })
         }
       }
 
-      // Layer 2: single diagonal stripe, large, ~40% opacity, centered.
-      const stripeSize = Math.min(width, height) * 0.06;
-      const stripeWidth = font.widthOfTextAtSize(diagonalText, stripeSize);
+      // Layer 2: single diagonal stripe, sized so the rotated text spans
+      // ~85% of the page diagonal. Rotated in pdf-lib around the text's
+      // (x, y) origin — compute that origin so the rotated glyph box is
+      // centered on the page.
+      const angleDeg = -30;
+      const angleRad = (angleDeg * Math.PI) / 180;
+      const diag = Math.sqrt(width * width + height * height);
+      const targetWidth = diag * 0.85;
+      // Iteratively pick a size that fits our width budget.
+      const baseSize = Math.min(width, height) * 0.06;
+      let stripeSize = baseSize;
+      let stripeWidth = font.widthOfTextAtSize(diagonalText, stripeSize);
+      if (stripeWidth > targetWidth) {
+        stripeSize = (baseSize * targetWidth) / stripeWidth;
+        stripeWidth = font.widthOfTextAtSize(diagonalText, stripeSize);
+      }
       const cx = width / 2;
       const cy = height / 2;
-      // Rotate -30deg around the center; compute the drawText origin
-      // (bottom-left of the text box in user space).
-      const angleRad = (-30 * Math.PI) / 180;
-      const ox = cx - Math.cos(angleRad) * (stripeWidth / 2) - Math.sin(angleRad) * (stripeSize / 2);
-      const oy = cy - Math.sin(angleRad) * (stripeWidth / 2) + Math.cos(angleRad) * (stripeSize / 2) - stripeSize;
+      const cosA = Math.cos(angleRad);
+      const sinA = Math.sin(angleRad);
+      // Rotate the vector (W/2, S/2) — the offset from origin to glyph
+      // box center — then subtract from the target center to get origin.
+      const rx = cosA * (stripeWidth / 2) - sinA * (stripeSize / 2);
+      const ry = sinA * (stripeWidth / 2) + cosA * (stripeSize / 2);
       page.drawText(diagonalText, {
-        x: ox,
-        y: oy,
+        x: cx - rx,
+        y: cy - ry,
         size: stripeSize,
         font,
         color: gold,
         opacity: 0.4,
-        rotate: degrees(-30),
+        rotate: degrees(angleDeg),
       });
     }
 
