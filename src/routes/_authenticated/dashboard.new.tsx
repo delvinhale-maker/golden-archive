@@ -2232,13 +2232,18 @@ function PrePublishPreview(props: {
 
               {/* Body */}
               <div className="flex flex-1 flex-col p-4">
-                {/* Category badge — gold uppercase, matches live storefront */}
-                <div
-                  className="text-[11px] font-semibold uppercase tracking-[0.14em]"
-                  style={{ color: "#C9A84C" }}
-                >
-                  {props.category || "Uncategorized"}
-                </div>
+                {/* Category badge — color-coded per product type */}
+                {(() => {
+                  const d = require("@/lib/product-types").categoryDisplay(props.category);
+                  return (
+                    <div
+                      className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                      style={{ color: d.accent }}
+                    >
+                      {d.label}
+                    </div>
+                  );
+                })()}
 
                 {/* Title — navy, 2-line clamp */}
                 <h3
