@@ -540,7 +540,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   useEffect(() => {
     if (!isEpub || !epubReady) return;
     const book = epubBookRef.current;
-    const container = epubContainerRef.current;
+    const container = epubContainerEl;
     if (!book || !container) return;
 
     // Tear down any previous rendition.
