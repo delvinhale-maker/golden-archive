@@ -87,7 +87,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   const renderTaskRef = useRef<any>(null);
   const touchStartX = useRef<number | null>(null);
   const docxInnerRef = useRef<HTMLDivElement>(null);
-  const epubContainerRef = useRef<HTMLDivElement>(null);
+  const [epubContainerEl, setEpubContainerEl] = useState<HTMLDivElement | null>(null);
+  const epubContainerRef = useCallback((el: HTMLDivElement | null) => {
+    setEpubContainerEl(el);
+  }, []);
   const epubBookRef = useRef<any>(null);
   const epubRenditionRef = useRef<any>(null);
   const epubTotalRef = useRef<number>(0);
