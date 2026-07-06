@@ -125,8 +125,36 @@ function PayoutsPage() {
     }
   }
 
+  const ALLOWED_TAX_MIMES = ["application/pdf", "image/png", "image/jpeg"];
+  const MAX_TAX_BYTES = 10 * 1024 * 1024; // 10 MB
+
+  function pickTaxFile(f: File | null) {
+    if (!f) {
+      setTaxFile(null);
+      return;
+    }
+    const mime = f.type || "";
+    const ext = f.name.toLowerCase().split(".").pop() ?? "";
+    const okMime = ALLOWED_TAX_MIMES.includes(mime);
+    const okExt = ["pdf", "png", "jpg", "jpeg"].includes(ext);
+    if (!okMime || !okExt) {
+      toast.error("Only PDF, PNG, or JPG files are accepted for W-9 / W-8BEN.");
+      return;
+    }
+    if (f.size > MAX_TAX_BYTES) {
+      toast.error("File is too large. Max 10 MB.");
+      return;
+    }
+    setTaxFile(f);
+  }
+
   async function uploadTax() {
     if (!taxFile) return;
+    // Re-check on submit in case something slipped through.
+    if (!ALLOWED_TAX_MIMES.includes(taxFile.type) || taxFile.size > MAX_TAX_BYTES) {
+      toast.error("Invalid file. Only PDF/PNG/JPG up to 10 MB.");
+      return;
+    }
     setUploadingTax(true);
     try {
       const { data: u } = await supabase.auth.getUser();
@@ -136,7 +164,7 @@ function PayoutsPage() {
       const path = `${uid}/${taxType}-${Date.now()}-${safeName}`;
       const { error } = await supabase.storage.from("tax-forms").upload(path, taxFile, {
         upsert: false,
-        contentType: taxFile.type || "application/pdf",
+        contentType: taxFile.type,
       });
       if (error) throw error;
       await submitTaxFn({ data: { form_type: taxType, file_path: path } });
