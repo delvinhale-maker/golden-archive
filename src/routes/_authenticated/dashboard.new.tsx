@@ -304,6 +304,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
         status: "draft" as const,
         published: false,
         admin_notes: notes,
+        preview_pages: previewPages,
       };
       const targetId = draftProductId ?? editingId;
       if (targetId) {
