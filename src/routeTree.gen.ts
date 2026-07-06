@@ -24,6 +24,9 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PreviewSampleRouteImport } from './routes/preview-sample'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as KingdomPicksRouteImport } from './routes/kingdom-picks'
+import { Route as CreatorsRouteImport } from './routes/creators'
+import { Route as CreatorTermsRouteImport } from './routes/creator-terms'
+import { Route as CreatorDashboardRouteImport } from './routes/creator-dashboard'
 import { Route as CreatorAgreementRouteImport } from './routes/creator-agreement'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CartRouteImport } from './routes/cart'
@@ -152,6 +155,21 @@ const LibraryRoute = LibraryRouteImport.update({
 const KingdomPicksRoute = KingdomPicksRouteImport.update({
   id: '/kingdom-picks',
   path: '/kingdom-picks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorsRoute = CreatorsRouteImport.update({
+  id: '/creators',
+  path: '/creators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorTermsRoute = CreatorTermsRouteImport.update({
+  id: '/creator-terms',
+  path: '/creator-terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorDashboardRoute = CreatorDashboardRouteImport.update({
+  id: '/creator-dashboard',
+  path: '/creator-dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreatorAgreementRoute = CreatorAgreementRouteImport.update({
@@ -465,6 +483,9 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/creator-dashboard': typeof CreatorDashboardRoute
+  '/creator-terms': typeof CreatorTermsRoute
+  '/creators': typeof CreatorsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
   '/preview-sample': typeof PreviewSampleRoute
@@ -535,6 +556,9 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/creator-dashboard': typeof CreatorDashboardRoute
+  '/creator-terms': typeof CreatorTermsRoute
+  '/creators': typeof CreatorsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
   '/preview-sample': typeof PreviewSampleRoute
@@ -606,6 +630,9 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/creator-dashboard': typeof CreatorDashboardRoute
+  '/creator-terms': typeof CreatorTermsRoute
+  '/creators': typeof CreatorsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
   '/preview-sample': typeof PreviewSampleRoute
@@ -678,6 +705,9 @@ export interface FileRouteTypes {
     | '/cart'
     | '/contact'
     | '/creator-agreement'
+    | '/creator-dashboard'
+    | '/creator-terms'
+    | '/creators'
     | '/kingdom-picks'
     | '/library'
     | '/preview-sample'
@@ -748,6 +778,9 @@ export interface FileRouteTypes {
     | '/cart'
     | '/contact'
     | '/creator-agreement'
+    | '/creator-dashboard'
+    | '/creator-terms'
+    | '/creators'
     | '/kingdom-picks'
     | '/library'
     | '/preview-sample'
@@ -818,6 +851,9 @@ export interface FileRouteTypes {
     | '/cart'
     | '/contact'
     | '/creator-agreement'
+    | '/creator-dashboard'
+    | '/creator-terms'
+    | '/creators'
     | '/kingdom-picks'
     | '/library'
     | '/preview-sample'
@@ -890,6 +926,9 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   ContactRoute: typeof ContactRoute
   CreatorAgreementRoute: typeof CreatorAgreementRoute
+  CreatorDashboardRoute: typeof CreatorDashboardRoute
+  CreatorTermsRoute: typeof CreatorTermsRoute
+  CreatorsRoute: typeof CreatorsRoute
   KingdomPicksRoute: typeof KingdomPicksRoute
   LibraryRoute: typeof LibraryRoute
   PreviewSampleRoute: typeof PreviewSampleRoute
@@ -1031,6 +1070,27 @@ declare module '@tanstack/react-router' {
       path: '/kingdom-picks'
       fullPath: '/kingdom-picks'
       preLoaderRoute: typeof KingdomPicksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creators': {
+      id: '/creators'
+      path: '/creators'
+      fullPath: '/creators'
+      preLoaderRoute: typeof CreatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator-terms': {
+      id: '/creator-terms'
+      path: '/creator-terms'
+      fullPath: '/creator-terms'
+      preLoaderRoute: typeof CreatorTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator-dashboard': {
+      id: '/creator-dashboard'
+      path: '/creator-dashboard'
+      fullPath: '/creator-dashboard'
+      preLoaderRoute: typeof CreatorDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/creator-agreement': {
@@ -1509,6 +1569,9 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   ContactRoute: ContactRoute,
   CreatorAgreementRoute: CreatorAgreementRoute,
+  CreatorDashboardRoute: CreatorDashboardRoute,
+  CreatorTermsRoute: CreatorTermsRoute,
+  CreatorsRoute: CreatorsRoute,
   KingdomPicksRoute: KingdomPicksRoute,
   LibraryRoute: LibraryRoute,
   PreviewSampleRoute: PreviewSampleRoute,
