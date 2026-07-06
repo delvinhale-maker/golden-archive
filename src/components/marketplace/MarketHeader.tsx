@@ -92,6 +92,7 @@ export function MarketHeader() {
           </div>
 
           <div className="ml-auto flex items-center gap-1 md:ml-0 md:gap-2">
+            <CreatorsMenu />
             {canUpload ? (
               <Link
                 to="/dashboard/new"
