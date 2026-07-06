@@ -34,6 +34,7 @@ import { NewReleasesRow, newReleasesRowQ } from "@/components/marketplace/NewRel
 import { KingdomBibleAppBanner } from "@/components/marketplace/KingdomBibleAppBanner";
 import { ContinueBrowsingRow } from "@/components/marketplace/HomeRows";
 import { EmailCaptureBanner } from "@/components/EmailCaptureBanner";
+import { CreatorSpotlight, creatorSpotlightQ } from "@/components/marketplace/CreatorSpotlight";
 import {
   getFeaturedProducts,
   getHomeHighlights,
@@ -61,6 +62,7 @@ export const Route = createFileRoute("/")({
     context.queryClient.ensureQueryData(kingdomPicksRowQ);
     context.queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] });
     context.queryClient.ensureQueryData(highlightsQ);
+    context.queryClient.ensureQueryData(creatorSpotlightQ);
   },
 
 
@@ -132,6 +134,7 @@ function Home() {
       <HighlightsBoundary fallback={<CreatorSkeleton />} errorLabel="featured creator">
         <IllustriousCreator />
       </HighlightsBoundary>
+      <CreatorSpotlight />
       <SocialsSection />
       <KingdomBibleAppBanner />
       <EmailCaptureBanner />
