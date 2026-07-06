@@ -554,7 +554,20 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       spread: "none",
     });
     epubRenditionRef.current = rendition;
-    rendition.themes.fontSize(`${100 * (FONT_SCALES[fontSize] ?? 1)}%`);
+    // Apply font-size only after the rendition has attached its first
+    // section — calling themes.fontSize() before any contents exist throws
+    // "Cannot read properties of undefined (reading 'replaceCss')" inside
+    // epubjs and prevents pages from rendering.
+    const applyFontSize = () => {
+      try {
+        rendition.themes.fontSize(
+          `${100 * (FONT_SCALES[fontSize] ?? 1)}%`,
+        );
+      } catch {
+        /* noop */
+      }
+    };
+    rendition.on("rendered", applyFontSize);
 
     // Sync location + current chapter from rendition back to state.
     // Guarded so programmatic display() calls don't feed back into location.
