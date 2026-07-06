@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Check, Twitter, Facebook, Flag } from "lucide-react";
+import { Copy, Check, Twitter, Facebook, Linkedin, Flag } from "lucide-react";
 import { toast } from "sonner";
 
 export function ShareButtons({ title, url }: { title: string; url: string }) {
@@ -46,6 +46,14 @@ export function ShareButtons({ title, url }: { title: string; url: string }) {
         className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:border-gold"
       >
         <Facebook size={12} /> Facebook
+      </a>
+      <a
+        href={`https://www.linkedin.com/sharing/share-offsite/?url=${u}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:border-gold"
+      >
+        <Linkedin size={12} /> LinkedIn
       </a>
     </div>
   );
