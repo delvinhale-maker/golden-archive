@@ -27,6 +27,7 @@ import { useOwnsProduct } from "@/hooks/use-owned-products";
 import { getProduct, type Product, type ProductDetailResult } from "@/lib/marketplace.functions";
 import { listPublicVariants, type ProductVariant } from "@/lib/product-variants.functions";
 import { VariantPicker, type SelectedVariant } from "@/components/marketplace/VariantPicker";
+import { OrderBumps } from "@/components/marketplace/OrderBumps";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 import { CATEGORY_THEMES, DEFAULT_THEME } from "@/lib/theme/theme-config";
 
