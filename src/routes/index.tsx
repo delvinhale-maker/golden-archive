@@ -290,8 +290,9 @@ function FeaturedHero() {
 
 function DealsAndBestsellers() {
   const { data } = useSuspenseQuery(featuredQ);
+  const { data: amazon } = useSuspenseQuery(amazonDealsQ);
   const list = data as Product[];
-  return <DealsStrip products={list} />;
+  return <DealsStrip products={list} amazonDeals={amazon} />;
 }
 
 
