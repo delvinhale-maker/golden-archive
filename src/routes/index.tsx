@@ -35,6 +35,9 @@ import { KingdomBibleAppBanner } from "@/components/marketplace/KingdomBibleAppB
 import { ContinueBrowsingRow } from "@/components/marketplace/HomeRows";
 import { EmailCaptureBanner } from "@/components/EmailCaptureBanner";
 import { CreatorSpotlight, creatorSpotlightQ } from "@/components/marketplace/CreatorSpotlight";
+import { FeaturedCreatorsRow, featuredCreatorsQ } from "@/components/marketplace/FeaturedCreatorsRow";
+import { TopCreatorsLeaderboard, topCreatorsQ } from "@/components/marketplace/TopCreatorsLeaderboard";
+import { CategoryGrid13, categoryCountsQ } from "@/components/marketplace/CategoryGrid13";
 import {
   getFeaturedProducts,
   getHomeHighlights,
