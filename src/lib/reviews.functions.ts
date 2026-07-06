@@ -37,24 +37,51 @@ function publicClient() {
 }
 
 async function signPhotos(rows: ReviewRow[]): Promise<ReviewRow[]> {
-  const withPhotos = rows.filter((r) => r.photo_url);
-  if (withPhotos.length === 0) return rows;
+  if (rows.length === 0) return rows;
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Load additional photos from the review_photos table.
+    const { data: photoRows } = await supabaseAdmin
+      .from("review_photos" as any)
+      .select("review_id,storage_path,sort_order")
+      .in(
+        "review_id",
+        rows.map((r) => r.id),
+      )
+      .order("sort_order", { ascending: true });
+    const extras = new Map<string, string[]>();
+    for (const p of (photoRows as any[]) ?? []) {
+      const arr = extras.get(p.review_id) ?? [];
+      arr.push(p.storage_path);
+      extras.set(p.review_id, arr);
+    }
+
+    async function sign(path: string): Promise<string | null> {
+      if (/^https?:\/\//.test(path)) return path;
+      const { data } = await supabaseAdmin.storage
+        .from("review-photos")
+        .createSignedUrl(path, 60 * 60 * 24 * 7);
+      return data?.signedUrl ?? null;
+    }
+
     const out = await Promise.all(
       rows.map(async (r) => {
-        if (!r.photo_url) return r;
-        // already a full URL? keep it
-        if (/^https?:\/\//.test(r.photo_url)) return r;
-        const { data } = await supabaseAdmin.storage
-          .from("review-photos")
-          .createSignedUrl(r.photo_url, 60 * 60 * 24 * 7);
-        return { ...r, photo_url: data?.signedUrl ?? null };
+        // Prefer review_photos rows; fall back to legacy single photo_url.
+        const paths = extras.get(r.id) ?? (r.photo_url ? [r.photo_url] : []);
+        const signed = (await Promise.all(paths.map(sign))).filter(
+          (u): u is string => !!u,
+        );
+        return {
+          ...r,
+          photo_url: signed[0] ?? null,
+          photos: signed,
+        };
       }),
     );
     return out;
   } catch {
-    return rows.map((r) => ({ ...r, photo_url: null }));
+    return rows.map((r) => ({ ...r, photo_url: null, photos: [] }));
   }
 }
 
@@ -83,7 +110,8 @@ export const listReviews = createServerFn({ method: "GET" })
     }
     const { data: rows, error } = await query;
     if (error) throw error;
-    const reviews = await signPhotos((rows ?? []) as ReviewRow[]);
+    const withPhotos = ((rows ?? []) as any[]).map((r) => ({ ...r, photos: [] as string[] })) as ReviewRow[];
+    const reviews = await signPhotos(withPhotos);
     const breakdown: Record<1 | 2 | 3 | 4 | 5, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     let sum = 0;
     for (const r of reviews) {
@@ -97,6 +125,7 @@ export const listReviews = createServerFn({ method: "GET" })
       reviews,
     };
   });
+
 
 export const createReview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
