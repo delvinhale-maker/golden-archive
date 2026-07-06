@@ -398,6 +398,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
           const o = n as Record<string, unknown>;
           if (typeof o.seriesName === "string") setSeriesName(o.seriesName);
           if (typeof o.edition === "string") setEdition(o.edition);
+          if (typeof o.whatsIncluded === "string") setWhatsIncluded(o.whatsIncluded);
           if (Array.isArray(o.keywords)) setKeywords(o.keywords.filter((k): k is string => typeof k === "string"));
           if (typeof o.ageRange === "string") setAgeRange(o.ageRange);
           if (typeof o.ownsRights === "boolean") setOwnsRights(o.ownsRights);
