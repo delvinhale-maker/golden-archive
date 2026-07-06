@@ -165,6 +165,9 @@ export type Product = {
   included?: string[];
   aiReviewStatus?: "pass" | "warn" | "fail" | "pending" | null;
   aiReviewScore?: number | null;
+  isPreorder?: boolean;
+  releaseDate?: string | null;
+  preorderNote?: string | null;
 };
 
 export type ProductDetailResult =
