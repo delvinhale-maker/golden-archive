@@ -559,11 +559,14 @@ function ProductPage() {
               >
                 <X size={18} />
               </button>
-              <div className="p-2">
+              <div className="p-4">
+                <OrderBumps productId={product.id} onSelectionChange={setBumpIds} />
                 <StripeEmbeddedProductCheckout
+                  key={bumpIds.join(",")}
                   productId={product.id}
                   variantId={selected?.variant.id}
                   buyerPriceCents={selected?.priceCents}
+                  bumpProductIds={bumpIds}
                 />
 
               </div>
