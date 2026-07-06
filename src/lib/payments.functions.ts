@@ -445,7 +445,7 @@ export const getReadInfo = createServerFn({ method: "GET" })
     const { data: dl, error } = await supabaseAdmin
       .from("order_downloads")
       .select(
-        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,product:marketplace_products(file_path,cover_url),order:orders(buyer_email))",
+        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,variant_id,product:marketplace_products(file_path,cover_url),order:orders(buyer_email))",
       )
       .eq("token", data.token)
       .maybeSingle();
@@ -460,10 +460,20 @@ export const getReadInfo = createServerFn({ method: "GET" })
     if (expired) return { error: "This download link has expired" } as const;
 
     const orderItem = (dl as any).order_item;
-    const filePath: string | undefined = orderItem?.product?.file_path;
+    let filePath: string | undefined = orderItem?.product?.file_path;
     const title: string = orderItem?.product_title ?? "Your purchase";
     const coverUrl: string | null = orderItem?.product?.cover_url ?? null;
+    if (orderItem?.variant_id) {
+      const { data: vRow } = await supabaseAdmin
+        .from("product_variants" as any)
+        .select("file_path")
+        .eq("id", orderItem.variant_id)
+        .maybeSingle();
+      const vp = (vRow as any)?.file_path;
+      if (vp) filePath = vp;
+    }
     if (!filePath) return { error: "File is no longer available" } as const;
+
 
     const { data: signed, error: sErr } = await supabaseAdmin.storage
       .from("product-files")
