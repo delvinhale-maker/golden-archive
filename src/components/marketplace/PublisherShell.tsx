@@ -1,10 +1,30 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 import { LogOut } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AVLogo } from "./AVLogo";
 import { UploadFab } from "./UploadFab";
 import { useAuth } from "@/hooks/use-auth";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { countUnreadAnnouncements } from "@/lib/community.functions";
+
+function CommunityUnreadBadge() {
+  const fn = useServerFn(countUnreadAnnouncements);
+  const { data } = useQuery({
+    queryKey: ["community", "unread-announcements"],
+    queryFn: () => fn(),
+    staleTime: 60_000,
+    refetchOnWindowFocus: true,
+  });
+  const n = data?.unread ?? 0;
+  if (n <= 0) return null;
+  return (
+    <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold text-navy align-middle">
+      {n > 9 ? "9+" : n}
+    </span>
+  );
+}
 
 export type PublisherAccent = {
   /** Hex accent color for this page. */
@@ -77,6 +97,7 @@ export function PublisherShell({
                   className="relative px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors"
                 >
                   {item.label}
+                  {item.to === "/dashboard/community" && <CommunityUnreadBadge />}
                   <span
                     aria-hidden
                     className="absolute left-2 right-2 -bottom-0.5 h-[2px] rounded-full transition-all duration-300 ease-out"
@@ -115,6 +136,7 @@ export function PublisherShell({
                   className="relative flex-1 text-center py-3 text-[13px] font-medium text-white/80"
                 >
                   {item.label}
+                  {item.to === "/dashboard/community" && <CommunityUnreadBadge />}
                   <span
                     aria-hidden
                     className="absolute left-3 right-3 bottom-0 h-[2px] rounded-full transition-all duration-300 ease-out"
