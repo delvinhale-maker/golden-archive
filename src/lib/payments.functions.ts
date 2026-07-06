@@ -94,7 +94,7 @@ export const createProductCheckout = createServerFn({ method: "POST" })
 
       const { data: product, error } = await supabase
         .from("marketplace_products")
-        .select("id,title,price_cents,seller_id,status,description")
+        .select("id,title,price_cents,seller_id,status,description,is_preorder,release_date")
         .eq("id", data.productId)
         .eq("status", "approved")
         .maybeSingle();
