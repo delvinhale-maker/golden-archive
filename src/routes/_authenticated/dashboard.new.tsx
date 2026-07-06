@@ -2234,7 +2234,7 @@ function PrePublishPreview(props: {
               <div className="flex flex-1 flex-col p-4">
                 {/* Category badge — color-coded per product type */}
                 {(() => {
-                  const d = require("@/lib/product-types").categoryDisplay(props.category);
+                  const d = categoryDisplay(props.category);
                   return (
                     <div
                       className="text-[11px] font-semibold uppercase tracking-[0.14em]"
