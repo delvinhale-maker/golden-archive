@@ -185,6 +185,10 @@ export type Product = {
   isPreorder?: boolean;
   releaseDate?: string | null;
   preorderNote?: string | null;
+  /** Ordered PDF page numbers (1-indexed) the creator exposed as a public preview. */
+  previewPages?: number[];
+  /** Lowercase file extension (`pdf` / `docx` / `epub`), or null when unknown. */
+  fileExt?: string | null;
 };
 
 export type ProductDetailResult =
