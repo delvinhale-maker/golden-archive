@@ -2,7 +2,12 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Crown, ExternalLink } from "lucide-react";
 import { getKingdomPicksRowFn, type AffiliatePick } from "@/lib/marketplace.functions";
+import {
+  AffiliateBookPlaceholder,
+  isPlaceholderImage,
+} from "./AffiliateBookPlaceholder";
 import { supabase } from "@/integrations/supabase/client";
+
 
 export const kingdomPicksRowQ = queryOptions({
   queryKey: ["mp", "row", "kingdom-picks"],
