@@ -546,10 +546,6 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   useEffect(() => {
     if (!isEpub || !epubReady) return;
     const book = epubBookRef.current;
-  // Mount / remount the EPUB rendition when it's ready or the frame size changes.
-  useEffect(() => {
-    if (!isEpub || !epubReady) return;
-    const book = epubBookRef.current;
     const container = epubContainerEl;
     if (!book || !container) return;
 
