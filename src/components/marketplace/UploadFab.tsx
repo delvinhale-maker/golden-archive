@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookPlus, Package, Plus, X, ChevronLeft } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { PRODUCT_TYPES, PRODUCT_TYPE_ORDER } from "@/lib/product-types";
+import { PRODUCT_TYPES, PRODUCT_TYPE_ORDER, type ProductTypeKey } from "@/lib/product-types";
 
 type View = "root" | "digital";
 
@@ -12,6 +12,12 @@ export function UploadFab() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View>("root");
+  const navigate = useNavigate();
+
+  function goToNew(type: ProductTypeKey) {
+    setOpen(false);
+    navigate({ to: "/dashboard/new", search: { type } as never });
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -88,11 +94,10 @@ export function UploadFab() {
 
               {view === "root" ? (
                 <div className="grid gap-3">
-                  <Link
-                    to="/dashboard/new"
-                    search={{ type: "ebook" } as never}
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 transition hover:border-gold hover:bg-gold/5"
+                  <button
+                    type="button"
+                    onClick={() => goToNew("ebook")}
+                    className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 text-left transition hover:border-gold hover:bg-gold/5"
                   >
                     <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gold/15 text-gold">
                       <BookPlus size={20} />
@@ -101,7 +106,7 @@ export function UploadFab() {
                       <span className="block font-semibold text-ink">Upload eBook</span>
                       <span className="block text-xs text-mute">KDP-style publish flow</span>
                     </span>
-                  </Link>
+                  </button>
                   <button
                     type="button"
                     onClick={() => setView("digital")}
@@ -121,12 +126,11 @@ export function UploadFab() {
                   {PRODUCT_TYPE_ORDER.map((key) => {
                     const t = PRODUCT_TYPES[key];
                     return (
-                      <Link
+                      <button
                         key={key}
-                        to="/dashboard/new"
-                        search={{ type: key } as never}
-                        onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 rounded-xl border border-line bg-white p-3.5 transition hover:border-gold hover:bg-gold/5"
+                        type="button"
+                        onClick={() => goToNew(key)}
+                        className="flex items-center gap-3 rounded-xl border border-line bg-white p-3.5 text-left transition hover:border-gold hover:bg-gold/5"
                       >
                         <span
                           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl"
@@ -134,11 +138,11 @@ export function UploadFab() {
                         >
                           {t.emoji}
                         </span>
-                        <span className="flex-1 min-w-0">
+                        <span className="flex-1 min-w-0 text-left">
                           <span className="block font-semibold text-ink">{t.label}</span>
                           <span className="block text-xs text-mute truncate">{t.tagline}</span>
                         </span>
-                      </Link>
+                      </button>
                     );
                   })}
                 </div>
