@@ -157,17 +157,25 @@ export const requestPayout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => requestPayoutSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // Use the seller's own supabase client via RPC so the RPC's auth.uid() sees them.
     const { supabase } = context;
     const { data: req, error } = await (supabase.rpc as any)("request_payout", {
       _amount_cents: data.amount_cents,
       _note: data.note ?? null,
     });
     if (error) throw new Error(error.message);
-    // Touch supabaseAdmin lint suppression (imported for future use)
-    void supabaseAdmin;
-    return { request_id: req as string };
+    const requestId = req as string;
+    try {
+      const { sendPayoutEmail } = await import("./payout-emails.server");
+      await sendPayoutEmail({
+        kind: "submitted",
+        sellerId: context.userId,
+        amountCents: data.amount_cents,
+        requestId,
+      });
+    } catch (e) {
+      console.error("payout submitted email failed", e);
+    }
+    return { request_id: requestId };
   });
 
 const submitTaxSchema = z.object({
