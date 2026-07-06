@@ -863,6 +863,32 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     [pageCount],
   );
 
+  // Relative page nav. For EPUB paginated flow, epubjs handles intra-chapter
+  // column flips via next()/prev(); calling display(cfi) inside the same
+  // section doesn't visibly advance, which was causing the reader to appear
+  // stuck. Fall back to goTo() for PDF/DOCX or when the rendition isn't ready.
+  const goRelative = useCallback(
+    (dir: 1 | -1) => {
+      if (isEpub) {
+        const rendition = epubRenditionRef.current;
+        // On the cover slot, step into the book instead of calling next/prev.
+        if (rendition && location > 1) {
+          try {
+            const p = dir === 1 ? rendition.next() : rendition.prev();
+            if (p && typeof p.then === "function") {
+              // relocated handler will sync `location`; ignore errors silently.
+              p.catch(() => { /* noop */ });
+            }
+            return;
+          } catch { /* fall through to goTo */ }
+        }
+      }
+      goTo(location + dir);
+    },
+    [isEpub, location, goTo],
+  );
+
+
   useEffect(() => { setLocationInput(String(location)); }, [location]);
 
   // Reset scroll to top on every page change so users start reading from
