@@ -87,7 +87,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   const renderTaskRef = useRef<any>(null);
   const touchStartX = useRef<number | null>(null);
   const docxInnerRef = useRef<HTMLDivElement>(null);
-  const epubContainerRef = useRef<HTMLDivElement>(null);
+  const [epubContainerEl, setEpubContainerEl] = useState<HTMLDivElement | null>(null);
+  const epubContainerRef = useCallback((el: HTMLDivElement | null) => {
+    setEpubContainerEl(el);
+  }, []);
   const epubBookRef = useRef<any>(null);
   const epubRenditionRef = useRef<any>(null);
   const epubTotalRef = useRef<number>(0);
@@ -537,7 +540,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   useEffect(() => {
     if (!isEpub || !epubReady) return;
     const book = epubBookRef.current;
-    const container = epubContainerRef.current;
+    const container = epubContainerEl;
     if (!book || !container) return;
 
     // Tear down any previous rendition.
@@ -554,7 +557,20 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       spread: "none",
     });
     epubRenditionRef.current = rendition;
-    rendition.themes.fontSize(`${100 * (FONT_SCALES[fontSize] ?? 1)}%`);
+    // Apply font-size only after the rendition has attached its first
+    // section — calling themes.fontSize() before any contents exist throws
+    // "Cannot read properties of undefined (reading 'replaceCss')" inside
+    // epubjs and prevents pages from rendering.
+    const applyFontSize = () => {
+      try {
+        rendition.themes.fontSize(
+          `${100 * (FONT_SCALES[fontSize] ?? 1)}%`,
+        );
+      } catch {
+        /* noop */
+      }
+    };
+    rendition.on("rendered", applyFontSize);
 
     // Sync location + current chapter from rendition back to state.
     // Guarded so programmatic display() calls don't feed back into location.
@@ -602,7 +618,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     };
     // Intentionally exclude `location` — location sync is handled by a separate effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEpub, epubReady, device, pageAreaW, pageAreaH]);
+  }, [isEpub, epubReady, device, pageAreaW, pageAreaH, epubContainerEl]);
 
   // Push location changes into the EPUB rendition.
   useEffect(() => {
