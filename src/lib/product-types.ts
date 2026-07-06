@@ -273,6 +273,10 @@ export const PRODUCT_TYPE_ORDER: ProductTypeKey[] = [
   "other",
 ];
 
+export function isProductTypeKey(key: unknown): key is ProductTypeKey {
+  return typeof key === "string" && Object.prototype.hasOwnProperty.call(PRODUCT_TYPES, key);
+}
+
 export function getProductType(key: string | undefined | null): ProductTypeConfig {
   if (!key) return PRODUCT_TYPES.ebook;
   return (PRODUCT_TYPES as Record<string, ProductTypeConfig>)[key] ?? PRODUCT_TYPES.ebook;
