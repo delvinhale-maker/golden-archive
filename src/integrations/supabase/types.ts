@@ -702,6 +702,36 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_referrals: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          referred_user_id: string
+          referrer_user_id: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          referred_user_id: string
+          referrer_user_id: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          referred_user_id?: string
+          referrer_user_id?: string
+        }
+        Relationships: []
+      }
       creator_spotlights: {
         Row: {
           created_at: string
@@ -2038,6 +2068,7 @@ export type Database = {
         Args: { _creator_user_id: string }
         Returns: number
       }
+      get_creator_referral_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2084,6 +2115,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      record_creator_referral: { Args: { _code: string }; Returns: boolean }
       request_payout: {
         Args: { _amount_cents: number; _note?: string }
         Returns: string

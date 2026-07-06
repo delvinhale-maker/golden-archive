@@ -136,6 +136,19 @@ function SellPage() {
         templateData: { brandName },
       }).catch((err) => console.error("Email send failed", err));
     }
+    // Attribute this new creator to a referrer if a ?cref=CODE was captured.
+    try {
+      const [{ getStoredCreatorRef, clearStoredCreatorRef }, { attachCreatorReferral }] =
+        await Promise.all([
+          import("@/lib/creator-referral"),
+          import("@/lib/creator-referrals.functions"),
+        ]);
+      const cref = getStoredCreatorRef();
+      if (cref) {
+        await attachCreatorReferral({ data: { code: cref } }).catch(() => {});
+        clearStoredCreatorRef();
+      }
+    } catch { /* attribution is best-effort */ }
     navigate({ to: "/dashboard" });
   }
 

@@ -40,18 +40,23 @@ export const Route = createFileRoute("/sitemap.xml")({
           const url = process.env.SUPABASE_URL;
           const key = process.env.SUPABASE_PUBLISHABLE_KEY;
           if (url && key) {
-            const res = await fetch(
-              `${url}/rest/v1/marketplace_products?select=id,updated_at&status=eq.approved&published=eq.true`,
-              {
-                headers: {
-                  apikey: key,
-                  Authorization: `Bearer ${key}`,
-                  Accept: "application/json",
-                },
-              },
-            );
-            if (res.ok) {
-              const rows = (await res.json()) as Array<{
+            const headers = {
+              apikey: key,
+              Authorization: `Bearer ${key}`,
+              Accept: "application/json",
+            };
+            const [prodRes, storeRes] = await Promise.all([
+              fetch(
+                `${url}/rest/v1/marketplace_products?select=id,updated_at&status=eq.approved&published=eq.true`,
+                { headers },
+              ),
+              fetch(
+                `${url}/rest/v1/seller_applications?select=brand_slug,updated_at&status=eq.approved`,
+                { headers },
+              ),
+            ]);
+            if (prodRes.ok) {
+              const rows = (await prodRes.json()) as Array<{
                 id: string;
                 updated_at?: string | null;
               }>;
@@ -63,6 +68,23 @@ export const Route = createFileRoute("/sitemap.xml")({
                     : undefined,
                   changefreq: "weekly",
                   priority: "0.8",
+                });
+              }
+            }
+            if (storeRes.ok) {
+              const stores = (await storeRes.json()) as Array<{
+                brand_slug: string | null;
+                updated_at?: string | null;
+              }>;
+              for (const s of stores) {
+                if (!s.brand_slug) continue;
+                entries.push({
+                  path: `/store/${s.brand_slug}`,
+                  lastmod: s.updated_at
+                    ? new Date(s.updated_at).toISOString().slice(0, 10)
+                    : undefined,
+                  changefreq: "weekly",
+                  priority: "0.7",
                 });
               }
             }
