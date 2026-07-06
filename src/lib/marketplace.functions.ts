@@ -33,7 +33,7 @@ type DbProductRow = {
   admin_notes?: string | null;
 };
 
-function parseWhatsIncluded(adminNotes?: string | null): string[] | undefined {
+export function parseWhatsIncluded(adminNotes?: string | null): string[] | undefined {
   if (!adminNotes) return undefined;
   try {
     const parsed = JSON.parse(adminNotes) as Record<string, unknown>;
