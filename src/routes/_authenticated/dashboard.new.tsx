@@ -807,6 +807,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
       const notes = JSON.stringify({
         seriesName: seriesName || null,
         edition: edition || null,
+        whatsIncluded: whatsIncluded || null,
         keywords,
         ageRange,
         ownsRights, drm, premium, territory,
