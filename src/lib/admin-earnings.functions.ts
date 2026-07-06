@@ -150,6 +150,16 @@ export const adminDecidePayoutRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => decideSchema.parse(input))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Snapshot request BEFORE decision so we know the seller/amount even on reject.
+    const { data: reqRow } = await supabaseAdmin
+      .from("payout_requests" as any)
+      .select("seller_id, amount_cents, currency")
+      .eq("id", data.request_id)
+      .maybeSingle();
+
     const { supabase } = context;
     const { data: result, error } = await (supabase.rpc as any)(
       "admin_decide_payout_request",
@@ -162,6 +172,30 @@ export const adminDecidePayoutRequest = createServerFn({ method: "POST" })
       },
     );
     if (error) throw new Error(error.message);
+
+    const r = reqRow as { seller_id: string; amount_cents: number; currency: string } | null;
+    if (r) {
+      try {
+        const { sendPayoutEmail } = await import("./payout-emails.server");
+        const kind = !data.approve
+          ? "declined"
+          : data.mark_paid
+            ? "paid"
+            : "approved";
+        await sendPayoutEmail({
+          kind,
+          sellerId: r.seller_id,
+          amountCents: Number(r.amount_cents),
+          currency: r.currency,
+          method: data.method ?? null,
+          adminNote: data.admin_note ?? null,
+          requestId: data.request_id,
+        });
+      } catch (e) {
+        console.error("payout decision email failed", e);
+      }
+    }
+
     return { seller_payout_id: (result as string) ?? null };
   });
 
