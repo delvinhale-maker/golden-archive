@@ -43,12 +43,18 @@ import {
   getHomeHighlights,
   type Product,
 } from "@/lib/marketplace.functions";
+import { fetchAmazonDealsOfTheDay } from "@/lib/affiliate";
 
 import { useAuth } from "@/hooks/use-auth";
 
 const featuredQ = queryOptions({
   queryKey: ["mp", "featured"],
   queryFn: () => getFeaturedProducts(),
+});
+const amazonDealsQ = queryOptions({
+  queryKey: ["mp", "amazon-deals"],
+  queryFn: () => fetchAmazonDealsOfTheDay(6),
+  staleTime: 60_000,
 });
 const highlightsQ = queryOptions({
   queryKey: ["mp", "home-highlights"],
