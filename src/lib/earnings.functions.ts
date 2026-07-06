@@ -49,6 +49,8 @@ export type MyEarningsSummary = {
   currency: string;
   has_method: boolean;
   has_tax_form: boolean;
+  email_verified: boolean;
+  email: string | null;
   open_request: PayoutRequestRow | null;
   requests: PayoutRequestRow[];
   payouts: PayoutHistoryRow[];
@@ -91,6 +93,12 @@ export const getMyEarnings = createServerFn({ method: "GET" })
         .limit(1),
     ]);
 
+    const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(uid);
+    const authUser = userRes?.user;
+    const emailVerified = Boolean(
+      authUser?.email_confirmed_at || (authUser as any)?.confirmed_at,
+    );
+
     const pending = Number(bal.data?.pending_cents ?? 0);
     const paid = Number(bal.data?.paid_cents ?? 0);
     const reqs = ((requests.data ?? []) as unknown as PayoutRequestRow[]);
@@ -103,6 +111,8 @@ export const getMyEarnings = createServerFn({ method: "GET" })
       currency: bal.data?.currency ?? "usd",
       has_method: !!method.data,
       has_tax_form: ((tax.data ?? []) as unknown[]).length > 0,
+      email_verified: emailVerified,
+      email: authUser?.email ?? null,
       open_request: openReq,
       requests: reqs,
       payouts: (payouts.data ?? []) as PayoutHistoryRow[],

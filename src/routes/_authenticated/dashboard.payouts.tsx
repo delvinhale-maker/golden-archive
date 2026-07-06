@@ -15,7 +15,7 @@ import {
 } from "@/lib/earnings.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Banknote, Wallet, Send, FileText, Loader2, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { Banknote, Wallet, Send, FileText, Loader2, CheckCircle2, Clock, XCircle, Mail } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/payouts")({
   component: PayoutsPage,
@@ -80,12 +80,32 @@ function PayoutsPage() {
 
   const canRequest = useMemo(() => {
     if (!summary) return false;
+    if (!summary.email_verified) return false;
     if (summary.open_request) return false;
     if (!summary.has_method) return false;
     if (!summary.has_tax_form) return false;
     const cents = Math.round(parseFloat(requestAmount || "0") * 100);
     return cents >= 2500 && cents <= summary.pending_cents;
   }, [summary, requestAmount]);
+
+  const [resendingVerify, setResendingVerify] = useState(false);
+  async function resendVerification() {
+    if (!summary?.email) return;
+    setResendingVerify(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: summary.email,
+        options: { emailRedirectTo: `${window.location.origin}/dashboard/payouts` },
+      });
+      if (error) throw error;
+      toast.success("Verification email sent — check your inbox.");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not send verification email");
+    } finally {
+      setResendingVerify(false);
+    }
+  }
 
   async function saveMethod() {
     setSavingMethod(true);
@@ -193,11 +213,30 @@ function PayoutsPage() {
         </div>
       ) : (
         <>
+          {!summary.email_verified ? (
+            <div className="mt-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 flex flex-wrap items-center gap-3">
+              <Mail className="text-amber-700" size={18} />
+              <div className="text-sm text-amber-900 flex-1 min-w-[220px]">
+                <strong>Verify your email</strong> {summary.email ? `(${summary.email})` : ""} to request
+                payouts and receive payout notifications.
+              </div>
+              <button
+                onClick={resendVerification}
+                disabled={resendingVerify}
+                className="inline-flex items-center gap-2 rounded-lg bg-amber-700 text-white px-3 py-1.5 text-sm disabled:opacity-60"
+              >
+                {resendingVerify ? <Loader2 className="animate-spin" size={14} /> : <Mail size={14} />}
+                Resend verification
+              </button>
+            </div>
+          ) : null}
+
           <section className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
             <StatCard icon={<Wallet size={18} />} label="Available balance" value={fmt(summary.pending_cents)} accent="text-emerald-700" />
             <StatCard icon={<Banknote size={18} />} label="Lifetime earnings" value={fmt(summary.lifetime_cents)} />
             <StatCard icon={<CheckCircle2 size={18} />} label="Paid out" value={fmt(summary.paid_cents)} />
           </section>
+
 
           {/* Payout method */}
           <section className="mt-10 rounded-2xl border border-navy/10 bg-white p-6">
@@ -251,7 +290,11 @@ function PayoutsPage() {
             <p className="text-sm text-mute mt-1">
               $25 minimum. One open request at a time. Admin reviews and sends via your selected method.
             </p>
-            {summary.open_request ? (
+            {!summary.email_verified ? (
+              <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
+                Verify your email address (see banner above) before requesting a payout.
+              </div>
+            ) : summary.open_request ? (
               <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
                 Your request for {fmt(summary.open_request.amount_cents)} is{" "}
                 <strong>{summary.open_request.status}</strong>.
