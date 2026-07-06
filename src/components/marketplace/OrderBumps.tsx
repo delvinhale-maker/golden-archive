@@ -70,15 +70,20 @@ export function OrderBumps({ productId, onSelectionChange }: Props) {
               onChange={() => toggle(b.bumpProductId)}
             />
             <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
-              <ProductCover
-                product={{
-                  id: b.bump.id,
-                  title: b.bump.title,
-                  category: "eBooks",
-                  image: b.bump.coverUrl ?? `av:eBooks:0`,
-                } as any}
-                sizeClass="h-12 w-12"
-              />
+              {b.bump.coverUrl ? (
+                <img
+                  src={b.bump.coverUrl}
+                  alt={b.bump.title}
+                  className="h-12 w-12 object-cover"
+                />
+              ) : (
+                <ProductCover
+                  title={b.bump.title}
+                  category="eBooks"
+                  productId={b.bump.id}
+                  className="h-12 w-12"
+                />
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-bold text-ink">
