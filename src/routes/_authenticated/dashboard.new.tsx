@@ -1080,6 +1080,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
               uploadedFilePath={uploadedFilePath}
               uploadedFileMeta={uploadedFileMeta}
               title={title}
+              typeCfg={typeCfg}
             />
 
           )}
