@@ -1,0 +1,9 @@
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'financial_planners';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'ai_prompt_packs';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'business_templates';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'budget_spreadsheets';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'printable_journals';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'childrens_educational';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'bible_studies';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'digital_toolkits';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'business_operating_systems';
