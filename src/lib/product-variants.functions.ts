@@ -74,8 +74,9 @@ export const listMyVariants = createServerFn({ method: "GET" })
       .eq("product_id", data.productId)
       .order("sort_order", { ascending: true });
     if (error) throw new Error(error.message);
-    return (rows ?? []) as ProductVariant[];
+    return ((rows ?? []) as unknown) as ProductVariant[];
   });
+
 
 const upsertSchema = z.object({
   productId: z.string().regex(UUID_RE),
