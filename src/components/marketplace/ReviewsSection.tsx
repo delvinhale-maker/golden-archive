@@ -478,37 +478,42 @@ function WriteReviewButton({
         className="mt-2 w-full rounded-md border border-line px-3 py-2 text-sm"
       />
 
-      <div className="mt-3 flex items-center gap-3">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <input
           ref={fileRef}
           type="file"
           accept="image/jpeg,image/png,image/webp"
+          multiple
           className="sr-only"
-          onChange={(e) => onPickPhoto(e.target.files?.[0] ?? null)}
+          onChange={(e) => {
+            onPickPhotos(e.target.files);
+            if (fileRef.current) fileRef.current.value = "";
+          }}
         />
-        {photoPreview ? (
-          <div className="relative">
+        {photoPreviews.map((src, i) => (
+          <div key={i} className="relative">
             <img
-              src={photoPreview}
-              alt="Photo preview"
+              src={src}
+              alt={`Photo preview ${i + 1}`}
               className="h-16 w-16 rounded-md border border-line object-cover"
             />
             <button
               type="button"
-              onClick={() => onPickPhoto(null)}
+              onClick={() => removePhoto(i)}
               aria-label="Remove photo"
               className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-navy text-white"
             >
               <XIcon size={11} />
             </button>
           </div>
-        ) : (
+        ))}
+        {photoFiles.length < 4 && (
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
             className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-mute hover:border-gold hover:text-ink"
           >
-            <ImagePlus size={12} /> Add a photo (optional)
+            <ImagePlus size={12} /> Add photo{photoFiles.length > 0 ? "s" : " (optional)"}
           </button>
         )}
       </div>
