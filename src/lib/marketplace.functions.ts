@@ -2,20 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { slugToLabel, labelToSlug } from "@/lib/categories";
 
 const API_BASE = "https://web-builder-pro-delvinhale.replit.app/api";
-
-// Map DB category codes ("ebooks") → display labels ("eBooks")
-const CAT_LABEL: Record<string, string> = {
-  ebooks: "eBooks",
-  courses: "Courses",
-  templates: "Templates",
-  audio: "Audio",
-  finance: "Finance",
-  leadership: "Leadership",
-  purpose: "Purpose",
-  business: "Business",
-};
 
 function serverSupabase() {
   return createClient<Database>(
