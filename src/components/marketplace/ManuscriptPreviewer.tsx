@@ -84,6 +84,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   // that sits on top of the epub.js iframe while it's attaching a section.
   const [epubRendering, setEpubRendering] = useState(false);
   const [epubRenderError, setEpubRenderError] = useState<string | null>(null);
+  const [epubNavBusy, setEpubNavBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -99,6 +100,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   const epubRenditionRef = useRef<any>(null);
   const epubTotalRef = useRef<number>(0);
   const epubSyncingRef = useRef<boolean>(false);
+  const epubNavBusyRef = useRef<boolean>(false);
   // When true, the next `location` change came FROM the rendition's own
   // relocated event, so the location→rendition sync effect must skip it —
   // otherwise we call rendition.display() for a coarse percentage-based CFI
@@ -896,14 +898,31 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
         const rendition = epubRenditionRef.current;
         // On the cover slot, step into the book instead of calling next/prev.
         if (rendition && location > 1) {
+          if (epubNavBusyRef.current) return;
           try {
+            epubNavBusyRef.current = true;
+            setEpubNavBusy(true);
             const p = dir === 1 ? rendition.next() : rendition.prev();
             if (p && typeof p.then === "function") {
               // relocated handler will sync `location`; ignore errors silently.
-              p.catch(() => { /* noop */ });
+              p.catch(() => { /* noop */ }).finally(() => {
+                window.setTimeout(() => {
+                  epubNavBusyRef.current = false;
+                  setEpubNavBusy(false);
+                }, 120);
+              });
+            } else {
+              window.setTimeout(() => {
+                epubNavBusyRef.current = false;
+                setEpubNavBusy(false);
+              }, 240);
             }
             return;
-          } catch { /* fall through to goTo */ }
+          } catch {
+            epubNavBusyRef.current = false;
+            setEpubNavBusy(false);
+            /* fall through to goTo */
+          }
         }
       }
       goTo(location + dir);
@@ -918,7 +937,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   // the beginning of the new page, not wherever they left off on the last.
   useEffect(() => {
     const el = scrollFrameRef.current;
-    if (el) el.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    if (el) el.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
+    window.scrollTo({ top: window.scrollY, left: 0, behavior: "instant" as ScrollBehavior });
   }, [location]);
 
 
@@ -1007,17 +1027,31 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   useEffect(() => {
     const compute = () => {
       const stage = stageRef.current;
+      const styles = stage ? window.getComputedStyle(stage) : null;
+      const padX = styles
+        ? parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight)
+        : 48;
+      const padY = styles
+        ? parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom)
+        : 48;
       // Fallback to viewport if the stage hasn't mounted yet.
-      const availW = (stage?.clientWidth ?? window.innerWidth) - 32;
-      const availH = (stage?.clientHeight ?? window.innerHeight) - 32;
+      const availW = (stage?.clientWidth ?? window.innerWidth) - padX;
+      const availH = (stage?.clientHeight ?? window.innerHeight) - padY;
       const sW = availW > 0 ? availW / dev.w : 1;
       const sH = availH > 0 ? availH / dev.h : 1;
       const s = Math.min(1, sW, sH);
       setFrameScale(Math.max(0.4, s));
     };
     compute();
+    const ro = typeof ResizeObserver !== "undefined" && stageRef.current
+      ? new ResizeObserver(compute)
+      : null;
+    if (stageRef.current && ro) ro.observe(stageRef.current);
     window.addEventListener("resize", compute);
-    return () => window.removeEventListener("resize", compute);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", compute);
+    };
   }, [dev.w, dev.h]);
 
 
@@ -1036,9 +1070,9 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   }, [isEpub, epubCurrentToc, epubToc, outline, location]);
 
   const slideAnim = useMemo(() => {
-    if (!slideDir) return "";
+    if (!slideDir || isEpub) return "";
     return slideDir === "left" ? "av-slide-left" : "av-slide-right";
-  }, [slideDir]);
+  }, [isEpub, slideDir]);
 
 
   const commitLocation = () => {
@@ -1049,7 +1083,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex flex-col bg-[#111] text-white"
+      className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#111] text-white"
       role="dialog"
       aria-modal="true"
       aria-label={`${readerMode ? "Read" : "Preview"} ${title}`}
@@ -1186,7 +1220,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
           onClick={() => goRelative(-1)}
           aria-label="Previous page"
           data-testid="previewer-prev"
-          disabled={isEpub && location > 1 ? epubAtStart : location <= 1}
+          disabled={isEpub && location > 1 ? epubAtStart || epubNavBusy : location <= 1}
           className={`absolute ${isRTL ? "right-2 md:right-6" : "left-2 md:left-6"} top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition`}
         >
           {isRTL ? <ChevronRight size={30} /> : <ChevronLeft size={30} />}
@@ -1234,7 +1268,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
               }}
             >
               <div
-                key={location}
+                key={isEpub ? "epub-reader" : location}
                 className={`w-full min-h-full flex items-center justify-center ${slideAnim}`}
               >
 
@@ -1451,7 +1485,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
           onClick={() => goRelative(1)}
           aria-label="Next page"
           data-testid="previewer-next"
-          disabled={isEpub && location > 1 ? epubAtEnd : location >= pageCount}
+          disabled={isEpub && location > 1 ? epubAtEnd || epubNavBusy : location >= pageCount}
           className={`absolute ${isRTL ? "left-2 md:left-6" : "right-2 md:right-6"} top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition`}
         >
           {isRTL ? <ChevronLeft size={30} /> : <ChevronRight size={30} />}
