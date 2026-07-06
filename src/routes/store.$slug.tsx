@@ -101,7 +101,7 @@ const getStorefront = createServerFn({ method: "GET" })
     const [
       { data: profile },
       { data: products },
-      { count: followerCount },
+      { data: followerCountRpc },
       { data: bundles },
     ] = await Promise.all([
       supabase.from("profiles").select("display_name, avatar_url").eq("id", a.user_id).maybeSingle(),
@@ -112,15 +112,14 @@ const getStorefront = createServerFn({ method: "GET" })
         .eq("status", "approved")
         .eq("published", true)
         .order("created_at", { ascending: false }),
-      (supabase.from("creator_followers" as any) as any)
-        .select("*", { count: "exact", head: true })
-        .eq("creator_user_id", a.user_id),
+      (supabase.rpc as any)("get_creator_follower_count", { _creator_user_id: a.user_id }),
       (supabase.from("creator_bundles" as any) as any)
         .select("id, title, description, price_cents, compare_at_price_cents, creator_bundle_items(product_id)")
         .eq("seller_id", a.user_id)
         .eq("published", true)
         .order("created_at", { ascending: false }),
     ]);
+    const followerCount = typeof followerCountRpc === "number" ? followerCountRpc : 0;
 
     const productIds = (products ?? []).map((p) => p.id);
     const { data: reviews } = productIds.length
