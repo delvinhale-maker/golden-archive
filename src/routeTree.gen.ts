@@ -22,13 +22,19 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PreviewSampleRouteImport } from './routes/preview-sample'
+import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as KingdomPicksRouteImport } from './routes/kingdom-picks'
+import { Route as GiftCardsRouteImport } from './routes/gift-cards'
+import { Route as CreatorsRouteImport } from './routes/creators'
+import { Route as CreatorTermsRouteImport } from './routes/creator-terms'
+import { Route as CreatorDashboardRouteImport } from './routes/creator-dashboard'
 import { Route as CreatorAgreementRouteImport } from './routes/creator-agreement'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as BecomeACreatorRouteImport } from './routes/become-a-creator'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AffiliatesRouteImport } from './routes/affiliates'
 import { Route as AffiliateDisclosureRouteImport } from './routes/affiliate-disclosure'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
@@ -144,6 +150,11 @@ const PreviewSampleRoute = PreviewSampleRouteImport.update({
   path: '/preview-sample',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoyaltyRoute = LoyaltyRouteImport.update({
+  id: '/loyalty',
+  path: '/loyalty',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
@@ -152,6 +163,26 @@ const LibraryRoute = LibraryRouteImport.update({
 const KingdomPicksRoute = KingdomPicksRouteImport.update({
   id: '/kingdom-picks',
   path: '/kingdom-picks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GiftCardsRoute = GiftCardsRouteImport.update({
+  id: '/gift-cards',
+  path: '/gift-cards',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorsRoute = CreatorsRouteImport.update({
+  id: '/creators',
+  path: '/creators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorTermsRoute = CreatorTermsRouteImport.update({
+  id: '/creator-terms',
+  path: '/creator-terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorDashboardRoute = CreatorDashboardRouteImport.update({
+  id: '/creator-dashboard',
+  path: '/creator-dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreatorAgreementRoute = CreatorAgreementRouteImport.update({
@@ -177,6 +208,11 @@ const BecomeACreatorRoute = BecomeACreatorRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AffiliatesRoute = AffiliatesRouteImport.update({
+  id: '/affiliates',
+  path: '/affiliates',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AffiliateDisclosureRoute = AffiliateDisclosureRouteImport.update({
@@ -460,13 +496,19 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
+  '/affiliates': typeof AffiliatesRoute
   '/auth': typeof AuthRoute
   '/become-a-creator': typeof BecomeACreatorRoute
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/creator-dashboard': typeof CreatorDashboardRoute
+  '/creator-terms': typeof CreatorTermsRoute
+  '/creators': typeof CreatorsRoute
+  '/gift-cards': typeof GiftCardsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
+  '/loyalty': typeof LoyaltyRoute
   '/preview-sample': typeof PreviewSampleRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
@@ -530,13 +572,19 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
+  '/affiliates': typeof AffiliatesRoute
   '/auth': typeof AuthRoute
   '/become-a-creator': typeof BecomeACreatorRoute
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/creator-dashboard': typeof CreatorDashboardRoute
+  '/creator-terms': typeof CreatorTermsRoute
+  '/creators': typeof CreatorsRoute
+  '/gift-cards': typeof GiftCardsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
+  '/loyalty': typeof LoyaltyRoute
   '/preview-sample': typeof PreviewSampleRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -601,13 +649,19 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
+  '/affiliates': typeof AffiliatesRoute
   '/auth': typeof AuthRoute
   '/become-a-creator': typeof BecomeACreatorRoute
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/creator-dashboard': typeof CreatorDashboardRoute
+  '/creator-terms': typeof CreatorTermsRoute
+  '/creators': typeof CreatorsRoute
+  '/gift-cards': typeof GiftCardsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
+  '/loyalty': typeof LoyaltyRoute
   '/preview-sample': typeof PreviewSampleRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
@@ -673,13 +727,19 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/affiliate-disclosure'
+    | '/affiliates'
     | '/auth'
     | '/become-a-creator'
     | '/cart'
     | '/contact'
     | '/creator-agreement'
+    | '/creator-dashboard'
+    | '/creator-terms'
+    | '/creators'
+    | '/gift-cards'
     | '/kingdom-picks'
     | '/library'
+    | '/loyalty'
     | '/preview-sample'
     | '/privacy'
     | '/products'
@@ -743,13 +803,19 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/affiliate-disclosure'
+    | '/affiliates'
     | '/auth'
     | '/become-a-creator'
     | '/cart'
     | '/contact'
     | '/creator-agreement'
+    | '/creator-dashboard'
+    | '/creator-terms'
+    | '/creators'
+    | '/gift-cards'
     | '/kingdom-picks'
     | '/library'
+    | '/loyalty'
     | '/preview-sample'
     | '/privacy'
     | '/reset-password'
@@ -813,13 +879,19 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/affiliate-disclosure'
+    | '/affiliates'
     | '/auth'
     | '/become-a-creator'
     | '/cart'
     | '/contact'
     | '/creator-agreement'
+    | '/creator-dashboard'
+    | '/creator-terms'
+    | '/creators'
+    | '/gift-cards'
     | '/kingdom-picks'
     | '/library'
+    | '/loyalty'
     | '/preview-sample'
     | '/privacy'
     | '/products'
@@ -885,13 +957,19 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRoute
   AffiliateDisclosureRoute: typeof AffiliateDisclosureRoute
+  AffiliatesRoute: typeof AffiliatesRoute
   AuthRoute: typeof AuthRoute
   BecomeACreatorRoute: typeof BecomeACreatorRoute
   CartRoute: typeof CartRoute
   ContactRoute: typeof ContactRoute
   CreatorAgreementRoute: typeof CreatorAgreementRoute
+  CreatorDashboardRoute: typeof CreatorDashboardRoute
+  CreatorTermsRoute: typeof CreatorTermsRoute
+  CreatorsRoute: typeof CreatorsRoute
+  GiftCardsRoute: typeof GiftCardsRoute
   KingdomPicksRoute: typeof KingdomPicksRoute
   LibraryRoute: typeof LibraryRoute
+  LoyaltyRoute: typeof LoyaltyRoute
   PreviewSampleRoute: typeof PreviewSampleRoute
   PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRouteWithChildren
@@ -1019,6 +1097,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewSampleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loyalty': {
+      id: '/loyalty'
+      path: '/loyalty'
+      fullPath: '/loyalty'
+      preLoaderRoute: typeof LoyaltyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/library': {
       id: '/library'
       path: '/library'
@@ -1031,6 +1116,34 @@ declare module '@tanstack/react-router' {
       path: '/kingdom-picks'
       fullPath: '/kingdom-picks'
       preLoaderRoute: typeof KingdomPicksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gift-cards': {
+      id: '/gift-cards'
+      path: '/gift-cards'
+      fullPath: '/gift-cards'
+      preLoaderRoute: typeof GiftCardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creators': {
+      id: '/creators'
+      path: '/creators'
+      fullPath: '/creators'
+      preLoaderRoute: typeof CreatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator-terms': {
+      id: '/creator-terms'
+      path: '/creator-terms'
+      fullPath: '/creator-terms'
+      preLoaderRoute: typeof CreatorTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator-dashboard': {
+      id: '/creator-dashboard'
+      path: '/creator-dashboard'
+      fullPath: '/creator-dashboard'
+      preLoaderRoute: typeof CreatorDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/creator-agreement': {
@@ -1066,6 +1179,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/affiliates': {
+      id: '/affiliates'
+      path: '/affiliates'
+      fullPath: '/affiliates'
+      preLoaderRoute: typeof AffiliatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/affiliate-disclosure': {
@@ -1504,13 +1624,19 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AccountRoute: AccountRoute,
   AffiliateDisclosureRoute: AffiliateDisclosureRoute,
+  AffiliatesRoute: AffiliatesRoute,
   AuthRoute: AuthRoute,
   BecomeACreatorRoute: BecomeACreatorRoute,
   CartRoute: CartRoute,
   ContactRoute: ContactRoute,
   CreatorAgreementRoute: CreatorAgreementRoute,
+  CreatorDashboardRoute: CreatorDashboardRoute,
+  CreatorTermsRoute: CreatorTermsRoute,
+  CreatorsRoute: CreatorsRoute,
+  GiftCardsRoute: GiftCardsRoute,
   KingdomPicksRoute: KingdomPicksRoute,
   LibraryRoute: LibraryRoute,
+  LoyaltyRoute: LoyaltyRoute,
   PreviewSampleRoute: PreviewSampleRoute,
   PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRouteWithChildren,

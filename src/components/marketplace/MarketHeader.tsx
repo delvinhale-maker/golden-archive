@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookPlus,
+  ChevronDown,
   Heart,
   LayoutDashboard,
   Loader2,
@@ -11,6 +12,7 @@ import {
   Store,
   Upload,
   User,
+  Users,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -90,6 +92,7 @@ export function MarketHeader() {
           </div>
 
           <div className="ml-auto flex items-center gap-1 md:ml-0 md:gap-2">
+            <CreatorsMenu />
             {canUpload ? (
               <Link
                 to="/dashboard/new"
@@ -275,6 +278,23 @@ export function MarketHeader() {
 
                 </button>
               ))}
+              <div className="mt-2 pt-4 text-[11px] font-semibold tracking-caps text-gold/80">
+                CREATORS
+              </div>
+              {[
+                { to: "/creators", label: "Browse Creators" },
+                { to: "/become-a-creator", label: "Become a Creator" },
+                { to: "/creator-dashboard", label: "Creator Dashboard" },
+              ].map((it) => (
+                <Link
+                  key={it.to}
+                  to={it.to}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex w-full items-center justify-between border-b border-white/10 py-3 text-base"
+                >
+                  <span>{it.label}</span>
+                </Link>
+              ))}
             </nav>
             <div className="space-y-3 p-6 pt-0">
               {canUpload ? (
@@ -317,6 +337,62 @@ export function MarketHeader() {
         )}
       </AnimatePresence>
     </header>
+  );
+}
+
+/* ------------------------------- Creators menu ------------------------------ */
+
+function CreatorsMenu() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
+  const items: { to: string; label: string }[] = [
+    { to: "/creators", label: "Browse Creators" },
+    { to: "/become-a-creator", label: "Become a Creator" },
+    { to: "/creator-dashboard", label: "Creator Dashboard" },
+  ];
+  return (
+    <div ref={ref} className="relative hidden md:block">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/10"
+      >
+        <Users size={14} /> Creators
+        <ChevronDown size={12} className={open ? "rotate-180 transition" : "transition"} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            role="menu"
+            className="absolute right-0 top-[38px] z-50 min-w-[200px] overflow-hidden rounded-xl border border-line bg-white py-1 shadow-2xl"
+          >
+            {items.map((it) => (
+              <Link
+                key={it.to}
+                to={it.to}
+                onClick={() => setOpen(false)}
+                className="block px-4 py-2.5 text-sm text-ink hover:bg-[#fafaf7] hover:text-navy"
+              >
+                {it.label}
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 

@@ -11,16 +11,27 @@ const SHOP_LINKS: FooterLink[] = [
 ];
 
 const COMPANY_LINKS: FooterLink[] = [
-  { label: "Sell on AurumVault", to: "/sell" },
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
   { label: "Support", to: "/dashboard/help" },
+  { label: "Gift Cards", to: "/gift-cards" },
+  { label: "Vault Points", to: "/loyalty" },
+];
+
+const CREATOR_LINKS: FooterLink[] = [
+  { label: "Sell on AurumVault", to: "/sell" },
+  { label: "Browse Creators", to: "/creators" },
+  { label: "Become a Creator", to: "/become-a-creator" },
+  { label: "Creator Terms", to: "/creator-terms" },
+  { label: "Creator FAQ", to: "/dashboard/help" },
+  { label: "Creator Login", to: "/auth" },
+  { label: "Affiliate Program", to: "/affiliates" },
 ];
 
 export function MarketFooter() {
   return (
     <footer className="mt-20 bg-navy pb-24 pt-16 text-white md:pb-16">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 md:grid-cols-4 lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-10 px-6 md:grid-cols-5 lg:px-8">
         <div className="md:col-span-2">
           <AVLogo size={56} />
           <p className="mt-5 max-w-sm text-sm text-white/70">
@@ -28,6 +39,7 @@ export function MarketFooter() {
           </p>
         </div>
         <FooterCol title="Marketplace" links={SHOP_LINKS} />
+        <FooterCol title="Creators" links={CREATOR_LINKS} />
         <FooterCol title="Company" links={COMPANY_LINKS} />
       </div>
       <div className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-3 border-t border-white/10 px-6 pt-6 text-xs text-white/50 md:flex-row lg:px-8">

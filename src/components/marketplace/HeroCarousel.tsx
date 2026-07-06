@@ -53,19 +53,19 @@ const SECONDARY_SLIDES: Slide[] = [
     theme: { accentColor: "#C9A84C", gradientStart: "#0F1629" },
   },
   {
-    kicker: "AURUMVAULT PREMIUM",
+    kicker: "SELL ON AURUMVAULT",
     title: (
       <>
-        One Vault. <span className="gold-gradient">Every Resource</span>.
+        Turn your knowledge into <span className="gold-gradient">income</span>.
       </>
     ),
-    body: "Join AurumVault Premium and access every title in the collection — anytime, anywhere.",
-    ctaLabel: "Join Premium →",
-    ctaTo: "/products",
-    secondaryLabel: "Explore the Store →",
-    secondaryHref: "/products",
-    card: { title: "Boardroom Liturgy", cat: "Audio", price: 29 },
-    theme: { accentColor: "#4B2D8F", gradientStart: "#1A0A2E" },
+    body: "Join a verified network of creators shipping premium eBooks, courses, and templates — with instant delivery, built-in affiliates, and monthly payouts.",
+    ctaLabel: "Become a Creator →",
+    ctaTo: "/become-a-creator",
+    secondaryLabel: "Meet the creators →",
+    secondaryHref: "/creators",
+    card: { title: "Your next drop", cat: "Creator", price: 49 },
+    theme: { accentColor: "#C9A227", gradientStart: "#0F1629" },
   },
 ];
 

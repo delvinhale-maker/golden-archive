@@ -35,6 +35,9 @@ import { KingdomBibleAppBanner } from "@/components/marketplace/KingdomBibleAppB
 import { ContinueBrowsingRow } from "@/components/marketplace/HomeRows";
 import { EmailCaptureBanner } from "@/components/EmailCaptureBanner";
 import { CreatorSpotlight, creatorSpotlightQ } from "@/components/marketplace/CreatorSpotlight";
+import { FeaturedCreatorsRow, featuredCreatorsQ } from "@/components/marketplace/FeaturedCreatorsRow";
+import { TopCreatorsLeaderboard, topCreatorsQ } from "@/components/marketplace/TopCreatorsLeaderboard";
+import { CategoryGrid13, categoryCountsQ } from "@/components/marketplace/CategoryGrid13";
 import {
   getFeaturedProducts,
   getHomeHighlights,
@@ -63,6 +66,9 @@ export const Route = createFileRoute("/")({
     context.queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] });
     context.queryClient.ensureQueryData(highlightsQ);
     context.queryClient.ensureQueryData(creatorSpotlightQ);
+    context.queryClient.ensureQueryData(featuredCreatorsQ);
+    context.queryClient.ensureQueryData(topCreatorsQ);
+    context.queryClient.ensureQueryData(categoryCountsQ);
   },
 
 
@@ -126,7 +132,13 @@ function Home() {
         <KingdomPicksRow />
       </Suspense>
 
-      <CategoriesSection />
+      <Suspense fallback={null}>
+        <FeaturedCreatorsRow />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <CategoryGrid13 />
+      </Suspense>
 
       <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProducts />
@@ -135,6 +147,9 @@ function Home() {
         <IllustriousCreator />
       </HighlightsBoundary>
       <CreatorSpotlight />
+      <Suspense fallback={null}>
+        <TopCreatorsLeaderboard />
+      </Suspense>
       <SocialsSection />
       <KingdomBibleAppBanner />
       <EmailCaptureBanner />
