@@ -95,7 +95,7 @@ const STEPS = [
 ];
 type StepNum = 1 | 2 | 3 | 4;
 
-function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editingId?: string; productTypeKey?: ProductTypeKey }) {
+function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType }: { editingId?: string; productTypeKey?: ProductTypeKey; invalidType?: string }) {
   const typeCfg = getProductType(productTypeKey);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
