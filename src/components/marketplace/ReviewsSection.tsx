@@ -251,10 +251,29 @@ function ReviewCard({
       <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-ink">
         {review.body}
       </p>
-      {review.photo_url && (
+      {((review as any).photos?.length ?? 0) > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {((review as any).photos as string[]).slice(0, 4).map((src, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setLightbox(src)}
+              className="block overflow-hidden rounded-md border border-line hover:border-gold"
+              aria-label="View review photo"
+            >
+              <img
+                src={src}
+                alt={`Review photo ${idx + 1}`}
+                className="h-24 w-24 object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+      {((review as any).photos?.length ?? 0) === 0 && review.photo_url && (
         <button
           type="button"
-          onClick={() => setLightbox(true)}
+          onClick={() => setLightbox(review.photo_url!)}
           className="mt-3 block overflow-hidden rounded-md border border-line hover:border-gold"
           aria-label="View review photo"
         >
@@ -284,23 +303,23 @@ function ReviewCard({
         )}
       </div>
 
-      {lightbox && review.photo_url && (
+      {lightbox && (
         <div
           className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4"
-          onClick={() => setLightbox(false)}
+          onClick={() => setLightbox(null)}
           role="dialog"
           aria-modal="true"
         >
           <button
             type="button"
-            onClick={() => setLightbox(false)}
+            onClick={() => setLightbox(null)}
             aria-label="Close"
             className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
           >
             <XIcon size={18} />
           </button>
           <img
-            src={review.photo_url}
+            src={lightbox}
             alt="Review attachment"
             className="max-h-[85vh] max-w-full rounded-lg"
             onClick={(e) => e.stopPropagation()}
