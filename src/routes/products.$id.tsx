@@ -635,6 +635,15 @@ function ProductPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {previewOpen && previewBlobUrl && (
+        <ManuscriptPreviewer
+          manuscriptPath={`${previewBlobUrl}#.pdf`}
+          title={`${product.title} — Preview`}
+          coverUrl={product.image && /^https?:\/\//.test(product.image) ? product.image : null}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
     </MarketShell>
   );
 }
