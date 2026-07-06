@@ -241,6 +241,7 @@ function ProductPage() {
     }
   }
 
+  useEffect(() => {
     let cancelled = false;
     listPublicVariants({ data: { productId: product.id } })
       .then((rows) => {
