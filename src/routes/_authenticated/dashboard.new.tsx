@@ -271,6 +271,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
       const priceCents = Math.round((parseFloat(price || "0") || 0) * 100);
       const notes = JSON.stringify({
         seriesName: seriesName || null, edition: edition || null,
+        whatsIncluded: whatsIncluded || null,
         keywords, ageRange, ownsRights, drm, premium, territory: "Worldwide",
       });
       const payload = {
