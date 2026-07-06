@@ -175,21 +175,72 @@ export const Route = createFileRoute("/store/$slug")({
     if (!data) throw notFound();
     return data;
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.brandName} · AurumVault` },
-          { name: "description", content: loaderData.pitch.slice(0, 155) },
-          { property: "og:title", content: `${loaderData.brandName} · AurumVault` },
-          { property: "og:description", content: loaderData.pitch.slice(0, 155) },
-          { property: "og:type", content: "profile" },
-          ...(loaderData.coverUrl
-            ? [{ property: "og:image", content: loaderData.coverUrl }]
-            : []),
-          { name: "twitter:card", content: "summary_large_image" },
-        ]
-      : [{ title: "Storefront · AurumVault" }],
-  }),
+  head: ({ params, loaderData }) => {
+    const SITE_URL = "https://www.aurumvault.store";
+    const url = `${SITE_URL}/store/${params.slug}`;
+    if (!loaderData) {
+      return { meta: [{ title: "Storefront · AurumVault" }] };
+    }
+    const d = loaderData;
+    const desc = d.pitch.slice(0, 155);
+    const image = d.coverUrl || d.avatarUrl || undefined;
+    const meta: Array<Record<string, string>> = [
+      { title: `${d.brandName} · AurumVault` },
+      { name: "description", content: desc },
+      { name: "robots", content: "index, follow" },
+      { property: "og:title", content: `${d.brandName} · AurumVault` },
+      { property: "og:description", content: desc },
+      { property: "og:type", content: "profile" },
+      { property: "og:url", content: url },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: `${d.brandName} · AurumVault` },
+      { name: "twitter:description", content: desc },
+    ];
+    if (image) {
+      meta.push({ property: "og:image", content: image });
+      meta.push({ name: "twitter:image", content: image });
+    }
+    const sameAs = d.socialLinks
+      ? Object.values(d.socialLinks).filter((v): v is string => !!v && /^https?:\/\//.test(v))
+      : [];
+    if (d.website) sameAs.push(d.website);
+    return {
+      meta,
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Person",
+            name: d.displayName || d.brandName,
+            alternateName: d.brandName,
+            url,
+            image: image || undefined,
+            description: desc,
+            sameAs: sameAs.length ? sameAs : undefined,
+            worksFor: {
+              "@type": "Organization",
+              name: "AurumVault",
+              url: SITE_URL,
+            },
+          }),
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+              { "@type": "ListItem", position: 2, name: "Creators", item: `${SITE_URL}/creators` },
+              { "@type": "ListItem", position: 3, name: d.brandName, item: url },
+            ],
+          }),
+        },
+      ],
+    };
+  },
   notFoundComponent: () => (
     <div className="min-h-screen grid place-items-center bg-paper text-center px-6">
       <div>
