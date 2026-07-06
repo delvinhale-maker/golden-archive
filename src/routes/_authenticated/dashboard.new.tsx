@@ -34,17 +34,18 @@ const DESC_WARN = 1800;
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
   validateSearch: (s: Record<string, unknown>) => ({
     id: typeof s.id === "string" ? s.id : undefined,
+    type: typeof s.type === "string" ? (s.type as ProductTypeKey) : undefined,
   }),
   component: PublishFlowRoute,
 });
 
 function PublishFlowRoute() {
-  const { id } = Route.useSearch();
-  return <PublishFlow editingId={id} />;
+  const { id, type } = Route.useSearch();
+  return <PublishFlow editingId={id} productTypeKey={type} />;
 }
 
-export function PublishFlow({ editingId: editingIdProp }: { editingId?: string } = {}) {
-  return <PublishFlowImpl editingId={editingIdProp} />;
+export function PublishFlow({ editingId: editingIdProp, productTypeKey }: { editingId?: string; productTypeKey?: ProductTypeKey } = {}) {
+  return <PublishFlowImpl editingId={editingIdProp} productTypeKey={productTypeKey} />;
 }
 
 
