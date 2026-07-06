@@ -94,11 +94,10 @@ export function UploadFab() {
 
               {view === "root" ? (
                 <div className="grid gap-3">
-                  <Link
-                    to="/dashboard/new"
-                    search={{ type: "ebook" } as never}
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 transition hover:border-gold hover:bg-gold/5"
+                  <button
+                    type="button"
+                    onClick={() => goToNew("ebook")}
+                    className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 text-left transition hover:border-gold hover:bg-gold/5"
                   >
                     <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gold/15 text-gold">
                       <BookPlus size={20} />
@@ -107,7 +106,7 @@ export function UploadFab() {
                       <span className="block font-semibold text-ink">Upload eBook</span>
                       <span className="block text-xs text-mute">KDP-style publish flow</span>
                     </span>
-                  </Link>
+                  </button>
                   <button
                     type="button"
                     onClick={() => setView("digital")}
