@@ -80,6 +80,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   const [epubReady, setEpubReady] = useState(false);
   const [epubToc, setEpubToc] = useState<EpubTocEntry[]>([]);
   const [epubCurrentToc, setEpubCurrentToc] = useState<number | null>(null);
+  // EPUB rendition mount state — drives the overlay spinner / error message
+  // that sits on top of the epub.js iframe while it's attaching a section.
+  const [epubRendering, setEpubRendering] = useState(false);
+  const [epubRenderError, setEpubRenderError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -145,6 +149,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       setEpubReady(false);
       setEpubToc([]);
       setEpubCurrentToc(null);
+      setEpubRendering(false);
+      setEpubRenderError(null);
       epubTocRef.current = [];
       try {
         let signed: string;
@@ -550,18 +556,49 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     }
     container.innerHTML = "";
 
-    const rendition = book.renderTo(container, {
-      width: pageAreaW,
-      height: pageAreaH,
-      flow: "paginated",
-      spread: "none",
-    });
+    // Show the overlay spinner until the first section attaches (or errors).
+    setEpubRendering(true);
+    setEpubRenderError(null);
+
+    let rendition: any;
+    try {
+      rendition = book.renderTo(container, {
+        width: pageAreaW,
+        height: pageAreaH,
+        flow: "paginated",
+        spread: "none",
+      });
+    } catch (err) {
+      console.error("[ManuscriptPreviewer] epub renderTo failed", err);
+      setEpubRendering(false);
+      setEpubRenderError(
+        "We couldn't render this EPUB. Try again, or open the original file.",
+      );
+      return;
+    }
     epubRenditionRef.current = rendition;
+
+    // Fallback: if rendition never fires 'rendered' within 15s, surface an
+    // error so the user isn't staring at a spinner forever.
+    const stallTimer = window.setTimeout(() => {
+      setEpubRendering((rendering) => {
+        if (rendering) {
+          setEpubRenderError(
+            "This EPUB is taking too long to render. Try Retry, or open the original file.",
+          );
+        }
+        return false;
+      });
+    }, 15000);
+
     // Apply font-size only after the rendition has attached its first
     // section — calling themes.fontSize() before any contents exist throws
     // "Cannot read properties of undefined (reading 'replaceCss')" inside
     // epubjs and prevents pages from rendering.
-    const applyFontSize = () => {
+    const onRendered = () => {
+      window.clearTimeout(stallTimer);
+      setEpubRendering(false);
+      setEpubRenderError(null);
       try {
         rendition.themes.fontSize(
           `${100 * (FONT_SCALES[fontSize] ?? 1)}%`,
@@ -570,7 +607,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
         /* noop */
       }
     };
-    rendition.on("rendered", applyFontSize);
+    rendition.on("rendered", onRendered);
 
     // Sync location + current chapter from rendition back to state.
     // Guarded so programmatic display() calls don't feed back into location.
@@ -605,20 +642,35 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     // Display initial page (or the current one if user has already navigated).
     const total = epubTotalRef.current || 1;
     const pageIdx = Math.max(1, Math.min(total, location - 1));
+    const onDisplayError = (err: unknown) => {
+      console.error("[ManuscriptPreviewer] epub display failed", err);
+      window.clearTimeout(stallTimer);
+      setEpubRendering(false);
+      setEpubRenderError(
+        "We couldn't open this section. Try Retry, or pick another chapter.",
+      );
+    };
     try {
       const cfi = book.locations.cfiFromLocation(pageIdx - 1);
-      rendition.display(cfi || undefined);
-    } catch {
-      rendition.display();
+      const p = rendition.display(cfi || undefined);
+      if (p && typeof p.catch === "function") p.catch(onDisplayError);
+    } catch (err) {
+      try {
+        const p = rendition.display();
+        if (p && typeof p.catch === "function") p.catch(onDisplayError);
+      } catch (err2) {
+        onDisplayError(err2);
+      }
     }
 
     return () => {
+      window.clearTimeout(stallTimer);
       try { rendition.destroy(); } catch { /* noop */ }
       if (epubRenditionRef.current === rendition) epubRenditionRef.current = null;
     };
     // Intentionally exclude `location` — location sync is handled by a separate effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEpub, epubReady, device, pageAreaW, pageAreaH, epubContainerEl]);
+  }, [isEpub, epubReady, device, pageAreaW, pageAreaH, epubContainerEl, attempt]);
 
   // Push location changes into the EPUB rendition.
   useEffect(() => {
@@ -1249,12 +1301,59 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
 
 
               ) : isEpub ? (
-
                 <div
-                  ref={epubContainerRef}
+                  className="relative"
                   style={{ width: pageAreaW, height: pageAreaH, background: dev.bg }}
-                  className="text-black"
-                />
+                >
+                  <div
+                    ref={epubContainerRef}
+                    style={{ width: pageAreaW, height: pageAreaH, background: dev.bg }}
+                    className="text-black"
+                  />
+                  {(epubRendering || epubRenderError) && (
+                    <div
+                      className="absolute inset-0 flex items-center justify-center bg-white/95 px-6"
+                      role={epubRenderError ? "alert" : "status"}
+                      aria-live="polite"
+                    >
+                      {epubRenderError ? (
+                        <div className="text-center max-w-xs">
+                          <p className="text-red-600 text-sm font-semibold mb-2">
+                            {epubRenderError}
+                          </p>
+                          <div className="flex flex-col items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEpubRenderError(null);
+                                setAttempt((a) => a + 1);
+                              }}
+                              className="inline-block rounded-md bg-black text-white text-sm px-4 py-2 hover:bg-black/80"
+                            >
+                              Retry
+                            </button>
+                            {signedUrl && (
+                              <a
+                                href={signedUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs underline text-black/60 hover:text-black"
+                              >
+                                Open original file in new tab
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 text-black/60">
+                          <Loader2 className="animate-spin" size={24} />
+                          <span className="text-xs">Rendering page…</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
               ) : notPdf ? (
                 <div className="text-center px-6 text-black/70 text-sm">
                   <p className="font-semibold mb-2">
