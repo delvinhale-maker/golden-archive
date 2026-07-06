@@ -462,16 +462,19 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
     if (!f) { setFile(null); return; }
     if (f.size === 0) return setFileError("File is empty.");
     const ext = f.name.toLowerCase().split(".").pop() ?? "";
-    if (!FILE_EXT.includes(ext)) return setFileError(`Unsupported .${ext}. Accepted: PDF, EPUB, DOCX.`);
-    if (f.type && !FILE_MIMES.includes(f.type)) return setFileError(`File content (${f.type}) doesn't match a manuscript.`);
+    if (!typeCfg.fileExts.includes(ext)) return setFileError(`Unsupported .${ext}. Accepted: ${typeCfg.acceptedHint}.`);
+    if (f.type && typeCfg.fileMimes.length > 0 && !typeCfg.fileMimes.includes(f.type)) {
+      return setFileError(`File content (${f.type}) doesn't match ${typeCfg.label}.`);
+    }
     if (f.size > MAX_FILE_MB * 1024 * 1024) return setFileError(`File exceeds ${MAX_FILE_MB} MB limit.`);
-    // Structural validation: unzip .docx / .epub and check required parts,
-    // sniff %PDF- header for .pdf. Prevents malformed manuscripts from ever
-    // reaching Storage, so buyers never receive a file Word/Reader can't open.
+    // Structural validation is only meaningful for ebook manuscripts (pdf/epub/docx).
+    // For other product types, skip the deep validation to allow zip/mp3/mp4/etc.
     try {
-      const { validateManuscriptFile } = await import("@/lib/manuscript-validate");
-      const res = await validateManuscriptFile(f);
-      if (!res.ok) return setFileError(res.reason);
+      if (typeCfg.isEbook) {
+        const { validateManuscriptFile } = await import("@/lib/manuscript-validate");
+        const res = await validateManuscriptFile(f);
+        if (!res.ok) return setFileError(res.reason);
+      }
     } catch (e) {
       return setFileError(
         `Couldn't read that file (${(e as Error).message}). Re-save from the original app and try again.`,
