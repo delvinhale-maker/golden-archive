@@ -49,6 +49,8 @@ export type MyEarningsSummary = {
   currency: string;
   has_method: boolean;
   has_tax_form: boolean;
+  email_verified: boolean;
+  email: string | null;
   open_request: PayoutRequestRow | null;
   requests: PayoutRequestRow[];
   payouts: PayoutHistoryRow[];
