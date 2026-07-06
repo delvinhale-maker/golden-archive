@@ -290,7 +290,11 @@ function PayoutsPage() {
             <p className="text-sm text-mute mt-1">
               $25 minimum. One open request at a time. Admin reviews and sends via your selected method.
             </p>
-            {summary.open_request ? (
+            {!summary.email_verified ? (
+              <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
+                Verify your email address (see banner above) before requesting a payout.
+              </div>
+            ) : summary.open_request ? (
               <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
                 Your request for {fmt(summary.open_request.amount_cents)} is{" "}
                 <strong>{summary.open_request.status}</strong>.
