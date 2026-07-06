@@ -201,7 +201,46 @@ function ProductPage() {
 
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [selected, setSelected] = useState<SelectedVariant | null>(null);
+
+  // Public preview modal state — only surfaces when the creator picked
+  // preview pages and the manuscript is a PDF.
+  const previewAvailable =
+    (product.previewPages?.length ?? 0) > 0 && product.fileExt === "pdf";
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const previewBlobRef = useRef<string | null>(null);
   useEffect(() => {
+    return () => {
+      if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
+    };
+  }, []);
+  async function openPreview() {
+    if (previewLoading) return;
+    setPreviewLoading(true);
+    try {
+      const res = await getPublicPreview({ data: { productId: product.id } });
+      if (!("ok" in res) || !res.ok) {
+        toast.error("Preview is temporarily unavailable. Please try again shortly.");
+        return;
+      }
+      const bin = atob(res.pdfBase64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
+      const url = URL.createObjectURL(blob);
+      previewBlobRef.current = url;
+      setPreviewBlobUrl(url);
+      setPreviewOpen(true);
+    } catch (e) {
+      console.error("[preview] load failed", e);
+      toast.error("Preview is temporarily unavailable. Please try again shortly.");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
     let cancelled = false;
     listPublicVariants({ data: { productId: product.id } })
       .then((rows) => {
