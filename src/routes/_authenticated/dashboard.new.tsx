@@ -61,17 +61,11 @@ const LANGUAGES = ["English", "Spanish", "French", "German", "Portuguese", "Ital
 const AGE_RANGES = ["All ages", "Children (5-12)", "Teen (13-17)", "Adult (18+)", "Professional"];
 
 const MAX_COVER_MB = 10;
-const MAX_FILE_MB = 100;
+const MAX_FILE_MB = 650;
 const MIN_COVER_W = 1600;
 const MIN_COVER_H = 2560;
 const TARGET_RATIO = 1600 / 2560;
 const RATIO_TOL = 0.03;
-const FILE_EXT = ["pdf", "epub", "docx"];
-const FILE_MIMES = [
-  "application/pdf",
-  "application/epub+zip",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
 
 const STEPS = [
   { n: 1 as const, title: "Book Details", accent: ACCENTS.publishStep1 },
