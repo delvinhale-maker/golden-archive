@@ -118,6 +118,13 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
   // Only actually bypass when the user is an admin AND the toggle is on.
   const bypassReview = isAdmin && adminInstantApprove;
 
+  useEffect(() => {
+    if (invalidType) {
+      toast.warning(`Unknown product type "${invalidType}" — defaulting to ${typeCfg.label}. Choose a category below to continue.`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [invalidType]);
+
   const [step, setStep] = useState<StepNum>(1);
   const accent: PublisherAccent = STEPS.find((s) => s.n === step)!.accent;
 
