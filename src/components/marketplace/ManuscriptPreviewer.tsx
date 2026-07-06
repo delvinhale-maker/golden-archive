@@ -101,6 +101,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   const epubTotalRef = useRef<number>(0);
   const epubSyncingRef = useRef<boolean>(false);
   const epubNavBusyRef = useRef<boolean>(false);
+  const epubNavUnlockTimerRef = useRef<number | null>(null);
   const epubPendingStepRef = useRef<1 | -1 | null>(null);
   const pageCountRef = useRef<number>(1);
   // When true, the next `location` change came FROM the rendition's own
@@ -652,6 +653,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
 
       const pendingStep = epubPendingStepRef.current;
       if (pendingStep != null) {
+        if (epubNavUnlockTimerRef.current != null) {
+          window.clearTimeout(epubNavUnlockTimerRef.current);
+          epubNavUnlockTimerRef.current = null;
+        }
         epubPendingStepRef.current = null;
         epubNavBusyRef.current = false;
         setEpubNavBusy(false);
@@ -929,6 +934,15 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
             epubNavBusyRef.current = true;
             epubPendingStepRef.current = dir;
             setEpubNavBusy(true);
+            if (epubNavUnlockTimerRef.current != null) {
+              window.clearTimeout(epubNavUnlockTimerRef.current);
+            }
+            epubNavUnlockTimerRef.current = window.setTimeout(() => {
+              epubPendingStepRef.current = null;
+              epubNavBusyRef.current = false;
+              setEpubNavBusy(false);
+              epubNavUnlockTimerRef.current = null;
+            }, 3000);
             const p = dir === 1 ? rendition.next() : rendition.prev();
             if (p && typeof p.then === "function") {
               // relocated handler will sync `location`; ignore errors silently.
