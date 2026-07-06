@@ -150,7 +150,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
   const [coverLightbox, setCoverLightbox] = useState(false);
 
   // Step 3
-  const [price, setPrice] = useState("");
+  const [price, setPrice] = useState<string>(() => (productTypeKey && !editingIdProp ? (typeCfg.suggestedPriceCents / 100).toFixed(2) : ""));
   const [premium, setPremium] = useState(false);
   const [territory] = useState("Worldwide");
 
