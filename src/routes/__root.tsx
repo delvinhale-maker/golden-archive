@@ -231,7 +231,18 @@ function RootComponent() {
 
   useEffect(() => {
     // Capture ?ref=CODE into localStorage so signups & checkouts can attribute.
-    import("@/lib/referral").then((m) => m.captureRefFromUrl()).catch(() => {});
+    import("@/lib/referral")
+      .then((m) => {
+        const code = m.captureRefFromUrl();
+        if (code) {
+          // Fire-and-forget click log for creator-affiliate codes. If the code
+          // isn't a real affiliate code this is a no-op (validation server-side).
+          import("@/lib/creator-affiliate.functions")
+            .then((mod) => mod.logAffiliateClick({ data: { code } }).catch(() => {}))
+            .catch(() => {});
+        }
+      })
+      .catch(() => {});
     // Forward uncaught errors and unhandled rejections to the production error log.
     installGlobalErrorHandlers();
   }, []);
