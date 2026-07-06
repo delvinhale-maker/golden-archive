@@ -341,8 +341,8 @@ function WriteReviewButton({
   const [rating, setRating] = useState(5);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const submit = useServerFn(createReview);
@@ -354,27 +354,32 @@ function WriteReviewButton({
     setTitle("");
     setBody("");
     setRating(5);
-    setPhotoFile(null);
-    setPhotoPreview(null);
+    setPhotoFiles([]);
+    setPhotoPreviews([]);
   };
 
   const m = useMutation({
     mutationFn: async () => {
-      let photoPath: string | undefined;
-      if (photoFile && user) {
+      const paths: string[] = [];
+      if (photoFiles.length && user) {
         setUploading(true);
-        const ext = photoFile.name.split(".").pop()?.toLowerCase() ?? "jpg";
-        const path = `${user.id}/${productId}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("review-photos")
-          .upload(path, photoFile, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: photoFile.type || "image/jpeg",
-          });
-        setUploading(false);
-        if (upErr) throw new Error(`Photo upload failed: ${upErr.message}`);
-        photoPath = path;
+        try {
+          for (const file of photoFiles) {
+            const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+            const path = `${user.id}/${productId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+            const { error: upErr } = await supabase.storage
+              .from("review-photos")
+              .upload(path, file, {
+                cacheControl: "3600",
+                upsert: false,
+                contentType: file.type || "image/jpeg",
+              });
+            if (upErr) throw new Error(`Photo upload failed: ${upErr.message}`);
+            paths.push(path);
+          }
+        } finally {
+          setUploading(false);
+        }
       }
       return submit({
         data: {
@@ -382,7 +387,7 @@ function WriteReviewButton({
           rating,
           title: title || undefined,
           body,
-          photoPath,
+          photoPaths: paths.length ? paths : undefined,
         },
       });
     },
@@ -407,22 +412,34 @@ function WriteReviewButton({
     );
   }
 
-  const onPickPhoto = (file: File | null) => {
-    if (!file) {
-      setPhotoFile(null);
-      setPhotoPreview(null);
-      return;
+  const onPickPhotos = (files: FileList | null) => {
+    if (!files) return;
+    const remaining = 4 - photoFiles.length;
+    const chosen = Array.from(files).slice(0, Math.max(0, remaining));
+    const valid: File[] = [];
+    for (const file of chosen) {
+      if (!/^image\/(jpe?g|png|webp)$/i.test(file.type)) {
+        toast.error("JPG, PNG, or WebP only");
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Each photo must be under 5MB");
+        continue;
+      }
+      valid.push(file);
     }
-    if (!/^image\/(jpe?g|png|webp)$/i.test(file.type)) {
-      toast.error("JPG, PNG, or WebP only");
-      return;
+    if (valid.length) {
+      setPhotoFiles((prev) => [...prev, ...valid]);
+      setPhotoPreviews((prev) => [
+        ...prev,
+        ...valid.map((f) => URL.createObjectURL(f)),
+      ]);
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Photo must be under 5MB");
-      return;
-    }
-    setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const removePhoto = (i: number) => {
+    setPhotoFiles((prev) => prev.filter((_, idx) => idx !== i));
+    setPhotoPreviews((prev) => prev.filter((_, idx) => idx !== i));
   };
 
   return (
