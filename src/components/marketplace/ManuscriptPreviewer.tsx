@@ -906,8 +906,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       const t = e.target as HTMLElement | null;
       const typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT");
       if (typing) return;
-      if (e.key === "ArrowLeft") { e.preventDefault(); goTo(location + (isRTL ? 1 : -1)); }
-      if (e.key === "ArrowRight") { e.preventDefault(); goTo(location + (isRTL ? -1 : 1)); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); goRelative(isRTL ? 1 : -1); }
+      if (e.key === "ArrowRight") { e.preventDefault(); goRelative(isRTL ? -1 : 1); }
     };
     window.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -915,7 +915,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [goTo, location, onClose, isRTL]);
+  }, [goRelative, onClose, isRTL]);
+
 
   const pinchStartRef = useRef<{ dist: number; startFont: number } | null>(null);
   const lastTapRef = useRef<number>(0);
