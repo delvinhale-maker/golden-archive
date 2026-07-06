@@ -243,6 +243,8 @@ function RootComponent() {
         }
       })
       .catch(() => {});
+    // Capture ?cref=CODE for the creator-recruits-creator program.
+    import("@/lib/creator-referral").then((m) => m.captureCreatorRefFromUrl()).catch(() => {});
     // Forward uncaught errors and unhandled rejections to the production error log.
     installGlobalErrorHandlers();
   }, []);
