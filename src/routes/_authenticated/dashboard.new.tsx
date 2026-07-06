@@ -1409,9 +1409,9 @@ function StepContent(p: {
           <FileInput
             file={p.file}
             onFile={p.handleFileChange}
-            accept=".pdf,.epub,.docx,application/pdf,application/epub+zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            hint="Drag & drop or tap to choose your manuscript"
-            acceptedHint=".PDF, .EPUB, .DOCX"
+            accept={p.typeCfg.acceptString}
+            hint={p.typeCfg.isEbook ? "Drag & drop or tap to choose your manuscript" : `Drag & drop or tap to choose your ${p.typeCfg.label.toLowerCase()} file`}
+            acceptedHint={p.typeCfg.acceptedHint}
           />
         )}
         {p.fileError && (
