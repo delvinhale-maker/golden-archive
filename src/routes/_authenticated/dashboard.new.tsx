@@ -1118,6 +1118,9 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
               uploadedFileMeta={uploadedFileMeta}
               title={title}
               typeCfg={typeCfg}
+              productTypeKey={productTypeKey}
+              previewPages={previewPages}
+              setPreviewPages={setPreviewPages}
             />
 
           )}
