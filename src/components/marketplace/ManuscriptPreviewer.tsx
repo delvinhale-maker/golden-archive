@@ -101,6 +101,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   const epubTotalRef = useRef<number>(0);
   const epubSyncingRef = useRef<boolean>(false);
   const epubNavBusyRef = useRef<boolean>(false);
+  const epubPendingStepRef = useRef<1 | -1 | null>(null);
+  const pageCountRef = useRef<number>(1);
   // When true, the next `location` change came FROM the rendition's own
   // relocated event, so the location→rendition sync effect must skip it —
   // otherwise we call rendition.display() for a coarse percentage-based CFI
@@ -109,6 +111,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   const epubTocRef = useRef<EpubTocEntry[]>([]);
   const [epubAtStart, setEpubAtStart] = useState(false);
   const [epubAtEnd, setEpubAtEnd] = useState(false);
+
+  useEffect(() => {
+    pageCountRef.current = pageCount;
+  }, [pageCount]);
 
 
   // Robust extension detection:
@@ -643,6 +649,24 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       setEpubAtEnd(!!loc?.atEnd);
 
       if (epubSyncingRef.current) return;
+
+      const pendingStep = epubPendingStepRef.current;
+      if (pendingStep != null) {
+        epubPendingStepRef.current = null;
+        epubLocFromRelocatedRef.current = true;
+        setLocation((prev) => {
+          const upper = Math.max(2, pageCountRef.current);
+          const target = loc?.atEnd
+            ? upper
+            : loc?.atStart
+              ? 2
+              : Math.max(2, Math.min(upper, prev + pendingStep));
+          setLocationInput(String(target));
+          return target;
+        });
+        return;
+      }
+
       const total = epubTotalRef.current || 1;
       try {
         const pct = book.locations.percentageFromCfi(loc?.start?.cfi);
@@ -901,6 +925,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
           if (epubNavBusyRef.current) return;
           try {
             epubNavBusyRef.current = true;
+            epubPendingStepRef.current = dir;
             setEpubNavBusy(true);
             const p = dir === 1 ? rendition.next() : rendition.prev();
             if (p && typeof p.then === "function") {
@@ -920,6 +945,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
             return;
           } catch {
             epubNavBusyRef.current = false;
+            epubPendingStepRef.current = null;
             setEpubNavBusy(false);
             /* fall through to goTo */
           }
