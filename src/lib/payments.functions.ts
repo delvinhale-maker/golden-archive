@@ -54,13 +54,23 @@ function stripTaxFields<T extends Record<string, any>>(params: T): T {
 
 export const createProductCheckout = createServerFn({ method: "POST" })
   .inputValidator(
-    (data: { productId: string; returnUrl: string; environment: StripeEnv; referralCode?: string }) => {
+    (data: {
+      productId: string;
+      returnUrl: string;
+      environment: StripeEnv;
+      referralCode?: string;
+      variantId?: string;
+      buyerPriceCents?: number;
+    }) => {
       if (!/^[a-f0-9-]{36}$/.test(data.productId)) throw new Error("Invalid productId");
       if (data.environment !== "sandbox" && data.environment !== "live") {
         throw new Error("Invalid environment");
       }
       if (data.referralCode && !/^[A-Z0-9]{6,16}$/.test(data.referralCode.toUpperCase())) {
         delete data.referralCode;
+      }
+      if (data.variantId && !/^[a-f0-9-]{36}$/.test(data.variantId)) {
+        throw new Error("Invalid variantId");
       }
       return data;
     },
@@ -82,6 +92,44 @@ export const createProductCheckout = createServerFn({ method: "POST" })
 
       if (error || !product) return { error: "Product not available" };
 
+      // Resolve variant (if any)
+      let variant:
+        | {
+            id: string;
+            name: string;
+            license_type: string | null;
+            price_cents: number;
+            pay_what_you_want: boolean;
+            min_price_cents: number | null;
+          }
+        | null = null;
+      let unitAmount = product.price_cents;
+      let lineName = product.title;
+
+      if (data.variantId) {
+        const { data: vRow } = await supabase
+          .from("product_variants" as any)
+          .select("id,product_id,name,license_type,price_cents,pay_what_you_want,min_price_cents,is_active")
+          .eq("id", data.variantId)
+          .maybeSingle();
+        const v = vRow as any;
+        if (!v || v.product_id !== product.id || !v.is_active) {
+          return { error: "Selected version is not available" };
+        }
+        variant = v;
+        if (v.pay_what_you_want) {
+          const min = v.min_price_cents ?? 0;
+          const buyer = Math.round(data.buyerPriceCents ?? 0);
+          if (!Number.isFinite(buyer) || buyer < min) {
+            return { error: `Minimum price is $${(min / 100).toFixed(2)}` };
+          }
+          unitAmount = Math.max(50, buyer);
+        } else {
+          unitAmount = v.price_cents;
+        }
+        lineName = `${product.title} — ${v.name}`;
+      }
+
       const stripe = createStripeClient(data.environment);
       const taxMode = await detectTaxMode(stripe, data.environment);
 
@@ -92,13 +140,13 @@ export const createProductCheckout = createServerFn({ method: "POST" })
               price_data: {
                 currency: "usd",
                 product_data: {
-                  name: product.title,
+                  name: lineName,
                   tax_code: "txcd_10000000",
                   ...(product.description && {
                     description: product.description.slice(0, 500),
                   }),
                 },
-                unit_amount: product.price_cents,
+                unit_amount: unitAmount,
                 tax_behavior: "exclusive",
               },
               quantity: 1,
@@ -107,12 +155,20 @@ export const createProductCheckout = createServerFn({ method: "POST" })
           mode: "payment",
           ui_mode: "embedded_page",
           return_url: data.returnUrl,
-          payment_intent_data: { description: product.title },
+          payment_intent_data: { description: lineName },
           metadata: {
             product_id: product.id,
             seller_id: product.seller_id,
             environment: data.environment,
             tax_mode: taxMode,
+            unit_amount_cents: String(unitAmount),
+            ...(variant
+              ? {
+                  variant_id: variant.id,
+                  variant_name: variant.name,
+                  variant_license_type: variant.license_type ?? "",
+                }
+              : {}),
             ...(data.referralCode ? { referral_code: data.referralCode.toUpperCase() } : {}),
           },
         },
@@ -150,6 +206,7 @@ export const createProductCheckout = createServerFn({ method: "POST" })
       return { error: getStripeErrorMessage(error) };
     }
   });
+
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PROMOS: Record<string, { kind: "pct" | "flat"; value: number }> = {
@@ -388,7 +445,7 @@ export const getReadInfo = createServerFn({ method: "GET" })
     const { data: dl, error } = await supabaseAdmin
       .from("order_downloads")
       .select(
-        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,product:marketplace_products(file_path,cover_url),order:orders(buyer_email))",
+        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,variant_id,product:marketplace_products(file_path,cover_url),order:orders(buyer_email))",
       )
       .eq("token", data.token)
       .maybeSingle();
@@ -403,10 +460,20 @@ export const getReadInfo = createServerFn({ method: "GET" })
     if (expired) return { error: "This download link has expired" } as const;
 
     const orderItem = (dl as any).order_item;
-    const filePath: string | undefined = orderItem?.product?.file_path;
+    let filePath: string | undefined = orderItem?.product?.file_path;
     const title: string = orderItem?.product_title ?? "Your purchase";
     const coverUrl: string | null = orderItem?.product?.cover_url ?? null;
+    if (orderItem?.variant_id) {
+      const { data: vRow } = await supabaseAdmin
+        .from("product_variants" as any)
+        .select("file_path")
+        .eq("id", orderItem.variant_id)
+        .maybeSingle();
+      const vp = (vRow as any)?.file_path;
+      if (vp) filePath = vp;
+    }
     if (!filePath) return { error: "File is no longer available" } as const;
+
 
     const { data: signed, error: sErr } = await supabaseAdmin.storage
       .from("product-files")
@@ -452,7 +519,7 @@ export const getDownloadInfo = createServerFn({ method: "GET" })
     const { data: dl, error } = await supabaseAdmin
       .from("order_downloads")
       .select(
-        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,product:marketplace_products(file_path),order:orders(buyer_email))",
+        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,variant_id,product:marketplace_products(file_path),order:orders(buyer_email))",
       )
       .eq("token", data.token)
       .maybeSingle();
@@ -471,9 +538,19 @@ export const getDownloadInfo = createServerFn({ method: "GET" })
     }
 
     const orderItem = (dl as any).order_item;
-    const filePath: string | undefined = orderItem?.product?.file_path;
+    let filePath: string | undefined = orderItem?.product?.file_path;
     const title: string = orderItem?.product_title ?? "Your purchase";
+    if (orderItem?.variant_id) {
+      const { data: vRow } = await supabaseAdmin
+        .from("product_variants" as any)
+        .select("file_path")
+        .eq("id", orderItem.variant_id)
+        .maybeSingle();
+      const vp = (vRow as any)?.file_path;
+      if (vp) filePath = vp;
+    }
     if (!filePath) return { error: "File is no longer available" } as const;
+
 
     const { data: signed, error: sErr } = await supabaseAdmin.storage
       .from("product-files")

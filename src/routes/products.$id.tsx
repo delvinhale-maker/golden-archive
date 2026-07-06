@@ -25,8 +25,11 @@ import { ShareButtons, ReportIssueLink } from "@/components/marketplace/ShareBut
 import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { useOwnsProduct } from "@/hooks/use-owned-products";
 import { getProduct, type Product, type ProductDetailResult } from "@/lib/marketplace.functions";
+import { listPublicVariants, type ProductVariant } from "@/lib/product-variants.functions";
+import { VariantPicker, type SelectedVariant } from "@/components/marketplace/VariantPicker";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 import { CATEGORY_THEMES, DEFAULT_THEME } from "@/lib/theme/theme-config";
+
 
 const productQ = (id: string) =>
   queryOptions({
@@ -190,6 +193,25 @@ function ProductPage() {
   const owned = useOwnsProduct(product.id);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [selected, setSelected] = useState<SelectedVariant | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    listPublicVariants({ data: { productId: product.id } })
+      .then((rows) => {
+        if (!cancelled) setVariants(rows);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id]);
+
+  const hasVariants = variants.length > 0;
+  const displayPrice = hasVariants && selected
+    ? selected.priceCents / 100
+    : product.price;
+
   const formats = useMemo(() => formatsFor(product.category), [product.category]);
   const [format, setFormat] = useState(formats[0]?.id ?? "pdf");
 
@@ -200,6 +222,7 @@ function ProductPage() {
     const theme = (key && CATEGORY_THEMES[key]) || DEFAULT_THEME;
     setActiveTheme(theme);
   }, [product.category, setActiveTheme]);
+
 
   return (
     <MarketShell>
@@ -329,9 +352,9 @@ function ProductPage() {
                 className="font-display text-3xl font-bold"
                 style={{ color: "var(--accent-color)" }}
               >
-                ${product.price.toFixed(2)}
+                ${displayPrice.toFixed(2)}
               </span>
-              {product.compareAtPrice && (
+              {!hasVariants && product.compareAtPrice && (
                 <span
                   data-testid="pdp-compare-at"
                   className="text-base text-mute line-through"
@@ -345,7 +368,13 @@ function ProductPage() {
               {product.description}
             </p>
 
-            <FormatSelector formats={formats} value={format} onChange={setFormat} />
+            {hasVariants && (
+              <VariantPicker variants={variants} onChange={setSelected} />
+            )}
+
+            {!hasVariants && (
+              <FormatSelector formats={formats} value={format} onChange={setFormat} />
+            )}
 
             <KingdomGuarantee />
 
@@ -363,28 +392,32 @@ function ProductPage() {
                   whileTap={{ scale: 0.98 }}
                   whileHover={{ scale: 1.01 }}
                   onClick={() => setCheckoutOpen(true)}
-                  className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full text-base font-bold text-navy shadow-gold-glow"
+                  disabled={hasVariants && !selected}
+                  className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full text-base font-bold text-navy shadow-gold-glow disabled:opacity-60"
                   style={{ backgroundColor: "var(--accent-color)" }}
                 >
-                  Buy Now · ${product.price}
+                  Buy Now · ${displayPrice.toFixed(2)}
                 </motion.button>
 
-                <motion.button
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() =>
-                    cart.add({
-                      id: product.id,
-                      title: product.title,
-                      price: product.price,
-                      category: product.category,
-                      image: product.image,
-                    })
-                  }
-                  className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-navy text-sm font-bold text-navy hover:bg-navy hover:text-white"
-                >
-                  {inCart ? "✓ Added — View Cart" : "Add to Cart"}
-                </motion.button>
+                {!hasVariants && (
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() =>
+                      cart.add({
+                        id: product.id,
+                        title: product.title,
+                        price: product.price,
+                        category: product.category,
+                        image: product.image,
+                      })
+                    }
+                    className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-navy text-sm font-bold text-navy hover:bg-navy hover:text-white"
+                  >
+                    {inCart ? "✓ Added — View Cart" : "Add to Cart"}
+                  </motion.button>
+                )}
               </>
+
             )}
 
             <motion.button
@@ -511,7 +544,12 @@ function ProductPage() {
                 <X size={18} />
               </button>
               <div className="p-2">
-                <StripeEmbeddedProductCheckout productId={product.id} />
+                <StripeEmbeddedProductCheckout
+                  productId={product.id}
+                  variantId={selected?.variant.id}
+                  buyerPriceCents={selected?.priceCents}
+                />
+
               </div>
             </motion.div>
           </motion.div>

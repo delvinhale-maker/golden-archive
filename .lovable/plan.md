@@ -1,113 +1,65 @@
-# Batch 1 — Per-Creator Affiliate Program
+# Batch 2 — Shared Product Variants System
 
-## Scope
+One system powers three features: multi-tier products (Basic/Pro/Premium), license types (Personal/Commercial/Extended), and Pay What You Want. A variant is a purchasable option on a product with its own name, price, files, and optional license label.
 
-Each creator can enable an affiliate program on their own products, set a commission rate, and share unique referral links. When a buyer arrives via that link and purchases the creator's product, the referral is recorded and commission owed is calculated. Creator sees performance in their Earnings tab. **Payments are tracked only** — the creator pays affiliates outside the platform.
+## What you'll see as a user
 
-This is Batch 1 of 3. Batches 2 and 3 are proposed at the bottom for confirmation.
+**Creator (publish/edit product):**
+- New "Variants" section on the product editor
+- Add rows: name, price, optional license label, optional file(s), short description
+- Toggle "Pay What You Want" on any variant → set a minimum floor; buyer names the price above it
+- If no variants are added, the product behaves exactly like today (single price + single file)
 
-## What the user (creator) gets
+**Buyer (product page):**
+- If the product has variants, radio-style tier picker replaces the single price line
+- Selected tier shows its price, license label, features, and what's included
+- For PWYW variants, an input appears: "Name your price (min $X.XX)"
+- Add-to-cart / buy uses the selected variant
 
-1. **New "Affiliate Program" tab** in the creator dashboard
-   - Toggle "Enable affiliate program"
-   - Set default commission rate (default 20%, min 1%, max 50%)
-   - Copy shareable "Become an affiliate" link
-   - Table of active affiliates: name, sign-up date, clicks, sales, commission earned, commission owed
-2. **Affiliate sign-up page** at `/a/{creator-slug}` — any signed-in user can join a creator's program
-3. **Affiliate dashboard** at `/dashboard/affiliate` for people promoting others' products
-   - Their unique referral link per creator
-   - Copy-link button
-   - Sales, clicks, commission earned across all creators they promote
-4. **Buyer flow (invisible)**
-   - Landing on `?ref={code}` stores the referral cookie for 30 days
-   - On purchase, the referral is attributed to the order and commission is recorded
+**Download page:**
+- Buyer receives files for the specific variant they purchased
+- License label shown on the download confirmation
 
-## What the buyer sees
+## Database
 
-Nothing new — the referral link just adds `?ref=xyz` to the product URL and drops a cookie. No banner, no disclosure UI in this batch.
+New table `product_variants`:
+- `product_id` (fk → marketplace_products)
+- `name` (e.g. "Pro", "Commercial License")
+- `description` (short bullets/features text)
+- `license_type` (nullable enum: `personal` | `commercial` | `extended`)
+- `price_cents` (min charge / floor when PWYW)
+- `pay_what_you_want` (bool, default false)
+- `file_path`, `file_size_bytes` (nullable — fall back to product's file if null)
+- `sort_order` (int)
+- `is_active` (bool)
 
----
+Extend `order_items`:
+- `variant_id` (nullable fk) — null = legacy purchase of base product
+- `variant_name`, `variant_license_type` snapshotted at purchase
 
-## Technical details
+RLS: creators manage own variants; anon/auth can read variants of published products; service_role full. GRANTs per convention.
 
-### New tables
+## Checkout wiring
 
-```text
-creator_affiliate_programs
-  creator_id (PK, FK auth.users)
-  enabled boolean
-  commission_rate_pct numeric(5,2)  -- default 20.00
-  terms text (nullable)
-  created_at, updated_at
+- Cart entries carry `variantId` and (for PWYW) the `buyerPrice`
+- Checkout server fn validates: variant belongs to product, price ≥ floor, variant active
+- `order_items` records `variant_id`, snapshotted name/license, actual `unit_price_cents`
+- Affiliate commissions (batch 1) use the actual sale amount → already correct
+- Download resolver returns the variant's file when set, else the product's base file
 
-creator_affiliates             -- one row per (affiliate, creator) pair
-  id uuid PK
-  creator_id FK auth.users
-  affiliate_user_id FK auth.users
-  referral_code text UNIQUE     -- short random slug, e.g. "delvin-a7f3"
-  status text  -- active | disabled
-  joined_at
-  UNIQUE(creator_id, affiliate_user_id)
+## New/edited files
 
-affiliate_referral_clicks
-  id, referral_code, product_id (nullable), clicked_at, ip_hash (nullable)
+- Migration: `product_variants` table + `order_items` columns + RLS + GRANTs
+- `src/lib/product-variants.functions.ts` — CRUD for creators
+- Product editor (existing publish/edit route): new "Variants" panel component
+- Product page: `<VariantPicker>` component, PWYW input
+- Cart store: extend line-item shape with variantId + buyerPrice
+- Checkout server fn: variant validation + snapshotting
+- Download resolver: variant-aware file lookup
 
-affiliate_commissions
-  id
-  order_id FK orders
-  order_item_id FK order_items
-  creator_id, affiliate_user_id, referral_code
-  sale_amount_cents
-  commission_rate_pct  (snapshotted)
-  commission_cents
-  status text  -- pending | paid | void
-  created_at
-```
+## Not in this batch
 
-RLS: creators read their own program/affiliates/commissions; affiliates read their own rows; admins read all. GRANTs per project convention.
+- Bundles (already have `creator_bundles`)
+- Pre-orders, order-bumps, photo reviews → Batch 3
 
-### Attribution wiring
-
-- Reuse existing `orders.referral_code` and `orders.referrer_user_id` columns.
-- Product pages already receive `?ref=` (extend if not) → store in cookie `av_ref` (30-day) + localStorage.
-- Checkout `createServerFn` reads cookie, resolves to a `creator_affiliates` row, and only attributes if the referred product's `seller_id` matches the affiliate's `creator_id`. Cross-creator referrals are ignored.
-- After order finalization, insert one `affiliate_commissions` row per qualifying `order_item`.
-
-### New routes/files
-
-- `src/routes/_authenticated/dashboard.affiliate-program.tsx` — creator's program settings + affiliates table
-- `src/routes/_authenticated/dashboard.affiliate.tsx` — affiliate dashboard (promoting others)
-- `src/routes/a.$creatorSlug.tsx` — public "become an affiliate" landing (requires sign-in to join)
-- `src/lib/affiliate.functions.ts` — `getProgram`, `updateProgram`, `listMyAffiliates`, `joinProgram`, `getMyAffiliateStats`, `logReferralClick`
-- Migration for the 4 tables + RLS + GRANTs
-- Extend the existing checkout server fn to record commissions
-- Add tiny `ReferralCapture` client hook mounted in `__root.tsx` to persist `?ref=` in cookie
-
-### Earnings tab addition
-
-Add a "Affiliate commissions owed" summary card + list to the existing creator earnings page.
-
----
-
-## Not included in Batch 1 (deferred)
-
-- Automatic payment of affiliate commissions (would require touching `seller_balances` / payout flow — you chose tracked-only)
-- Affiliate approval workflow (auto-approve for now; creator can disable later)
-- Affiliate marketing assets (banners, swipe copy)
-- Public affiliate leaderboard
-
----
-
-## Proposed Batches 2 & 3
-
-**Batch 2 — Pricing & licensing** (shared "product variants" system):
-- Product Tiers/Versions (Basic/Pro/Premium with different files)
-- License types (Personal / Commercial / Extended) as variant labels with their own prices
-- Pay What You Want (variant flag + minimum floor)
-
-**Batch 3 — Merchandising & engagement:**
-- Pre-orders (release date, badge, countdown, delayed download)
-- Order-bump upsells
-- Photo reviews + creator "Featured Review"
-
-Confirm the plan and I'll build Batch 1.
+Reply "go" to build it, or tell me what to adjust.

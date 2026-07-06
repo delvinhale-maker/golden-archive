@@ -69,6 +69,7 @@ import { Route as ApiPublicHooksPayoutReleaseHeartbeatRouteImport } from './rout
 import { Route as ApiPublicHooksAutoReleaseReviewsRouteImport } from './routes/api/public/hooks/auto-release-reviews'
 import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/public/hooks/audit-covers'
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
+import { Route as AuthenticatedDashboardVariantsIdRouteImport } from './routes/_authenticated/dashboard.variants.$id'
 import { Route as AuthenticatedDashboardEditIdRouteImport } from './routes/_authenticated/dashboard.edit.$id'
 import { Route as AuthenticatedAdminHealthCoversRouteImport } from './routes/_authenticated/admin.health.covers'
 import { Route as AuthenticatedAdminHealthCoversAlertsRouteImport } from './routes/_authenticated/admin.health.covers.alerts'
@@ -394,6 +395,12 @@ const ApiPublicHealthCategoriesRoute =
     path: '/api/public/health/categories',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedDashboardVariantsIdRoute =
+  AuthenticatedDashboardVariantsIdRouteImport.update({
+    id: '/dashboard/variants/$id',
+    path: '/dashboard/variants/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardEditIdRoute =
   AuthenticatedDashboardEditIdRouteImport.update({
     id: '/dashboard/edit/$id',
@@ -466,6 +473,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
+  '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -529,6 +537,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
+  '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -595,6 +604,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/_authenticated/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
+  '/_authenticated/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -661,6 +671,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/admin/health/covers'
     | '/dashboard/edit/$id'
+    | '/dashboard/variants/$id'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
@@ -724,6 +735,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/admin/health/covers'
     | '/dashboard/edit/$id'
+    | '/dashboard/variants/$id'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
@@ -789,6 +801,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/'
     | '/_authenticated/admin/health/covers'
     | '/_authenticated/dashboard/edit/$id'
+    | '/_authenticated/dashboard/variants/$id'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
@@ -1269,6 +1282,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthCategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard/variants/$id': {
+      id: '/_authenticated/dashboard/variants/$id'
+      path: '/dashboard/variants/$id'
+      fullPath: '/dashboard/variants/$id'
+      preLoaderRoute: typeof AuthenticatedDashboardVariantsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/edit/$id': {
       id: '/_authenticated/dashboard/edit/$id'
       path: '/dashboard/edit/$id'
@@ -1326,6 +1346,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedAdminHealthCoversRoute: typeof AuthenticatedAdminHealthCoversRouteWithChildren
   AuthenticatedDashboardEditIdRoute: typeof AuthenticatedDashboardEditIdRoute
+  AuthenticatedDashboardVariantsIdRoute: typeof AuthenticatedDashboardVariantsIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1348,6 +1369,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminHealthCoversRoute:
     AuthenticatedAdminHealthCoversRouteWithChildren,
   AuthenticatedDashboardEditIdRoute: AuthenticatedDashboardEditIdRoute,
+  AuthenticatedDashboardVariantsIdRoute: AuthenticatedDashboardVariantsIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -1416,13 +1438,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

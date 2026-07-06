@@ -841,6 +841,11 @@ export type Database = {
           seller_amount_cents: number
           seller_id: string
           unit_amount_cents: number
+          variant_id: string | null
+          variant_license_type:
+            | Database["public"]["Enums"]["product_license_type"]
+            | null
+          variant_name: string | null
         }
         Insert: {
           created_at?: string
@@ -852,6 +857,11 @@ export type Database = {
           seller_amount_cents: number
           seller_id: string
           unit_amount_cents: number
+          variant_id?: string | null
+          variant_license_type?:
+            | Database["public"]["Enums"]["product_license_type"]
+            | null
+          variant_name?: string | null
         }
         Update: {
           created_at?: string
@@ -863,6 +873,11 @@ export type Database = {
           seller_amount_cents?: number
           seller_id?: string
           unit_amount_cents?: number
+          variant_id?: string | null
+          variant_license_type?:
+            | Database["public"]["Enums"]["product_license_type"]
+            | null
+          variant_name?: string | null
         }
         Relationships: [
           {
@@ -877,6 +892,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
             referencedColumns: ["id"]
           },
         ]
@@ -1117,6 +1139,71 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_variants: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_path: string | null
+          file_size_bytes: number | null
+          id: string
+          is_active: boolean
+          license_type:
+            | Database["public"]["Enums"]["product_license_type"]
+            | null
+          min_price_cents: number | null
+          name: string
+          pay_what_you_want: boolean
+          price_cents: number
+          product_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_path?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          is_active?: boolean
+          license_type?:
+            | Database["public"]["Enums"]["product_license_type"]
+            | null
+          min_price_cents?: number | null
+          name: string
+          pay_what_you_want?: boolean
+          price_cents?: number
+          product_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_path?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          is_active?: boolean
+          license_type?:
+            | Database["public"]["Enums"]["product_license_type"]
+            | null
+          min_price_cents?: number | null
+          name?: string
+          pay_what_you_want?: boolean
+          price_cents?: number
+          product_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "marketplace_products"
@@ -1608,6 +1695,7 @@ export type Database = {
         | "finance"
         | "purpose"
         | "business"
+      product_license_type: "personal" | "commercial" | "extended"
       product_status: "draft" | "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -1754,6 +1842,7 @@ export const Constants = {
         "purpose",
         "business",
       ],
+      product_license_type: ["personal", "commercial", "extended"],
       product_status: ["draft", "pending", "approved", "rejected"],
     },
   },

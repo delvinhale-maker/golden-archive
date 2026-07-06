@@ -53,7 +53,17 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     return;
   }
 
-  const unitAmount = product.price_cents;
+  // Variant snapshot from session metadata (set by createProductCheckout)
+  const variantId: string | undefined = session.metadata?.variant_id;
+  const variantName: string | undefined = session.metadata?.variant_name;
+  const variantLicenseTypeRaw: string | undefined = session.metadata?.variant_license_type;
+  const variantLicenseType = variantLicenseTypeRaw && variantLicenseTypeRaw.length > 0
+    ? variantLicenseTypeRaw
+    : null;
+  const metaUnitAmount = Number(session.metadata?.unit_amount_cents);
+  const unitAmount = Number.isFinite(metaUnitAmount) && metaUnitAmount > 0
+    ? metaUnitAmount
+    : product.price_cents;
   const platformFee = Math.round((unitAmount * PLATFORM_FEE_PCT) / 100);
   const sellerAmount = unitAmount - platformFee;
 
@@ -103,24 +113,31 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     }
   }
 
-  // Insert order_item
+  // Insert order_item (with variant snapshot when present)
+  const orderItemPayload: any = {
+    order_id: order.id,
+    product_id: product.id,
+    seller_id: sellerId,
+    product_title: variantName ? `${product.title} — ${variantName}` : product.title,
+    unit_amount_cents: unitAmount,
+    platform_fee_cents: platformFee,
+    seller_amount_cents: sellerAmount,
+  };
+  if (variantId) {
+    orderItemPayload.variant_id = variantId;
+    orderItemPayload.variant_name = variantName ?? null;
+    orderItemPayload.variant_license_type = variantLicenseType;
+  }
   const { data: item, error: itemErr } = await supabaseAdmin
     .from("order_items")
-    .insert({
-      order_id: order.id,
-      product_id: product.id,
-      seller_id: sellerId,
-      product_title: product.title,
-      unit_amount_cents: unitAmount,
-      platform_fee_cents: platformFee,
-      seller_amount_cents: sellerAmount,
-    })
+    .insert(orderItemPayload)
     .select("id")
     .single();
   if (itemErr || !item) {
     console.error("Failed to insert order item", itemErr);
     return;
   }
+
 
   // Record affiliate commission if the referral code matches a creator affiliate
   // for this product's seller. Cross-creator referrals are ignored.
