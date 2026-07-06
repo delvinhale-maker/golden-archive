@@ -635,12 +635,21 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
         }
       } catch { /* noop */ }
 
+      // Track book boundaries so the arrow buttons reflect real end-of-book,
+      // not a percentage-based location index that saturates before the end.
+      setEpubAtStart(!!loc?.atStart);
+      setEpubAtEnd(!!loc?.atEnd);
+
       if (epubSyncingRef.current) return;
       const total = epubTotalRef.current || 1;
       try {
         const pct = book.locations.percentageFromCfi(loc?.start?.cfi);
         if (typeof pct === "number" && !Number.isNaN(pct)) {
           const idx = Math.max(1, Math.min(total, Math.round(pct * total) + 1));
+          // Flag that this location update originated from the rendition
+          // itself, so the sync-back effect doesn't re-issue display() and
+          // snap the page (this caused the "jumps to end" after prev()).
+          epubLocFromRelocatedRef.current = true;
           setLocation(idx + 1); // +1 for cover offset
         }
       } catch { /* noop */ }
