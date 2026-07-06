@@ -25,8 +25,11 @@ import { ShareButtons, ReportIssueLink } from "@/components/marketplace/ShareBut
 import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { useOwnsProduct } from "@/hooks/use-owned-products";
 import { getProduct, type Product, type ProductDetailResult } from "@/lib/marketplace.functions";
+import { listPublicVariants, type ProductVariant } from "@/lib/product-variants.functions";
+import { VariantPicker, type SelectedVariant } from "@/components/marketplace/VariantPicker";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 import { CATEGORY_THEMES, DEFAULT_THEME } from "@/lib/theme/theme-config";
+
 
 const productQ = (id: string) =>
   queryOptions({
