@@ -15,6 +15,7 @@ import { reviewProduct } from "@/lib/ai-review.functions";
 import { isListPriceValid } from "@/lib/publish-validation";
 import { PublishSuccessScreen as SuccessScreen } from "@/components/marketplace/PublishSuccessScreen";
 import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
+import { PreviewPagePicker } from "@/components/marketplace/PreviewPagePicker";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 import { getProductType, categoryDisplay, isProductTypeKey, type ProductTypeKey } from "@/lib/product-types";
 
@@ -164,6 +165,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [coverLightbox, setCoverLightbox] = useState(false);
+  // Step 2 (bonus): preview page selection — 0..5 ordered 1-indexed page numbers
+  const [previewPages, setPreviewPages] = useState<number[]>([]);
 
   // Step 3
   const [price, setPrice] = useState<string>(() => (productTypeKey && !editingIdProp ? (typeCfg.suggestedPriceCents / 100).toFixed(2) : ""));
@@ -302,6 +305,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
         status: "draft" as const,
         published: false,
         admin_notes: notes,
+        preview_pages: previewPages,
       };
       const targetId = draftProductId ?? editingId;
       if (targetId) {
@@ -362,7 +366,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     user, title, subtitle, author, seriesName, edition, whatsIncluded, description,
-    language, category, keywords, ageRange, ownsRights, drm, premium, price,
+    language, category, keywords, ageRange, ownsRights, drm, premium, price, previewPages,
   ]);
 
 
@@ -397,6 +401,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       setPrice(((data.price_cents ?? 0) / 100).toString());
       setExistingCoverUrl(data.cover_url ?? null);
       setExistingFilePath(data.file_path ?? null);
+      const rowPreview = (data as unknown as { preview_pages?: number[] | null }).preview_pages;
+      if (Array.isArray(rowPreview)) setPreviewPages(rowPreview.filter((n) => typeof n === "number"));
       setDbUpdatedAt((data.updated_at as string | null) ?? null);
       // Hydrate "uploaded" state so the confirmation bars persist on refresh
       if (data.cover_url) setUploadedCoverUrl(data.cover_url as string);
@@ -844,6 +850,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           status,
           published: publish,
           admin_notes: notes,
+          preview_pages: previewPages,
           ...(publish && status === "approved" ? { approved_at: new Date().toISOString() } : {}),
           ...(fileSize !== undefined ? { file_size_bytes: fileSize } : {}),
         };
@@ -864,6 +871,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           status,
           published: publish,
           admin_notes: notes,
+          preview_pages: previewPages,
         }).select("id").single();
         if (error) throw error;
         savedId = inserted?.id ?? null;
@@ -1111,6 +1119,9 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
               uploadedFileMeta={uploadedFileMeta}
               title={title}
               typeCfg={typeCfg}
+              productTypeKey={productTypeKey}
+              previewPages={previewPages}
+              setPreviewPages={setPreviewPages}
             />
 
           )}
@@ -1406,6 +1417,9 @@ function StepContent(p: {
   uploadedFileMeta: { name: string; size: number } | null;
   title: string;
   typeCfg: import("@/lib/product-types").ProductTypeConfig;
+  productTypeKey?: ProductTypeKey;
+  previewPages: number[];
+  setPreviewPages: (next: number[]) => void;
 }) {
   const coverDone = !!p.uploadedCoverUrl && !p.coverUploading && !p.coverUploadError;
   const fileDone = !!p.uploadedFilePath && !p.fileUploading && !p.fileUploadError;
@@ -1484,6 +1498,28 @@ function StepContent(p: {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Preview page picker — appears once a manuscript is present */}
+      <div>
+        <h3 className="font-display text-lg text-navy mb-1">Public preview pages</h3>
+        <p className="text-xs text-mute mb-3">
+          Pick up to 5 pages buyers can preview on your product page. Each
+          preview page is watermarked ("AURUMVAULT PREVIEW — NOT FOR
+          DISTRIBUTION") before it's shown, so screenshots can't replace the
+          real file.
+        </p>
+        <PreviewPagePicker
+          filePath={p.uploadedFilePath ?? p.existingFilePath}
+          value={p.previewPages}
+          onChange={p.setPreviewPages}
+          productTypeKey={p.productTypeKey}
+          isReflowFormat={(() => {
+            const path = p.uploadedFilePath ?? p.existingFilePath ?? "";
+            const e = path.split("#")[0].split("?")[0].split(".").pop()?.toLowerCase();
+            return e === "docx" || e === "epub";
+          })()}
+        />
       </div>
 
       <div>

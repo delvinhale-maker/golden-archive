@@ -11,7 +11,11 @@ import {
   Star,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import { Loader2, BookOpen } from "lucide-react";
+import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
+import { getPublicPreview } from "@/lib/preview.functions";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { StripeEmbeddedProductCheckout } from "@/components/StripeEmbeddedCheckout";
@@ -197,6 +201,46 @@ function ProductPage() {
 
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [selected, setSelected] = useState<SelectedVariant | null>(null);
+
+  // Public preview modal state — only surfaces when the creator picked
+  // preview pages and the manuscript is a PDF.
+  const previewAvailable =
+    (product.previewPages?.length ?? 0) > 0 && product.fileExt === "pdf";
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const previewBlobRef = useRef<string | null>(null);
+  useEffect(() => {
+    return () => {
+      if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
+    };
+  }, []);
+  async function openPreview() {
+    if (previewLoading) return;
+    setPreviewLoading(true);
+    try {
+      const res = await getPublicPreview({ data: { productId: product.id } });
+      if (!("ok" in res) || !res.ok) {
+        toast.error("Preview is temporarily unavailable. Please try again shortly.");
+        return;
+      }
+      const bin = atob(res.pdfBase64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
+      const url = URL.createObjectURL(blob);
+      previewBlobRef.current = url;
+      setPreviewBlobUrl(url);
+      setPreviewOpen(true);
+    } catch (e) {
+      console.error("[preview] load failed", e);
+      toast.error("Preview is temporarily unavailable. Please try again shortly.");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
   useEffect(() => {
     let cancelled = false;
     listPublicVariants({ data: { productId: product.id } })
@@ -436,6 +480,22 @@ function ProductPage() {
 
             )}
 
+            {previewAvailable && (
+              <button
+                type="button"
+                onClick={openPreview}
+                disabled={previewLoading}
+                className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-navy/20 bg-white text-sm font-bold text-navy hover:border-navy/40 disabled:opacity-60"
+              >
+                {previewLoading ? (
+                  <><Loader2 size={16} className="animate-spin" /> Preparing preview…</>
+                ) : (
+                  <><BookOpen size={16} /> Preview inside — {product.previewPages!.length} pages</>
+                )}
+              </button>
+            )}
+
+
             <motion.button
               whileTap={{ scale: 0.98 }}
               onClick={() => wishlist.toggle(product.id)}
@@ -575,6 +635,15 @@ function ProductPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {previewOpen && previewBlobUrl && (
+        <ManuscriptPreviewer
+          manuscriptPath={`${previewBlobUrl}#.pdf`}
+          title={`${product.title} — Preview`}
+          coverUrl={product.image && /^https?:\/\//.test(product.image) ? product.image : null}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
     </MarketShell>
   );
 }

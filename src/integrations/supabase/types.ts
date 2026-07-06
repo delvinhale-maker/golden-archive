@@ -976,6 +976,7 @@ export type Database = {
           language: string
           platform_fee_pct: number
           preorder_note: string | null
+          preview_pages: number[]
           price_cents: number
           published: boolean
           rejected_reason: string | null
@@ -1012,6 +1013,7 @@ export type Database = {
           language?: string
           platform_fee_pct?: number
           preorder_note?: string | null
+          preview_pages?: number[]
           price_cents: number
           published?: boolean
           rejected_reason?: string | null
@@ -1048,6 +1050,7 @@ export type Database = {
           language?: string
           platform_fee_pct?: number
           preorder_note?: string | null
+          preview_pages?: number[]
           price_cents?: number
           published?: boolean
           rejected_reason?: string | null

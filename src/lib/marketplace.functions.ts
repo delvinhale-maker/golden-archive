@@ -31,6 +31,8 @@ type DbProductRow = {
   released_at?: string | null;
   preorder_note?: string | null;
   admin_notes?: string | null;
+  file_path?: string | null;
+  preview_pages?: number[] | null;
 };
 
 export function parseWhatsIncluded(adminNotes?: string | null): string[] | undefined {
@@ -82,6 +84,8 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
     isPreorder,
     releaseDate: r.release_date ?? null,
     preorderNote: r.preorder_note ?? null,
+    previewPages: Array.isArray(r.preview_pages) ? r.preview_pages : [],
+    fileExt: (r.file_path ?? "").split(".").pop()?.toLowerCase() ?? null,
   };
 }
 
@@ -181,6 +185,10 @@ export type Product = {
   isPreorder?: boolean;
   releaseDate?: string | null;
   preorderNote?: string | null;
+  /** Ordered PDF page numbers (1-indexed) the creator exposed as a public preview. */
+  previewPages?: number[];
+  /** Lowercase file extension (`pdf` / `docx` / `epub`), or null when unknown. */
+  fileExt?: string | null;
 };
 
 export type ProductDetailResult =
@@ -476,7 +484,7 @@ export const getProduct = createServerFn({ method: "GET" })
     const { data: row } = await supabaseAdmin
       .from("marketplace_products")
       .select(
-        "id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes",
+        "id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages",
       )
       .eq("id", data.id)
       .maybeSingle();
