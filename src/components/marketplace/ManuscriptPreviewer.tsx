@@ -149,6 +149,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       setEpubReady(false);
       setEpubToc([]);
       setEpubCurrentToc(null);
+      setEpubRendering(false);
+      setEpubRenderError(null);
       epubTocRef.current = [];
       try {
         let signed: string;
