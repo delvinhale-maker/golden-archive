@@ -113,7 +113,15 @@ export async function sendPayoutEmail(input: PayoutEmailInput): Promise<void> {
   try {
     const { data: userRes, error: userErr } = await supabaseAdmin.auth.admin.getUserById(input.sellerId);
     if (userErr || !userRes?.user?.email) return;
-    const to = userRes.user.email;
+    // Only send to verified addresses to protect deliverability and prevent
+    // notifying unconfirmed / potentially spoofed emails.
+    const u = userRes.user;
+    const confirmed = Boolean(u.email_confirmed_at || (u as any).confirmed_at);
+    if (!confirmed) {
+      console.warn("sendPayoutEmail: skipping unverified email", { sellerId: input.sellerId });
+      return;
+    }
+    const to = u.email;
     const amountStr = fmtAmount(input.amountCents, input.currency);
     const { subject, html } = buildEmail(input.kind, amountStr, input.adminNote, input.method);
     const text = `${subject}. ${amountStr}. View: ${DASH_URL}`;
