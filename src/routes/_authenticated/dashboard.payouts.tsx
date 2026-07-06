@@ -260,6 +260,10 @@ function PayoutsPage() {
               <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
                 Save a payout method above before requesting.
               </div>
+            ) : !summary.has_tax_form ? (
+              <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
+                Submit a W-9 (US) or W-8BEN (international) tax form below before requesting a payout.
+              </div>
             ) : (
               <div className="mt-4 grid grid-cols-1 md:grid-cols-[160px_1fr_auto] gap-3 items-end">
                 <label className="text-sm">
