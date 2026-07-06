@@ -66,6 +66,9 @@ export const Route = createFileRoute("/")({
     context.queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] });
     context.queryClient.ensureQueryData(highlightsQ);
     context.queryClient.ensureQueryData(creatorSpotlightQ);
+    context.queryClient.ensureQueryData(featuredCreatorsQ);
+    context.queryClient.ensureQueryData(topCreatorsQ);
+    context.queryClient.ensureQueryData(categoryCountsQ);
   },
 
 
