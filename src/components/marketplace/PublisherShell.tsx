@@ -97,6 +97,7 @@ export function PublisherShell({
                   className="relative px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors"
                 >
                   {item.label}
+                  {item.to === "/dashboard/community" && <CommunityUnreadBadge />}
                   <span
                     aria-hidden
                     className="absolute left-2 right-2 -bottom-0.5 h-[2px] rounded-full transition-all duration-300 ease-out"
