@@ -12,6 +12,7 @@ import {
 import { getProducts, type Product } from "@/lib/marketplace.functions";
 import { CategoryHero } from "@/components/marketplace/CategoryHero";
 import { getCategoryTheme } from "@/lib/category-theme";
+import { CATEGORIES as CATEGORY_DEFS } from "@/lib/categories";
 
 const searchSchema = z.object({
   category: z.string().optional(),
@@ -20,18 +21,10 @@ const searchSchema = z.object({
   minPrice: z.number().optional(),
   maxPrice: z.number().optional(),
   rating: z.number().optional(),
+  sub: z.string().optional(),
 });
 
-const CATEGORIES = [
-  "eBooks",
-  "Courses",
-  "Templates",
-  "Audio",
-  "Finance",
-  "Leadership",
-  "Purpose",
-  "Business",
-];
+const CATEGORIES = CATEGORY_DEFS.map((c) => c.label);
 
 const SORTS = [
   { v: "featured", l: "Featured" },
