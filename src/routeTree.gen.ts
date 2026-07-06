@@ -42,6 +42,7 @@ import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ApiAiStudioStreamRouteImport } from './routes/api/ai-studio-stream'
+import { Route as ABrandSlugRouteImport } from './routes/a.$brandSlug'
 import { Route as AuthenticatedReferRouteImport } from './routes/_authenticated/refer'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -234,6 +235,11 @@ const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
 const ApiAiStudioStreamRoute = ApiAiStudioStreamRouteImport.update({
   id: '/api/ai-studio-stream',
   path: '/api/ai-studio-stream',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ABrandSlugRoute = ABrandSlugRouteImport.update({
+  id: '/a/$brandSlug',
+  path: '/a/$brandSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedReferRoute = AuthenticatedReferRouteImport.update({
@@ -433,6 +439,7 @@ export interface FileRoutesByFullPath {
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
+  '/a/$brandSlug': typeof ABrandSlugRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -495,6 +502,7 @@ export interface FileRoutesByTo {
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
+  '/a/$brandSlug': typeof ABrandSlugRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -560,6 +568,7 @@ export interface FileRoutesById {
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
   '/_authenticated/refer': typeof AuthenticatedReferRoute
+  '/a/$brandSlug': typeof ABrandSlugRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -625,6 +634,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/wishlist'
     | '/refer'
+    | '/a/$brandSlug'
     | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/download/$token'
@@ -687,6 +697,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/wishlist'
     | '/refer'
+    | '/a/$brandSlug'
     | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/download/$token'
@@ -751,6 +762,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/wishlist'
     | '/_authenticated/refer'
+    | '/a/$brandSlug'
     | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/download/$token'
@@ -815,6 +827,7 @@ export interface RootRouteChildren {
   UnsubscribeRoute: typeof UnsubscribeRoute
   VaultRoute: typeof VaultRoute
   WishlistRoute: typeof WishlistRoute
+  ABrandSlugRoute: typeof ABrandSlugRoute
   ApiAiStudioStreamRoute: typeof ApiAiStudioStreamRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
@@ -1065,6 +1078,13 @@ declare module '@tanstack/react-router' {
       path: '/api/ai-studio-stream'
       fullPath: '/api/ai-studio-stream'
       preLoaderRoute: typeof ApiAiStudioStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/a/$brandSlug': {
+      id: '/a/$brandSlug'
+      path: '/a/$brandSlug'
+      fullPath: '/a/$brandSlug'
+      preLoaderRoute: typeof ABrandSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/refer': {
@@ -1373,6 +1393,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnsubscribeRoute: UnsubscribeRoute,
   VaultRoute: VaultRoute,
   WishlistRoute: WishlistRoute,
+  ABrandSlugRoute: ABrandSlugRoute,
   ApiAiStudioStreamRoute: ApiAiStudioStreamRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   DownloadTokenRoute: DownloadTokenRoute,
