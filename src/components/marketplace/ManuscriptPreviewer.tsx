@@ -1425,7 +1425,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
 
         {/* Next-page arrow — visually on the trailing edge (left in RTL, right otherwise) */}
         <button
-          onClick={() => goTo(location + 1)}
+          onClick={() => goRelative(1)}
           aria-label="Next page"
           data-testid="previewer-next"
           disabled={location >= pageCount}
