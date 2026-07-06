@@ -81,7 +81,8 @@ const STEPS = [
 ];
 type StepNum = 1 | 2 | 3 | 4;
 
-function PublishFlowImpl({ editingId: editingIdProp }: { editingId?: string }) {
+function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editingId?: string; productTypeKey?: ProductTypeKey }) {
+  const typeCfg = getProductType(productTypeKey);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, isAdmin } = useAuth();
