@@ -94,6 +94,63 @@ export type Database = {
           },
         ]
       }
+      affiliate_commissions: {
+        Row: {
+          affiliate_user_id: string
+          commission_cents: number
+          commission_rate_pct: number
+          created_at: string
+          creator_id: string
+          id: string
+          order_id: string
+          order_item_id: string
+          referral_code: string
+          sale_amount_cents: number
+          status: string
+        }
+        Insert: {
+          affiliate_user_id: string
+          commission_cents: number
+          commission_rate_pct: number
+          created_at?: string
+          creator_id: string
+          id?: string
+          order_id: string
+          order_item_id: string
+          referral_code: string
+          sale_amount_cents: number
+          status?: string
+        }
+        Update: {
+          affiliate_user_id?: string
+          commission_cents?: number
+          commission_rate_pct?: number
+          created_at?: string
+          creator_id?: string
+          id?: string
+          order_id?: string
+          order_item_id?: string
+          referral_code?: string
+          sale_amount_cents?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_commissions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_commissions_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: true
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       affiliate_products: {
         Row: {
           active: boolean
@@ -144,6 +201,38 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      affiliate_referral_clicks: {
+        Row: {
+          clicked_at: string
+          id: string
+          ip_hash: string | null
+          product_id: string | null
+          referral_code: string
+        }
+        Insert: {
+          clicked_at?: string
+          id?: string
+          ip_hash?: string | null
+          product_id?: string | null
+          referral_code: string
+        }
+        Update: {
+          clicked_at?: string
+          id?: string
+          ip_hash?: string | null
+          product_id?: string | null
+          referral_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_referral_clicks_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       auto_release_runs: {
         Row: {
@@ -286,6 +375,60 @@ export type Database = {
           passing?: number
           results?: Json
           total?: number
+        }
+        Relationships: []
+      }
+      creator_affiliate_programs: {
+        Row: {
+          commission_rate_pct: number
+          created_at: string
+          creator_id: string
+          enabled: boolean
+          terms: string | null
+          updated_at: string
+        }
+        Insert: {
+          commission_rate_pct?: number
+          created_at?: string
+          creator_id: string
+          enabled?: boolean
+          terms?: string | null
+          updated_at?: string
+        }
+        Update: {
+          commission_rate_pct?: number
+          created_at?: string
+          creator_id?: string
+          enabled?: boolean
+          terms?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      creator_affiliates: {
+        Row: {
+          affiliate_user_id: string
+          creator_id: string
+          id: string
+          joined_at: string
+          referral_code: string
+          status: string
+        }
+        Insert: {
+          affiliate_user_id: string
+          creator_id: string
+          id?: string
+          joined_at?: string
+          referral_code: string
+          status?: string
+        }
+        Update: {
+          affiliate_user_id?: string
+          creator_id?: string
+          id?: string
+          joined_at?: string
+          referral_code?: string
+          status?: string
         }
         Relationships: []
       }
