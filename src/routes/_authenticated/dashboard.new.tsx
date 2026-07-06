@@ -1494,9 +1494,30 @@ function StepContent(p: {
               >
                 Retry upload
               </button>
-            </div>
           </div>
         )}
+      </div>
+
+      {/* Preview page picker — appears once a manuscript is present */}
+      <div>
+        <h3 className="font-display text-lg text-navy mb-1">Public preview pages</h3>
+        <p className="text-xs text-mute mb-3">
+          Pick up to 5 pages buyers can preview on your product page. Each
+          preview page is watermarked ("AURUMVAULT PREVIEW — NOT FOR
+          DISTRIBUTION") before it's shown, so screenshots can't replace the
+          real file.
+        </p>
+        <PreviewPagePicker
+          filePath={p.uploadedFilePath ?? p.existingFilePath}
+          value={p.previewPages}
+          onChange={p.setPreviewPages}
+          productTypeKey={p.productTypeKey}
+          isReflowFormat={(() => {
+            const path = p.uploadedFilePath ?? p.existingFilePath ?? "";
+            const e = path.split("#")[0].split("?")[0].split(".").pop()?.toLowerCase();
+            return e === "docx" || e === "epub";
+          })()}
+        />
       </div>
 
       <div>
