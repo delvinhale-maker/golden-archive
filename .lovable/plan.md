@@ -1,70 +1,113 @@
-# AurumVault Premium Marketplace Upgrade — Phased Plan
+# Batch 1 — Per-Creator Affiliate Program
 
-You picked all four scope areas plus a **platform-wide royalty change from 91% → 70%**. That is 3–5 build turns of work. Shipping it as one turn produces half-finished features across the app. Below is the sequence I'll follow. Each phase is self-contained and shippable.
+## Scope
 
----
+Each creator can enable an affiliate program on their own products, set a commission rate, and share unique referral links. When a buyer arrives via that link and purchases the creator's product, the referral is recorded and commission owed is calculated. Creator sees performance in their Earnings tab. **Payments are tracked only** — the creator pays affiliates outside the platform.
 
-## Phase 1 — Creator marketing page + royalty change (this turn)
+This is Batch 1 of 3. Batches 2 and 3 are proposed at the bottom for confirmation.
 
-**Royalty migration (91% → 70%)**
-- Global replace of "91%" / "9% platform fee" copy across: `/sell`, seller emails (`seller-application-received`, `seller-application-approved`), `creator-agreement.tsx`, dashboard earn page, any FAQ/about copy.
-- Update any payout math in `payout-schedule.functions.ts` / `payments.functions.ts` if it hardcodes the split (will confirm during implementation — otherwise it's config-driven).
-- No changes to existing `seller_balances` rows; new orders use the new split.
+## What the user (creator) gets
 
-**New `/become-a-creator` marketing page (separate from `/sell`)**
-- Premium hero: "Your Knowledge. Your Empire. Your Vault." + subtitle
-- Three-column value props: 70% Royalties / AI-Powered Tools / Built-In Audience
-- Social proof bar with hardcoded placeholders you'll supply (e.g. `{creatorCount}`, `{productCount}`, `{countryCount}` — I'll leave them as visible TODO constants at the top of the file)
-- Sections: "How it works" (3 steps), "What you can sell" (product-type grid), "Creator tools" (feature grid teasing AI tools), testimonials slot, FAQ, final CTA → `/sell`
-- Full SEO head() with route-specific title/description/OG
-- Design language: navy `#1B2A4A`, gold `#C9A84C`, Cormorant Garamond display — matches existing `AurumHero` DNA
+1. **New "Affiliate Program" tab** in the creator dashboard
+   - Toggle "Enable affiliate program"
+   - Set default commission rate (default 20%, min 1%, max 50%)
+   - Copy shareable "Become an affiliate" link
+   - Table of active affiliates: name, sign-up date, clicks, sales, commission earned, commission owed
+2. **Affiliate sign-up page** at `/a/{creator-slug}` — any signed-in user can join a creator's program
+3. **Affiliate dashboard** at `/dashboard/affiliate` for people promoting others' products
+   - Their unique referral link per creator
+   - Copy-link button
+   - Sales, clicks, commission earned across all creators they promote
+4. **Buyer flow (invisible)**
+   - Landing on `?ref={code}` stores the referral cookie for 30 days
+   - On purchase, the referral is attributed to the order and commission is recorded
 
-**4-step application form (rebuilt on `/sell`)**
-- Step 1: About you (brand/creator name, email confirmation, country)
-- Step 2: What you'll sell (product types multi-select, category, price range)
-- Step 3: Your work (pitch, website/portfolio, social links)
-- Step 4: Agreement + submit (creator agreement checkbox, tax acknowledgment)
-- Progress bar, back/next nav, per-step validation with zod
-- Persists to existing `seller_applications` table — will add nullable columns via migration: `country`, `social_links jsonb`, `categories text[]`, `price_range text`
-- Keeps the existing approved-application email flow
+## What the buyer sees
+
+Nothing new — the referral link just adds `?ref=xyz` to the product URL and drops a cookie. No banner, no disclosure UI in this batch.
 
 ---
 
-## Phase 2 — Buyer-side premium features (next turn)
+## Technical details
 
-- Curated collections (admin-editable shelves beyond Kingdom Picks)
-- Reviews v2: verified purchase badge, photo reviews already exist → add sort/filter, review response from seller, helpful count already present
-- Wishlist collections (named lists)
-- "Bought together" bundles pricing
-- Premium PDP polish: sticky buy card, richer previewer, author card
+### New tables
 
-## Phase 3 — Creator dashboard upgrades
+```text
+creator_affiliate_programs
+  creator_id (PK, FK auth.users)
+  enabled boolean
+  commission_rate_pct numeric(5,2)  -- default 20.00
+  terms text (nullable)
+  created_at, updated_at
 
-- Revenue analytics: line chart (30/90/365), top-products table, conversion funnel
-- Payout timeline + next-release ETA
-- Product performance: views → cart → purchase per product
-- Traffic sources: organic vs referral vs affiliate
-- Email capture per product
+creator_affiliates             -- one row per (affiliate, creator) pair
+  id uuid PK
+  creator_id FK auth.users
+  affiliate_user_id FK auth.users
+  referral_code text UNIQUE     -- short random slug, e.g. "delvin-a7f3"
+  status text  -- active | disabled
+  joined_at
+  UNIQUE(creator_id, affiliate_user_id)
 
-## Phase 4 — AI-powered creator tools (Lovable AI Gateway)
+affiliate_referral_clicks
+  id, referral_code, product_id (nullable), clicked_at, ip_hash (nullable)
 
-- Cover generator (imagegen)
-- Product description writer (Gemini)
-- Price recommender (heuristic + AI comp analysis)
-- SEO title/meta generator per product
-- All wired through `src/lib/ai-gateway.server.ts`
+affiliate_commissions
+  id
+  order_id FK orders
+  order_item_id FK order_items
+  creator_id, affiliate_user_id, referral_code
+  sale_amount_cents
+  commission_rate_pct  (snapshotted)
+  commission_cents
+  status text  -- pending | paid | void
+  created_at
+```
+
+RLS: creators read their own program/affiliates/commissions; affiliates read their own rows; admins read all. GRANTs per project convention.
+
+### Attribution wiring
+
+- Reuse existing `orders.referral_code` and `orders.referrer_user_id` columns.
+- Product pages already receive `?ref=` (extend if not) → store in cookie `av_ref` (30-day) + localStorage.
+- Checkout `createServerFn` reads cookie, resolves to a `creator_affiliates` row, and only attributes if the referred product's `seller_id` matches the affiliate's `creator_id`. Cross-creator referrals are ignored.
+- After order finalization, insert one `affiliate_commissions` row per qualifying `order_item`.
+
+### New routes/files
+
+- `src/routes/_authenticated/dashboard.affiliate-program.tsx` — creator's program settings + affiliates table
+- `src/routes/_authenticated/dashboard.affiliate.tsx` — affiliate dashboard (promoting others)
+- `src/routes/a.$creatorSlug.tsx` — public "become an affiliate" landing (requires sign-in to join)
+- `src/lib/affiliate.functions.ts` — `getProgram`, `updateProgram`, `listMyAffiliates`, `joinProgram`, `getMyAffiliateStats`, `logReferralClick`
+- Migration for the 4 tables + RLS + GRANTs
+- Extend the existing checkout server fn to record commissions
+- Add tiny `ReferralCapture` client hook mounted in `__root.tsx` to persist `?ref=` in cookie
+
+### Earnings tab addition
+
+Add a "Affiliate commissions owed" summary card + list to the existing creator earnings page.
 
 ---
 
-## Technical notes
+## Not included in Batch 1 (deferred)
 
-- One migration in Phase 1 (add columns to `seller_applications`). No breaking schema changes.
-- The 70% split is copy-only unless payout math hardcodes 0.91 — I'll grep and confirm before touching payout logic.
-- Social proof numbers ship as TODO constants at the top of `/become-a-creator.tsx` for easy hand-editing.
-- Every new route gets its own head() metadata (no OG image on `__root`).
+- Automatic payment of affiliate commissions (would require touching `seller_balances` / payout flow — you chose tracked-only)
+- Affiliate approval workflow (auto-approve for now; creator can disable later)
+- Affiliate marketing assets (banners, swipe copy)
+- Public affiliate leaderboard
 
 ---
 
-## What I need from you
+## Proposed Batches 2 & 3
 
-**Approve this plan** and I ship Phase 1 in the next turn. Say "just Phase 1 form" or "skip royalty change" if you want to narrow further.
+**Batch 2 — Pricing & licensing** (shared "product variants" system):
+- Product Tiers/Versions (Basic/Pro/Premium with different files)
+- License types (Personal / Commercial / Extended) as variant labels with their own prices
+- Pay What You Want (variant flag + minimum floor)
+
+**Batch 3 — Merchandising & engagement:**
+- Pre-orders (release date, badge, countdown, delayed download)
+- Order-bump upsells
+- Photo reviews + creator "Featured Review"
+
+Confirm the plan and I'll build Batch 1.
