@@ -193,6 +193,25 @@ function ProductPage() {
   const owned = useOwnsProduct(product.id);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [selected, setSelected] = useState<SelectedVariant | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    listPublicVariants({ data: { productId: product.id } })
+      .then((rows) => {
+        if (!cancelled) setVariants(rows);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id]);
+
+  const hasVariants = variants.length > 0;
+  const displayPrice = hasVariants && selected
+    ? selected.priceCents / 100
+    : product.price;
+
   const formats = useMemo(() => formatsFor(product.category), [product.category]);
   const [format, setFormat] = useState(formats[0]?.id ?? "pdf");
 
@@ -203,6 +222,7 @@ function ProductPage() {
     const theme = (key && CATEGORY_THEMES[key]) || DEFAULT_THEME;
     setActiveTheme(theme);
   }, [product.category, setActiveTheme]);
+
 
   return (
     <MarketShell>
