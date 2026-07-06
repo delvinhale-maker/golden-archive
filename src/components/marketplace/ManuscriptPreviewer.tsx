@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  recordMount as recordEpubNavMount,
+  recordTap as recordEpubNavTap,
+  recordRelocated as recordEpubNavRelocated,
+  recordUnlockTimeout as recordEpubNavUnlockTimeout,
+} from "@/lib/epub-nav-diagnostics";
 
 type DeviceKind = "phone" | "tablet" | "kindle";
 type OutlineEntry = { title: string; pageIndex: number };
@@ -116,6 +122,13 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   useEffect(() => {
     pageCountRef.current = pageCount;
   }, [pageCount]);
+
+  // Nav diagnostics: log every previewer mount so re-mount churn during a
+  // single session (which strands EPUB nav state) shows up in the console.
+  useEffect(() => {
+    recordEpubNavMount();
+  }, []);
+
 
 
   // Robust extension detection:
@@ -673,10 +686,12 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
               ? 2
               : Math.max(2, Math.min(upper, prev + pendingStep));
           setLocationInput(String(target));
+          recordEpubNavRelocated(target, prev, pendingStep);
           return target;
         });
         return;
       }
+
 
       const total = epubTotalRef.current || 1;
       try {
@@ -687,7 +702,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
           // itself, so the sync-back effect doesn't re-issue display() and
           // snap the page (this caused the "jumps to end" after prev()).
           epubLocFromRelocatedRef.current = true;
-          setLocation(idx + 1); // +1 for cover offset
+          setLocation((prev) => {
+            recordEpubNavRelocated(idx + 1, prev, null);
+            return idx + 1; // +1 for cover offset
+          });
         }
       } catch { /* noop */ }
     });
@@ -938,10 +956,12 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
             epubNavBusyRef.current = true;
             epubPendingStepRef.current = dir;
             setEpubNavBusy(true);
+            recordEpubNavTap(dir, location);
             if (epubNavUnlockTimerRef.current != null) {
               window.clearTimeout(epubNavUnlockTimerRef.current);
             }
             epubNavUnlockTimerRef.current = window.setTimeout(() => {
+              recordEpubNavUnlockTimeout(epubPendingStepRef.current);
               epubPendingStepRef.current = null;
               epubNavBusyRef.current = false;
               setEpubNavBusy(false);
