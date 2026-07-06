@@ -12,6 +12,12 @@ export function UploadFab() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View>("root");
+  const navigate = useNavigate();
+
+  function goToNew(type: ProductTypeKey) {
+    setOpen(false);
+    navigate({ to: "/dashboard/new", search: { type } as never });
+  }
 
   useEffect(() => {
     if (!open) return;
