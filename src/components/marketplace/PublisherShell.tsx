@@ -136,6 +136,7 @@ export function PublisherShell({
                   className="relative flex-1 text-center py-3 text-[13px] font-medium text-white/80"
                 >
                   {item.label}
+                  {item.to === "/dashboard/community" && <CommunityUnreadBadge />}
                   <span
                     aria-hidden
                     className="absolute left-3 right-3 bottom-0 h-[2px] rounded-full transition-all duration-300 ease-out"
