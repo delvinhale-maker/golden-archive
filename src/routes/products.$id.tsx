@@ -457,8 +457,8 @@ function ProductPage() {
               <Lock size={12} /> Secure checkout · Instant delivery
             </div>
 
-            {/* What's included */}
-            {product.included && (
+            {/* What's included — only for non-ebook products with content */}
+            {product.included && product.included.length > 0 && (
               <div className="mt-8 rounded-lg border border-line bg-white p-5">
                 <div className="mb-3 text-[11px] font-bold uppercase tracking-caps text-mute">
                   What's included
@@ -473,6 +473,7 @@ function ProductPage() {
                 </ul>
               </div>
             )}
+
 
             {/* Creator card */}
             <div className="mt-5 flex items-start gap-4 rounded-lg bg-[#f9fafb] p-5">
