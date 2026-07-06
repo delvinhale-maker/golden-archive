@@ -99,7 +99,14 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   const epubRenditionRef = useRef<any>(null);
   const epubTotalRef = useRef<number>(0);
   const epubSyncingRef = useRef<boolean>(false);
+  // When true, the next `location` change came FROM the rendition's own
+  // relocated event, so the location→rendition sync effect must skip it —
+  // otherwise we call rendition.display() for a coarse percentage-based CFI
+  // and visibly jump the reader (e.g. back arrow snapping to end of chapter).
+  const epubLocFromRelocatedRef = useRef<boolean>(false);
   const epubTocRef = useRef<EpubTocEntry[]>([]);
+  const [epubAtStart, setEpubAtStart] = useState(false);
+  const [epubAtEnd, setEpubAtEnd] = useState(false);
 
 
   // Robust extension detection:
@@ -628,12 +635,21 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
         }
       } catch { /* noop */ }
 
+      // Track book boundaries so the arrow buttons reflect real end-of-book,
+      // not a percentage-based location index that saturates before the end.
+      setEpubAtStart(!!loc?.atStart);
+      setEpubAtEnd(!!loc?.atEnd);
+
       if (epubSyncingRef.current) return;
       const total = epubTotalRef.current || 1;
       try {
         const pct = book.locations.percentageFromCfi(loc?.start?.cfi);
         if (typeof pct === "number" && !Number.isNaN(pct)) {
           const idx = Math.max(1, Math.min(total, Math.round(pct * total) + 1));
+          // Flag that this location update originated from the rendition
+          // itself, so the sync-back effect doesn't re-issue display() and
+          // snap the page (this caused the "jumps to end" after prev()).
+          epubLocFromRelocatedRef.current = true;
           setLocation(idx + 1); // +1 for cover offset
         }
       } catch { /* noop */ }
@@ -678,6 +694,13 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     const rendition = epubRenditionRef.current;
     const book = epubBookRef.current;
     if (!rendition || !book) return;
+    // If this location change originated from the rendition's relocated
+    // event, don't re-issue display() — that would round-trip through a
+    // coarse percentage-based CFI and visibly jump the page.
+    if (epubLocFromRelocatedRef.current) {
+      epubLocFromRelocatedRef.current = false;
+      return;
+    }
     if (location < 2) return; // cover slot
     const total = epubTotalRef.current || 1;
     const pageIdx = Math.max(1, Math.min(total, location - 1));
@@ -1163,7 +1186,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
           onClick={() => goRelative(-1)}
           aria-label="Previous page"
           data-testid="previewer-prev"
-          disabled={location <= 1}
+          disabled={isEpub && location > 1 ? epubAtStart : location <= 1}
           className={`absolute ${isRTL ? "right-2 md:right-6" : "left-2 md:left-6"} top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition`}
         >
           {isRTL ? <ChevronRight size={30} /> : <ChevronLeft size={30} />}
@@ -1428,7 +1451,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
           onClick={() => goRelative(1)}
           aria-label="Next page"
           data-testid="previewer-next"
-          disabled={location >= pageCount}
+          disabled={isEpub && location > 1 ? epubAtEnd : location >= pageCount}
           className={`absolute ${isRTL ? "left-2 md:left-6" : "right-2 md:right-6"} top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-25 disabled:cursor-not-allowed inline-flex items-center justify-center transition`}
         >
           {isRTL ? <ChevronLeft size={30} /> : <ChevronRight size={30} />}
