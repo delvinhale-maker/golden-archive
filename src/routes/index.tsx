@@ -34,6 +34,7 @@ import { NewReleasesRow, newReleasesRowQ } from "@/components/marketplace/NewRel
 import { KingdomBibleAppBanner } from "@/components/marketplace/KingdomBibleAppBanner";
 import { ContinueBrowsingRow } from "@/components/marketplace/HomeRows";
 import { EmailCaptureBanner } from "@/components/EmailCaptureBanner";
+import { CreatorSpotlight, creatorSpotlightQ } from "@/components/marketplace/CreatorSpotlight";
 import {
   getFeaturedProducts,
   getHomeHighlights,
