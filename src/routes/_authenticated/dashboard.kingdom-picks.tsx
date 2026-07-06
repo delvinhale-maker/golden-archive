@@ -60,6 +60,12 @@ function KingdomPicksAdminPage() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [autoRefreshSeconds, setAutoRefreshSeconds] = useState(30);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [tab, setTab] = useState<"all" | "deals">("all");
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   async function handleFileUpload(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -167,6 +173,15 @@ function KingdomPicksAdminPage() {
     if (error) return toast.error(error.message);
     setRows((r) => r.filter((x) => x.id !== id));
     toast.success("Deleted");
+  }
+
+  async function setDeal(id: string, active: boolean) {
+    const expires = active ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null;
+    const patch = { deal_active: active, deal_expires_at: expires };
+    const { error } = await supabase.from("affiliate_products").update(patch).eq("id", id);
+    if (error) return toast.error(error.message);
+    setRows((r) => r.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+    toast.success(active ? "Marked as Deal of the Day (24h)" : "Removed from Deals");
   }
 
   function startCreate() {
@@ -283,64 +298,148 @@ function KingdomPicksAdminPage() {
         </div>
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-paper text-left text-[11px] uppercase tracking-wider text-mute">
-            <tr>
-              <th className="p-3">Image</th>
-              <th className="p-3">Title</th>
-              <th className="p-3">Source</th>
-              <th className="p-3">Category</th>
-              <th className="p-3">Price</th>
-              <th className="p-3">
-                <span className="inline-flex items-center gap-1">
-                  Clicks
-                  {refreshingClicks && <RefreshCw size={10} className="animate-spin text-gold" />}
+      <div className="mt-6 flex items-center gap-2 border-b border-ink/10">
+        {(["all", "deals"] as const).map((t) => {
+          const activeCount = rows.filter(
+            (r) =>
+              r.deal_active &&
+              (!r.deal_expires_at || new Date(r.deal_expires_at).getTime() > nowTick),
+          ).length;
+          return (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition ${
+                tab === t
+                  ? "border-gold text-navy"
+                  : "border-transparent text-mute hover:text-navy"
+              }`}
+              aria-pressed={tab === t}
+            >
+              {t === "all" ? "All Picks" : "Deals of the Day"}
+              {t === "deals" && (
+                <span className="rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  {activeCount}
                 </span>
-              </th>
-              <th className="p-3">Featured</th>
-              <th className="p-3">Active</th>
-              <th className="p-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && (
-              <tr><td colSpan={9} className="p-10 text-center text-mute">No Kingdom Picks yet — click "Add Kingdom Pick" to seed one.</td></tr>
-            )}
-            {rows.map((p) => (
-              <tr key={p.id} className="border-t border-ink/5 align-middle">
-                <td className="p-3">
-                  <img src={p.image_url} alt="" className="h-12 w-12 rounded object-cover bg-paper" />
-                </td>
-                <td className="p-3 max-w-xs">
-                  <p className="font-medium text-navy line-clamp-1">{p.title}</p>
-                  <a href={p.affiliate_url} target="_blank" rel="nofollow sponsored noopener" className="text-[11px] text-mute hover:text-gold inline-flex items-center gap-1">
-                    Test link <ExternalLink size={10} />
-                  </a>
-                </td>
-                <td className="p-3 capitalize">{p.source}</td>
-                <td className="p-3">{p.category}</td>
-                <td className="p-3">${Number(p.price).toFixed(2)}</td>
-                <td className="p-3 font-mono text-navy">{clicks[p.id] ?? 0}</td>
-                <td className="p-3">
-                  <Toggle on={p.featured} onChange={(v) => toggle(p.id, "featured", v)} />
-                </td>
-                <td className="p-3">
-                  <Toggle on={p.active} onChange={(v) => toggle(p.id, "active", v)} />
-                </td>
-                <td className="p-3 text-right whitespace-nowrap">
-                  <button onClick={() => startEdit(p)} className="inline-flex items-center gap-1 rounded-full border border-navy/20 px-2.5 py-1 text-xs hover:bg-navy/5">
-                    <Pencil size={12} /> Edit
-                  </button>
-                  <button onClick={() => remove(p.id)} className="ml-2 inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs text-white hover:bg-red-700">
-                    <Trash2 size={12} /> Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              )}
+            </button>
+          );
+        })}
       </div>
+
+      {(() => {
+        const visibleRows =
+          tab === "deals"
+            ? rows.filter(
+                (r) =>
+                  r.deal_active &&
+                  (!r.deal_expires_at || new Date(r.deal_expires_at).getTime() > nowTick),
+              )
+            : rows;
+        return (
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
+            <table className="w-full text-sm">
+              <thead className="bg-paper text-left text-[11px] uppercase tracking-wider text-mute">
+                <tr>
+                  <th className="p-3">Image</th>
+                  <th className="p-3">Title</th>
+                  <th className="p-3">Source</th>
+                  <th className="p-3">Category</th>
+                  <th className="p-3">Price</th>
+                  <th className="p-3">
+                    <span className="inline-flex items-center gap-1">
+                      Clicks
+                      {refreshingClicks && <RefreshCw size={10} className="animate-spin text-gold" />}
+                    </span>
+                  </th>
+                  <th className="p-3">Featured</th>
+                  <th className="p-3">Active</th>
+                  <th className="p-3">Deal</th>
+                  <th className="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibleRows.length === 0 && (
+                  <tr>
+                    <td colSpan={10} className="p-10 text-center text-mute">
+                      {tab === "deals"
+                        ? "No active Deals of the Day. Toggle one from All Picks to feature it."
+                        : "No Kingdom Picks yet — click \"Add Kingdom Pick\" to seed one."}
+                    </td>
+                  </tr>
+                )}
+                {visibleRows.map((p) => {
+                  const dealLive =
+                    p.deal_active &&
+                    (!p.deal_expires_at || new Date(p.deal_expires_at).getTime() > nowTick);
+                  const remainingMs = p.deal_expires_at
+                    ? Math.max(0, new Date(p.deal_expires_at).getTime() - nowTick)
+                    : 0;
+                  const rh = Math.floor(remainingMs / 3_600_000);
+                  const rm = Math.floor((remainingMs % 3_600_000) / 60_000);
+                  const rs = Math.floor((remainingMs % 60_000) / 1000);
+                  const priceNum = Number(p.price);
+                  const origNum = p.original_price != null ? Number(p.original_price) : null;
+                  return (
+                    <tr key={p.id} className="border-t border-ink/5 align-middle">
+                      <td className="p-3">
+                        <img src={p.image_url} alt="" className="h-12 w-12 rounded object-cover bg-paper" />
+                      </td>
+                      <td className="p-3 max-w-xs">
+                        <p className="font-medium text-navy line-clamp-1">{p.title}</p>
+                        <a href={p.affiliate_url} target="_blank" rel="nofollow sponsored noopener" className="text-[11px] text-mute hover:text-gold inline-flex items-center gap-1">
+                          Test link <ExternalLink size={10} />
+                        </a>
+                      </td>
+                      <td className="p-3 capitalize">{p.source}</td>
+                      <td className="p-3">{p.category}</td>
+                      <td className="p-3">
+                        <div className="font-semibold text-navy">${priceNum.toFixed(2)}</div>
+                        {origNum != null && origNum > priceNum && (
+                          <div className="text-[11px] text-mute line-through">${origNum.toFixed(2)}</div>
+                        )}
+                      </td>
+                      <td className="p-3 font-mono text-navy">{clicks[p.id] ?? 0}</td>
+                      <td className="p-3">
+                        <Toggle on={p.featured} onChange={(v) => toggle(p.id, "featured", v)} />
+                      </td>
+                      <td className="p-3">
+                        <Toggle on={p.active} onChange={(v) => toggle(p.id, "active", v)} />
+                      </td>
+                      <td className="p-3">
+                        <div className="flex flex-col gap-1">
+                          <button
+                            onClick={() => setDeal(p.id, !dealLive)}
+                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                              dealLive ? "bg-red-600 text-white hover:bg-red-700" : "border border-navy/20 text-navy hover:bg-navy/5"
+                            }`}
+                          >
+                            <Clock size={10} />
+                            {dealLive ? "Stop deal" : "Start 24h deal"}
+                          </button>
+                          {dealLive && (
+                            <span className="font-mono text-[10px] text-mute">
+                              {String(rh).padStart(2, "0")}:{String(rm).padStart(2, "0")}:{String(rs).padStart(2, "0")} left
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-3 text-right whitespace-nowrap">
+                        <button onClick={() => startEdit(p)} className="inline-flex items-center gap-1 rounded-full border border-navy/20 px-2.5 py-1 text-xs hover:bg-navy/5">
+                          <Pencil size={12} /> Edit
+                        </button>
+                        <button onClick={() => remove(p.id)} className="ml-2 inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs text-white hover:bg-red-700">
+                          <Trash2 size={12} /> Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setOpen(false)}>

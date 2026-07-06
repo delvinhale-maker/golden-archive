@@ -43,12 +43,18 @@ import {
   getHomeHighlights,
   type Product,
 } from "@/lib/marketplace.functions";
+import { fetchAmazonDealsOfTheDay } from "@/lib/affiliate";
 
 import { useAuth } from "@/hooks/use-auth";
 
 const featuredQ = queryOptions({
   queryKey: ["mp", "featured"],
   queryFn: () => getFeaturedProducts(),
+});
+const amazonDealsQ = queryOptions({
+  queryKey: ["mp", "amazon-deals"],
+  queryFn: () => fetchAmazonDealsOfTheDay(6),
+  staleTime: 60_000,
 });
 const highlightsQ = queryOptions({
   queryKey: ["mp", "home-highlights"],
@@ -60,6 +66,7 @@ const highlightsQ = queryOptions({
 export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(featuredQ);
+    context.queryClient.ensureQueryData(amazonDealsQ);
     context.queryClient.ensureQueryData(newReleasesRowQ);
     context.queryClient.ensureQueryData(kingdomPicksRowQ);
     context.queryClient.ensureQueryData(kingdomPicksRowQ);
@@ -284,8 +291,9 @@ function FeaturedHero() {
 
 function DealsAndBestsellers() {
   const { data } = useSuspenseQuery(featuredQ);
+  const { data: amazon } = useSuspenseQuery(amazonDealsQ);
   const list = data as Product[];
-  return <DealsStrip products={list} />;
+  return <DealsStrip products={list} amazonDeals={amazon} />;
 }
 
 

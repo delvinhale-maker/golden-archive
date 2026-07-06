@@ -158,6 +158,8 @@ export type Database = {
           badge: string | null
           category: string
           created_at: string
+          deal_active: boolean
+          deal_expires_at: string | null
           description: string
           featured: boolean
           id: string
@@ -174,6 +176,8 @@ export type Database = {
           badge?: string | null
           category?: string
           created_at?: string
+          deal_active?: boolean
+          deal_expires_at?: string | null
           description?: string
           featured?: boolean
           id?: string
@@ -190,6 +194,8 @@ export type Database = {
           badge?: string | null
           category?: string
           created_at?: string
+          deal_active?: boolean
+          deal_expires_at?: string | null
           description?: string
           featured?: boolean
           id?: string
