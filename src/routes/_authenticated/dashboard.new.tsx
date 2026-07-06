@@ -399,6 +399,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       setPrice(((data.price_cents ?? 0) / 100).toString());
       setExistingCoverUrl(data.cover_url ?? null);
       setExistingFilePath(data.file_path ?? null);
+      const rowPreview = (data as unknown as { preview_pages?: number[] | null }).preview_pages;
+      if (Array.isArray(rowPreview)) setPreviewPages(rowPreview.filter((n) => typeof n === "number"));
       setDbUpdatedAt((data.updated_at as string | null) ?? null);
       // Hydrate "uploaded" state so the confirmation bars persist on refresh
       if (data.cover_url) setUploadedCoverUrl(data.cover_url as string);
