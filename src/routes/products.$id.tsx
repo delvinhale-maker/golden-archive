@@ -544,7 +544,12 @@ function ProductPage() {
                 <X size={18} />
               </button>
               <div className="p-2">
-                <StripeEmbeddedProductCheckout productId={product.id} />
+                <StripeEmbeddedProductCheckout
+                  productId={product.id}
+                  variantId={selected?.variant.id}
+                  buyerPriceCents={selected?.priceCents}
+                />
+
               </div>
             </motion.div>
           </motion.div>
