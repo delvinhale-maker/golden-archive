@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  recordMount as recordEpubNavMount,
+  recordTap as recordEpubNavTap,
+  recordRelocated as recordEpubNavRelocated,
+  recordUnlockTimeout as recordEpubNavUnlockTimeout,
+} from "@/lib/epub-nav-diagnostics";
 
 type DeviceKind = "phone" | "tablet" | "kindle";
 type OutlineEntry = { title: string; pageIndex: number };
