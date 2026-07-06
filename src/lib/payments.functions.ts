@@ -605,7 +605,7 @@ export const getDownloadInfo = createServerFn({ method: "GET" })
     const { data: dl, error } = await supabaseAdmin
       .from("order_downloads")
       .select(
-        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,variant_id,product:marketplace_products(file_path),order:orders(buyer_email))",
+        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,variant_id,is_preorder_at_purchase,product:marketplace_products(file_path,is_preorder,release_date,released_at)),order:orders(buyer_email)",
       )
       .eq("token", data.token)
       .maybeSingle();
@@ -622,6 +622,22 @@ export const getDownloadInfo = createServerFn({ method: "GET" })
       mintCache.delete(cacheKey);
       return { error: "Download limit reached for this link" } as const;
     }
+
+    // Gate pre-order items — release_date passed OR released_at set unlocks.
+    {
+      const oi = (dl as any).order_item;
+      const p = oi?.product;
+      if (oi?.is_preorder_at_purchase && p?.is_preorder && !p?.released_at) {
+        const rd = p?.release_date ? new Date(p.release_date) : null;
+        if (!rd || rd.getTime() > Date.now()) {
+          const when = rd ? rd.toLocaleString() : "the release date";
+          return {
+            error: `This pre-order unlocks on ${when}. You'll get an email when it's ready.`,
+          } as const;
+        }
+      }
+    }
+
 
     const orderItem = (dl as any).order_item;
     let filePath: string | undefined = orderItem?.product?.file_path;
