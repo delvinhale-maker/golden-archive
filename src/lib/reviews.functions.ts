@@ -136,7 +136,13 @@ export const createReview = createServerFn({ method: "POST" })
       title?: string;
       body: string;
       photoPath?: string;
-    }) => input,
+      photoPaths?: string[];
+    }) => {
+      if (input.photoPaths && input.photoPaths.length > 4) {
+        throw new Error("Max 4 photos per review");
+      }
+      return input;
+    },
   )
   .handler(async ({ data, context }) => {
     if (data.rating < 1 || data.rating > 5) throw new Error("Invalid rating");
@@ -154,18 +160,39 @@ export const createReview = createServerFn({ method: "POST" })
       .limit(1)
       .maybeSingle();
     const verified = !!purchase;
-    const { error } = await supabase.from("product_reviews").insert({
-      product_id: data.productId,
-      user_id: userId,
-      reviewer_name: profile?.display_name ?? "AurumVault reader",
-      reviewer_avatar: profile?.avatar_url ?? null,
-      rating: data.rating,
-      title: data.title ?? null,
-      body: data.body.trim(),
-      verified_purchase: verified,
-      photo_url: data.photoPath ?? null,
-    });
-    if (error) throw error;
+
+    // Consolidate legacy single-photo and new multi-photo inputs.
+    const paths = (data.photoPaths ?? []).slice(0, 4);
+    if (paths.length === 0 && data.photoPath) paths.push(data.photoPath);
+
+    const { data: inserted, error } = await supabase
+      .from("product_reviews")
+      .insert({
+        product_id: data.productId,
+        user_id: userId,
+        reviewer_name: profile?.display_name ?? "AurumVault reader",
+        reviewer_avatar: profile?.avatar_url ?? null,
+        rating: data.rating,
+        title: data.title ?? null,
+        body: data.body.trim(),
+        verified_purchase: verified,
+        photo_url: paths[0] ?? null,
+      })
+      .select("id")
+      .single();
+    if (error || !inserted) throw error ?? new Error("Failed to save review");
+
+    if (paths.length) {
+      const photoRows = paths.map((p, i) => ({
+        review_id: inserted.id,
+        storage_path: p,
+        sort_order: i,
+      }));
+      const { error: pErr } = await supabase
+        .from("review_photos" as any)
+        .insert(photoRows);
+      if (pErr) console.error("Failed to insert review_photos", pErr);
+    }
     return { ok: true, verified };
   });
 
