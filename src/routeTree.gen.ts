@@ -69,8 +69,11 @@ import { Route as ApiPublicHooksPayoutReleaseHeartbeatRouteImport } from './rout
 import { Route as ApiPublicHooksAutoReleaseReviewsRouteImport } from './routes/api/public/hooks/auto-release-reviews'
 import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/public/hooks/audit-covers'
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
+import { Route as ApiPublicCronReleasePreordersRouteImport } from './routes/api/public/cron/release-preorders'
 import { Route as AuthenticatedDashboardVariantsIdRouteImport } from './routes/_authenticated/dashboard.variants.$id'
+import { Route as AuthenticatedDashboardPreorderIdRouteImport } from './routes/_authenticated/dashboard.preorder.$id'
 import { Route as AuthenticatedDashboardEditIdRouteImport } from './routes/_authenticated/dashboard.edit.$id'
+import { Route as AuthenticatedDashboardBumpsIdRouteImport } from './routes/_authenticated/dashboard.bumps.$id'
 import { Route as AuthenticatedAdminHealthCoversRouteImport } from './routes/_authenticated/admin.health.covers'
 import { Route as AuthenticatedAdminHealthCoversAlertsRouteImport } from './routes/_authenticated/admin.health.covers.alerts'
 
@@ -395,16 +398,34 @@ const ApiPublicHealthCategoriesRoute =
     path: '/api/public/health/categories',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronReleasePreordersRoute =
+  ApiPublicCronReleasePreordersRouteImport.update({
+    id: '/api/public/cron/release-preorders',
+    path: '/api/public/cron/release-preorders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedDashboardVariantsIdRoute =
   AuthenticatedDashboardVariantsIdRouteImport.update({
     id: '/dashboard/variants/$id',
     path: '/dashboard/variants/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardPreorderIdRoute =
+  AuthenticatedDashboardPreorderIdRouteImport.update({
+    id: '/dashboard/preorder/$id',
+    path: '/dashboard/preorder/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardEditIdRoute =
   AuthenticatedDashboardEditIdRouteImport.update({
     id: '/dashboard/edit/$id',
     path: '/dashboard/edit/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardBumpsIdRoute =
+  AuthenticatedDashboardBumpsIdRouteImport.update({
+    id: '/dashboard/bumps/$id',
+    path: '/dashboard/bumps/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminHealthCoversRoute =
@@ -472,8 +493,11 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
+  '/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
+  '/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
+  '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -536,8 +560,11 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
+  '/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
+  '/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
+  '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -603,8 +630,11 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
+  '/_authenticated/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/_authenticated/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
+  '/_authenticated/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
   '/_authenticated/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
+  '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -670,8 +700,11 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/dashboard/'
     | '/admin/health/covers'
+    | '/dashboard/bumps/$id'
     | '/dashboard/edit/$id'
+    | '/dashboard/preorder/$id'
     | '/dashboard/variants/$id'
+    | '/api/public/cron/release-preorders'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
@@ -734,8 +767,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/admin/health/covers'
+    | '/dashboard/bumps/$id'
     | '/dashboard/edit/$id'
+    | '/dashboard/preorder/$id'
     | '/dashboard/variants/$id'
+    | '/api/public/cron/release-preorders'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
@@ -800,8 +836,11 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/admin/health/covers'
+    | '/_authenticated/dashboard/bumps/$id'
     | '/_authenticated/dashboard/edit/$id'
+    | '/_authenticated/dashboard/preorder/$id'
     | '/_authenticated/dashboard/variants/$id'
+    | '/api/public/cron/release-preorders'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
@@ -849,6 +888,7 @@ export interface RootRouteChildren {
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicCronReleasePreordersRoute: typeof ApiPublicCronReleasePreordersRoute
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
   ApiPublicHooksAuditCoversRoute: typeof ApiPublicHooksAuditCoversRoute
   ApiPublicHooksAutoReleaseReviewsRoute: typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -1282,6 +1322,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthCategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/release-preorders': {
+      id: '/api/public/cron/release-preorders'
+      path: '/api/public/cron/release-preorders'
+      fullPath: '/api/public/cron/release-preorders'
+      preLoaderRoute: typeof ApiPublicCronReleasePreordersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/dashboard/variants/$id': {
       id: '/_authenticated/dashboard/variants/$id'
       path: '/dashboard/variants/$id'
@@ -1289,11 +1336,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardVariantsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/preorder/$id': {
+      id: '/_authenticated/dashboard/preorder/$id'
+      path: '/dashboard/preorder/$id'
+      fullPath: '/dashboard/preorder/$id'
+      preLoaderRoute: typeof AuthenticatedDashboardPreorderIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/edit/$id': {
       id: '/_authenticated/dashboard/edit/$id'
       path: '/dashboard/edit/$id'
       fullPath: '/dashboard/edit/$id'
       preLoaderRoute: typeof AuthenticatedDashboardEditIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/bumps/$id': {
+      id: '/_authenticated/dashboard/bumps/$id'
+      path: '/dashboard/bumps/$id'
+      fullPath: '/dashboard/bumps/$id'
+      preLoaderRoute: typeof AuthenticatedDashboardBumpsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/health/covers': {
@@ -1345,7 +1406,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedAdminHealthCoversRoute: typeof AuthenticatedAdminHealthCoversRouteWithChildren
+  AuthenticatedDashboardBumpsIdRoute: typeof AuthenticatedDashboardBumpsIdRoute
   AuthenticatedDashboardEditIdRoute: typeof AuthenticatedDashboardEditIdRoute
+  AuthenticatedDashboardPreorderIdRoute: typeof AuthenticatedDashboardPreorderIdRoute
   AuthenticatedDashboardVariantsIdRoute: typeof AuthenticatedDashboardVariantsIdRoute
 }
 
@@ -1368,7 +1431,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   AuthenticatedAdminHealthCoversRoute:
     AuthenticatedAdminHealthCoversRouteWithChildren,
+  AuthenticatedDashboardBumpsIdRoute: AuthenticatedDashboardBumpsIdRoute,
   AuthenticatedDashboardEditIdRoute: AuthenticatedDashboardEditIdRoute,
+  AuthenticatedDashboardPreorderIdRoute: AuthenticatedDashboardPreorderIdRoute,
   AuthenticatedDashboardVariantsIdRoute: AuthenticatedDashboardVariantsIdRoute,
 }
 
@@ -1424,6 +1489,7 @@ const rootRouteChildren: RootRouteChildren = {
   SubscribeConfirmRoute: SubscribeConfirmRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicCronReleasePreordersRoute: ApiPublicCronReleasePreordersRoute,
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
   ApiPublicHooksAuditCoversRoute: ApiPublicHooksAuditCoversRoute,
   ApiPublicHooksAutoReleaseReviewsRoute: ApiPublicHooksAutoReleaseReviewsRoute,

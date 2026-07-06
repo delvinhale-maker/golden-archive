@@ -93,9 +93,16 @@ interface ProductProps {
   returnUrl?: string;
   variantId?: string;
   buyerPriceCents?: number;
+  bumpProductIds?: string[];
 }
 
-export function StripeEmbeddedProductCheckout({ productId, returnUrl, variantId, buyerPriceCents }: ProductProps) {
+export function StripeEmbeddedProductCheckout({
+  productId,
+  returnUrl,
+  variantId,
+  buyerPriceCents,
+  bumpProductIds,
+}: ProductProps) {
   const fetchClientSecret = async (): Promise<string> => {
     const result = await createProductCheckout({
       data: {
@@ -107,6 +114,7 @@ export function StripeEmbeddedProductCheckout({ productId, returnUrl, variantId,
         referralCode: getStoredRef() ?? undefined,
         variantId,
         buyerPriceCents,
+        bumpProductIds,
       },
     });
     if ("error" in result) throw new Error(result.error);

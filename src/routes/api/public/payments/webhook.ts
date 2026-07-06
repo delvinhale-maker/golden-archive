@@ -45,7 +45,7 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   // Look up product (need title)
   const { data: product, error: prodErr } = await supabaseAdmin
     .from("marketplace_products")
-    .select("id,title,price_cents")
+    .select("id,title,price_cents,is_preorder,release_date,released_at")
     .eq("id", productId)
     .maybeSingle();
   if (prodErr || !product) {
@@ -113,6 +113,12 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     }
   }
 
+  // Determine if this was a pre-order purchase (metadata takes precedence,
+  // fall back to product's current preorder state at purchase time).
+  const isPreorderAtPurchase =
+    session.metadata?.is_preorder === "true" ||
+    (!!(product as any).is_preorder && !(product as any).released_at);
+
   // Insert order_item (with variant snapshot when present)
   const orderItemPayload: any = {
     order_id: order.id,
@@ -122,6 +128,7 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     unit_amount_cents: unitAmount,
     platform_fee_cents: platformFee,
     seller_amount_cents: sellerAmount,
+    is_preorder_at_purchase: isPreorderAtPurchase,
   };
   if (variantId) {
     orderItemPayload.variant_id = variantId;
@@ -188,13 +195,94 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       .insert({ seller_id: sellerId, pending_cents: sellerAmount });
   }
 
-  // Enqueue delivery email
-  await enqueueDeliveryEmail({
-    to: buyerEmail,
-    items: [{ title: product.title, downloadUrl: `${PUBLIC_BASE_URL}/download/${token}` }],
-    totalFormatted: `$${((session.amount_total ?? unitAmount) / 100).toFixed(2)}`,
-    orderId: order.id,
-  });
+  // Process order-bump upsells (extra products bought at checkout).
+  const bumpIds = (session.metadata?.bump_product_ids ?? "")
+    .split(",")
+    .map((s: string) => s.trim())
+    .filter(Boolean);
+  const bumpPrices = (session.metadata?.bump_prices_cents ?? "")
+    .split(",")
+    .map((s: string) => Number(s.trim()))
+    .filter((n: number) => Number.isFinite(n) && n > 0);
+  const bumpDeliveries: { title: string; downloadUrl: string }[] = [];
+  if (bumpIds.length && bumpIds.length === bumpPrices.length) {
+    const { data: bumpProds } = await supabaseAdmin
+      .from("marketplace_products")
+      .select("id,title,seller_id,is_preorder,released_at")
+      .in("id", bumpIds);
+    const byId = new Map((bumpProds ?? []).map((p) => [p.id, p]));
+    for (let i = 0; i < bumpIds.length; i++) {
+      const bp = byId.get(bumpIds[i]);
+      if (!bp) continue;
+      const bumpUnit = bumpPrices[i];
+      const bumpFee = Math.round((bumpUnit * PLATFORM_FEE_PCT) / 100);
+      const bumpSellerAmount = bumpUnit - bumpFee;
+      const bumpIsPreorder = !!(bp as any).is_preorder && !(bp as any).released_at;
+      const { data: bumpItem } = await supabaseAdmin
+        .from("order_items")
+        .insert({
+          order_id: order.id,
+          product_id: bp.id,
+          seller_id: bp.seller_id,
+          product_title: `Bonus: ${bp.title}`,
+          unit_amount_cents: bumpUnit,
+          platform_fee_cents: bumpFee,
+          seller_amount_cents: bumpSellerAmount,
+          is_bump: true,
+          is_preorder_at_purchase: bumpIsPreorder,
+        } as any)
+        .select("id")
+        .single();
+      if (!bumpItem) continue;
+      const bumpToken = generateToken();
+      await supabaseAdmin.from("order_downloads").insert({
+        order_item_id: bumpItem.id,
+        token: bumpToken,
+      });
+      // Credit bump seller too
+      const { data: bBal } = await supabaseAdmin
+        .from("seller_balances")
+        .select("pending_cents")
+        .eq("seller_id", bp.seller_id)
+        .maybeSingle();
+      if (bBal) {
+        await supabaseAdmin
+          .from("seller_balances")
+          .update({ pending_cents: Number(bBal.pending_cents) + bumpSellerAmount })
+          .eq("seller_id", bp.seller_id);
+      } else {
+        await supabaseAdmin
+          .from("seller_balances")
+          .insert({ seller_id: bp.seller_id, pending_cents: bumpSellerAmount });
+      }
+      bumpDeliveries.push({
+        title: `Bonus: ${bp.title}`,
+        downloadUrl: `${PUBLIC_BASE_URL}/download/${bumpToken}`,
+      });
+    }
+  }
+
+  // Enqueue delivery email (unless the main item is a pre-order — buyer will
+  // get a release email later).
+  if (!isPreorderAtPurchase) {
+    await enqueueDeliveryEmail({
+      to: buyerEmail,
+      items: [
+        { title: product.title, downloadUrl: `${PUBLIC_BASE_URL}/download/${token}` },
+        ...bumpDeliveries,
+      ],
+      totalFormatted: `$${((session.amount_total ?? unitAmount) / 100).toFixed(2)}`,
+      orderId: order.id,
+    });
+  } else if (bumpDeliveries.length) {
+    // Ship bumps immediately even when the primary is a pre-order
+    await enqueueDeliveryEmail({
+      to: buyerEmail,
+      items: bumpDeliveries,
+      totalFormatted: `$${((session.amount_total ?? unitAmount) / 100).toFixed(2)}`,
+      orderId: order.id,
+    });
+  }
 }
 
 async function enqueueDeliveryEmail(args: {

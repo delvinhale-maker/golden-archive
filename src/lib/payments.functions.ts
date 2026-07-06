@@ -61,6 +61,7 @@ export const createProductCheckout = createServerFn({ method: "POST" })
       referralCode?: string;
       variantId?: string;
       buyerPriceCents?: number;
+      bumpProductIds?: string[];
     }) => {
       if (!/^[a-f0-9-]{36}$/.test(data.productId)) throw new Error("Invalid productId");
       if (data.environment !== "sandbox" && data.environment !== "live") {
@@ -71,6 +72,14 @@ export const createProductCheckout = createServerFn({ method: "POST" })
       }
       if (data.variantId && !/^[a-f0-9-]{36}$/.test(data.variantId)) {
         throw new Error("Invalid variantId");
+      }
+      if (data.bumpProductIds) {
+        if (!Array.isArray(data.bumpProductIds) || data.bumpProductIds.length > 3) {
+          throw new Error("Invalid bumpProductIds");
+        }
+        for (const id of data.bumpProductIds) {
+          if (!/^[a-f0-9-]{36}$/.test(id)) throw new Error("Invalid bumpProductId");
+        }
       }
       return data;
     },
@@ -85,7 +94,7 @@ export const createProductCheckout = createServerFn({ method: "POST" })
 
       const { data: product, error } = await supabase
         .from("marketplace_products")
-        .select("id,title,price_cents,seller_id,status,description")
+        .select("id,title,price_cents,seller_id,status,description,is_preorder,release_date")
         .eq("id", data.productId)
         .eq("status", "approved")
         .maybeSingle();
@@ -130,28 +139,85 @@ export const createProductCheckout = createServerFn({ method: "POST" })
         lineName = `${product.title} — ${v.name}`;
       }
 
+      // Resolve order-bump upsells (optional). Each valid bump becomes a
+      // second line item at the discounted price, and is snapshotted on the
+      // Stripe metadata for the webhook.
+      type BumpLine = { productId: string; title: string; priceCents: number };
+      const bumpLines: BumpLine[] = [];
+      if (data.bumpProductIds?.length) {
+        const uniqueIds = Array.from(new Set(data.bumpProductIds)).filter(
+          (id) => id !== product.id,
+        );
+        if (uniqueIds.length) {
+          const { data: bumps } = await supabase
+            .from("product_order_bumps" as any)
+            .select("bump_product_id,discount_percent,is_active")
+            .eq("product_id", product.id)
+            .eq("is_active", true)
+            .in("bump_product_id", uniqueIds);
+          const bumpMap = new Map<string, number>();
+          for (const b of (bumps as any[]) ?? []) {
+            bumpMap.set(b.bump_product_id, b.discount_percent);
+          }
+          if (bumpMap.size) {
+            const { data: bumpProds } = await supabase
+              .from("marketplace_products")
+              .select("id,title,price_cents,status,published")
+              .in("id", Array.from(bumpMap.keys()));
+            for (const bp of bumpProds ?? []) {
+              if (bp.status !== "approved" || !bp.published) continue;
+              const disc = bumpMap.get(bp.id) ?? 0;
+              const priceCents = Math.max(
+                50,
+                Math.round(bp.price_cents * (1 - disc / 100)),
+              );
+              bumpLines.push({ productId: bp.id, title: bp.title, priceCents });
+            }
+          }
+        }
+      }
+
       const stripe = createStripeClient(data.environment);
       const taxMode = await detectTaxMode(stripe, data.environment);
 
+      const line_items: any[] = [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: lineName,
+              tax_code: "txcd_10000000",
+              ...(product.description && {
+                description: product.description.slice(0, 500),
+              }),
+            },
+            unit_amount: unitAmount,
+            tax_behavior: "exclusive",
+          },
+          quantity: 1,
+        },
+        ...bumpLines.map((b) => ({
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `Bonus: ${b.title}`,
+              tax_code: "txcd_10000000",
+            },
+            unit_amount: b.priceCents,
+            tax_behavior: "exclusive",
+          },
+          quantity: 1,
+        })),
+      ];
+
+      const isPreorderNow =
+        !!(product as any).is_preorder &&
+        (!(product as any).release_date ||
+          new Date((product as any).release_date).getTime() > Date.now());
+
       const sessionParams = applyTaxMode(
         {
-          line_items: [
-            {
-              price_data: {
-                currency: "usd",
-                product_data: {
-                  name: lineName,
-                  tax_code: "txcd_10000000",
-                  ...(product.description && {
-                    description: product.description.slice(0, 500),
-                  }),
-                },
-                unit_amount: unitAmount,
-                tax_behavior: "exclusive",
-              },
-              quantity: 1,
-            },
-          ],
+          line_items,
           mode: "payment",
           ui_mode: "embedded_page",
           return_url: data.returnUrl,
@@ -162,11 +228,18 @@ export const createProductCheckout = createServerFn({ method: "POST" })
             environment: data.environment,
             tax_mode: taxMode,
             unit_amount_cents: String(unitAmount),
+            is_preorder: isPreorderNow ? "true" : "false",
             ...(variant
               ? {
                   variant_id: variant.id,
                   variant_name: variant.name,
                   variant_license_type: variant.license_type ?? "",
+                }
+              : {}),
+            ...(bumpLines.length
+              ? {
+                  bump_product_ids: bumpLines.map((b) => b.productId).join(","),
+                  bump_prices_cents: bumpLines.map((b) => b.priceCents).join(","),
                 }
               : {}),
             ...(data.referralCode ? { referral_code: data.referralCode.toUpperCase() } : {}),
@@ -445,7 +518,7 @@ export const getReadInfo = createServerFn({ method: "GET" })
     const { data: dl, error } = await supabaseAdmin
       .from("order_downloads")
       .select(
-        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,variant_id,product:marketplace_products(file_path,cover_url),order:orders(buyer_email))",
+        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,variant_id,is_preorder_at_purchase,product:marketplace_products(file_path,cover_url,is_preorder,release_date,released_at,title),order:orders(buyer_email))",
       )
       .eq("token", data.token)
       .maybeSingle();
@@ -458,6 +531,19 @@ export const getReadInfo = createServerFn({ method: "GET" })
     }
     const expired = new Date(dl.expires_at).getTime() < Date.now();
     if (expired) return { error: "This download link has expired" } as const;
+
+    // Gate pre-order items — release_date passed OR released_at set unlocks.
+    const oiPre = (dl as any).order_item;
+    const prodPre = oiPre?.product;
+    if (oiPre?.is_preorder_at_purchase && prodPre?.is_preorder && !prodPre?.released_at) {
+      const rd = prodPre?.release_date ? new Date(prodPre.release_date) : null;
+      if (!rd || rd.getTime() > Date.now()) {
+        const when = rd ? rd.toLocaleString() : "the release date";
+        return {
+          error: `This pre-order unlocks on ${when}. You'll get an email when it's ready.`,
+        } as const;
+      }
+    }
 
     const orderItem = (dl as any).order_item;
     let filePath: string | undefined = orderItem?.product?.file_path;
@@ -519,7 +605,7 @@ export const getDownloadInfo = createServerFn({ method: "GET" })
     const { data: dl, error } = await supabaseAdmin
       .from("order_downloads")
       .select(
-        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,variant_id,product:marketplace_products(file_path),order:orders(buyer_email))",
+        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,variant_id,is_preorder_at_purchase,product:marketplace_products(file_path,is_preorder,release_date,released_at),order:orders(buyer_email))",
       )
       .eq("token", data.token)
       .maybeSingle();
@@ -536,6 +622,22 @@ export const getDownloadInfo = createServerFn({ method: "GET" })
       mintCache.delete(cacheKey);
       return { error: "Download limit reached for this link" } as const;
     }
+
+    // Gate pre-order items — release_date passed OR released_at set unlocks.
+    {
+      const oi = (dl as any).order_item;
+      const p = oi?.product;
+      if (oi?.is_preorder_at_purchase && p?.is_preorder && !p?.released_at) {
+        const rd = p?.release_date ? new Date(p.release_date) : null;
+        if (!rd || rd.getTime() > Date.now()) {
+          const when = rd ? rd.toLocaleString() : "the release date";
+          return {
+            error: `This pre-order unlocks on ${when}. You'll get an email when it's ready.`,
+          } as const;
+        }
+      }
+    }
+
 
     const orderItem = (dl as any).order_item;
     let filePath: string | undefined = orderItem?.product?.file_path;

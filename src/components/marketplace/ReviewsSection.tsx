@@ -185,7 +185,7 @@ function ReviewCard({
   const remove = useServerFn(deleteReview);
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
-  const [lightbox, setLightbox] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
   const onVote = async () => {
     if (!canVote) {
@@ -251,10 +251,29 @@ function ReviewCard({
       <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-ink">
         {review.body}
       </p>
-      {review.photo_url && (
+      {((review as any).photos?.length ?? 0) > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {((review as any).photos as string[]).slice(0, 4).map((src, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setLightbox(src)}
+              className="block overflow-hidden rounded-md border border-line hover:border-gold"
+              aria-label="View review photo"
+            >
+              <img
+                src={src}
+                alt={`Review photo ${idx + 1}`}
+                className="h-24 w-24 object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+      {((review as any).photos?.length ?? 0) === 0 && review.photo_url && (
         <button
           type="button"
-          onClick={() => setLightbox(true)}
+          onClick={() => setLightbox(review.photo_url!)}
           className="mt-3 block overflow-hidden rounded-md border border-line hover:border-gold"
           aria-label="View review photo"
         >
@@ -284,23 +303,23 @@ function ReviewCard({
         )}
       </div>
 
-      {lightbox && review.photo_url && (
+      {lightbox && (
         <div
           className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4"
-          onClick={() => setLightbox(false)}
+          onClick={() => setLightbox(null)}
           role="dialog"
           aria-modal="true"
         >
           <button
             type="button"
-            onClick={() => setLightbox(false)}
+            onClick={() => setLightbox(null)}
             aria-label="Close"
             className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
           >
             <XIcon size={18} />
           </button>
           <img
-            src={review.photo_url}
+            src={lightbox}
             alt="Review attachment"
             className="max-h-[85vh] max-w-full rounded-lg"
             onClick={(e) => e.stopPropagation()}
@@ -322,8 +341,8 @@ function WriteReviewButton({
   const [rating, setRating] = useState(5);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const submit = useServerFn(createReview);
@@ -335,27 +354,32 @@ function WriteReviewButton({
     setTitle("");
     setBody("");
     setRating(5);
-    setPhotoFile(null);
-    setPhotoPreview(null);
+    setPhotoFiles([]);
+    setPhotoPreviews([]);
   };
 
   const m = useMutation({
     mutationFn: async () => {
-      let photoPath: string | undefined;
-      if (photoFile && user) {
+      const paths: string[] = [];
+      if (photoFiles.length && user) {
         setUploading(true);
-        const ext = photoFile.name.split(".").pop()?.toLowerCase() ?? "jpg";
-        const path = `${user.id}/${productId}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("review-photos")
-          .upload(path, photoFile, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: photoFile.type || "image/jpeg",
-          });
-        setUploading(false);
-        if (upErr) throw new Error(`Photo upload failed: ${upErr.message}`);
-        photoPath = path;
+        try {
+          for (const file of photoFiles) {
+            const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+            const path = `${user.id}/${productId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+            const { error: upErr } = await supabase.storage
+              .from("review-photos")
+              .upload(path, file, {
+                cacheControl: "3600",
+                upsert: false,
+                contentType: file.type || "image/jpeg",
+              });
+            if (upErr) throw new Error(`Photo upload failed: ${upErr.message}`);
+            paths.push(path);
+          }
+        } finally {
+          setUploading(false);
+        }
       }
       return submit({
         data: {
@@ -363,7 +387,7 @@ function WriteReviewButton({
           rating,
           title: title || undefined,
           body,
-          photoPath,
+          photoPaths: paths.length ? paths : undefined,
         },
       });
     },
@@ -388,22 +412,34 @@ function WriteReviewButton({
     );
   }
 
-  const onPickPhoto = (file: File | null) => {
-    if (!file) {
-      setPhotoFile(null);
-      setPhotoPreview(null);
-      return;
+  const onPickPhotos = (files: FileList | null) => {
+    if (!files) return;
+    const remaining = 4 - photoFiles.length;
+    const chosen = Array.from(files).slice(0, Math.max(0, remaining));
+    const valid: File[] = [];
+    for (const file of chosen) {
+      if (!/^image\/(jpe?g|png|webp)$/i.test(file.type)) {
+        toast.error("JPG, PNG, or WebP only");
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Each photo must be under 5MB");
+        continue;
+      }
+      valid.push(file);
     }
-    if (!/^image\/(jpe?g|png|webp)$/i.test(file.type)) {
-      toast.error("JPG, PNG, or WebP only");
-      return;
+    if (valid.length) {
+      setPhotoFiles((prev) => [...prev, ...valid]);
+      setPhotoPreviews((prev) => [
+        ...prev,
+        ...valid.map((f) => URL.createObjectURL(f)),
+      ]);
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Photo must be under 5MB");
-      return;
-    }
-    setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const removePhoto = (i: number) => {
+    setPhotoFiles((prev) => prev.filter((_, idx) => idx !== i));
+    setPhotoPreviews((prev) => prev.filter((_, idx) => idx !== i));
   };
 
   return (
@@ -442,37 +478,42 @@ function WriteReviewButton({
         className="mt-2 w-full rounded-md border border-line px-3 py-2 text-sm"
       />
 
-      <div className="mt-3 flex items-center gap-3">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <input
           ref={fileRef}
           type="file"
           accept="image/jpeg,image/png,image/webp"
+          multiple
           className="sr-only"
-          onChange={(e) => onPickPhoto(e.target.files?.[0] ?? null)}
+          onChange={(e) => {
+            onPickPhotos(e.target.files);
+            if (fileRef.current) fileRef.current.value = "";
+          }}
         />
-        {photoPreview ? (
-          <div className="relative">
+        {photoPreviews.map((src, i) => (
+          <div key={i} className="relative">
             <img
-              src={photoPreview}
-              alt="Photo preview"
+              src={src}
+              alt={`Photo preview ${i + 1}`}
               className="h-16 w-16 rounded-md border border-line object-cover"
             />
             <button
               type="button"
-              onClick={() => onPickPhoto(null)}
+              onClick={() => removePhoto(i)}
               aria-label="Remove photo"
               className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-navy text-white"
             >
               <XIcon size={11} />
             </button>
           </div>
-        ) : (
+        ))}
+        {photoFiles.length < 4 && (
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
             className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-mute hover:border-gold hover:text-ink"
           >
-            <ImagePlus size={12} /> Add a photo (optional)
+            <ImagePlus size={12} /> Add photo{photoFiles.length > 0 ? "s" : " (optional)"}
           </button>
         )}
       </div>

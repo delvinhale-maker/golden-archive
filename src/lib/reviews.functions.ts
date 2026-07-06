@@ -17,6 +17,7 @@ export type ReviewRow = {
   verified_purchase: boolean;
   helpful_count: number;
   photo_url: string | null;
+  photos: string[];
   created_at: string;
 };
 
@@ -36,24 +37,51 @@ function publicClient() {
 }
 
 async function signPhotos(rows: ReviewRow[]): Promise<ReviewRow[]> {
-  const withPhotos = rows.filter((r) => r.photo_url);
-  if (withPhotos.length === 0) return rows;
+  if (rows.length === 0) return rows;
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Load additional photos from the review_photos table.
+    const { data: photoRows } = await supabaseAdmin
+      .from("review_photos" as any)
+      .select("review_id,storage_path,sort_order")
+      .in(
+        "review_id",
+        rows.map((r) => r.id),
+      )
+      .order("sort_order", { ascending: true });
+    const extras = new Map<string, string[]>();
+    for (const p of (photoRows as any[]) ?? []) {
+      const arr = extras.get(p.review_id) ?? [];
+      arr.push(p.storage_path);
+      extras.set(p.review_id, arr);
+    }
+
+    async function sign(path: string): Promise<string | null> {
+      if (/^https?:\/\//.test(path)) return path;
+      const { data } = await supabaseAdmin.storage
+        .from("review-photos")
+        .createSignedUrl(path, 60 * 60 * 24 * 7);
+      return data?.signedUrl ?? null;
+    }
+
     const out = await Promise.all(
       rows.map(async (r) => {
-        if (!r.photo_url) return r;
-        // already a full URL? keep it
-        if (/^https?:\/\//.test(r.photo_url)) return r;
-        const { data } = await supabaseAdmin.storage
-          .from("review-photos")
-          .createSignedUrl(r.photo_url, 60 * 60 * 24 * 7);
-        return { ...r, photo_url: data?.signedUrl ?? null };
+        // Prefer review_photos rows; fall back to legacy single photo_url.
+        const paths = extras.get(r.id) ?? (r.photo_url ? [r.photo_url] : []);
+        const signed = (await Promise.all(paths.map(sign))).filter(
+          (u): u is string => !!u,
+        );
+        return {
+          ...r,
+          photo_url: signed[0] ?? null,
+          photos: signed,
+        };
       }),
     );
     return out;
   } catch {
-    return rows.map((r) => ({ ...r, photo_url: null }));
+    return rows.map((r) => ({ ...r, photo_url: null, photos: [] }));
   }
 }
 
@@ -82,7 +110,8 @@ export const listReviews = createServerFn({ method: "GET" })
     }
     const { data: rows, error } = await query;
     if (error) throw error;
-    const reviews = await signPhotos((rows ?? []) as ReviewRow[]);
+    const withPhotos = ((rows ?? []) as any[]).map((r) => ({ ...r, photos: [] as string[] })) as ReviewRow[];
+    const reviews = await signPhotos(withPhotos);
     const breakdown: Record<1 | 2 | 3 | 4 | 5, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     let sum = 0;
     for (const r of reviews) {
@@ -97,6 +126,7 @@ export const listReviews = createServerFn({ method: "GET" })
     };
   });
 
+
 export const createReview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -106,7 +136,13 @@ export const createReview = createServerFn({ method: "POST" })
       title?: string;
       body: string;
       photoPath?: string;
-    }) => input,
+      photoPaths?: string[];
+    }) => {
+      if (input.photoPaths && input.photoPaths.length > 4) {
+        throw new Error("Max 4 photos per review");
+      }
+      return input;
+    },
   )
   .handler(async ({ data, context }) => {
     if (data.rating < 1 || data.rating > 5) throw new Error("Invalid rating");
@@ -124,18 +160,39 @@ export const createReview = createServerFn({ method: "POST" })
       .limit(1)
       .maybeSingle();
     const verified = !!purchase;
-    const { error } = await supabase.from("product_reviews").insert({
-      product_id: data.productId,
-      user_id: userId,
-      reviewer_name: profile?.display_name ?? "AurumVault reader",
-      reviewer_avatar: profile?.avatar_url ?? null,
-      rating: data.rating,
-      title: data.title ?? null,
-      body: data.body.trim(),
-      verified_purchase: verified,
-      photo_url: data.photoPath ?? null,
-    });
-    if (error) throw error;
+
+    // Consolidate legacy single-photo and new multi-photo inputs.
+    const paths = (data.photoPaths ?? []).slice(0, 4);
+    if (paths.length === 0 && data.photoPath) paths.push(data.photoPath);
+
+    const { data: inserted, error } = await supabase
+      .from("product_reviews")
+      .insert({
+        product_id: data.productId,
+        user_id: userId,
+        reviewer_name: profile?.display_name ?? "AurumVault reader",
+        reviewer_avatar: profile?.avatar_url ?? null,
+        rating: data.rating,
+        title: data.title ?? null,
+        body: data.body.trim(),
+        verified_purchase: verified,
+        photo_url: paths[0] ?? null,
+      })
+      .select("id")
+      .single();
+    if (error || !inserted) throw error ?? new Error("Failed to save review");
+
+    if (paths.length) {
+      const photoRows = paths.map((p, i) => ({
+        review_id: inserted.id,
+        storage_path: p,
+        sort_order: i,
+      }));
+      const { error: pErr } = await supabase
+        .from("review_photos" as any)
+        .insert(photoRows);
+      if (pErr) console.error("Failed to insert review_photos", pErr);
+    }
     return { ok: true, verified };
   });
 

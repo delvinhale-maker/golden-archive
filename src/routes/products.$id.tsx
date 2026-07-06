@@ -27,6 +27,7 @@ import { useOwnsProduct } from "@/hooks/use-owned-products";
 import { getProduct, type Product, type ProductDetailResult } from "@/lib/marketplace.functions";
 import { listPublicVariants, type ProductVariant } from "@/lib/product-variants.functions";
 import { VariantPicker, type SelectedVariant } from "@/components/marketplace/VariantPicker";
+import { OrderBumps } from "@/components/marketplace/OrderBumps";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 import { CATEGORY_THEMES, DEFAULT_THEME } from "@/lib/theme/theme-config";
 
@@ -192,6 +193,7 @@ function ProductPage() {
   const inCart = cart.has(product.id);
   const owned = useOwnsProduct(product.id);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [bumpIds, setBumpIds] = useState<string[]>([]);
 
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [selected, setSelected] = useState<SelectedVariant | null>(null);
@@ -378,6 +380,20 @@ function ProductPage() {
 
             <KingdomGuarantee />
 
+            {product.isPreorder && (
+              <div className="mt-5 rounded-xl border border-gold/40 bg-gold/10 p-4">
+                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-caps text-gold">
+                  Pre-order
+                </div>
+                <div className="mt-1 text-sm font-bold text-ink">
+                  Releases {product.releaseDate ? new Date(product.releaseDate).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" }) : "soon"}
+                </div>
+                {product.preorderNote && (
+                  <p className="mt-1 text-xs text-mute">{product.preorderNote}</p>
+                )}
+              </div>
+            )}
+
             {owned ? (
               <Link
                 to="/library"
@@ -396,7 +412,7 @@ function ProductPage() {
                   className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full text-base font-bold text-navy shadow-gold-glow disabled:opacity-60"
                   style={{ backgroundColor: "var(--accent-color)" }}
                 >
-                  Buy Now · ${displayPrice.toFixed(2)}
+                  {product.isPreorder ? "Pre-order Now" : "Buy Now"} · ${displayPrice.toFixed(2)}
                 </motion.button>
 
                 {!hasVariants && (
@@ -543,11 +559,14 @@ function ProductPage() {
               >
                 <X size={18} />
               </button>
-              <div className="p-2">
+              <div className="p-4">
+                <OrderBumps productId={product.id} onSelectionChange={setBumpIds} />
                 <StripeEmbeddedProductCheckout
+                  key={bumpIds.join(",")}
                   productId={product.id}
                   variantId={selected?.variant.id}
                   buyerPriceCents={selected?.priceCents}
+                  bumpProductIds={bumpIds}
                 />
 
               </div>
