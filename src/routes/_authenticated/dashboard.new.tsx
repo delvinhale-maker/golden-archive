@@ -1416,6 +1416,9 @@ function StepContent(p: {
   uploadedFileMeta: { name: string; size: number } | null;
   title: string;
   typeCfg: import("@/lib/product-types").ProductTypeConfig;
+  productTypeKey?: ProductTypeKey;
+  previewPages: number[];
+  setPreviewPages: (next: number[]) => void;
 }) {
   const coverDone = !!p.uploadedCoverUrl && !p.coverUploading && !p.coverUploadError;
   const fileDone = !!p.uploadedFilePath && !p.fileUploading && !p.fileUploadError;
