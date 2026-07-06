@@ -849,6 +849,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           status,
           published: publish,
           admin_notes: notes,
+          preview_pages: previewPages,
           ...(publish && status === "approved" ? { approved_at: new Date().toISOString() } : {}),
           ...(fileSize !== undefined ? { file_size_bytes: fileSize } : {}),
         };
@@ -869,6 +870,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           status,
           published: publish,
           admin_notes: notes,
+          preview_pages: previewPages,
         }).select("id").single();
         if (error) throw error;
         savedId = inserted?.id ?? null;
