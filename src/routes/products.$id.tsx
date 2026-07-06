@@ -352,9 +352,9 @@ function ProductPage() {
                 className="font-display text-3xl font-bold"
                 style={{ color: "var(--accent-color)" }}
               >
-                ${product.price.toFixed(2)}
+                ${displayPrice.toFixed(2)}
               </span>
-              {product.compareAtPrice && (
+              {!hasVariants && product.compareAtPrice && (
                 <span
                   data-testid="pdp-compare-at"
                   className="text-base text-mute line-through"
@@ -368,7 +368,13 @@ function ProductPage() {
               {product.description}
             </p>
 
-            <FormatSelector formats={formats} value={format} onChange={setFormat} />
+            {hasVariants && (
+              <VariantPicker variants={variants} onChange={setSelected} />
+            )}
+
+            {!hasVariants && (
+              <FormatSelector formats={formats} value={format} onChange={setFormat} />
+            )}
 
             <KingdomGuarantee />
 
@@ -386,28 +392,32 @@ function ProductPage() {
                   whileTap={{ scale: 0.98 }}
                   whileHover={{ scale: 1.01 }}
                   onClick={() => setCheckoutOpen(true)}
-                  className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full text-base font-bold text-navy shadow-gold-glow"
+                  disabled={hasVariants && !selected}
+                  className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full text-base font-bold text-navy shadow-gold-glow disabled:opacity-60"
                   style={{ backgroundColor: "var(--accent-color)" }}
                 >
-                  Buy Now · ${product.price}
+                  Buy Now · ${displayPrice.toFixed(2)}
                 </motion.button>
 
-                <motion.button
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() =>
-                    cart.add({
-                      id: product.id,
-                      title: product.title,
-                      price: product.price,
-                      category: product.category,
-                      image: product.image,
-                    })
-                  }
-                  className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-navy text-sm font-bold text-navy hover:bg-navy hover:text-white"
-                >
-                  {inCart ? "✓ Added — View Cart" : "Add to Cart"}
-                </motion.button>
+                {!hasVariants && (
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() =>
+                      cart.add({
+                        id: product.id,
+                        title: product.title,
+                        price: product.price,
+                        category: product.category,
+                        image: product.image,
+                      })
+                    }
+                    className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-navy text-sm font-bold text-navy hover:bg-navy hover:text-white"
+                  >
+                    {inCart ? "✓ Added — View Cart" : "Add to Cart"}
+                  </motion.button>
+                )}
               </>
+
             )}
 
             <motion.button
