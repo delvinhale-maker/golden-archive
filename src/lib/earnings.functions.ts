@@ -48,6 +48,7 @@ export type MyEarningsSummary = {
   lifetime_cents: number;
   currency: string;
   has_method: boolean;
+  has_tax_form: boolean;
   open_request: PayoutRequestRow | null;
   requests: PayoutRequestRow[];
   payouts: PayoutHistoryRow[];
