@@ -45,7 +45,7 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   // Look up product (need title)
   const { data: product, error: prodErr } = await supabaseAdmin
     .from("marketplace_products")
-    .select("id,title,price_cents")
+    .select("id,title,price_cents,is_preorder,release_date,released_at")
     .eq("id", productId)
     .maybeSingle();
   if (prodErr || !product) {
