@@ -432,6 +432,65 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_announcement_reads: {
+        Row: {
+          announcement_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          announcement_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          announcement_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_announcement_reads_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "creator_announcements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_announcements: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          pinned: boolean
+          published: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          pinned?: boolean
+          published?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          pinned?: boolean
+          published?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       creator_bundle_items: {
         Row: {
           bundle_id: string
@@ -519,6 +578,139 @@ export type Database = {
           creator_user_id?: string
           follower_id?: string
           id?: string
+        }
+        Relationships: []
+      }
+      creator_forum_likes: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_forum_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "creator_forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_forum_posts: {
+        Row: {
+          author_id: string
+          body: string
+          category: Database["public"]["Enums"]["creator_forum_category"]
+          created_at: string
+          id: string
+          likes_count: number
+          reply_count: number
+          status: Database["public"]["Enums"]["creator_forum_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body?: string
+          category?: Database["public"]["Enums"]["creator_forum_category"]
+          created_at?: string
+          id?: string
+          likes_count?: number
+          reply_count?: number
+          status?: Database["public"]["Enums"]["creator_forum_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          category?: Database["public"]["Enums"]["creator_forum_category"]
+          created_at?: string
+          id?: string
+          likes_count?: number
+          reply_count?: number
+          status?: Database["public"]["Enums"]["creator_forum_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      creator_forum_replies: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          post_id: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          post_id: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_forum_replies_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "creator_forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_spotlights: {
+        Row: {
+          created_at: string
+          headline: string
+          hero_image_url: string | null
+          id: string
+          interview_body: string
+          month: string
+          published: boolean
+          seller_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          headline: string
+          hero_image_url?: string | null
+          id?: string
+          interview_body?: string
+          month: string
+          published?: boolean
+          seller_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          headline?: string
+          hero_image_url?: string | null
+          id?: string
+          interview_body?: string
+          month?: string
+          published?: boolean
+          seller_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1793,6 +1985,8 @@ export type Database = {
         | "rejected"
         | "under_review"
         | "info_requested"
+      creator_forum_category: "question" | "win" | "feedback"
+      creator_forum_status: "pending" | "approved" | "hidden"
       product_category:
         | "ebooks"
         | "courses"
@@ -1948,6 +2142,8 @@ export const Constants = {
         "under_review",
         "info_requested",
       ],
+      creator_forum_category: ["question", "win", "feedback"],
+      creator_forum_status: ["pending", "approved", "hidden"],
       product_category: [
         "ebooks",
         "courses",
