@@ -126,7 +126,7 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   // for this product's seller. Cross-creator referrals are ignored.
   if (referralCode) {
     try {
-      const { resolveAffiliateForOrderItem } = await import("@/lib/creator-affiliate.functions");
+      const { resolveAffiliateForOrderItem } = await import("@/lib/creator-affiliate.server");
       const aff = await resolveAffiliateForOrderItem(referralCode, sellerId);
       if (aff) {
         const commissionCents = Math.round((unitAmount * aff.commission_rate_pct) / 100);
