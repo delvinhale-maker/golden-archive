@@ -653,6 +653,8 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       const pendingStep = epubPendingStepRef.current;
       if (pendingStep != null) {
         epubPendingStepRef.current = null;
+        epubNavBusyRef.current = false;
+        setEpubNavBusy(false);
         epubLocFromRelocatedRef.current = true;
         setLocation((prev) => {
           const upper = Math.max(2, pageCountRef.current);
@@ -932,12 +934,15 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
               // relocated handler will sync `location`; ignore errors silently.
               p.catch(() => { /* noop */ }).finally(() => {
                 window.setTimeout(() => {
-                  epubNavBusyRef.current = false;
-                  setEpubNavBusy(false);
+                  if (epubPendingStepRef.current == null) {
+                    epubNavBusyRef.current = false;
+                    setEpubNavBusy(false);
+                  }
                 }, 120);
               });
             } else {
               window.setTimeout(() => {
+                epubPendingStepRef.current = null;
                 epubNavBusyRef.current = false;
                 setEpubNavBusy(false);
               }, 240);
