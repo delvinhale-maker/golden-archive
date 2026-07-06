@@ -82,6 +82,7 @@ function PayoutsPage() {
     if (!summary) return false;
     if (summary.open_request) return false;
     if (!summary.has_method) return false;
+    if (!summary.has_tax_form) return false;
     const cents = Math.round(parseFloat(requestAmount || "0") * 100);
     return cents >= 2500 && cents <= summary.pending_cents;
   }, [summary, requestAmount]);
