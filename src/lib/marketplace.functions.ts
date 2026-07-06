@@ -31,6 +31,8 @@ type DbProductRow = {
   released_at?: string | null;
   preorder_note?: string | null;
   admin_notes?: string | null;
+  file_path?: string | null;
+  preview_pages?: number[] | null;
 };
 
 export function parseWhatsIncluded(adminNotes?: string | null): string[] | undefined {
