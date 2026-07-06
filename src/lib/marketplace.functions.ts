@@ -84,6 +84,8 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
     isPreorder,
     releaseDate: r.release_date ?? null,
     preorderNote: r.preorder_note ?? null,
+    previewPages: Array.isArray(r.preview_pages) ? r.preview_pages : [],
+    fileExt: (r.file_path ?? "").split(".").pop()?.toLowerCase() ?? null,
   };
 }
 
