@@ -518,7 +518,7 @@ export const getReadInfo = createServerFn({ method: "GET" })
     const { data: dl, error } = await supabaseAdmin
       .from("order_downloads")
       .select(
-        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,variant_id,product:marketplace_products(file_path,cover_url),order:orders(buyer_email))",
+        "id,token,download_count,max_downloads,expires_at,order_item:order_items(product_title,variant_id,is_preorder_at_purchase,product:marketplace_products(file_path,cover_url,is_preorder,release_date,released_at,title),order:orders(buyer_email))",
       )
       .eq("token", data.token)
       .maybeSingle();
@@ -531,6 +531,19 @@ export const getReadInfo = createServerFn({ method: "GET" })
     }
     const expired = new Date(dl.expires_at).getTime() < Date.now();
     if (expired) return { error: "This download link has expired" } as const;
+
+    // Gate pre-order items — release_date passed OR released_at set unlocks.
+    const oiPre = (dl as any).order_item;
+    const prodPre = oiPre?.product;
+    if (oiPre?.is_preorder_at_purchase && prodPre?.is_preorder && !prodPre?.released_at) {
+      const rd = prodPre?.release_date ? new Date(prodPre.release_date) : null;
+      if (!rd || rd.getTime() > Date.now()) {
+        const when = rd ? rd.toLocaleString() : "the release date";
+        return {
+          error: `This pre-order unlocks on ${when}. You'll get an email when it's ready.`,
+        } as const;
+      }
+    }
 
     const orderItem = (dl as any).order_item;
     let filePath: string | undefined = orderItem?.product?.file_path;
