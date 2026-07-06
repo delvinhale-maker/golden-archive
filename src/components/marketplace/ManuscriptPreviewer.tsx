@@ -618,7 +618,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     };
     // Intentionally exclude `location` — location sync is handled by a separate effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEpub, epubReady, device, pageAreaW, pageAreaH]);
+  }, [isEpub, epubReady, device, pageAreaW, pageAreaH, epubContainerEl]);
 
   // Push location changes into the EPUB rendition.
   useEffect(() => {
