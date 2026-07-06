@@ -71,6 +71,7 @@ import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/publ
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
 import { Route as ApiPublicCronReleasePreordersRouteImport } from './routes/api/public/cron/release-preorders'
 import { Route as AuthenticatedDashboardVariantsIdRouteImport } from './routes/_authenticated/dashboard.variants.$id'
+import { Route as AuthenticatedDashboardPreorderIdRouteImport } from './routes/_authenticated/dashboard.preorder.$id'
 import { Route as AuthenticatedDashboardEditIdRouteImport } from './routes/_authenticated/dashboard.edit.$id'
 import { Route as AuthenticatedAdminHealthCoversRouteImport } from './routes/_authenticated/admin.health.covers'
 import { Route as AuthenticatedAdminHealthCoversAlertsRouteImport } from './routes/_authenticated/admin.health.covers.alerts'
@@ -408,6 +409,12 @@ const AuthenticatedDashboardVariantsIdRoute =
     path: '/dashboard/variants/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardPreorderIdRoute =
+  AuthenticatedDashboardPreorderIdRouteImport.update({
+    id: '/dashboard/preorder/$id',
+    path: '/dashboard/preorder/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardEditIdRoute =
   AuthenticatedDashboardEditIdRouteImport.update({
     id: '/dashboard/edit/$id',
@@ -480,6 +487,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
+  '/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
@@ -545,6 +553,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
+  '/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
@@ -613,6 +622,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/_authenticated/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
+  '/_authenticated/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
   '/_authenticated/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
@@ -681,6 +691,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/admin/health/covers'
     | '/dashboard/edit/$id'
+    | '/dashboard/preorder/$id'
     | '/dashboard/variants/$id'
     | '/api/public/cron/release-preorders'
     | '/api/public/health/categories'
@@ -746,6 +757,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/admin/health/covers'
     | '/dashboard/edit/$id'
+    | '/dashboard/preorder/$id'
     | '/dashboard/variants/$id'
     | '/api/public/cron/release-preorders'
     | '/api/public/health/categories'
@@ -813,6 +825,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/'
     | '/_authenticated/admin/health/covers'
     | '/_authenticated/dashboard/edit/$id'
+    | '/_authenticated/dashboard/preorder/$id'
     | '/_authenticated/dashboard/variants/$id'
     | '/api/public/cron/release-preorders'
     | '/api/public/health/categories'
@@ -1310,6 +1323,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardVariantsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/preorder/$id': {
+      id: '/_authenticated/dashboard/preorder/$id'
+      path: '/dashboard/preorder/$id'
+      fullPath: '/dashboard/preorder/$id'
+      preLoaderRoute: typeof AuthenticatedDashboardPreorderIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/edit/$id': {
       id: '/_authenticated/dashboard/edit/$id'
       path: '/dashboard/edit/$id'
@@ -1367,6 +1387,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedAdminHealthCoversRoute: typeof AuthenticatedAdminHealthCoversRouteWithChildren
   AuthenticatedDashboardEditIdRoute: typeof AuthenticatedDashboardEditIdRoute
+  AuthenticatedDashboardPreorderIdRoute: typeof AuthenticatedDashboardPreorderIdRoute
   AuthenticatedDashboardVariantsIdRoute: typeof AuthenticatedDashboardVariantsIdRoute
 }
 
@@ -1390,6 +1411,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminHealthCoversRoute:
     AuthenticatedAdminHealthCoversRouteWithChildren,
   AuthenticatedDashboardEditIdRoute: AuthenticatedDashboardEditIdRoute,
+  AuthenticatedDashboardPreorderIdRoute: AuthenticatedDashboardPreorderIdRoute,
   AuthenticatedDashboardVariantsIdRoute: AuthenticatedDashboardVariantsIdRoute,
 }
 
