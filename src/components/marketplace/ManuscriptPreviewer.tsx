@@ -694,6 +694,13 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     const rendition = epubRenditionRef.current;
     const book = epubBookRef.current;
     if (!rendition || !book) return;
+    // If this location change originated from the rendition's relocated
+    // event, don't re-issue display() — that would round-trip through a
+    // coarse percentage-based CFI and visibly jump the page.
+    if (epubLocFromRelocatedRef.current) {
+      epubLocFromRelocatedRef.current = false;
+      return;
+    }
     if (location < 2) return; // cover slot
     const total = epubTotalRef.current || 1;
     const pageIdx = Math.max(1, Math.min(total, location - 1));
