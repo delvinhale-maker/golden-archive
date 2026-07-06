@@ -1494,6 +1494,7 @@ function StepContent(p: {
               >
                 Retry upload
               </button>
+            </div>
           </div>
         )}
       </div>
