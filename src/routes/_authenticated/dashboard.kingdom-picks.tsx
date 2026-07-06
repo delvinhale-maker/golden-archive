@@ -175,6 +175,15 @@ function KingdomPicksAdminPage() {
     toast.success("Deleted");
   }
 
+  async function setDeal(id: string, active: boolean) {
+    const expires = active ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null;
+    const patch = { deal_active: active, deal_expires_at: expires };
+    const { error } = await supabase.from("affiliate_products").update(patch).eq("id", id);
+    if (error) return toast.error(error.message);
+    setRows((r) => r.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+    toast.success(active ? "Marked as Deal of the Day (24h)" : "Removed from Deals");
+  }
+
   function startCreate() {
     setForm(EMPTY);
     setOpen(true);
