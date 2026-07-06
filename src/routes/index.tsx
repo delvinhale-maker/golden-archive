@@ -132,7 +132,13 @@ function Home() {
         <KingdomPicksRow />
       </Suspense>
 
-      <CategoriesSection />
+      <Suspense fallback={null}>
+        <FeaturedCreatorsRow />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <CategoryGrid13 />
+      </Suspense>
 
       <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProducts />
@@ -141,6 +147,9 @@ function Home() {
         <IllustriousCreator />
       </HighlightsBoundary>
       <CreatorSpotlight />
+      <Suspense fallback={null}>
+        <TopCreatorsLeaderboard />
+      </Suspense>
       <SocialsSection />
       <KingdomBibleAppBanner />
       <EmailCaptureBanner />
