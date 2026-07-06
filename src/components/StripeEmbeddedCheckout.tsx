@@ -91,9 +91,11 @@ function CheckoutFrame({
 interface ProductProps {
   productId: string;
   returnUrl?: string;
+  variantId?: string;
+  buyerPriceCents?: number;
 }
 
-export function StripeEmbeddedProductCheckout({ productId, returnUrl }: ProductProps) {
+export function StripeEmbeddedProductCheckout({ productId, returnUrl, variantId, buyerPriceCents }: ProductProps) {
   const fetchClientSecret = async (): Promise<string> => {
     const result = await createProductCheckout({
       data: {
@@ -103,6 +105,8 @@ export function StripeEmbeddedProductCheckout({ productId, returnUrl }: ProductP
           `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
         environment: getStripeEnvironment(),
         referralCode: getStoredRef() ?? undefined,
+        variantId,
+        buyerPriceCents,
       },
     });
     if ("error" in result) throw new Error(result.error);
@@ -112,6 +116,7 @@ export function StripeEmbeddedProductCheckout({ productId, returnUrl }: ProductP
 
   return <CheckoutFrame fetchClientSecret={fetchClientSecret} />;
 }
+
 
 interface CartProps {
   items: CartItem[];
