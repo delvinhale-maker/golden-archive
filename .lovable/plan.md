@@ -1,85 +1,67 @@
-# Batch 3 — Pre-orders, Order-Bumps, and Photo Reviews
+# Batch 9 — Creator Community
 
-Three revenue/social-proof features that plug into the existing product + checkout flow. No changes to affiliates (batch 1) or variants (batch 2).
+Adds a **Community** hub to the creator dashboard at `/dashboard/community` with six connected surfaces.
 
-## 1. Pre-orders
+## 1. Creator feed (announcements)
+- New table `creator_announcements` — title, body (markdown), pinned, published_at, author_id (admin).
+- Public read for anyone with a `sellers` role; only admins can write. Managed from a new `admin.announcements.tsx`.
+- Feed shows pinned first, then newest, with a "New" dot for anything the current creator hasn't opened yet (tracked in `creator_announcement_reads`).
 
-Let creators list a product before files are ready. Buyers can order now and get automatic delivery on release day.
+## 2. Creator forum (moderated)
+- New tables `creator_forum_posts` (title, body, category enum: question|win|feedback, status: pending|approved|hidden) and `creator_forum_replies`.
+- All sellers can create posts (status defaults to `pending`), read approved posts, and reply on approved posts. Admin queue at `admin.forum.tsx` to approve/hide.
+- Simple like counter on posts (`creator_forum_likes` table, one per user per post).
 
-**Creator (product editor):**
-- New "Release" section with a "Pre-order" toggle
-- If on: set a `release_date` and optional "pre-order note" (e.g. "Ships March 15")
-- Files can be uploaded now OR left empty until closer to release
-- On release day (or when the creator flips "Release now"), buyers are auto-emailed the download link
+## 3. Creator leaderboard
+- Server fn `getCreatorLeaderboard()` — aggregates `order_items` in current calendar month (America/New_York) by `seller_id`, sums `subtotal_cents - refund_cents`, returns top 10 with rank, display name, storefront slug, sales count, gross cents.
+- Rank badges: 🥇🥈🥉 for 1–3, numeric chips for 4–10.
+- Rendered on the community page and mirrored on the homepage "This month's top creators" strip.
 
-**Buyer (product page):**
-- Big "Pre-order" badge with release date + countdown
-- Button says "Pre-order now" instead of "Buy now"
-- Download page shows "Available on {release_date}" until released
-- Order confirmation email mentions pre-order + expected release
+## 4. Creator badges earned
+- Deterministic — derived from existing data, no new table needed for state.
+- `getCreatorBadges(sellerId)` computes: First Sale, 10 Sales, 100 Sales, $1K Earned, $10K Earned, Top Creator (rank 1–3 in current or any prior month via a lightweight cached view).
+- Shown on the community page **and** on public storefronts (`store.$slug`) as small badge row.
 
-**Backend:**
-- Add `is_preorder`, `release_date`, `preorder_note`, `released_at` to `marketplace_products`
-- Order-item snapshot: `is_preorder_at_purchase` (bool)
-- pg_cron daily job: find products where `release_date <= now()` and `released_at is null`, mark released, queue delivery emails for all pre-order buyers via existing email queue
-- Manual "Release now" action on creator dashboard
+## 5. Monthly creator spotlight
+- New table `creator_spotlights` — seller_id, month (date, first-of-month), headline, interview_body (markdown), hero_image_url, published.
+- Admins pick + write. Public read only for the currently-published row.
+- Homepage adds a "Creator Spotlight" section pulling the most recent published spotlight; falls back to hidden when none.
 
-## 2. Order-Bump Upsells
+## 6. Creator resources
+- Static markdown-driven page at `/dashboard/community/resources` — categorized cards (Getting Started, Product Photography, Pricing, Marketing, Payouts) linking to in-app docs stored under `src/content/creator-resources/*.md`, rendered with the existing markdown component.
+- No DB; ships with 8 seeded articles.
 
-One-click add-on at checkout — "Add {bump product} for +$X, one time only."
+## Files (technical)
 
-**Creator (product editor):**
-- New "Order bumps" section: pick up to 3 other products from your catalog
-- Set a discount % applied only when bought as a bump (default 0)
-- Preview shows what the buyer will see
+**Migrations (one call, all schema in one migration):**
+- `creator_announcements`, `creator_announcement_reads`
+- `creator_forum_posts`, `creator_forum_replies`, `creator_forum_likes` + `creator_forum_status` and `creator_forum_category` enums
+- `creator_spotlights`
+- All with owner + admin RLS, `service_role` grants, `authenticated` grants for creator-scoped tables, and narrow `anon` SELECT for the currently-published spotlight only.
 
-**Buyer (checkout page):**
-- Above the Stripe form: card(s) with cover, title, bump price, and a checkbox
-- Checking one instantly updates the checkout total
-- On success, all selected items appear in the order and download list
+**Server fns (`src/lib/*.functions.ts`):**
+- `community.functions.ts`: `listAnnouncements`, `markAnnouncementRead`, `listForumPosts`, `createForumPost`, `listForumReplies`, `createForumReply`, `toggleForumLike`
+- `leaderboard.functions.ts`: `getCreatorLeaderboard`, `getCreatorBadges`
+- `spotlights.functions.ts`: `getCurrentSpotlight` (public), `adminUpsertSpotlight`
+- Admin fns gated with `has_role(_, 'admin')`.
 
-**Backend:**
-- New table `product_order_bumps`: `product_id`, `bump_product_id`, `discount_percent`, `sort_order`
-- Extend checkout server fn to accept `bumpProductIds: string[]`, validate each is an active bump for the primary product, snapshot bump price into a second `order_items` row
-- Bump items participate in affiliate commission on the same referral (batch 1)
+**Routes:**
+- `_authenticated/dashboard.community.tsx` — tabs: Feed | Forum | Leaderboard | Badges | Resources
+- `_authenticated/dashboard.community.resources.tsx`
+- `_authenticated/admin.announcements.tsx`, `_authenticated/admin.forum.tsx`, `_authenticated/admin.spotlights.tsx`
+- Homepage (`index.tsx`) gets a new `<CreatorSpotlight />` section + `<TopCreatorsStrip />`
+- Storefront (`store.$slug.tsx`) gets a badge row under the header
 
-## 3. Photo Reviews
+**Components:**
+- `CommunityShell`, `AnnouncementCard`, `ForumPostList`, `ForumPostForm`, `LeaderboardTable`, `BadgeGrid`, `SpotlightCard`, `ResourceCard`
+- New icons via lucide-react; badge glyphs are inline SVG on top of accent tokens (no hardcoded colors).
 
-Reviews already support one `photo_url`. Expand to a real gallery + submission UI.
-
-**Buyer (leave review):**
-- Existing review form gains a photo uploader (drop / select up to 4 images)
-- Client-side compress to ≤ 2 MB, upload to existing `review-photos` bucket
-- Preview thumbnails before submit
-
-**Product page:**
-- New "Customer photos" strip above the reviews list — thumbnails from recent reviews with photos
-- Click a thumbnail → lightbox with the review text + rating alongside
-- Individual review cards show up to 4 inline photos
-
-**Backend:**
-- New table `review_photos`: `review_id`, `storage_path`, `sort_order`, `width`, `height`
-- Keep existing `product_reviews.photo_url` populated with the first photo for back-compat and email templates
-- List function returns array of signed URLs per review
-
-## Files touched
-
-- Migration: preorder columns, `product_order_bumps`, `review_photos`, GRANTs + RLS
-- `src/lib/preorders.functions.ts` — creator toggle, release-now, cron endpoint
-- `src/lib/order-bumps.functions.ts` — CRUD + validation
-- `src/lib/reviews.functions.ts` — extend submit + list with photo arrays
-- `src/routes/api/public/cron/release-preorders.ts` — cron endpoint
-- Editor: Release panel + Order-bumps panel on product editor
-- `src/components/marketplace/OrderBumps.tsx` — checkout upsell UI
-- `src/components/marketplace/ReviewPhotoGallery.tsx` + lightbox
-- Existing product page: pre-order badge/countdown, photo strip
-- Checkout server fn: accept bump ids, snapshot rows
-- Download resolver / delivery email: gate on `released_at` for pre-order items
+**Nav:**
+- New "Community" link in `PublisherShell` sidebar with a bell indicator when unread announcements exist.
 
 ## Not in this batch
+- Direct messaging between creators
+- Notifications outside the existing `notifications` table
+- Rich WYSIWYG editor — posts and interviews are plain markdown
 
-- Subscriptions / recurring products
-- Waitlists for out-of-stock
-- Refunds UI (still admin-only via Stripe dashboard)
-
-Reply "go" to build it, or tell me what to adjust (e.g. skip pre-orders, do only bumps + photos).
+Reply "go" to build, or tell me what to cut/add.

@@ -30,6 +30,7 @@ const NAV_ITEMS = [
   { label: "Kingdom Picks", to: "/dashboard/kingdom-picks" as const },
   { label: "Earn", to: "/dashboard/earn" as const },
   { label: "Affiliate", to: "/dashboard/affiliate" as const },
+  { label: "Community", to: "/dashboard/community" as const },
   { label: "Help", to: "/dashboard/help" as const },
 ];
 
