@@ -16,7 +16,7 @@ import { isListPriceValid } from "@/lib/publish-validation";
 import { PublishSuccessScreen as SuccessScreen } from "@/components/marketplace/PublishSuccessScreen";
 import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
 import { useTheme } from "@/lib/theme/ThemeProvider";
-import { getProductType, categoryDisplay, type ProductTypeKey } from "@/lib/product-types";
+import { getProductType, categoryDisplay, isProductTypeKey, type ProductTypeKey } from "@/lib/product-types";
 
 const PUBLISH_STEP_ACCENTS: Record<1 | 2 | 3 | 4, string> = {
   1: "#1A6B3A", // Emerald
@@ -32,20 +32,28 @@ const DESC_WARN = 1800;
 
 
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    id: typeof s.id === "string" ? s.id : undefined,
-    type: typeof s.type === "string" ? (s.type as ProductTypeKey) : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>) => {
+    const rawType = typeof s.type === "string" ? s.type : undefined;
+    const type = isProductTypeKey(rawType) ? rawType : undefined;
+    return {
+      id: typeof s.id === "string" ? s.id : undefined,
+      type,
+      // Signals that a `type` param was present but did not match a known
+      // product type key. The component surfaces a toast so the user knows
+      // we ignored it and fell back to the default selection.
+      invalidType: rawType !== undefined && type === undefined ? rawType : undefined,
+    };
+  },
   component: PublishFlowRoute,
 });
 
 function PublishFlowRoute() {
-  const { id, type } = Route.useSearch();
-  return <PublishFlow editingId={id} productTypeKey={type} />;
+  const { id, type, invalidType } = Route.useSearch();
+  return <PublishFlow editingId={id} productTypeKey={type} invalidType={invalidType} />;
 }
 
-export function PublishFlow({ editingId: editingIdProp, productTypeKey }: { editingId?: string; productTypeKey?: ProductTypeKey } = {}) {
-  return <PublishFlowImpl editingId={editingIdProp} productTypeKey={productTypeKey} />;
+export function PublishFlow({ editingId: editingIdProp, productTypeKey, invalidType }: { editingId?: string; productTypeKey?: ProductTypeKey; invalidType?: string } = {}) {
+  return <PublishFlowImpl editingId={editingIdProp} productTypeKey={productTypeKey} invalidType={invalidType} />;
 }
 
 
@@ -87,7 +95,7 @@ const STEPS = [
 ];
 type StepNum = 1 | 2 | 3 | 4;
 
-function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editingId?: string; productTypeKey?: ProductTypeKey }) {
+function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType }: { editingId?: string; productTypeKey?: ProductTypeKey; invalidType?: string }) {
   const typeCfg = getProductType(productTypeKey);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -109,6 +117,13 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
   }
   // Only actually bypass when the user is an admin AND the toggle is on.
   const bypassReview = isAdmin && adminInstantApprove;
+
+  useEffect(() => {
+    if (invalidType) {
+      toast.warning(`Unknown product type "${invalidType}" — defaulting to ${typeCfg.label}. Choose a category below to continue.`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [invalidType]);
 
   const [step, setStep] = useState<StepNum>(1);
   const accent: PublisherAccent = STEPS.find((s) => s.n === step)!.accent;
