@@ -1160,7 +1160,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       <div ref={stageRef} className="relative flex-1 overflow-hidden flex items-center justify-center p-6">
         {/* Previous-page arrow — visually on the leading edge (right in RTL, left otherwise) */}
         <button
-          onClick={() => goTo(location - 1)}
+          onClick={() => goRelative(-1)}
           aria-label="Previous page"
           data-testid="previewer-prev"
           disabled={location <= 1}
