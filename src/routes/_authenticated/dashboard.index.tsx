@@ -722,7 +722,7 @@ function MenuItem({
   icon,
   children,
 }: {
-  to: "/dashboard/edit/$id" | "/products/$id" | "/dashboard/variants/$id";
+  to: "/dashboard/edit/$id" | "/products/$id" | "/dashboard/variants/$id" | "/dashboard/preorder/$id" | "/dashboard/bumps/$id";
   params: { id: string };
   icon: React.ReactNode;
   children: React.ReactNode;
