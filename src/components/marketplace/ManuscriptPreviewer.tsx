@@ -686,10 +686,12 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
               ? 2
               : Math.max(2, Math.min(upper, prev + pendingStep));
           setLocationInput(String(target));
+          recordEpubNavRelocated(target, prev, pendingStep);
           return target;
         });
         return;
       }
+
 
       const total = epubTotalRef.current || 1;
       try {
