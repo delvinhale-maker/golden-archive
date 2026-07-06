@@ -678,6 +678,30 @@ export type Database = {
           },
         ]
       }
+      creator_payout_methods: {
+        Row: {
+          created_at: string
+          details: Json
+          method: string
+          seller_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          method: string
+          seller_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          method?: string
+          seller_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       creator_spotlights: {
         Row: {
           created_at: string
@@ -710,6 +734,48 @@ export type Database = {
           month?: string
           published?: boolean
           seller_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      creator_tax_forms: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          file_path: string
+          form_type: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          seller_id: string
+          status: string
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          file_path: string
+          form_type: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          seller_id: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          file_path?: string
+          form_type?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          seller_id?: string
+          status?: string
+          submitted_at?: string
           updated_at?: string
         }
         Relationships: []
@@ -1193,6 +1259,62 @@ export type Database = {
           triggered_by?: string | null
         }
         Relationships: []
+      }
+      payout_requests: {
+        Row: {
+          admin_note: string | null
+          amount_cents: number
+          created_at: string
+          currency: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          method_snapshot: Json | null
+          seller_id: string
+          seller_note: string | null
+          seller_payout_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          method_snapshot?: Json | null
+          seller_id: string
+          seller_note?: string | null
+          seller_payout_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          method_snapshot?: Json | null
+          seller_id?: string
+          seller_note?: string | null
+          seller_payout_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_requests_seller_payout_id_fkey"
+            columns: ["seller_payout_id"]
+            isOneToOne: false
+            referencedRelation: "seller_payouts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_order_bumps: {
         Row: {
@@ -1882,6 +2004,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_decide_payout_request: {
+        Args: {
+          _admin_note?: string
+          _approve: boolean
+          _mark_paid?: boolean
+          _method?: string
+          _request_id: string
+        }
+        Returns: string
+      }
       admin_record_seller_payout: {
         Args: {
           _amount_cents: number
@@ -1951,6 +2083,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      request_payout: {
+        Args: { _amount_cents: number; _note?: string }
+        Returns: string
       }
       run_slug_integrity_check: {
         Args: never
