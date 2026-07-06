@@ -1304,6 +1304,19 @@ function StepDetails(p: {
         <DescriptionCounter value={p.description} />
       </Field>
 
+      {!p.isEbook && (
+        <Field label="What's Included">
+          <textarea
+            rows={4}
+            className="inp"
+            value={p.whatsIncluded}
+            onChange={(e) => p.setWhatsIncluded(e.target.value)}
+            placeholder="List what files, pages, or sections this product contains. e.g. 12-month planner (PDF), habit tracker, monthly review pages"
+          />
+        </Field>
+      )}
+
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Category">
           <select className="inp" value={p.category} onChange={(e) => p.setCategory(e.target.value as typeof p.category)}>
