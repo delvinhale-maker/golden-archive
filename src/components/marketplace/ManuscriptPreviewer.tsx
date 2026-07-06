@@ -80,6 +80,10 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   const [epubReady, setEpubReady] = useState(false);
   const [epubToc, setEpubToc] = useState<EpubTocEntry[]>([]);
   const [epubCurrentToc, setEpubCurrentToc] = useState<number | null>(null);
+  // EPUB rendition mount state — drives the overlay spinner / error message
+  // that sits on top of the epub.js iframe while it's attaching a section.
+  const [epubRendering, setEpubRendering] = useState(false);
+  const [epubRenderError, setEpubRenderError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
