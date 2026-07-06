@@ -53,12 +53,14 @@ import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authent
 import { Route as AuthenticatedDashboardKingdomPicksRouteImport } from './routes/_authenticated/dashboard.kingdom-picks'
 import { Route as AuthenticatedDashboardHelpRouteImport } from './routes/_authenticated/dashboard.help'
 import { Route as AuthenticatedDashboardEarnRouteImport } from './routes/_authenticated/dashboard.earn'
+import { Route as AuthenticatedDashboardCommunityRouteImport } from './routes/_authenticated/dashboard.community'
 import { Route as AuthenticatedDashboardAiStudioRouteImport } from './routes/_authenticated/dashboard.ai-studio'
 import { Route as AuthenticatedDashboardAffiliateRouteImport } from './routes/_authenticated/dashboard.affiliate'
 import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authenticated/admin.products'
 import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin.payouts'
 import { Route as AuthenticatedAdminMessagesRouteImport } from './routes/_authenticated/admin.messages'
 import { Route as AuthenticatedAdminErrorsRouteImport } from './routes/_authenticated/admin.errors'
+import { Route as AuthenticatedAdminCommunityRouteImport } from './routes/_authenticated/admin.community'
 import { Route as AuthenticatedAdminAutoReleaseRouteImport } from './routes/_authenticated/admin.auto-release'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -302,6 +304,12 @@ const AuthenticatedDashboardEarnRoute =
     path: '/dashboard/earn',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardCommunityRoute =
+  AuthenticatedDashboardCommunityRouteImport.update({
+    id: '/dashboard/community',
+    path: '/dashboard/community',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardAiStudioRoute =
   AuthenticatedDashboardAiStudioRouteImport.update({
     id: '/dashboard/ai-studio',
@@ -336,6 +344,12 @@ const AuthenticatedAdminErrorsRoute =
   AuthenticatedAdminErrorsRouteImport.update({
     id: '/admin/errors',
     path: '/admin/errors',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminCommunityRoute =
+  AuthenticatedAdminCommunityRouteImport.update({
+    id: '/admin/community',
+    path: '/admin/community',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminAutoReleaseRoute =
@@ -477,12 +491,14 @@ export interface FileRoutesByFullPath {
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products/': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
+  '/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
+  '/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
@@ -544,12 +560,14 @@ export interface FileRoutesByTo {
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
+  '/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
+  '/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
@@ -614,12 +632,14 @@ export interface FileRoutesById {
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
+  '/_authenticated/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/_authenticated/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/_authenticated/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/_authenticated/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
   '/_authenticated/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/_authenticated/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
+  '/_authenticated/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
   '/_authenticated/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/_authenticated/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/_authenticated/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
@@ -684,12 +704,14 @@ export interface FileRouteTypes {
     | '/subscribe/confirm'
     | '/products/'
     | '/admin/auto-release'
+    | '/admin/community'
     | '/admin/errors'
     | '/admin/messages'
     | '/admin/payouts'
     | '/admin/products'
     | '/dashboard/affiliate'
     | '/dashboard/ai-studio'
+    | '/dashboard/community'
     | '/dashboard/earn'
     | '/dashboard/help'
     | '/dashboard/kingdom-picks'
@@ -751,12 +773,14 @@ export interface FileRouteTypes {
     | '/subscribe/confirm'
     | '/products'
     | '/admin/auto-release'
+    | '/admin/community'
     | '/admin/errors'
     | '/admin/messages'
     | '/admin/payouts'
     | '/admin/products'
     | '/dashboard/affiliate'
     | '/dashboard/ai-studio'
+    | '/dashboard/community'
     | '/dashboard/earn'
     | '/dashboard/help'
     | '/dashboard/kingdom-picks'
@@ -820,12 +844,14 @@ export interface FileRouteTypes {
     | '/subscribe/confirm'
     | '/products/'
     | '/_authenticated/admin/auto-release'
+    | '/_authenticated/admin/community'
     | '/_authenticated/admin/errors'
     | '/_authenticated/admin/messages'
     | '/_authenticated/admin/payouts'
     | '/_authenticated/admin/products'
     | '/_authenticated/dashboard/affiliate'
     | '/_authenticated/dashboard/ai-studio'
+    | '/_authenticated/dashboard/community'
     | '/_authenticated/dashboard/earn'
     | '/_authenticated/dashboard/help'
     | '/_authenticated/dashboard/kingdom-picks'
@@ -1210,6 +1236,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardEarnRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/community': {
+      id: '/_authenticated/dashboard/community'
+      path: '/dashboard/community'
+      fullPath: '/dashboard/community'
+      preLoaderRoute: typeof AuthenticatedDashboardCommunityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/ai-studio': {
       id: '/_authenticated/dashboard/ai-studio'
       path: '/dashboard/ai-studio'
@@ -1250,6 +1283,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/errors'
       fullPath: '/admin/errors'
       preLoaderRoute: typeof AuthenticatedAdminErrorsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/community': {
+      id: '/_authenticated/admin/community'
+      path: '/admin/community'
+      fullPath: '/admin/community'
+      preLoaderRoute: typeof AuthenticatedAdminCommunityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/auto-release': {
@@ -1392,12 +1432,14 @@ const AuthenticatedAdminHealthCoversRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedReferRoute: typeof AuthenticatedReferRoute
   AuthenticatedAdminAutoReleaseRoute: typeof AuthenticatedAdminAutoReleaseRoute
+  AuthenticatedAdminCommunityRoute: typeof AuthenticatedAdminCommunityRoute
   AuthenticatedAdminErrorsRoute: typeof AuthenticatedAdminErrorsRoute
   AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
   AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
   AuthenticatedAdminProductsRoute: typeof AuthenticatedAdminProductsRoute
   AuthenticatedDashboardAffiliateRoute: typeof AuthenticatedDashboardAffiliateRoute
   AuthenticatedDashboardAiStudioRoute: typeof AuthenticatedDashboardAiStudioRoute
+  AuthenticatedDashboardCommunityRoute: typeof AuthenticatedDashboardCommunityRoute
   AuthenticatedDashboardEarnRoute: typeof AuthenticatedDashboardEarnRoute
   AuthenticatedDashboardHelpRoute: typeof AuthenticatedDashboardHelpRoute
   AuthenticatedDashboardKingdomPicksRoute: typeof AuthenticatedDashboardKingdomPicksRoute
@@ -1415,12 +1457,14 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReferRoute: AuthenticatedReferRoute,
   AuthenticatedAdminAutoReleaseRoute: AuthenticatedAdminAutoReleaseRoute,
+  AuthenticatedAdminCommunityRoute: AuthenticatedAdminCommunityRoute,
   AuthenticatedAdminErrorsRoute: AuthenticatedAdminErrorsRoute,
   AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
   AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
   AuthenticatedAdminProductsRoute: AuthenticatedAdminProductsRoute,
   AuthenticatedDashboardAffiliateRoute: AuthenticatedDashboardAffiliateRoute,
   AuthenticatedDashboardAiStudioRoute: AuthenticatedDashboardAiStudioRoute,
+  AuthenticatedDashboardCommunityRoute: AuthenticatedDashboardCommunityRoute,
   AuthenticatedDashboardEarnRoute: AuthenticatedDashboardEarnRoute,
   AuthenticatedDashboardHelpRoute: AuthenticatedDashboardHelpRoute,
   AuthenticatedDashboardKingdomPicksRoute:
