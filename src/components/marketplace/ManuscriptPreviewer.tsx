@@ -956,10 +956,12 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
             epubNavBusyRef.current = true;
             epubPendingStepRef.current = dir;
             setEpubNavBusy(true);
+            recordEpubNavTap(dir, location);
             if (epubNavUnlockTimerRef.current != null) {
               window.clearTimeout(epubNavUnlockTimerRef.current);
             }
             epubNavUnlockTimerRef.current = window.setTimeout(() => {
+              recordEpubNavUnlockTimeout(epubPendingStepRef.current);
               epubPendingStepRef.current = null;
               epubNavBusyRef.current = false;
               setEpubNavBusy(false);
