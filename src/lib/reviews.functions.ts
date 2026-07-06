@@ -17,6 +17,7 @@ export type ReviewRow = {
   verified_purchase: boolean;
   helpful_count: number;
   photo_url: string | null;
+  photos: string[];
   created_at: string;
 };
 
