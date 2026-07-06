@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookPlus, Package, Plus, X, ChevronLeft } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { PRODUCT_TYPES, PRODUCT_TYPE_ORDER } from "@/lib/product-types";
+import { PRODUCT_TYPES, PRODUCT_TYPE_ORDER, type ProductTypeKey } from "@/lib/product-types";
 
 type View = "root" | "digital";
 
