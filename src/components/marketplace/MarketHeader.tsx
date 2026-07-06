@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookPlus,
+  ChevronDown,
   Heart,
   LayoutDashboard,
   Loader2,
@@ -11,6 +12,7 @@ import {
   Store,
   Upload,
   User,
+  Users,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
