@@ -120,7 +120,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
   const [edition, setEdition] = useState("");
   const [description, setDescription] = useState("");
   const [language, setLanguage] = useState("English");
-  const [category, setCategory] = useState<typeof CATEGORIES[number]["value"] | string>(typeCfg.category);
+  const [category, setCategory] = useState<import("@/lib/product-types").ProductCategoryEnum>(typeCfg.category);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [kwInput, setKwInput] = useState("");
   const [ageRange, setAgeRange] = useState("All ages");
