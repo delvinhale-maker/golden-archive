@@ -207,14 +207,17 @@ function AmazonDealCard({ deal }: { deal: AmazonDeal }) {
   return (
     <article className="av-card group flex h-full flex-col overflow-hidden border border-transparent transition hover:-translate-y-1 hover:border-gold hover:shadow-card-hover">
       <div className="relative aspect-[1.6/1] bg-[#f5f4ef]">
-        {p.image_url ? (
+        {isPlaceholderImage(p.image_url) ? (
+          <AffiliateBookPlaceholder title={p.title} />
+        ) : (
           <img
             src={p.image_url}
             alt={p.title}
             loading="lazy"
             className="h-full w-full object-cover"
           />
-        ) : null}
+        )}
+
         <SourceBadge kind="amazon" />
         <DiscountBadge pct={deal.discount} />
       </div>
