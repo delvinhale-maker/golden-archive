@@ -403,6 +403,7 @@ function StorefrontPage() {
                 ))}
               </div>
             ) : null}
+            <StorefrontBadgeRow sellerId={data.creatorUserId} className="mt-3" />
           </div>
 
           <div className="flex gap-2">
