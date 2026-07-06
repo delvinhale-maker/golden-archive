@@ -290,11 +290,10 @@ function FeaturedHero() {
 }
 
 function DealsAndBestsellers() {
-  const { data } = useSuspenseQuery(featuredQ);
   const { data: amazon } = useSuspenseQuery(amazonDealsQ);
-  const list = data as Product[];
-  return <DealsStrip products={list} amazonDeals={amazon} />;
+  return <DealsStrip products={[]} amazonDeals={amazon} />;
 }
+
 
 
 function HeroStatsBar() {
