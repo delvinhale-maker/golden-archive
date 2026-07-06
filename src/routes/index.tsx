@@ -66,6 +66,7 @@ const highlightsQ = queryOptions({
 export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(featuredQ);
+    context.queryClient.ensureQueryData(amazonDealsQ);
     context.queryClient.ensureQueryData(newReleasesRowQ);
     context.queryClient.ensureQueryData(kingdomPicksRowQ);
     context.queryClient.ensureQueryData(kingdomPicksRowQ);
