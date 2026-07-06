@@ -123,6 +123,13 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
     pageCountRef.current = pageCount;
   }, [pageCount]);
 
+  // Nav diagnostics: log every previewer mount so re-mount churn during a
+  // single session (which strands EPUB nav state) shows up in the console.
+  useEffect(() => {
+    recordEpubNavMount();
+  }, []);
+
+
 
   // Robust extension detection:
   // - Blob URLs from the upload picker append a `#.docx|pdf|epub` marker; honor it first.
