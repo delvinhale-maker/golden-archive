@@ -365,7 +365,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     user, title, subtitle, author, seriesName, edition, whatsIncluded, description,
-    language, category, keywords, ageRange, ownsRights, drm, premium, price,
+    language, category, keywords, ageRange, ownsRights, drm, premium, price, previewPages,
   ]);
 
 
