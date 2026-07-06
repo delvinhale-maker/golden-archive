@@ -130,6 +130,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
   const [author, setAuthor] = useState("Delvin Hale");
   const [seriesName, setSeriesName] = useState("");
   const [edition, setEdition] = useState("");
+  const [whatsIncluded, setWhatsIncluded] = useState("");
   const [description, setDescription] = useState("");
   const [language, setLanguage] = useState("English");
   const [category, setCategory] = useState<import("@/lib/product-types").ProductCategoryEnum>(typeCfg.category);
@@ -270,6 +271,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
       const priceCents = Math.round((parseFloat(price || "0") || 0) * 100);
       const notes = JSON.stringify({
         seriesName: seriesName || null, edition: edition || null,
+        whatsIncluded: whatsIncluded || null,
         keywords, ageRange, ownsRights, drm, premium, territory: "Worldwide",
       });
       const payload = {
@@ -344,7 +346,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    user, title, subtitle, author, seriesName, edition, description,
+    user, title, subtitle, author, seriesName, edition, whatsIncluded, description,
     language, category, keywords, ageRange, ownsRights, drm, premium, price,
   ]);
 
@@ -396,6 +398,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
           const o = n as Record<string, unknown>;
           if (typeof o.seriesName === "string") setSeriesName(o.seriesName);
           if (typeof o.edition === "string") setEdition(o.edition);
+          if (typeof o.whatsIncluded === "string") setWhatsIncluded(o.whatsIncluded);
           if (Array.isArray(o.keywords)) setKeywords(o.keywords.filter((k): k is string => typeof k === "string"));
           if (typeof o.ageRange === "string") setAgeRange(o.ageRange);
           if (typeof o.ownsRights === "boolean") setOwnsRights(o.ownsRights);
@@ -804,6 +807,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
       const notes = JSON.stringify({
         seriesName: seriesName || null,
         edition: edition || null,
+        whatsIncluded: whatsIncluded || null,
         keywords,
         ageRange,
         ownsRights, drm, premium, territory,
@@ -1050,6 +1054,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
               author={author} setAuthor={setAuthor}
               seriesName={seriesName} setSeriesName={setSeriesName}
               edition={edition} setEdition={setEdition}
+              whatsIncluded={whatsIncluded} setWhatsIncluded={setWhatsIncluded}
+              isEbook={typeCfg.isEbook}
               description={description} setDescription={setDescription}
               language={language} setLanguage={setLanguage}
               category={category} setCategory={setCategory}
@@ -1258,6 +1264,8 @@ function StepDetails(p: {
   author: string; setAuthor: (v: string) => void;
   seriesName: string; setSeriesName: (v: string) => void;
   edition: string; setEdition: (v: string) => void;
+  whatsIncluded: string; setWhatsIncluded: (v: string) => void;
+  isEbook: boolean;
   description: string; setDescription: (v: string) => void;
   language: string; setLanguage: (v: string) => void;
   category: typeof CATEGORIES[number]["value"]; setCategory: (v: typeof CATEGORIES[number]["value"]) => void;
@@ -1272,8 +1280,12 @@ function StepDetails(p: {
         <Field label="Title *"><input className="inp" value={p.title} onChange={(e) => p.setTitle(e.target.value)} placeholder="e.g. The Stewardship Codex" /></Field>
         <Field label="Subtitle"><input className="inp" value={p.subtitle} onChange={(e) => p.setSubtitle(e.target.value)} placeholder="A field guide" /></Field>
         <Field label="Author / Publisher *"><input className="inp" value={p.author} onChange={(e) => p.setAuthor(e.target.value)} /></Field>
-        <Field label="Series name"><input className="inp" value={p.seriesName} onChange={(e) => p.setSeriesName(e.target.value)} placeholder="Optional" /></Field>
-        <Field label="Edition"><input className="inp" value={p.edition} onChange={(e) => p.setEdition(e.target.value)} placeholder="e.g. Second Edition" /></Field>
+        {p.isEbook && (
+          <Field label="Series name"><input className="inp" value={p.seriesName} onChange={(e) => p.setSeriesName(e.target.value)} placeholder="Optional" /></Field>
+        )}
+        {p.isEbook && (
+          <Field label="Edition"><input className="inp" value={p.edition} onChange={(e) => p.setEdition(e.target.value)} placeholder="e.g. Second Edition" /></Field>
+        )}
         <Field label="Language">
           <select className="inp" value={p.language} onChange={(e) => p.setLanguage(e.target.value)}>
             {LANGUAGES.map((l) => <option key={l}>{l}</option>)}
@@ -1291,6 +1303,19 @@ function StepDetails(p: {
         />
         <DescriptionCounter value={p.description} />
       </Field>
+
+      {!p.isEbook && (
+        <Field label="What's Included">
+          <textarea
+            rows={4}
+            className="inp"
+            value={p.whatsIncluded}
+            onChange={(e) => p.setWhatsIncluded(e.target.value)}
+            placeholder="List what files, pages, or sections this product contains. e.g. 12-month planner (PDF), habit tracker, monthly review pages"
+          />
+        </Field>
+      )}
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Category">
