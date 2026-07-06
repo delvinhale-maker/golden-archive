@@ -61,6 +61,7 @@ export const createProductCheckout = createServerFn({ method: "POST" })
       referralCode?: string;
       variantId?: string;
       buyerPriceCents?: number;
+      bumpProductIds?: string[];
     }) => {
       if (!/^[a-f0-9-]{36}$/.test(data.productId)) throw new Error("Invalid productId");
       if (data.environment !== "sandbox" && data.environment !== "live") {
@@ -71,6 +72,14 @@ export const createProductCheckout = createServerFn({ method: "POST" })
       }
       if (data.variantId && !/^[a-f0-9-]{36}$/.test(data.variantId)) {
         throw new Error("Invalid variantId");
+      }
+      if (data.bumpProductIds) {
+        if (!Array.isArray(data.bumpProductIds) || data.bumpProductIds.length > 3) {
+          throw new Error("Invalid bumpProductIds");
+        }
+        for (const id of data.bumpProductIds) {
+          if (!/^[a-f0-9-]{36}$/.test(id)) throw new Error("Invalid bumpProductId");
+        }
       }
       return data;
     },
