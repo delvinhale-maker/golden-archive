@@ -1,10 +1,30 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 import { LogOut } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AVLogo } from "./AVLogo";
 import { UploadFab } from "./UploadFab";
 import { useAuth } from "@/hooks/use-auth";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { countUnreadAnnouncements } from "@/lib/community.functions";
+
+function CommunityUnreadBadge() {
+  const fn = useServerFn(countUnreadAnnouncements);
+  const { data } = useQuery({
+    queryKey: ["community", "unread-announcements"],
+    queryFn: () => fn(),
+    staleTime: 60_000,
+    refetchOnWindowFocus: true,
+  });
+  const n = data?.unread ?? 0;
+  if (n <= 0) return null;
+  return (
+    <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold text-navy align-middle">
+      {n > 9 ? "9+" : n}
+    </span>
+  );
+}
 
 export type PublisherAccent = {
   /** Hex accent color for this page. */
