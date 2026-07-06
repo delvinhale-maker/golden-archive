@@ -1052,7 +1052,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey }: { editing
               edition={edition} setEdition={setEdition}
               description={description} setDescription={setDescription}
               language={language} setLanguage={setLanguage}
-              category={category as typeof CATEGORIES[number]["value"]} setCategory={setCategory as (v: typeof CATEGORIES[number]["value"]) => void}
+              category={category} setCategory={setCategory}
               keywords={keywords} setKeywords={setKeywords}
               kwInput={kwInput} setKwInput={setKwInput} addKeyword={addKeyword}
               ageRange={ageRange} setAgeRange={setAgeRange}
