@@ -1089,7 +1089,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       const sW = availW > 0 ? availW / dev.w : 1;
       const sH = availH > 0 ? availH / dev.h : 1;
       const s = Math.min(1, sW, sH);
-      setFrameScale(Math.max(0.4, s));
+      setFrameScale(Math.max(0.35, s));
     };
     compute();
     const ro = typeof ResizeObserver !== "undefined" && stageRef.current
@@ -1263,7 +1263,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
       </div>
 
       {/* Stage */}
-      <div ref={stageRef} className="relative flex-1 overflow-hidden flex items-center justify-center p-6">
+      <div ref={stageRef} className="relative flex min-w-0 flex-1 items-center justify-center overflow-hidden p-6">
         {/* Previous-page arrow — visually on the leading edge (right in RTL, left otherwise) */}
         <button
           onClick={() => goRelative(-1)}
