@@ -99,7 +99,14 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   const epubRenditionRef = useRef<any>(null);
   const epubTotalRef = useRef<number>(0);
   const epubSyncingRef = useRef<boolean>(false);
+  // When true, the next `location` change came FROM the rendition's own
+  // relocated event, so the location→rendition sync effect must skip it —
+  // otherwise we call rendition.display() for a coarse percentage-based CFI
+  // and visibly jump the reader (e.g. back arrow snapping to end of chapter).
+  const epubLocFromRelocatedRef = useRef<boolean>(false);
   const epubTocRef = useRef<EpubTocEntry[]>([]);
+  const [epubAtStart, setEpubAtStart] = useState(false);
+  const [epubAtEnd, setEpubAtEnd] = useState(false);
 
 
   // Robust extension detection:
