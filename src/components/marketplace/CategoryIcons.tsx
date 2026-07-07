@@ -3,7 +3,7 @@
 // subtle navy fills. Designed to feel like editorial engraving marks
 // rather than generic UI glyphs.
 
-import type { SVGProps } from "react";
+import type { ReactElement, SVGProps } from "react";
 
 type IconProps = SVGProps<SVGSVGElement>;
 
