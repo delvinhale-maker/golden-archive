@@ -753,14 +753,20 @@ function ProductPage() {
       >
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[11px] font-semibold uppercase tracking-caps text-mute">
-              {product.category}
+            <div
+              data-testid="pdp-mobile-sticky-label"
+              className="truncate text-[11px] font-semibold uppercase tracking-caps text-mute"
+            >
+              {hasVariants && selected ? selected.variant.name : product.category}
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="font-display text-lg font-bold text-ink">
+              <span
+                data-testid="pdp-mobile-sticky-price"
+                className="font-display text-lg font-bold text-ink"
+              >
                 ${displayPrice.toFixed(2)}
               </span>
-              {product.compareAtPrice && product.compareAtPrice > displayPrice && (
+              {!hasVariants && product.compareAtPrice && product.compareAtPrice > displayPrice && (
                 <span className="text-xs text-mute line-through">
                   ${product.compareAtPrice.toFixed(2)}
                 </span>
@@ -774,6 +780,19 @@ function ProductPage() {
             >
               Open Library
             </Link>
+          ) : hasVariants ? (
+            <button
+              type="button"
+              data-testid="pdp-mobile-sticky-cta"
+              onClick={() => setCheckoutOpen(true)}
+              disabled={!selected}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-navy shadow-gold-glow active:scale-[0.98] disabled:opacity-60"
+              style={{ backgroundColor: "var(--accent-color)" }}
+              aria-label={selected ? `Buy now for $${displayPrice.toFixed(2)}` : "Select an option"}
+            >
+              <ShoppingCart size={16} />
+              {selected ? `${product.isPreorder ? "Pre-order" : "Buy Now"} · $${displayPrice.toFixed(2)}` : "Select option"}
+            </button>
           ) : (
             <button
               type="button"
@@ -782,13 +801,12 @@ function ProductPage() {
                 cart.add({
                   id: product.id,
                   title: product.title,
-                  price: product.price,
+                  price: displayPrice,
                   category: product.category,
                   image: product.image,
                 })
               }
-              disabled={hasVariants && !selected}
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-navy shadow-gold-glow active:scale-[0.98] disabled:opacity-60"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-navy shadow-gold-glow active:scale-[0.98]"
               style={{ backgroundColor: "var(--accent-color)" }}
               aria-label={inCart ? "Added to cart" : "Add to cart"}
             >
