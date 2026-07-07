@@ -288,6 +288,37 @@
     100% { background-position: -200% 0; }
   }
 
+  /* Global reduced-motion safeguard. Neutralizes decorative motion (Tailwind
+     transitions, hover transforms, keyframe animations, smooth scroll) while
+     preserving essential feedback like opacity fades. Framer-motion is handled
+     separately via <MotionConfig reducedMotion="user"> in __root.tsx, and
+     scroll count-ups bail out via their own useReducedMotion check. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+    /* Cancel decorative hover transforms (card lift, image zoom, icon scale). */
+    .group:hover .group-hover\:scale-110,
+    .group:hover .group-hover\:scale-\[1\.06\],
+    .group:hover .group-hover\:scale-\[1\.08\] {
+      transform: none !important;
+    }
+    .hover\:-translate-y-1:hover,
+    .hover\:-translate-y-0\.5:hover {
+      transform: none !important;
+    }
+    .av-glow-pulse,
+    .float-slow,
+    .av-skeleton {
+      animation: none !important;
+    }
+  }
+
   @keyframes shimmer {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(400%); }

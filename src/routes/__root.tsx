@@ -8,7 +8,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
@@ -251,10 +251,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <RouteFadeIn>
-        <Outlet />
-      </RouteFadeIn>
+      {/* reducedMotion="user" makes framer-motion honor the OS/browser
+          prefers-reduced-motion setting for every motion.* component. */}
+      <MotionConfig reducedMotion="user">
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <RouteFadeIn>
+          <Outlet />
+        </RouteFadeIn>
+      </MotionConfig>
     </QueryClientProvider>
   );
 }
