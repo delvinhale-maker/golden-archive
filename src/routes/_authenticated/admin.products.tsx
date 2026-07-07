@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
 import { ArrowLeft, ShieldCheck, Pencil, CheckCircle2, XCircle, Search, Save, X, Upload, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { ProductPreviewsManager } from "@/components/admin/ProductPreviewsManager";
 
 export const Route = createFileRoute("/_authenticated/admin/products")({
   component: AdminProductsPage,
@@ -247,6 +248,9 @@ function AdminProductsPage() {
               <Field label="Description">
                 <textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })}
                   rows={6} className="w-full rounded-md border border-ink/15 p-3" />
+              </Field>
+              <Field label="Preview images (shown to shoppers)">
+                <ProductPreviewsManager productId={editing.id} sellerId={editing.seller_id} />
               </Field>
             </div>
             <div className="flex items-center justify-end gap-2 p-5 border-t border-ink/10">
