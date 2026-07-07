@@ -75,7 +75,7 @@ export const CATEGORIES: CategoryDef[] = [
   },
   {
     slug: "printable_journals",
-    label: "Digital Journals",
+    label: "Journals",
     accent: "#8F3A5B",
     ink: "#FFFFFF",
     icon: "📓",
@@ -105,17 +105,6 @@ export const CATEGORIES: CategoryDef[] = [
       "Verse-by-verse guides, small-group curricula, and personal studies rooted in the whole counsel of Scripture.",
     gradient: grad("#160A31", "#2E1B58", "#4B2D8F"),
     subs: ["Old Testament", "New Testament", "Topical", "Women", "Men", "Youth"],
-  },
-  {
-    slug: "courses",
-    label: "Courses",
-    accent: "#C47B00",
-    ink: "#FFFFFF",
-    icon: "🎯",
-    blurb:
-      "Cohort-grade video courses on marketing, finance, and calling — from creators who ship what they teach.",
-    gradient: grad("#2A1A00", "#5E3900", "#C47B00"),
-    subs: ["Marketing", "Design", "Finance", "Ministry", "Writing", "Sales"],
   },
   {
     slug: "digital_toolkits",
@@ -192,9 +181,7 @@ export function slugToLabel(slug?: string | null): string {
 
 // Aliases for short tab labels used in the header nav.
 const LABEL_ALIAS: Record<string, string> = {
-  Journals: "printable_journals",
-  "Financial Planners": "financial_planners",
-  Courses: "courses",
+  "Digital Journals": "printable_journals",
   Finance: "financial_planners",
   Leadership: "business_templates",
   Purpose: "printable_journals",

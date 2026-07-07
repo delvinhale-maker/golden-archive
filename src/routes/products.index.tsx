@@ -12,7 +12,7 @@ import {
 import { getProducts, type Product } from "@/lib/marketplace.functions";
 import { CategoryHero } from "@/components/marketplace/CategoryHero";
 import { getCategoryTheme } from "@/lib/category-theme";
-import { CATEGORIES as CATEGORY_DEFS } from "@/lib/categories";
+import { CATEGORIES as CATEGORY_DEFS, slugToLabel } from "@/lib/categories";
 
 const searchSchema = z.object({
   category: z.string().optional(),
@@ -112,7 +112,7 @@ function ProductsPage() {
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
             <h2 className="font-display text-xl font-bold text-ink">
-              {search.category ? `${search.category} titles` : "All products"}
+              {search.category ? `${slugToLabel(search.category)} titles` : "All products"}
             </h2>
             {search.q && (
               <p className="mt-1 text-sm text-mute">
