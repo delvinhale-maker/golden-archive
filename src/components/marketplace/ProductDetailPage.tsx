@@ -298,7 +298,7 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
   ];
 
   return (
-    <div className="w-full bg-white">
+    <div className="w-full bg-white pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
       {/* Navy top bar with breadcrumb */}
       <div style={{ background: NAVY }}>
         <div className="mx-auto flex max-w-7xl items-center gap-1.5 overflow-x-auto px-4 py-3 sm:px-6">
