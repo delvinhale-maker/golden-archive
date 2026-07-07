@@ -346,6 +346,13 @@ export function MarketHeader() {
               {user ? (
                 <>
                   <Link
+                    to="/account"
+                    onClick={() => setMenuOpen(false)}
+                    className="block w-full rounded-full bg-white/10 py-3 text-center text-sm font-semibold text-white"
+                  >
+                    My account
+                  </Link>
+                  <Link
                     to="/dashboard"
                     onClick={() => setMenuOpen(false)}
                     className="block w-full rounded-full bg-white/10 py-3 text-center text-sm font-semibold text-white"
