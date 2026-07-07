@@ -44,6 +44,7 @@ import { TopCreatorsLeaderboard, topCreatorsQ } from "@/components/marketplace/T
 import { CategoryGrid13, categoryCountsQ } from "@/components/marketplace/CategoryGrid13";
 import { WhyAurumVault } from "@/components/marketplace/WhyAurumVault";
 import { SectionDivider } from "@/components/marketplace/SectionDivider";
+import { CountUp } from "@/components/marketplace/CountUp";
 import {
   getFeaturedProducts,
   getHomeHighlights,
