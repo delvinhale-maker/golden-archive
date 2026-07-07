@@ -237,6 +237,21 @@ function AccountSettingsPage() {
                     )}
                     Upload new photo
                   </button>
+                  {(avatarUrl || avatarPreview) && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAvatar}
+                      disabled={removingAvatar || uploadingAvatar}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+                    >
+                      {removingAvatar ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={14} />
+                      )}
+                      Remove photo
+                    </button>
+                  )}
                   <p className="text-[11px] text-mute">PNG, JPG, WEBP, or GIF. Max 5 MB.</p>
                 </div>
               </div>
