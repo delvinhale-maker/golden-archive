@@ -735,7 +735,7 @@ function ActionsMenu({
               }}
               className="w-full text-left px-3 py-2 hover:bg-paper flex items-center gap-2 text-ink"
             >
-              <EyeOff size={14} /> Unpublish
+              <EyeOff size={14} /> Unpublish eBook / product
             </button>
           )}
           {canRepublish && (
