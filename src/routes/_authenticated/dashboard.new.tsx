@@ -64,7 +64,7 @@ const CATEGORIES: { label: string; value: import("@/lib/product-types").ProductC
   { label: "Financial Planners", value: "financial_planners" },
   { label: "AI Prompt Packs", value: "ai_prompt_packs" },
   { label: "Budget Spreadsheets", value: "budget_spreadsheets" },
-  { label: "Printable Journals", value: "printable_journals" },
+  { label: "Digital Journals", value: "printable_journals" },
   { label: "Children's Educational", value: "childrens_educational" },
   { label: "Bible Studies", value: "bible_studies" },
   { label: "Courses", value: "courses" },
