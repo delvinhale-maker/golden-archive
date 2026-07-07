@@ -721,6 +721,25 @@ function ProductPage() {
           onCancel={cancelPreview}
         />
       )}
+
+      <ProductPreviewViewer
+        open={imageViewerOpen}
+        onClose={() => setImageViewerOpen(false)}
+        productTitle={product.title}
+        previews={imagePreviews}
+        price={displayPrice}
+        inCart={inCart}
+        onAddToCart={() => {
+          cart.add({
+            id: product.id,
+            title: product.title,
+            price: product.price,
+            category: product.category,
+            image: product.image,
+          });
+          setImageViewerOpen(false);
+        }}
+      />
     </MarketShell>
   );
 }
