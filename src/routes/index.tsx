@@ -292,67 +292,81 @@ function HeroStatsBar() {
   const { data } = useSuspenseQuery(highlightsQ);
   const productCount = data.illustriousProductCount;
   const stats: {
-    icon: typeof BookOpen;
+    image: string;
     label: string;
+    caption: string;
     to: string;
     hash?: string;
     ariaLabel: string;
   }[] = [
     {
-      icon: BookOpen,
+      image: statProductsImg,
       label: `${productCount} Product${productCount === 1 ? "" : "s"}`,
+      caption: "Curated library",
       to: "/products",
       ariaLabel: "Browse all products",
     },
     {
-      icon: LayoutTemplate,
+      image: statCategoriesImg,
       label: "18 Categories",
+      caption: "Across every discipline",
       to: "/",
       hash: "categories",
       ariaLabel: "Browse categories",
     },
     {
-      icon: BadgeCheck,
+      image: statCreatorsImg,
       label: "Verified Creators",
+      caption: "Vetted, trusted, human",
       to: "/about",
       ariaLabel: "Learn about our verified creators",
     },
     {
-      icon: Download,
+      image: statDownloadsImg,
       label: "Instant Download",
+      caption: "In your vault, seconds later",
       to: "/library",
       ariaLabel: "Go to your library of instant downloads",
     },
   ];
   return (
-    <section
-      className="border-t bg-bg-page"
-      style={{
-        borderTopColor: "rgba(201,168,76,0.55)",
-      }}
-    >
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
-        <ul className="grid grid-cols-2 gap-y-5 sm:grid-cols-4 sm:gap-y-0">
+    <section className="relative bg-[#08101D] py-20 md:py-24">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mb-10 flex flex-col items-center text-center">
+          <div className="text-[11px] font-semibold tracking-[0.22em] text-gold">
+            THE AURUMVAULT STANDARD
+          </div>
+          <h2 className="mt-3 font-display text-3xl leading-tight text-white md:text-4xl">
+            Built on trust. <span className="gold-gradient">Delivered instantly.</span>
+          </h2>
+          <span className="mt-5 block h-[2px] w-10 bg-gold" />
+        </div>
+        <ul className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
           {stats.map((s) => (
-            <li key={s.label} className="flex">
+            <li key={s.label}>
               <Link
                 to={s.to}
                 hash={s.hash}
                 aria-label={s.ariaLabel}
-                className="flex flex-1 flex-col items-center gap-2 rounded-lg p-2 text-center transition-all duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                className="group block overflow-hidden rounded-2xl bg-navy ring-1 ring-white/10 shadow-[0_16px_44px_-20px_rgba(0,0,0,0.6)] transition-transform duration-500 hover:-translate-y-1 hover:ring-gold/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               >
-                <span
-                  className="grid h-10 w-10 place-items-center rounded-full transition-colors duration-200"
-                  style={{
-                    background: "rgba(201,168,76,0.12)",
-                    border: "1px solid rgba(201,168,76,0.45)",
-                  }}
-                >
-                  <s.icon size={18} className="text-gold-ink" />
-                </span>
-                <span className="text-[12px] font-semibold tracking-wide text-navy sm:text-[13px]">
-                  {s.label}
-                </span>
+                <div className="relative aspect-[4/3] w-full overflow-hidden">
+                  <img
+                    src={s.image}
+                    alt=""
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.08]"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#08101D] via-[#08101D]/30 to-transparent" />
+                </div>
+                <div className="px-4 py-4 md:px-5 md:py-5">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">
+                    {s.caption}
+                  </div>
+                  <div className="mt-1.5 font-display text-lg text-white md:text-xl">
+                    {s.label}
+                  </div>
+                </div>
               </Link>
             </li>
           ))}
@@ -361,6 +375,7 @@ function HeroStatsBar() {
     </section>
   );
 }
+
 
 function Hero() {
   return (
