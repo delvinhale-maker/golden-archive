@@ -75,19 +75,74 @@ function AccountSettingsPage() {
     );
   }
 
+  async function persistAvatar(newUrl: string) {
+    const trimmed = newUrl.trim();
+    const { error: authError } = await supabase.auth.updateUser({
+      data: { full_name: fullName.trim(), avatar_url: trimmed },
+    });
+    if (authError) throw authError;
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ avatar_url: trimmed || null })
+      .eq("id", user!.id);
+    if (profileError) throw profileError;
+  }
+
+  async function handleAvatarFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting same file later
+    if (!file) return;
+    if (!ACCEPTED_AVATAR_TYPES.includes(file.type)) {
+      toast.error("Please choose a PNG, JPG, WEBP, or GIF image.");
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      toast.error("Image is too large (max 5 MB).");
+      return;
+    }
+
+    // Local preview
+    const localPreview = URL.createObjectURL(file);
+    setAvatarPreview(localPreview);
+    setUploadingAvatar(true);
+
+    try {
+      const ext = (file.name.split(".").pop() || "png").toLowerCase();
+      const path = `${user!.id}/avatar-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { cacheControl: "3600", upsert: true, contentType: file.type });
+      if (uploadError) throw uploadError;
+
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const publicUrl = pub.publicUrl;
+
+      await persistAvatar(publicUrl);
+      setAvatarUrl(publicUrl);
+      toast.success("Avatar updated");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to upload avatar";
+      toast.error(message);
+      setAvatarPreview(null);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
     setSavingProfile(true);
-    const { error } = await supabase.auth.updateUser({
-      data: { full_name: fullName.trim(), avatar_url: avatarUrl.trim() },
-    });
-    setSavingProfile(false);
-    if (error) {
-      toast.error(error.message);
-    } else {
+    try {
+      await persistAvatar(avatarUrl);
       toast.success("Profile updated");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to save profile";
+      toast.error(message);
+    } finally {
+      setSavingProfile(false);
     }
   }
+
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
