@@ -345,6 +345,19 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
           return;
         }
 
+        if (isImage) {
+          // Image journals: content is the manuscript itself. Show it at
+          // location 2 (after the cover slot) so the previewer nav still works.
+          setPageCount(2);
+          setLocation(2);
+          setLocationInput("2");
+          setImageZoom(1);
+          setImageFitWidth(false);
+          setImageNatural(null);
+          setLoading(false);
+          return;
+        }
+
         if (!isPdf) {
           setNotPdf(true);
           setPageCount(1);
