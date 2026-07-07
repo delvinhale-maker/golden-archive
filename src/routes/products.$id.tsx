@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, BookOpen } from "lucide-react";
+import { Loader2, BookOpen, ShoppingCart } from "lucide-react";
 import { getFormatPreview } from "@/lib/preview.functions";
 import {
   listProductPreviews,
@@ -346,7 +346,7 @@ function ProductPage() {
 
   return (
     <MarketShell>
-      <div className="mx-auto max-w-7xl px-4 pb-16 pt-6 md:px-8">
+      <div className="mx-auto max-w-7xl px-4 pb-[calc(150px+env(safe-area-inset-bottom))] pt-6 md:px-8 md:pb-16">
         <nav className="mb-6 text-xs text-mute">
           <Link to="/" className="hover:text-ink">Home</Link>
           <span className="px-1.5">/</span>
@@ -740,6 +740,64 @@ function ProductPage() {
           setImageViewerOpen(false);
         }}
       />
+
+      {/* Mobile sticky Add to Cart bar */}
+      <div
+        data-testid="pdp-mobile-sticky"
+        className="fixed inset-x-0 z-40 border-t border-black/10 bg-white/95 px-4 pt-3 backdrop-blur md:hidden"
+        style={{
+          bottom: "64px",
+          paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)",
+          boxShadow: "0 -8px 24px -12px rgba(17,25,46,0.18)",
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[11px] font-semibold uppercase tracking-caps text-mute">
+              {product.category}
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="font-display text-lg font-bold text-ink">
+                ${displayPrice.toFixed(2)}
+              </span>
+              {product.compareAtPrice && product.compareAtPrice > displayPrice && (
+                <span className="text-xs text-mute line-through">
+                  ${product.compareAtPrice.toFixed(2)}
+                </span>
+              )}
+            </div>
+          </div>
+          {owned ? (
+            <Link
+              to="/library"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full border-2 border-gold bg-navy px-6 py-3 text-sm font-bold text-gold"
+            >
+              Open Library
+            </Link>
+          ) : (
+            <button
+              type="button"
+              data-testid="pdp-mobile-sticky-cta"
+              onClick={() =>
+                cart.add({
+                  id: product.id,
+                  title: product.title,
+                  price: product.price,
+                  category: product.category,
+                  image: product.image,
+                })
+              }
+              disabled={hasVariants && !selected}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-navy shadow-gold-glow active:scale-[0.98] disabled:opacity-60"
+              style={{ backgroundColor: "var(--accent-color)" }}
+              aria-label={inCart ? "Added to cart" : "Add to cart"}
+            >
+              <ShoppingCart size={16} />
+              {inCart ? "In Cart" : "Add to Cart"}
+            </button>
+          )}
+        </div>
+      </div>
     </MarketShell>
   );
 }
