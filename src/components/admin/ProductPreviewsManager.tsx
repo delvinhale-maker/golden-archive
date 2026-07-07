@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowUp, ArrowDown, Trash2, Upload, ImageIcon, Save } from "lucide-react";
+import { ArrowUp, ArrowDown, Trash2, Upload, ImageIcon, Save, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 
 type PreviewRow = {
