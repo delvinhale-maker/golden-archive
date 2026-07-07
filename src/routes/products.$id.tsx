@@ -713,3 +713,28 @@ function previewLabelFor(fileExt: string | null, previewPageCount: number): stri
 }
 
 
+
+/** Format chips shown next to the product title, keyed by top-level category. */
+function formatsFor(category: string): { id: string; label: string; sub?: string }[] {
+  const c = category.toLowerCase();
+  if (c.includes("audio")) return [
+    { id: "mp3", label: "MP3", sub: "Streaming + download" },
+    { id: "m4b", label: "M4B", sub: "Chaptered audiobook" },
+    { id: "pdf", label: "PDF Notes", sub: "Companion guide" },
+  ];
+  if (c.includes("course")) return [
+    { id: "video", label: "Video", sub: "HD streaming" },
+    { id: "pdf", label: "PDF Workbook", sub: "Printable" },
+    { id: "audio", label: "Audio", sub: "Listen on the go" },
+  ];
+  if (c.includes("template")) return [
+    { id: "notion", label: "Notion", sub: "Duplicate to workspace" },
+    { id: "pdf", label: "PDF", sub: "Print-ready" },
+    { id: "docx", label: "Docx", sub: "Editable" },
+  ];
+  return [
+    { id: "pdf", label: "PDF", sub: "Universal" },
+    { id: "epub", label: "EPUB", sub: "Kindle / iBooks" },
+    { id: "audio", label: "Audio", sub: "When available" },
+  ];
+}
