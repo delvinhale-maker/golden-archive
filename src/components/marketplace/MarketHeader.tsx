@@ -29,10 +29,10 @@ import { supabase } from "@/integrations/supabase/client";
 const CATEGORIES = [
   "All",
   "eBooks",
-  "Courses",
+  "Journals",
   "Templates",
   "Audio",
-  "Finance",
+  "Financial Planners",
   "Leadership",
   "Purpose",
   "Business",
