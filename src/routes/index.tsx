@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useSuspenseQuery, queryOptions, useQueryClient, useQueryErrorResetBoundary, useIsFetching } from "@tanstack/react-query";
-import { Suspense } from "react";
+import { Suspense, lazy } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import {
   BadgeCheck,
@@ -27,22 +27,18 @@ import {
 } from "@/components/marketplace/ProductCard";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
-import { FeaturedCollections } from "@/components/marketplace/FeaturedCollections";
 import statProductsImg from "@/assets/stat-products.jpg";
 import statCategoriesImg from "@/assets/stat-categories.jpg";
 import statCreatorsImg from "@/assets/stat-creators.jpg";
 import statDownloadsImg from "@/assets/stat-downloads.jpg";
 
-import { KingdomPicksRow, kingdomPicksRowQ } from "@/components/marketplace/KingdomPicksRow";
-import { NewReleasesRow, newReleasesRowQ } from "@/components/marketplace/NewReleasesRow";
-import { KingdomBibleAppBanner } from "@/components/marketplace/KingdomBibleAppBanner";
+import { kingdomPicksRowQ } from "@/components/marketplace/KingdomPicksRow";
+import { newReleasesRowQ } from "@/components/marketplace/NewReleasesRow";
 import { ContinueBrowsingRow } from "@/components/marketplace/HomeRows";
-import { EmailCaptureBanner } from "@/components/EmailCaptureBanner";
-import { CreatorSpotlight, creatorSpotlightQ } from "@/components/marketplace/CreatorSpotlight";
-import { FeaturedCreatorsRow, featuredCreatorsQ } from "@/components/marketplace/FeaturedCreatorsRow";
-import { TopCreatorsLeaderboard, topCreatorsQ } from "@/components/marketplace/TopCreatorsLeaderboard";
-import { CategoryGrid13, categoryCountsQ } from "@/components/marketplace/CategoryGrid13";
-import { WhyAurumVault } from "@/components/marketplace/WhyAurumVault";
+import { creatorSpotlightQ } from "@/components/marketplace/CreatorSpotlight";
+import { featuredCreatorsQ } from "@/components/marketplace/FeaturedCreatorsRow";
+import { topCreatorsQ } from "@/components/marketplace/TopCreatorsLeaderboard";
+import { categoryCountsQ } from "@/components/marketplace/CategoryGrid13";
 import { SectionDivider } from "@/components/marketplace/SectionDivider";
 import { CountUp } from "@/components/marketplace/CountUp";
 import {
@@ -52,6 +48,38 @@ import {
 } from "@/lib/marketplace.functions";
 
 import { useAuth } from "@/hooks/use-auth";
+
+// Below-the-fold sections — lazy-loaded to shrink initial JS and cut hydration cost.
+const FeaturedCollections = lazy(() =>
+  import("@/components/marketplace/FeaturedCollections").then((m) => ({ default: m.FeaturedCollections })),
+);
+const KingdomPicksRow = lazy(() =>
+  import("@/components/marketplace/KingdomPicksRow").then((m) => ({ default: m.KingdomPicksRow })),
+);
+const NewReleasesRow = lazy(() =>
+  import("@/components/marketplace/NewReleasesRow").then((m) => ({ default: m.NewReleasesRow })),
+);
+const KingdomBibleAppBanner = lazy(() =>
+  import("@/components/marketplace/KingdomBibleAppBanner").then((m) => ({ default: m.KingdomBibleAppBanner })),
+);
+const EmailCaptureBanner = lazy(() =>
+  import("@/components/EmailCaptureBanner").then((m) => ({ default: m.EmailCaptureBanner })),
+);
+const CreatorSpotlight = lazy(() =>
+  import("@/components/marketplace/CreatorSpotlight").then((m) => ({ default: m.CreatorSpotlight })),
+);
+const FeaturedCreatorsRow = lazy(() =>
+  import("@/components/marketplace/FeaturedCreatorsRow").then((m) => ({ default: m.FeaturedCreatorsRow })),
+);
+const TopCreatorsLeaderboard = lazy(() =>
+  import("@/components/marketplace/TopCreatorsLeaderboard").then((m) => ({ default: m.TopCreatorsLeaderboard })),
+);
+const CategoryGrid13 = lazy(() =>
+  import("@/components/marketplace/CategoryGrid13").then((m) => ({ default: m.CategoryGrid13 })),
+);
+const WhyAurumVault = lazy(() =>
+  import("@/components/marketplace/WhyAurumVault").then((m) => ({ default: m.WhyAurumVault })),
+);
 
 const featuredQ = queryOptions({
   queryKey: ["mp", "featured"],
@@ -69,14 +97,13 @@ export const Route = createFileRoute("/")({
     context.queryClient.ensureQueryData(featuredQ);
     context.queryClient.ensureQueryData(newReleasesRowQ);
     context.queryClient.ensureQueryData(kingdomPicksRowQ);
-    context.queryClient.ensureQueryData(kingdomPicksRowQ);
-    context.queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] });
     context.queryClient.ensureQueryData(highlightsQ);
     context.queryClient.ensureQueryData(creatorSpotlightQ);
     context.queryClient.ensureQueryData(featuredCreatorsQ);
     context.queryClient.ensureQueryData(topCreatorsQ);
     context.queryClient.ensureQueryData(categoryCountsQ);
   },
+
 
 
   head: () => ({
