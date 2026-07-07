@@ -829,9 +829,7 @@ function PreviewLoadingOverlay({
     </motion.div>
   );
 }
-    </MarketShell>
-  );
-}
+
 
 function formatsFor(category: string): { id: string; label: string; sub?: string }[] {
   const c = category.toLowerCase();
