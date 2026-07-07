@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
+import { CategoryLineIcon } from "./CategoryIcons";
 import { getCategoryCounts } from "@/lib/creators.functions";
 
 export const categoryCountsQ = queryOptions({
