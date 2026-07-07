@@ -88,8 +88,22 @@ export const Route = createFileRoute("/products/$id")({
       rawDesc = "A premium digital resource from a verified AurumVault creator.";
     }
     const desc = rawDesc.length > 160 ? `${rawDesc.slice(0, 157)}…` : rawDesc;
-    const image =
-      p?.image && /^https?:\/\//.test(p.image) ? p.image : undefined;
+
+    // Build an absolute preview image URL for social platforms.
+    const FALLBACK_IMAGE = `${SITE_URL}/og-image.png`;
+    const rawImage = p?.image?.trim();
+    let image: string | undefined;
+    if (rawImage) {
+      if (/^https?:\/\//.test(rawImage)) {
+        image = rawImage;
+      } else if (rawImage.startsWith("/")) {
+        image = `${SITE_URL}${rawImage}`;
+      }
+    }
+    const previewImage = image ?? FALLBACK_IMAGE;
+    const imageAlt = p?.title
+      ? `Cover for ${p.title} on AurumVault`
+      : "AurumVault — Gold Standard Digital Commerce";
 
     const meta: Array<Record<string, string>> = [
       { title: baseTitle },
@@ -99,17 +113,22 @@ export const Route = createFileRoute("/products/$id")({
       { property: "og:title", content: baseTitle },
       { property: "og:description", content: desc },
       { property: "og:url", content: url },
+      { property: "og:image", content: previewImage },
+      { property: "og:image:alt", content: imageAlt },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: baseTitle },
       { name: "twitter:description", content: desc },
+      { name: "twitter:image", content: previewImage },
+      { name: "twitter:image:alt", content: imageAlt },
     ];
-    if (image) {
-      meta.push({ property: "og:image", content: image });
-      meta.push({ name: "twitter:image", content: image });
+    // Only advertise known dimensions for the fallback image.
+    if (!image) {
+      meta.push({ property: "og:image:width", content: "1024" });
+      meta.push({ property: "og:image:height", content: "1024" });
     }
 
     const scripts: Array<{ type: string; children: string }> = [];
     if (p) {
-      const absImage = image ?? `${SITE_URL}/logo.png`;
       scripts.push({
         type: "application/ld+json",
         children: JSON.stringify({
@@ -117,7 +136,7 @@ export const Route = createFileRoute("/products/$id")({
           "@type": "Product",
           name: p.title,
           description: rawDesc,
-          image: [absImage],
+          image: [previewImage],
           brand: { "@type": "Brand", name: "AurumVault" },
           offers: {
             "@type": "Offer",
