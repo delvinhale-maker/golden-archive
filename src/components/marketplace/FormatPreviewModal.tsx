@@ -168,12 +168,72 @@ function kindLabel(kind: FormatPreview["kind"]) {
 // -------- Bodies ---------------------------------------------------------
 
 function PdfBody({ url }: { url: string }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+    const canvases: HTMLCanvasElement[] = [];
+    (async () => {
+      try {
+        const pdfjs: any = await import("pdfjs-dist");
+        try {
+          const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+          pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+        } catch {
+          pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+        }
+        const doc = await pdfjs.getDocument({ url }).promise;
+        if (cancelled) return;
+        const container = containerRef.current;
+        if (!container) return;
+        container.innerHTML = "";
+        const containerWidth = Math.min(container.clientWidth - 24, 900);
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        for (let i = 1; i <= doc.numPages; i++) {
+          const page = await doc.getPage(i);
+          if (cancelled) return;
+          const viewport1 = page.getViewport({ scale: 1 });
+          const scale = containerWidth / viewport1.width;
+          const viewport = page.getViewport({ scale: scale * dpr });
+          const canvas = document.createElement("canvas");
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          canvas.style.width = `${viewport.width / dpr}px`;
+          canvas.style.height = `${viewport.height / dpr}px`;
+          canvas.className = "mx-auto my-3 rounded shadow-lg bg-white max-w-full h-auto";
+          container.appendChild(canvas);
+          canvases.push(canvas);
+          const ctx = canvas.getContext("2d");
+          if (!ctx) continue;
+          await page.render({ canvasContext: ctx, viewport }).promise;
+        }
+        if (!cancelled) setStatus("ready");
+      } catch (err) {
+        console.error("[PdfBody]", err);
+        if (!cancelled) setStatus("error");
+      }
+    })();
+    return () => {
+      cancelled = true;
+      canvases.forEach((c) => c.remove());
+    };
+  }, [url]);
+
   return (
-    <iframe
-      title="PDF preview"
-      src={`${url}#toolbar=0&navpanes=0`}
-      className="h-full w-full border-0 bg-white"
-    />
+    <div className="relative h-full w-full overflow-y-auto bg-ink/95">
+      {status === "loading" && (
+        <div className="absolute inset-0 flex items-center justify-center text-white/80">
+          <Loader2 size={24} className="animate-spin" />
+        </div>
+      )}
+      {status === "error" && (
+        <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-white/80">
+          We couldn't render this PDF preview. Please try again.
+        </div>
+      )}
+      <div ref={containerRef} className="mx-auto max-w-3xl px-3 py-4" />
+    </div>
   );
 }
 
