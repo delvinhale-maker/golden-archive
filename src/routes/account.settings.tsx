@@ -1,11 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { ArrowLeft, KeyRound, Loader2, LogOut, Save, User as UserIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, KeyRound, Loader2, LogOut, Save, Upload, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { RouteErrorFallback } from "@/components/RouteErrorFallback";
+
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5 MB
+const ACCEPTED_AVATAR_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 export const Route = createFileRoute("/account/settings")({
   head: () => ({
