@@ -132,6 +132,12 @@ function AccountPage() {
             </p>
             <p className="truncate text-sm text-mute">{user.email}</p>
           </div>
+          <Link
+            to="/account/settings"
+            className="rounded-full border border-line px-4 py-2 text-xs font-semibold text-ink hover:bg-muted"
+          >
+            Settings
+          </Link>
         </section>
 
         {/* My Library */}
