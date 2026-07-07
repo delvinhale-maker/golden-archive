@@ -270,8 +270,9 @@ async def test_non_variant_flow(page, href):
             body = req.post_data or ""
         except Exception:
             return
-        if "items" not in body or "priceCents" not in body:
-            return
+        if "createCartCheckout" not in req.url and "cart" not in req.url.lower():
+            if "priceCents" not in body or '"items"' not in body:
+                return
         try:
             captured.append({"url": req.url, "body": json.loads(body)})
         except Exception:
