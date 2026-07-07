@@ -173,12 +173,8 @@ async def test_variant_flow(page, href):
 
 
 
-def _price_cents(txt: str) -> int:
-    """Parse '$12.34' / 'From $12.34' → 1234 cents (integer, no float drift)."""
-    clean = txt.replace("From ", "").replace("$", "").replace(",", "").strip()
-    dollars, _, frac = clean.partition(".")
-    frac = (frac + "00")[:2] if frac else "00"
-    return int(dollars) * 100 + int(frac)
+
+
 
 
 async def test_non_variant_flow(page, href):
