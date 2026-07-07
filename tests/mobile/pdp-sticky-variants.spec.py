@@ -40,7 +40,7 @@ VARIANT_OPTION = "button:has(span.font-display):has-text('$')"
 
 async def collect_product_links(page):
     """Return a list of unique /products/<id> hrefs from /products."""
-    await page.goto(f"{BASE}/products", wait_until="domcontentloaded")
+    await page.goto(f"{BASE}/products", wait_until="networkidle")
     await page.wait_for_timeout(1500)
     hrefs = await page.eval_on_selector_all(
         "a[href^='/products/']",
