@@ -1,5 +1,5 @@
 import { getCategoryTheme } from "@/lib/category-theme";
-import { getCategoryDef } from "@/lib/categories";
+import { getCategoryDef, slugToLabel } from "@/lib/categories";
 import { Sparkles } from "lucide-react";
 import type { Product } from "@/lib/marketplace.functions";
 import { useMemo } from "react";
@@ -23,9 +23,10 @@ export function CategoryHero({
 }) {
   const theme = getCategoryTheme(category);
   const def = getCategoryDef(category);
+  const categoryLabel = category ? (def?.label ?? slugToLabel(category)) : null;
   const title = query
     ? `Results for "${query}"`
-    : (category ?? "Browse the Vault");
+    : (categoryLabel ?? "Browse the Vault");
 
   const featured = useMemo(
     () => (products ?? []).slice(0, 3),
@@ -77,7 +78,7 @@ export function CategoryHero({
                   color: theme.accent,
                 }}
               >
-                <Sparkles size={11} /> {category ?? "All Categories"}
+                <Sparkles size={11} /> {categoryLabel ?? "All Categories"}
               </span>
               {typeof resultCount === "number" && (
                 <span className="text-[11px] font-semibold uppercase tracking-caps opacity-70">
@@ -132,7 +133,7 @@ export function CategoryHero({
                   className="mb-2 text-[10px] font-bold uppercase tracking-caps"
                   style={{ color: theme.accent }}
                 >
-                  Featured in {category ?? "the Vault"}
+                  Featured in {categoryLabel ?? "the Vault"}
                 </div>
                 <ul className="space-y-1.5">
                   {featured.map((p) => (
