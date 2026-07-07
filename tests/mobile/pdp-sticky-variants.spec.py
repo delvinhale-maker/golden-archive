@@ -172,13 +172,12 @@ async def test_non_variant_flow(page, href):
     )
     assert match.get("qty", 0) == 1, f"[cart] expected qty=1 after first add, got {match!r}"
 
-    # Simulate a quantity increase by tapping the sticky CTA again. The
-    # first add opens the cart drawer which may overlay the sticky bar,
-    # so dismiss it first.
-    await page.keyboard.press("Escape")
-    await page.wait_for_timeout(300)
-    await cta.scroll_into_view_if_needed()
-    await cta.click(force=True)
+    # Bump quantity via the cart drawer (opened by the first add). The
+    # unit price stored in the cart must still equal the sticky
+    # displayPrice — qty scales, price-per-unit does not.
+    increase = page.get_by_role("button", name="Increase").first
+    await increase.wait_for(timeout=5000)
+    await increase.click()
     await page.wait_for_function(
         "(pid) => { const raw = window.localStorage.getItem('av:cart:v2');"
         "  if (!raw) return false;"
