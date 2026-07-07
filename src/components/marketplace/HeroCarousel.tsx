@@ -140,38 +140,34 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
                 {slide.kicker}
               </div>
             )}
-            <h1 className="mt-6 font-display text-4xl leading-[1.05] text-white sm:text-5xl md:text-6xl lg:text-[64px]">
+            <h1 className="mt-6 font-display text-5xl leading-[1.02] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[80px]">
               {slide.title}
             </h1>
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 md:text-lg">
+            <p className="mt-8 max-w-xl text-lg leading-relaxed text-white/75 md:text-xl">
               {slide.body}
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-10 flex flex-wrap items-center gap-4">
               <Link to={slide.ctaTo}>
                 <motion.span
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.03, y: -1 }}
                   whileTap={{ scale: 0.97 }}
-                  className="inline-flex h-12 items-center rounded-full px-7 text-sm font-bold text-navy transition-[filter] hover:brightness-110"
-                  style={{
-                    backgroundColor: "var(--accent-color)",
-                    boxShadow:
-                      "0 10px 30px -8px color-mix(in srgb, var(--accent-color) 55%, transparent)",
-                  }}
+                  className="btn-gold-premium inline-flex h-14 items-center rounded-2xl px-9 text-[15px] font-bold text-navy"
                 >
                   {slide.ctaLabel}
                 </motion.span>
               </Link>
               {slide.secondaryLabel && slide.secondaryHref && (
                 <motion.a
-                  whileHover={{ scale: 1.02, backgroundColor: "#fff", color: "#0f1629" }}
+                  whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.08)" }}
                   whileTap={{ scale: 0.97 }}
                   href={slide.secondaryHref}
-                  className="inline-flex h-12 items-center rounded-full border border-white/70 px-7 text-sm font-bold text-white"
+                  className="inline-flex h-14 items-center rounded-2xl border border-white/40 px-9 text-[15px] font-bold text-white backdrop-blur-sm"
                 >
                   {slide.secondaryLabel}
                 </motion.a>
               )}
             </div>
+
 
           </motion.div>
         </AnimatePresence>
