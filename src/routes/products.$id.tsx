@@ -14,8 +14,13 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, BookOpen } from "lucide-react";
-import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
-import { getPublicPreview } from "@/lib/preview.functions";
+import { getFormatPreview } from "@/lib/preview.functions";
+import {
+  FormatPreviewModal,
+  FormatPreviewLoading,
+  type FormatPreview,
+} from "@/components/marketplace/FormatPreviewModal";
+
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { StripeEmbeddedProductCheckout } from "@/components/StripeEmbeddedCheckout";
@@ -202,63 +207,44 @@ function ProductPage() {
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [selected, setSelected] = useState<SelectedVariant | null>(null);
 
-  // Public preview modal state — only surfaces when the creator picked
-  // preview pages and the manuscript is a PDF.
-  const previewAvailable =
-    (product.previewPages?.length ?? 0) > 0 && product.fileExt === "pdf";
+  // Preview modal state — surfaces for every published product with a
+  // manuscript file. The server picks a format-appropriate preview shape
+  // (watermarked PDF pages, EPUB first chapter, DOCX text excerpt,
+  // 60-second audio/video clip, or a cover+description fallback).
+  const previewAvailable = Boolean(product.fileExt);
+  const previewLabel = previewLabelFor(product.fileExt ?? null, product.previewPages?.length ?? 0);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewStage, setPreviewStage] = useState(0); // 0..3
-  const [previewProgress, setPreviewProgress] = useState(0); // 0..100
-  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [preview, setPreview] = useState<FormatPreview | null>(null);
   const previewBlobRef = useRef<string | null>(null);
-  const previewTickerRef = useRef<number | null>(null);
   const previewAbortRef = useRef<AbortController | null>(null);
   useEffect(() => {
     return () => {
       if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
-      if (previewTickerRef.current) window.clearInterval(previewTickerRef.current);
       previewAbortRef.current?.abort();
     };
   }, []);
   function cancelPreview() {
     previewAbortRef.current?.abort();
     previewAbortRef.current = null;
-    if (previewTickerRef.current) {
-      window.clearInterval(previewTickerRef.current);
-      previewTickerRef.current = null;
+    if (previewBlobRef.current) {
+      URL.revokeObjectURL(previewBlobRef.current);
+      previewBlobRef.current = null;
     }
     setPreviewOpen(false);
     setPreviewLoading(false);
-    setPreviewProgress(0);
-    setPreviewStage(0);
+    setPreview(null);
   }
   async function openPreview() {
     if (previewLoading) return;
-    // Open modal immediately with skeleton so the user sees instant response.
     setPreviewLoading(true);
-    setPreviewStage(1);
-    setPreviewProgress(4);
-    setPreviewBlobUrl(null);
+    setPreview(null);
     setPreviewOpen(true);
-    // Fresh abort controller so the user can cancel the in-flight request.
     previewAbortRef.current?.abort();
     const controller = new AbortController();
     previewAbortRef.current = controller;
-    // Simulated staged progress — we can't stream a base64 JSON body, so
-    // pace the bar against realistic timings for the fetch → watermark →
-    // render stages the server actually performs.
-    if (previewTickerRef.current) window.clearInterval(previewTickerRef.current);
-    previewTickerRef.current = window.setInterval(() => {
-      setPreviewProgress((p) => {
-        const next = p + (p < 40 ? 3 : p < 75 ? 1.4 : 0.4);
-        const capped = Math.min(next, 92);
-        setPreviewStage(capped < 35 ? 1 : capped < 75 ? 2 : 3);
-        return capped;
-      });
-    }, 180);
     try {
-      const res = await getPublicPreview({
+      const res = await getFormatPreview({
         data: { productId: product.id },
         signal: controller.signal,
       });
@@ -268,37 +254,36 @@ function ProductPage() {
         toast.error("Preview is temporarily unavailable. Please try again shortly.");
         return;
       }
-      const bin = atob(res.pdfBase64);
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      const blob = new Blob([bytes], { type: "application/pdf" });
-      if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
-      const url = URL.createObjectURL(blob);
-      previewBlobRef.current = url;
-      setPreviewStage(3);
-      setPreviewProgress(100);
-      // Brief settle so the 100% state is visible before the reader appears.
-      await new Promise((r) => setTimeout(r, 220));
-      if (controller.signal.aborted) {
-        URL.revokeObjectURL(url);
-        previewBlobRef.current = null;
-        return;
+      // Materialize the PDF bytes into a blob URL so the <iframe> can render it.
+      if (res.kind === "pdf") {
+        const bin = atob(res.pdfBase64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        const blob = new Blob([bytes], { type: "application/pdf" });
+        if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
+        const url = URL.createObjectURL(blob);
+        previewBlobRef.current = url;
+        setPreview({
+          kind: "pdf",
+          title: res.title,
+          coverUrl: res.coverUrl,
+          pageCount: res.pageCount,
+          blobUrl: url,
+        });
+      } else {
+        setPreview(res as FormatPreview);
       }
-      setPreviewBlobUrl(url);
     } catch (e) {
       if (controller.signal.aborted) return;
       console.error("[preview] load failed", e);
       setPreviewOpen(false);
       toast.error("Preview is temporarily unavailable. Please try again shortly.");
     } finally {
-      if (previewTickerRef.current) {
-        window.clearInterval(previewTickerRef.current);
-        previewTickerRef.current = null;
-      }
       if (previewAbortRef.current === controller) previewAbortRef.current = null;
       setPreviewLoading(false);
     }
   }
+
 
 
   useEffect(() => {
@@ -550,8 +535,9 @@ function ProductPage() {
                 {previewLoading ? (
                   <><Loader2 size={16} className="animate-spin" /> Opening preview…</>
                 ) : (
-                  <><BookOpen size={16} /> Preview inside — {product.previewPages!.length} pages</>
+                  <><BookOpen size={16} /> {previewLabel}</>
                 )}
+
               </button>
             )}
 
@@ -696,21 +682,13 @@ function ProductPage() {
         )}
       </AnimatePresence>
 
-      {previewOpen && previewBlobUrl && (
-        <ManuscriptPreviewer
-          manuscriptPath={`${previewBlobUrl}#.pdf`}
-          title={`${product.title} — Preview`}
-          coverUrl={product.image && /^https?:\/\//.test(product.image) ? product.image : null}
-          onClose={() => setPreviewOpen(false)}
-        />
+      {previewOpen && preview && (
+        <FormatPreviewModal preview={preview} onClose={cancelPreview} />
       )}
-      {previewOpen && !previewBlobUrl && (
-        <PreviewLoadingOverlay
+      {previewOpen && !preview && (
+        <FormatPreviewLoading
           title={product.title}
-          coverUrl={product.image ?? null}
-          pageCount={product.previewPages?.length ?? 0}
-          stage={previewStage}
-          progress={previewProgress}
+          coverUrl={product.image && /^https?:\/\//.test(product.image) ? product.image : null}
           onCancel={cancelPreview}
         />
       )}
@@ -718,150 +696,25 @@ function ProductPage() {
   );
 }
 
-function PreviewLoadingOverlay({
-  title,
-  coverUrl,
-  pageCount,
-  stage,
-  progress,
-  onCancel,
-}: {
-  title: string;
-  coverUrl: string | null;
-  pageCount: number;
-  stage: number;
-  progress: number;
-  onCancel: () => void;
-}) {
-  const steps = [
-    { id: 1, label: "Fetching your preview" },
-    { id: 2, label: "Applying watermark" },
-    { id: 3, label: "Rendering pages" },
-  ];
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Preparing preview"
-    >
-      <button
-        type="button"
-        onClick={onCancel}
-        aria-label="Cancel preview"
-        className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white/80 hover:bg-white/20"
-      >
-        <X size={18} />
-      </button>
-      <div className="w-full max-w-md rounded-2xl bg-paper p-6 shadow-2xl">
-        <div className="flex items-start gap-4">
-          <div className="relative h-24 w-[68px] flex-shrink-0 overflow-hidden rounded-md bg-ink/10">
-            {coverUrl ? (
-              <>
-                <img src={coverUrl} alt="" className="h-full w-full object-cover" />
-                {/* Sheen sweep to signal activity */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                  initial={{ x: "-100%" }}
-                  animate={{ x: "100%" }}
-                  transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-                />
-              </>
-            ) : (
-              <div className="h-full w-full animate-pulse bg-ink/15" />
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-bold uppercase tracking-caps text-mute">
-              Preparing preview
-            </div>
-            <h3 className="mt-0.5 truncate text-base font-bold text-navy" title={title}>
-              {title}
-            </h3>
-            <p className="mt-1 text-xs text-mute">
-              Watermarking {pageCount} page{pageCount === 1 ? "" : "s"} for you…
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-5">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-ink/10">
-            <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-navy to-gold"
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.max(4, Math.min(100, progress))}%` }}
-              transition={{ ease: "easeOut", duration: 0.4 }}
-            />
-          </div>
-          <div className="mt-1 flex justify-between text-[11px] font-semibold text-mute">
-            <span>{Math.round(progress)}%</span>
-            <span>Usually under 5 seconds</span>
-          </div>
-        </div>
-
-        <ol className="mt-4 space-y-2">
-          {steps.map((s) => {
-            const done = stage > s.id || progress >= 100;
-            const active = stage === s.id && !done;
-            return (
-              <li key={s.id} className="flex items-center gap-2 text-sm">
-                <span
-                  className={`flex h-5 w-5 items-center justify-center rounded-full border ${
-                    done
-                      ? "border-gold bg-gold text-navy"
-                      : active
-                      ? "border-navy text-navy"
-                      : "border-ink/20 text-mute"
-                  }`}
-                >
-                  {done ? (
-                    <Check size={12} strokeWidth={3} />
-                  ) : active ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <span className="text-[10px] font-bold">{s.id}</span>
-                  )}
-                </span>
-                <span className={done ? "text-navy line-through decoration-navy/30" : active ? "font-semibold text-navy" : "text-mute"}>
-                  {s.label}
-                </span>
-              </li>
-            );
-          })}
-        </ol>
-
-        {/* Skeleton page thumbnails to hint at what's coming */}
-        <div className="mt-5 grid grid-cols-5 gap-1.5">
-          {Array.from({ length: Math.max(1, Math.min(5, pageCount)) }).map((_, i) => (
-            <div
-              key={i}
-              className="relative aspect-[3/4] overflow-hidden rounded-md bg-ink/5"
-            >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-ink/5 via-ink/10 to-ink/5"
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15 }}
-              />
-            </div>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          onClick={onCancel}
-          className="mt-5 flex h-11 w-full items-center justify-center rounded-full border border-ink/15 bg-white text-sm font-semibold text-navy hover:bg-ink/5"
-        >
-          Cancel preview
-        </button>
-      </div>
-    </motion.div>
-  );
+/** Buyer-facing button label per file format. Falls back to a generic
+ * "Preview" for anything without a specific in-modal renderer. */
+function previewLabelFor(fileExt: string | null, previewPageCount: number): string {
+  const e = (fileExt ?? "").toLowerCase();
+  if (e === "pdf") {
+    return previewPageCount > 0
+      ? `Preview inside — ${previewPageCount} pages`
+      : "Preview inside";
+  }
+  if (e === "epub") return "Read the first chapter";
+  if (e === "docx") return "Read a text excerpt";
+  if (["mp3", "m4a", "wav", "ogg", "aac", "flac"].includes(e)) return "Listen to a 60s sample";
+  if (["mp4", "webm", "mov", "m4v"].includes(e)) return "Watch a 60s clip";
+  return "Preview this product";
 }
 
 
+
+/** Format chips shown next to the product title, keyed by top-level category. */
 function formatsFor(category: string): { id: string; label: string; sub?: string }[] {
   const c = category.toLowerCase();
   if (c.includes("audio")) return [
