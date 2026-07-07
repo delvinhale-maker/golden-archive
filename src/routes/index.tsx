@@ -27,7 +27,6 @@ import {
 } from "@/components/marketplace/ProductCard";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
-import { DealsStrip } from "@/components/marketplace/DealsStrip";
 
 import { KingdomPicksRow, kingdomPicksRowQ } from "@/components/marketplace/KingdomPicksRow";
 import { NewReleasesRow, newReleasesRowQ } from "@/components/marketplace/NewReleasesRow";
@@ -43,18 +42,12 @@ import {
   getHomeHighlights,
   type Product,
 } from "@/lib/marketplace.functions";
-import { fetchAmazonDealsOfTheDay } from "@/lib/affiliate";
 
 import { useAuth } from "@/hooks/use-auth";
 
 const featuredQ = queryOptions({
   queryKey: ["mp", "featured"],
   queryFn: () => getFeaturedProducts(),
-});
-const amazonDealsQ = queryOptions({
-  queryKey: ["mp", "amazon-deals"],
-  queryFn: () => fetchAmazonDealsOfTheDay(6),
-  staleTime: 60_000,
 });
 const highlightsQ = queryOptions({
   queryKey: ["mp", "home-highlights"],
@@ -66,7 +59,6 @@ const highlightsQ = queryOptions({
 export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(featuredQ);
-    context.queryClient.ensureQueryData(amazonDealsQ);
     context.queryClient.ensureQueryData(newReleasesRowQ);
     context.queryClient.ensureQueryData(kingdomPicksRowQ);
     context.queryClient.ensureQueryData(kingdomPicksRowQ);
@@ -127,9 +119,6 @@ function Home() {
       <HeroStatsBar />
       <TrustBar />
       <RefreshHighlightsBar />
-      <Suspense fallback={null}>
-        <DealsAndBestsellers />
-      </Suspense>
       <ContinueBrowsingRow />
 
       <Suspense fallback={null}>
@@ -289,10 +278,6 @@ function FeaturedHero() {
   );
 }
 
-function DealsAndBestsellers() {
-  const { data: amazon } = useSuspenseQuery(amazonDealsQ);
-  return <DealsStrip products={[]} amazonDeals={amazon} />;
-}
 
 
 
