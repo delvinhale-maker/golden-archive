@@ -6,6 +6,7 @@ import {
   Heart,
   LayoutDashboard,
   Loader2,
+  LogOut,
   Menu,
   Search,
   ShoppingBag,
@@ -16,13 +17,14 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AVLogo } from "./AVLogo";
 import { ProductCover } from "./ProductCover";
 import { useCart, useWishlist, openCartDrawer } from "@/hooks/use-av-store";
 import { useAuth } from "@/hooks/use-auth";
 import { getProducts } from "@/lib/marketplace.functions";
 import { NotificationsBell } from "./NotificationsBell";
+import { supabase } from "@/integrations/supabase/client";
 
 const CATEGORIES = [
   "All",
