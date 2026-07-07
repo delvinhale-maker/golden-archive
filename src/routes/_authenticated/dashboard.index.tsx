@@ -696,8 +696,21 @@ function ActionsMenu({
       {open && (
         <div className="absolute right-0 mt-1 z-20 min-w-[180px] rounded-xl bg-white border border-ink/10 shadow-lg py-1.5 text-sm">
           <MenuItem to="/dashboard/edit/$id" params={{ id: productId }} icon={<Pencil size={14} />}>
-            Edit
+            Edit eBook / product
           </MenuItem>
+          <MenuItem to="/dashboard/edit/$id" params={{ id: productId }} icon={<DollarSign size={14} />}>
+            Edit price
+          </MenuItem>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onPromote();
+            }}
+            className="w-full text-left px-3 py-2 hover:bg-paper flex items-center gap-2 text-ink"
+          >
+            <Megaphone size={14} /> Promote &amp; advertise
+          </button>
           <MenuItem to="/dashboard/variants/$id" params={{ id: productId }} icon={<Pencil size={14} />}>
             Variants
           </MenuItem>
