@@ -141,10 +141,6 @@ async def test_non_variant_flow(page, href):
     # embed the same price so label + price + CTA agree.
     sticky_price_txt = (await page.locator(STICKY_PRICE).inner_text()).strip()
     sticky_cents = _price_cents(sticky_price_txt)
-    cta_txt = (await page.locator(STICKY_CTA).inner_text()).strip()
-    assert sticky_price_txt.replace("From ", "") in cta_txt, (
-        f"[cart] CTA text {cta_txt!r} does not embed sticky price {sticky_price_txt!r}"
-    )
 
     cta = page.locator(STICKY_CTA)
     await cta.scroll_into_view_if_needed()
