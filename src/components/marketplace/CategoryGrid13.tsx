@@ -197,7 +197,7 @@ export function CategoryGrid13() {
                 key={c.slug}
                 to="/products"
                 search={{ category: c.slug } as never}
-                className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.045] to-white/[0.015] p-6 transition-all duration-500 hover:-translate-y-1 hover:border-gold/50 hover:from-white/[0.08] hover:to-white/[0.03]"
+                className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.045] to-white/[0.015] p-6 transition-all duration-500 hover:-translate-y-1 hover:border-gold/50 hover:from-white/[0.08] hover:to-white/[0.03] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#08101D]"
               >
                 {/* corner filigree */}
                 <span
