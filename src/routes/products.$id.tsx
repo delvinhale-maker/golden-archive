@@ -346,7 +346,7 @@ function ProductPage() {
 
   return (
     <MarketShell>
-      <div className="mx-auto max-w-7xl px-4 pb-16 pt-6 md:px-8">
+      <div className="mx-auto max-w-7xl px-4 pb-[calc(150px+env(safe-area-inset-bottom))] pt-6 md:px-8 md:pb-16">
         <nav className="mb-6 text-xs text-mute">
           <Link to="/" className="hover:text-ink">Home</Link>
           <span className="px-1.5">/</span>
