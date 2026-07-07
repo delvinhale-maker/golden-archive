@@ -1295,7 +1295,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
                 className="h-9 w-9 rounded-md bg-black/40 border border-white/15 inline-flex items-center justify-center hover:bg-white/10 disabled:opacity-40"
                 disabled={imageFitWidth}
               >
-                <ZoomIn size={16} />
+                <ZoomOut size={16} />
               </button>
               <button
                 type="button"
@@ -1303,7 +1303,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
                 aria-label="Zoom in"
                 className="h-9 w-9 rounded-md bg-black/40 border border-white/15 inline-flex items-center justify-center hover:bg-white/10"
               >
-                <ZoomOut size={16} />
+                <ZoomIn size={16} />
               </button>
               <button
                 type="button"
