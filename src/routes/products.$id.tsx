@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, BookOpen } from "lucide-react";
+import { Loader2, BookOpen, ShoppingCart } from "lucide-react";
 import { getFormatPreview } from "@/lib/preview.functions";
 import {
   listProductPreviews,
