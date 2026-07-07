@@ -119,11 +119,12 @@ export const PRODUCT_TYPES: Record<ProductTypeKey, ProductTypeConfig> = {
   },
   printable_journal: {
     key: "printable_journal",
-    label: "Printable Journal",
+    label: "Digital Journal",
     emoji: "📓",
-    tagline: "PDF journal or printable pages",
+    tagline: "Digital journal pages",
     category: "printable_journals",
-    categoryLabel: "Printable Journal",
+    categoryLabel: "Digital Journal",
+
     fileExts: ["pdf"],
     fileMimes: ["application/pdf"],
     acceptString: ".pdf,application/pdf",
