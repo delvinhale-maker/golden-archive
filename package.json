@@ -12,6 +12,7 @@
     "check:bg": "node scripts/check-light-surfaces.mjs",
     "check:slugs": "node scripts/check-slug-integrity.mjs",
     "check:prepublish": "node scripts/prepublish-check.mjs",
+    "smoke:previews": "node scripts/smoke-previews.mjs",
     "format": "prettier --write ."
   },
   "dependencies": {
