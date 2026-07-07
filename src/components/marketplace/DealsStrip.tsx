@@ -140,7 +140,7 @@ export function DealsStrip({
 function SourceBadge({ kind }: { kind: "own" | "amazon" }) {
   if (kind === "own") {
     return (
-      <span className="absolute left-2 top-2 rounded-full bg-navy px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gold-ink">
+      <span className="absolute left-2 top-2 rounded-full bg-navy px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gold">
         AurumVault
       </span>
     );

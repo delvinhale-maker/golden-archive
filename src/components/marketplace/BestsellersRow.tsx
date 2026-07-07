@@ -49,7 +49,7 @@ export function BestsellersRow({ products }: { products: Product[] }) {
                     category={p.category}
                     className="h-full w-full object-cover"
                   />
-                  <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-navy px-2 py-0.5 text-[10px] font-bold text-gold-ink">
+                  <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-navy px-2 py-0.5 text-[10px] font-bold text-gold">
                     #{i + 1}
                   </span>
                 </div>

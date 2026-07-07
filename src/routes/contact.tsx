@@ -217,7 +217,7 @@ function ContactPage() {
               href={`mailto:${email}`}
               className="group rounded-2xl border border-ink/10 bg-white p-5 transition hover:border-gold/40 hover:shadow-sm"
             >
-              <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-navy text-gold-ink">
+              <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-navy text-gold">
                 <Icon size={16} />
               </div>
               <div className="mt-3 font-display text-lg text-navy">{title}</div>
