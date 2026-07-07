@@ -298,7 +298,7 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
   ];
 
   return (
-    <div className="w-full bg-white">
+    <div className="w-full bg-white pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
       {/* Navy top bar with breadcrumb */}
       <div style={{ background: NAVY }}>
         <div className="mx-auto flex max-w-7xl items-center gap-1.5 overflow-x-auto px-4 py-3 sm:px-6">
@@ -517,6 +517,47 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Mobile sticky Add to Cart CTA */}
+      <div
+        className="fixed inset-x-0 z-40 border-t border-black/10 bg-white/95 px-4 pt-3 backdrop-blur md:hidden"
+        style={{
+          bottom: "64px",
+          paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)",
+          boxShadow: "0 -8px 24px -12px rgba(17,25,46,0.18)",
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[11px] font-semibold uppercase tracking-wider text-black/50">
+              {categoryLabel}
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span
+                className="font-display text-lg font-bold"
+                style={{ color: NAVY }}
+              >
+                ${price.toFixed(2)}
+              </span>
+              {compareAtPrice && compareAtPrice > price && (
+                <span className="text-xs text-black/40 line-through">
+                  ${compareAtPrice.toFixed(2)}
+                </span>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onAddToCart}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-[0_10px_28px_-10px_rgba(201,168,76,0.7)] active:scale-[0.98]"
+            style={{ background: GOLD, color: NAVY }}
+            aria-label="Add to cart"
+          >
+            <ShoppingCart size={16} />
+            Add to Cart
+          </button>
+        </div>
       </div>
     </div>
   );
