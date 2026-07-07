@@ -299,7 +299,7 @@ function HeroStatsBar() {
   const productCount = data.illustriousProductCount;
   const stats: {
     image: string;
-    label: string;
+    label: React.ReactNode;
     caption: string;
     to: string;
     hash?: string;
@@ -307,14 +307,22 @@ function HeroStatsBar() {
   }[] = [
     {
       image: statProductsImg,
-      label: `${productCount} Product${productCount === 1 ? "" : "s"}`,
+      label: (
+        <>
+          <CountUp end={productCount} /> Product{productCount === 1 ? "" : "s"}
+        </>
+      ),
       caption: "Curated library",
       to: "/products",
       ariaLabel: "Browse all products",
     },
     {
       image: statCategoriesImg,
-      label: "18 Categories",
+      label: (
+        <>
+          <CountUp end={18} /> Categories
+        </>
+      ),
       caption: "Across every discipline",
       to: "/",
       hash: "categories",
