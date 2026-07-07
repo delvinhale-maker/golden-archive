@@ -672,13 +672,13 @@ function SocialsSection() {
   ];
 
   return (
-    <section className="border-y border-white/10 bg-bg-page">
+    <section className="border-y border-line bg-bg-page">
       <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
         <div className="mb-8 text-center">
           <div className="text-[11px] font-semibold tracking-caps text-gold">
             STAY CONNECTED
           </div>
-          <h2 className="mt-2 font-display text-2xl font-bold text-white md:text-3xl">
+          <h2 className="mt-2 font-display text-2xl font-bold text-navy md:text-3xl">
             Follow AurumVault
           </h2>
         </div>
@@ -689,7 +689,7 @@ function SocialsSection() {
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-gold hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-5 py-2.5 text-sm font-semibold text-navy transition hover:-translate-y-0.5 hover:border-gold hover:shadow-card-hover"
             >
               <link.icon size={16} className="text-gold" />
               {link.label}
@@ -698,5 +698,6 @@ function SocialsSection() {
         </div>
       </div>
     </section>
+
   );
 }
