@@ -1398,7 +1398,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
               style={{
                 background: location === 1 ? "transparent" : dev.bg,
                 overflowY: "auto",
-                overflowX: "hidden",
+                overflowX: isImage ? "auto" : "hidden",
                 WebkitOverflowScrolling: "touch",
                 scrollBehavior: "smooth",
               }}
