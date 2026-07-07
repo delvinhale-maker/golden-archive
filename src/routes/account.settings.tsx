@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, KeyRound, Loader2, LogOut, Save, Upload, User as UserIcon } from "lucide-react";
+import { ArrowLeft, KeyRound, Loader2, LogOut, Save, Trash2, Upload, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { useAuth } from "@/hooks/use-auth";
