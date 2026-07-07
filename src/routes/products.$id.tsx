@@ -14,8 +14,13 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, BookOpen } from "lucide-react";
-import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
-import { getPublicPreview } from "@/lib/preview.functions";
+import { getFormatPreview } from "@/lib/preview.functions";
+import {
+  FormatPreviewModal,
+  FormatPreviewLoading,
+  type FormatPreview,
+} from "@/components/marketplace/FormatPreviewModal";
+
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { StripeEmbeddedProductCheckout } from "@/components/StripeEmbeddedCheckout";
