@@ -277,7 +277,7 @@ export function CategoryGrid13() {
           </p>
           <Link
             to="/products"
-            className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-gold px-7 text-sm font-bold text-navy shadow-[0_10px_30px_-10px_rgba(201,162,39,0.65)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold-soft hover:brightness-105"
+            className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-gold px-7 text-sm font-bold text-navy shadow-[0_10px_30px_-10px_rgba(201,162,39,0.65)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold-soft hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#08101D]"
           >
             Explore All Categories
             <ArrowRight size={16} />
