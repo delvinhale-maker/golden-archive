@@ -16,6 +16,11 @@ import { toast } from "sonner";
 import { Loader2, BookOpen } from "lucide-react";
 import { getFormatPreview } from "@/lib/preview.functions";
 import {
+  listProductPreviews,
+  type ProductPreviewImage,
+} from "@/lib/product-previews.functions";
+import { ProductPreviewViewer } from "@/components/marketplace/ProductPreviewViewer";
+import {
   FormatPreviewModal,
   FormatPreviewLoading,
   type FormatPreview,
@@ -211,8 +216,32 @@ function ProductPage() {
   // manuscript file. The server picks a format-appropriate preview shape
   // (watermarked PDF pages, EPUB first chapter, DOCX text excerpt,
   // 60-second audio/video clip, or a cover+description fallback).
-  const previewAvailable = Boolean(product.fileExt);
-  const previewLabel = previewLabelFor(product.fileExt ?? null, product.previewPages?.length ?? 0);
+  // Pre-rendered watermarked sample images (product_previews table).
+  // For PDFs, these replace the live pdf.js render — if a PDF product has
+  // zero rows, we hide the preview button entirely.
+  const isPdf = (product.fileExt ?? "").toLowerCase() === "pdf";
+  const [imagePreviews, setImagePreviews] = useState<ProductPreviewImage[]>([]);
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  useEffect(() => {
+    if (!isPdf) return;
+    let cancelled = false;
+    listProductPreviews({ data: { productId: product.id } })
+      .then((rows) => {
+        if (!cancelled) setImagePreviews(rows);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id, isPdf]);
+
+  const hasImagePreviews = imagePreviews.length > 0;
+  // Non-PDF formats still route through the live FormatPreviewModal.
+  // PDFs only surface the preview button when image rows exist.
+  const previewAvailable = isPdf ? hasImagePreviews : Boolean(product.fileExt);
+  const previewLabel = isPdf
+    ? `Preview inside — ${imagePreviews.length} pages`
+    : previewLabelFor(product.fileExt ?? null, product.previewPages?.length ?? 0);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [preview, setPreview] = useState<FormatPreview | null>(null);
@@ -528,11 +557,11 @@ function ProductPage() {
             {previewAvailable && (
               <button
                 type="button"
-                onClick={openPreview}
-                disabled={previewLoading}
+                onClick={isPdf ? () => setImageViewerOpen(true) : openPreview}
+                disabled={!isPdf && previewLoading}
                 className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-navy/20 bg-white text-sm font-bold text-navy hover:border-navy/40 disabled:opacity-60"
               >
-                {previewLoading ? (
+                {!isPdf && previewLoading ? (
                   <><Loader2 size={16} className="animate-spin" /> Opening preview…</>
                 ) : (
                   <><BookOpen size={16} /> {previewLabel}</>
@@ -692,6 +721,25 @@ function ProductPage() {
           onCancel={cancelPreview}
         />
       )}
+
+      <ProductPreviewViewer
+        open={imageViewerOpen}
+        onClose={() => setImageViewerOpen(false)}
+        productTitle={product.title}
+        previews={imagePreviews}
+        price={displayPrice}
+        inCart={inCart}
+        onAddToCart={() => {
+          cart.add({
+            id: product.id,
+            title: product.title,
+            price: product.price,
+            category: product.category,
+            image: product.image,
+          });
+          setImageViewerOpen(false);
+        }}
+      />
     </MarketShell>
   );
 }
