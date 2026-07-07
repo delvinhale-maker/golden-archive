@@ -848,6 +848,14 @@ function PreviewLoadingOverlay({
             </div>
           ))}
         </div>
+
+        <button
+          type="button"
+          onClick={onCancel}
+          className="mt-5 flex h-11 w-full items-center justify-center rounded-full border border-ink/15 bg-white text-sm font-semibold text-navy hover:bg-ink/5"
+        >
+          Cancel preview
+        </button>
       </div>
     </motion.div>
   );
