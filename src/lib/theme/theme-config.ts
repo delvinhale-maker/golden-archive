@@ -20,14 +20,14 @@ const mk = (tabName: string, accentColor: string, _gradientStart?: string): Them
 
 // Category (?category=...) → theme, matched on /products
 export const CATEGORY_THEMES: Record<string, ThemeTokens> = {
-  ebooks:     mk("eBooks",     GOLD_ON_WHITE),
-  courses:    mk("Courses",    "#4B2D8F"),
-  templates:  mk("Templates",  "#2D6A4F"),
-  audio:      mk("Audio",      "#0D6470"),
-  finance:    mk("Finance",    "#1A6B3A"),
-  leadership: mk("Leadership", "#A85E00"),
-  purpose:    mk("Purpose",    "#7B1F3A"),
-  business:   mk("Business",   "#2E5B8A"),
+  ebooks:              mk("eBooks",             GOLD_ON_WHITE),
+  journals:            mk("Journals",           "#8F3A5B"),
+  templates:           mk("Templates",          "#2D6A4F"),
+  audio:               mk("Audio",              "#0D6470"),
+  "financial planners":mk("Financial Planners", "#1A6B3A"),
+  leadership:          mk("Leadership",         "#A85E00"),
+  purpose:             mk("Purpose",            "#7B1F3A"),
+  business:            mk("Business",           "#2E5B8A"),
 };
 
 // Route pathname → theme. Longest/most specific first.

@@ -30,10 +30,10 @@ const TRENDING = [
   "Money Smart",
   "Leadership",
   "Templates",
-  "Courses",
+  "Journals",
   "Audio",
 ];
-const CATEGORIES = ["eBooks", "Courses", "Templates", "Audio", "Finance", "Leadership"];
+const CATEGORIES = ["eBooks", "Journals", "Templates", "Audio", "Financial Planners", "Leadership"];
 
 function readRecent(): string[] {
   if (typeof window === "undefined") return [];
