@@ -579,7 +579,7 @@ function IllustriousCreator() {
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
             whileHover={{ y: -4 }}
-            className="overflow-hidden rounded-lg border border-white/10 bg-white/5 shadow-card"
+            className="overflow-hidden rounded-lg border border-line bg-white shadow-card"
           >
             <div
               className="h-[120px]"
@@ -600,18 +600,19 @@ function IllustriousCreator() {
                 />
               </div>
               <div className="mt-3 flex items-center gap-1.5">
-                <div className="font-display text-lg font-bold text-white">
+                <div className="font-display text-lg font-bold text-navy">
                   Delvin Hale
                 </div>
                 <BadgeCheck size={16} className="text-emerald" />
               </div>
-              <div className="text-[13px] text-white/70">
+              <div className="text-[13px] text-mute">
                 Author · Entrepreneur · Kingdom Builder
               </div>
               <div className="mt-4 flex items-center gap-6 text-[13px]">
                 <div>
-                  <div className="font-bold text-white">{count}</div>
-                  <div className="text-[11px] text-white/60">Products</div>
+                  <div className="font-bold text-navy">{count}</div>
+                  <div className="text-[11px] text-mute">Products</div>
+
                 </div>
               </div>
               <Link
