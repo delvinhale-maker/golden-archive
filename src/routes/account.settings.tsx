@@ -47,6 +47,12 @@ function AccountSettingsPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    };
+  }, [avatarPreview]);
+
   if (loading) {
     return (
       <MarketShell>
