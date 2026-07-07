@@ -212,7 +212,7 @@ function ProductPage() {
   // (watermarked PDF pages, EPUB first chapter, DOCX text excerpt,
   // 60-second audio/video clip, or a cover+description fallback).
   const previewAvailable = Boolean(product.fileExt);
-  const previewLabel = previewLabelFor(product.fileExt, product.previewPages?.length ?? 0);
+  const previewLabel = previewLabelFor(product.fileExt ?? null, product.previewPages?.length ?? 0);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [preview, setPreview] = useState<FormatPreview | null>(null);
