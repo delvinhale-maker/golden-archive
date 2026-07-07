@@ -98,11 +98,12 @@
   --shadow-gold-glow: 0 10px 30px -10px rgba(201, 162, 39, 0.55);
 
   /* Scroll-driven scheme tokens (updated by HomeRows IntersectionObserver) */
-  --scheme-bg: #0F1E35;
-  --scheme-fg: #ffffff;
-  --scheme-muted: rgba(255, 255, 255, 0.72);
-  --scheme-kicker: #c9a227;
-  --scheme-border: rgba(255, 255, 255, 0.10);
+  --scheme-bg: #ffffff;
+  --scheme-fg: #0F1E35;
+  --scheme-muted: rgba(15, 30, 53, 0.70);
+  --scheme-kicker: #9A6C08;
+  --scheme-border: rgba(15, 30, 53, 0.10);
+
 }
 
 /* Smooth cross-scheme fade for surfaces that opt in */
