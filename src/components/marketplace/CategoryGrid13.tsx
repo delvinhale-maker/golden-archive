@@ -222,10 +222,10 @@ export function CategoryGrid13() {
 
                 <div className="flex items-start gap-4">
                   <div
-                    className="relative grid h-14 w-14 shrink-0 place-items-center rounded-xl text-2xl ring-1 ring-white/10 transition-transform duration-500 group-hover:scale-105"
+                    className="relative grid h-14 w-14 shrink-0 place-items-center rounded-xl ring-1 ring-white/10 transition-transform duration-500 group-hover:scale-105"
                     style={{ background: c.gradient }}
                   >
-                    <span aria-hidden>{c.icon}</span>
+                    <CategoryLineIcon slug={c.slug} className="h-8 w-8" />
                     <span
                       aria-hidden
                       className="absolute inset-0 rounded-xl opacity-0 ring-1 ring-gold/50 transition-opacity duration-500 group-hover:opacity-100"
