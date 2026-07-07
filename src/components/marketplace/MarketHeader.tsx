@@ -125,6 +125,15 @@ export function MarketHeader() {
               <>
                 <NotificationsBell />
                 <Link
+                  to="/account"
+                  aria-label="Account"
+                  data-nav-tab
+                  data-active={pathname.startsWith("/account") ? "true" : "false"}
+                  className="relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10"
+                >
+                  <User size={20} />
+                </Link>
+                <Link
                   to="/dashboard"
                   aria-label="Dashboard"
                   data-nav-tab
@@ -336,6 +345,13 @@ export function MarketHeader() {
               )}
               {user ? (
                 <>
+                  <Link
+                    to="/account"
+                    onClick={() => setMenuOpen(false)}
+                    className="block w-full rounded-full bg-white/10 py-3 text-center text-sm font-semibold text-white"
+                  >
+                    My account
+                  </Link>
                   <Link
                     to="/dashboard"
                     onClick={() => setMenuOpen(false)}
