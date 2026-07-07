@@ -150,6 +150,48 @@ function AccountSettingsPage() {
     }
   }
 
+  async function handleRemoveAvatar() {
+    if (!user) return;
+    if (!avatarUrl && !avatarPreview) return;
+    if (typeof window !== "undefined" && !window.confirm("Remove your profile photo?")) return;
+    setRemovingAvatar(true);
+    try {
+      // Delete all files under the user's avatar folder in storage
+      const { data: files, error: listError } = await supabase.storage
+        .from("avatars")
+        .list(user.id);
+      if (listError) throw listError;
+      if (files && files.length > 0) {
+        const paths = files.map((f) => `${user.id}/${f.name}`);
+        const { error: removeError } = await supabase.storage.from("avatars").remove(paths);
+        if (removeError) throw removeError;
+      }
+
+      // Clear from auth metadata + profiles
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { full_name: fullName.trim(), avatar_url: null },
+      });
+      if (authError) throw authError;
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: null })
+        .eq("id", user.id);
+      if (profileError) throw profileError;
+
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+      setAvatarPreview(null);
+      setAvatarUrl("");
+      toast.success("Profile photo removed");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to remove avatar";
+      toast.error(message);
+    } finally {
+      setRemovingAvatar(false);
+    }
+  }
+
+
+
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
