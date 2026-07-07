@@ -195,21 +195,21 @@ async function main() {
   await page.waitForTimeout(200);
 
   const results = [];
-  const seenBgs = new Set();
+  const seenLabels = new Set();
   let attempts = 0;
   const maxAttempts = MAX_SLIDES * 2;
 
   while (attempts < maxAttempts) {
     attempts += 1;
-    // Give Framer Motion transitions (0.5s) time to settle before measuring
-    // so we sample the stable slide color, not an in-between frame.
-    await page.waitForTimeout(700);
+    // Give Framer Motion transitions (~0.5s) and the theme provider's accent
+    // tween time to settle before measuring, so we sample the stable slide
+    // color, not an in-between frame.
+    await page.waitForTimeout(900);
     const r = await measureCta(page, cdp, `attempt ${attempts}`);
-    const key = fmt(r.base.bg);
-    if (seenBgs.has(key)) {
-      if (results.length > 0) break; // carousel wrapped
+    if (seenLabels.has(r.text)) {
+      if (results.length > 0) break; // carousel wrapped past known slides
     } else {
-      seenBgs.add(key);
+      seenLabels.add(r.text);
       results.push({ slide: results.length + 1, ...r });
     }
     await advanceSlide(page);
