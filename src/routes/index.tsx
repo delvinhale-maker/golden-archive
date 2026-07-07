@@ -44,6 +44,7 @@ import { TopCreatorsLeaderboard, topCreatorsQ } from "@/components/marketplace/T
 import { CategoryGrid13, categoryCountsQ } from "@/components/marketplace/CategoryGrid13";
 import { WhyAurumVault } from "@/components/marketplace/WhyAurumVault";
 import { SectionDivider } from "@/components/marketplace/SectionDivider";
+import { CountUp } from "@/components/marketplace/CountUp";
 import {
   getFeaturedProducts,
   getHomeHighlights,
@@ -298,7 +299,7 @@ function HeroStatsBar() {
   const productCount = data.illustriousProductCount;
   const stats: {
     image: string;
-    label: string;
+    label: React.ReactNode;
     caption: string;
     to: string;
     hash?: string;
@@ -306,14 +307,22 @@ function HeroStatsBar() {
   }[] = [
     {
       image: statProductsImg,
-      label: `${productCount} Product${productCount === 1 ? "" : "s"}`,
+      label: (
+        <>
+          <CountUp end={productCount} /> Product{productCount === 1 ? "" : "s"}
+        </>
+      ),
       caption: "Curated library",
       to: "/products",
       ariaLabel: "Browse all products",
     },
     {
       image: statCategoriesImg,
-      label: "18 Categories",
+      label: (
+        <>
+          <CountUp end={18} /> Categories
+        </>
+      ),
       caption: "Across every discipline",
       to: "/",
       hash: "categories",
@@ -348,7 +357,7 @@ function HeroStatsBar() {
         </div>
         <ul className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
           {stats.map((s) => (
-            <li key={s.label}>
+            <li key={s.caption}>
               <Link
                 to={s.to}
                 hash={s.hash}
@@ -426,7 +435,7 @@ function Hero() {
               <motion.span
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
-                className="inline-flex h-12 items-center rounded-full bg-gold px-7 text-sm font-bold text-navy shadow-gold-glow transition-colors hover:bg-gold-soft"
+                className="av-glow-pulse inline-flex h-12 items-center rounded-full bg-gold px-7 text-sm font-bold text-navy shadow-gold-glow transition-all duration-300 hover:bg-gold-soft hover:brightness-110 hover:saturate-110"
               >
                 Shop Now →
               </motion.span>
