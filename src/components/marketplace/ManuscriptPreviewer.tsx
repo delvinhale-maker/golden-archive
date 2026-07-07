@@ -1284,6 +1284,54 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
           </select>
         </label>
 
+        {isImage && (
+          <label className="flex items-center gap-2">
+            <span className="text-white/70">Zoom</span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => { setImageFitWidth(false); setImageZoom((z) => Math.max(0.25, +(z - 0.25).toFixed(2))); }}
+                aria-label="Zoom out"
+                className="h-9 w-9 rounded-md bg-black/40 border border-white/15 inline-flex items-center justify-center hover:bg-white/10 disabled:opacity-40"
+                disabled={imageFitWidth}
+              >
+                <ZoomIn size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => { setImageFitWidth(false); setImageZoom((z) => Math.min(3, +(z + 0.25).toFixed(2))); }}
+                aria-label="Zoom in"
+                className="h-9 w-9 rounded-md bg-black/40 border border-white/15 inline-flex items-center justify-center hover:bg-white/10"
+              >
+                <ZoomOut size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => { setImageFitWidth(false); setImageZoom(1); }}
+                aria-label="Reset zoom"
+                className="h-9 px-2 rounded-md bg-black/40 border border-white/15 text-white/80 text-xs hover:bg-white/10"
+              >
+                {Math.round(imageZoom * 100)}%
+              </button>
+            </div>
+          </label>
+        )}
+
+        {isImage && (
+          <button
+            type="button"
+            onClick={() => setImageFitWidth((f) => !f)}
+            aria-label="Toggle fit to width"
+            className={`flex items-center gap-1.5 h-9 px-2.5 rounded-md border text-xs font-medium transition ${
+              imageFitWidth
+                ? "bg-[#d4af37]/20 border-[#d4af37] text-[#d4af37]"
+                : "bg-black/40 border-white/15 text-white/80 hover:bg-white/10"
+            }`}
+          >
+            <Maximize2 size={14} />
+            Fit width
+          </button>
+        )}
 
         <label className="flex items-center gap-2 ml-auto">
           <span className="text-white/70">Device</span>
