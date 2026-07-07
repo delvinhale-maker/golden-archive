@@ -207,63 +207,44 @@ function ProductPage() {
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [selected, setSelected] = useState<SelectedVariant | null>(null);
 
-  // Public preview modal state — only surfaces when the creator picked
-  // preview pages and the manuscript is a PDF.
-  const previewAvailable =
-    (product.previewPages?.length ?? 0) > 0 && product.fileExt === "pdf";
+  // Preview modal state — surfaces for every published product with a
+  // manuscript file. The server picks a format-appropriate preview shape
+  // (watermarked PDF pages, EPUB first chapter, DOCX text excerpt,
+  // 60-second audio/video clip, or a cover+description fallback).
+  const previewAvailable = Boolean(product.fileExt);
+  const previewLabel = previewLabelFor(product.fileExt, product.previewPages?.length ?? 0);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewStage, setPreviewStage] = useState(0); // 0..3
-  const [previewProgress, setPreviewProgress] = useState(0); // 0..100
-  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [preview, setPreview] = useState<FormatPreview | null>(null);
   const previewBlobRef = useRef<string | null>(null);
-  const previewTickerRef = useRef<number | null>(null);
   const previewAbortRef = useRef<AbortController | null>(null);
   useEffect(() => {
     return () => {
       if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
-      if (previewTickerRef.current) window.clearInterval(previewTickerRef.current);
       previewAbortRef.current?.abort();
     };
   }, []);
   function cancelPreview() {
     previewAbortRef.current?.abort();
     previewAbortRef.current = null;
-    if (previewTickerRef.current) {
-      window.clearInterval(previewTickerRef.current);
-      previewTickerRef.current = null;
+    if (previewBlobRef.current) {
+      URL.revokeObjectURL(previewBlobRef.current);
+      previewBlobRef.current = null;
     }
     setPreviewOpen(false);
     setPreviewLoading(false);
-    setPreviewProgress(0);
-    setPreviewStage(0);
+    setPreview(null);
   }
   async function openPreview() {
     if (previewLoading) return;
-    // Open modal immediately with skeleton so the user sees instant response.
     setPreviewLoading(true);
-    setPreviewStage(1);
-    setPreviewProgress(4);
-    setPreviewBlobUrl(null);
+    setPreview(null);
     setPreviewOpen(true);
-    // Fresh abort controller so the user can cancel the in-flight request.
     previewAbortRef.current?.abort();
     const controller = new AbortController();
     previewAbortRef.current = controller;
-    // Simulated staged progress — we can't stream a base64 JSON body, so
-    // pace the bar against realistic timings for the fetch → watermark →
-    // render stages the server actually performs.
-    if (previewTickerRef.current) window.clearInterval(previewTickerRef.current);
-    previewTickerRef.current = window.setInterval(() => {
-      setPreviewProgress((p) => {
-        const next = p + (p < 40 ? 3 : p < 75 ? 1.4 : 0.4);
-        const capped = Math.min(next, 92);
-        setPreviewStage(capped < 35 ? 1 : capped < 75 ? 2 : 3);
-        return capped;
-      });
-    }, 180);
     try {
-      const res = await getPublicPreview({
+      const res = await getFormatPreview({
         data: { productId: product.id },
         signal: controller.signal,
       });
@@ -273,37 +254,36 @@ function ProductPage() {
         toast.error("Preview is temporarily unavailable. Please try again shortly.");
         return;
       }
-      const bin = atob(res.pdfBase64);
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      const blob = new Blob([bytes], { type: "application/pdf" });
-      if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
-      const url = URL.createObjectURL(blob);
-      previewBlobRef.current = url;
-      setPreviewStage(3);
-      setPreviewProgress(100);
-      // Brief settle so the 100% state is visible before the reader appears.
-      await new Promise((r) => setTimeout(r, 220));
-      if (controller.signal.aborted) {
-        URL.revokeObjectURL(url);
-        previewBlobRef.current = null;
-        return;
+      // Materialize the PDF bytes into a blob URL so the <iframe> can render it.
+      if (res.kind === "pdf") {
+        const bin = atob(res.pdfBase64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        const blob = new Blob([bytes], { type: "application/pdf" });
+        if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
+        const url = URL.createObjectURL(blob);
+        previewBlobRef.current = url;
+        setPreview({
+          kind: "pdf",
+          title: res.title,
+          coverUrl: res.coverUrl,
+          pageCount: res.pageCount,
+          blobUrl: url,
+        });
+      } else {
+        setPreview(res as FormatPreview);
       }
-      setPreviewBlobUrl(url);
     } catch (e) {
       if (controller.signal.aborted) return;
       console.error("[preview] load failed", e);
       setPreviewOpen(false);
       toast.error("Preview is temporarily unavailable. Please try again shortly.");
     } finally {
-      if (previewTickerRef.current) {
-        window.clearInterval(previewTickerRef.current);
-        previewTickerRef.current = null;
-      }
       if (previewAbortRef.current === controller) previewAbortRef.current = null;
       setPreviewLoading(false);
     }
   }
+
 
 
   useEffect(() => {
