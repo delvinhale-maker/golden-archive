@@ -682,21 +682,13 @@ function ProductPage() {
         )}
       </AnimatePresence>
 
-      {previewOpen && previewBlobUrl && (
-        <ManuscriptPreviewer
-          manuscriptPath={`${previewBlobUrl}#.pdf`}
-          title={`${product.title} — Preview`}
-          coverUrl={product.image && /^https?:\/\//.test(product.image) ? product.image : null}
-          onClose={() => setPreviewOpen(false)}
-        />
+      {previewOpen && preview && (
+        <FormatPreviewModal preview={preview} onClose={cancelPreview} />
       )}
-      {previewOpen && !previewBlobUrl && (
-        <PreviewLoadingOverlay
+      {previewOpen && !preview && (
+        <FormatPreviewLoading
           title={product.title}
-          coverUrl={product.image ?? null}
-          pageCount={product.previewPages?.length ?? 0}
-          stage={previewStage}
-          progress={previewProgress}
+          coverUrl={product.image && /^https?:\/\//.test(product.image) ? product.image : null}
           onCancel={cancelPreview}
         />
       )}
@@ -704,170 +696,20 @@ function ProductPage() {
   );
 }
 
-function PreviewLoadingOverlay({
-  title,
-  coverUrl,
-  pageCount,
-  stage,
-  progress,
-  onCancel,
-}: {
-  title: string;
-  coverUrl: string | null;
-  pageCount: number;
-  stage: number;
-  progress: number;
-  onCancel: () => void;
-}) {
-  const steps = [
-    { id: 1, label: "Fetching your preview" },
-    { id: 2, label: "Applying watermark" },
-    { id: 3, label: "Rendering pages" },
-  ];
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Preparing preview"
-    >
-      <button
-        type="button"
-        onClick={onCancel}
-        aria-label="Cancel preview"
-        className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white/80 hover:bg-white/20"
-      >
-        <X size={18} />
-      </button>
-      <div className="w-full max-w-md rounded-2xl bg-paper p-6 shadow-2xl">
-        <div className="flex items-start gap-4">
-          <div className="relative h-24 w-[68px] flex-shrink-0 overflow-hidden rounded-md bg-ink/10">
-            {coverUrl ? (
-              <>
-                <img src={coverUrl} alt="" className="h-full w-full object-cover" />
-                {/* Sheen sweep to signal activity */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                  initial={{ x: "-100%" }}
-                  animate={{ x: "100%" }}
-                  transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-                />
-              </>
-            ) : (
-              <div className="h-full w-full animate-pulse bg-ink/15" />
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-bold uppercase tracking-caps text-mute">
-              Preparing preview
-            </div>
-            <h3 className="mt-0.5 truncate text-base font-bold text-navy" title={title}>
-              {title}
-            </h3>
-            <p className="mt-1 text-xs text-mute">
-              Watermarking {pageCount} page{pageCount === 1 ? "" : "s"} for you…
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-5">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-ink/10">
-            <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-navy to-gold"
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.max(4, Math.min(100, progress))}%` }}
-              transition={{ ease: "easeOut", duration: 0.4 }}
-            />
-          </div>
-          <div className="mt-1 flex justify-between text-[11px] font-semibold text-mute">
-            <span>{Math.round(progress)}%</span>
-            <span>Usually under 5 seconds</span>
-          </div>
-        </div>
-
-        <ol className="mt-4 space-y-2">
-          {steps.map((s) => {
-            const done = stage > s.id || progress >= 100;
-            const active = stage === s.id && !done;
-            return (
-              <li key={s.id} className="flex items-center gap-2 text-sm">
-                <span
-                  className={`flex h-5 w-5 items-center justify-center rounded-full border ${
-                    done
-                      ? "border-gold bg-gold text-navy"
-                      : active
-                      ? "border-navy text-navy"
-                      : "border-ink/20 text-mute"
-                  }`}
-                >
-                  {done ? (
-                    <Check size={12} strokeWidth={3} />
-                  ) : active ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <span className="text-[10px] font-bold">{s.id}</span>
-                  )}
-                </span>
-                <span className={done ? "text-navy line-through decoration-navy/30" : active ? "font-semibold text-navy" : "text-mute"}>
-                  {s.label}
-                </span>
-              </li>
-            );
-          })}
-        </ol>
-
-        {/* Skeleton page thumbnails to hint at what's coming */}
-        <div className="mt-5 grid grid-cols-5 gap-1.5">
-          {Array.from({ length: Math.max(1, Math.min(5, pageCount)) }).map((_, i) => (
-            <div
-              key={i}
-              className="relative aspect-[3/4] overflow-hidden rounded-md bg-ink/5"
-            >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-ink/5 via-ink/10 to-ink/5"
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15 }}
-              />
-            </div>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          onClick={onCancel}
-          className="mt-5 flex h-11 w-full items-center justify-center rounded-full border border-ink/15 bg-white text-sm font-semibold text-navy hover:bg-ink/5"
-        >
-          Cancel preview
-        </button>
-      </div>
-    </motion.div>
-  );
+/** Buyer-facing button label per file format. Falls back to a generic
+ * "Preview" for anything without a specific in-modal renderer. */
+function previewLabelFor(fileExt: string | null, previewPageCount: number): string {
+  const e = (fileExt ?? "").toLowerCase();
+  if (e === "pdf") {
+    return previewPageCount > 0
+      ? `Preview inside — ${previewPageCount} pages`
+      : "Preview inside";
+  }
+  if (e === "epub") return "Read the first chapter";
+  if (e === "docx") return "Read a text excerpt";
+  if (["mp3", "m4a", "wav", "ogg", "aac", "flac"].includes(e)) return "Listen to a 60s sample";
+  if (["mp4", "webm", "mov", "m4v"].includes(e)) return "Watch a 60s clip";
+  return "Preview this product";
 }
 
 
-function formatsFor(category: string): { id: string; label: string; sub?: string }[] {
-  const c = category.toLowerCase();
-  if (c.includes("audio")) return [
-    { id: "mp3", label: "MP3", sub: "Streaming + download" },
-    { id: "m4b", label: "M4B", sub: "Chaptered audiobook" },
-    { id: "pdf", label: "PDF Notes", sub: "Companion guide" },
-  ];
-  if (c.includes("course")) return [
-    { id: "video", label: "Video", sub: "HD streaming" },
-    { id: "pdf", label: "PDF Workbook", sub: "Printable" },
-    { id: "audio", label: "Audio", sub: "Listen on the go" },
-  ];
-  if (c.includes("template")) return [
-    { id: "notion", label: "Notion", sub: "Duplicate to workspace" },
-    { id: "pdf", label: "PDF", sub: "Print-ready" },
-    { id: "docx", label: "Docx", sub: "Editable" },
-  ];
-  return [
-    { id: "pdf", label: "PDF", sub: "Universal" },
-    { id: "epub", label: "EPUB", sub: "Kindle / iBooks" },
-    { id: "audio", label: "Audio", sub: "When available" },
-  ];
-}
