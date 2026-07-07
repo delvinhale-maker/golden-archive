@@ -176,6 +176,29 @@ function PdfBody({ url }: { url: string }) {
     const canvases: HTMLCanvasElement[] = [];
     (async () => {
       try {
+        // Polyfill Stage-3 Map/Set upsert helpers used by pdfjs-dist v6.
+        // Chromium/Safari don't ship these yet, so pdf.js render() throws
+        // "getOrInsertComputed is not a function" without them.
+        const mp: any = Map.prototype;
+        if (typeof mp.getOrInsertComputed !== "function") {
+          mp.getOrInsertComputed = function (key: unknown, fn: (k: unknown) => unknown) {
+            if (!this.has(key)) this.set(key, fn(key));
+            return this.get(key);
+          };
+        }
+        if (typeof mp.getOrInsert !== "function") {
+          mp.getOrInsert = function (key: unknown, value: unknown) {
+            if (!this.has(key)) this.set(key, value);
+            return this.get(key);
+          };
+        }
+        const sp: any = Set.prototype;
+        if (typeof sp.getOrInsertComputed !== "function") {
+          sp.getOrInsertComputed = function (key: unknown, fn: (k: unknown) => unknown) {
+            if (!this.has(key)) this.add(fn(key));
+            return key;
+          };
+        }
         const pdfjs: any = await import("pdfjs-dist");
         try {
           const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
