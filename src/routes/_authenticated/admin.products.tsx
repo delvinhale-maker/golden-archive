@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
 import { ArrowLeft, ShieldCheck, Pencil, CheckCircle2, XCircle, Search, Save, X, Upload, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { ProductPreviewsManager } from "@/components/admin/ProductPreviewsManager";
 
 export const Route = createFileRoute("/_authenticated/admin/products")({
   component: AdminProductsPage,
