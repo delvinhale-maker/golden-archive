@@ -186,6 +186,55 @@ function AccountSettingsPage() {
           <h2 className="font-display text-lg font-bold text-ink">Profile</h2>
           <div className="mt-4 space-y-4">
             <div>
+              <span className="block text-xs font-semibold text-ink">Avatar</span>
+              <div className="mt-2 flex items-center gap-4">
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-line bg-muted">
+                  {avatarPreview || avatarUrl ? (
+                    <img
+                      src={avatarPreview ?? avatarUrl}
+                      alt="Avatar preview"
+                      className="h-full w-full object-cover"
+                      onError={() => {
+                        if (!avatarPreview) return;
+                      }}
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-mute">
+                      <UserIcon size={28} />
+                    </div>
+                  )}
+                  {uploadingAvatar && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/70">
+                      <Loader2 size={18} className="animate-spin text-gold-ink" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ACCEPTED_AVATAR_TYPES.join(",")}
+                    onChange={handleAvatarFileChange}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-xs font-semibold text-ink hover:bg-muted disabled:opacity-60"
+                  >
+                    {uploadingAvatar ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Upload size={14} />
+                    )}
+                    Upload new photo
+                  </button>
+                  <p className="text-[11px] text-mute">PNG, JPG, WEBP, or GIF. Max 5 MB.</p>
+                </div>
+              </div>
+            </div>
+            <div>
               <label htmlFor="full_name" className="block text-xs font-semibold text-ink">
                 Display name
               </label>
@@ -206,10 +255,16 @@ function AccountSettingsPage() {
                 id="avatar_url"
                 type="url"
                 value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
+                onChange={(e) => {
+                  setAvatarUrl(e.target.value);
+                  setAvatarPreview(null);
+                }}
                 className="mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-gold-ink"
                 placeholder="https://…"
               />
+              <p className="mt-1 text-[11px] text-mute">
+                Uploading a photo fills this in automatically.
+              </p>
             </div>
             <button
               type="submit"
