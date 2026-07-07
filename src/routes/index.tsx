@@ -42,6 +42,8 @@ import { CreatorSpotlight, creatorSpotlightQ } from "@/components/marketplace/Cr
 import { FeaturedCreatorsRow, featuredCreatorsQ } from "@/components/marketplace/FeaturedCreatorsRow";
 import { TopCreatorsLeaderboard, topCreatorsQ } from "@/components/marketplace/TopCreatorsLeaderboard";
 import { CategoryGrid13, categoryCountsQ } from "@/components/marketplace/CategoryGrid13";
+import { WhyAurumVault } from "@/components/marketplace/WhyAurumVault";
+import { SectionDivider } from "@/components/marketplace/SectionDivider";
 import {
   getFeaturedProducts,
   getHomeHighlights,
@@ -148,10 +150,13 @@ function Home() {
         <IllustriousCreator />
       </HighlightsBoundary>
       <CreatorSpotlight />
+      <SectionDivider variant="ivory-to-navy" />
       <HeroStatsBar />
       <Suspense fallback={null}>
         <TopCreatorsLeaderboard />
       </Suspense>
+      <SectionDivider variant="navy-to-ivory" />
+      <WhyAurumVault />
       <SocialsSection />
       <KingdomBibleAppBanner />
       <EmailCaptureBanner />
