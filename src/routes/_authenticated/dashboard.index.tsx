@@ -20,6 +20,19 @@ import {
   Loader2,
   History,
   X,
+  Share2,
+  DollarSign,
+  Copy,
+  Check,
+  Facebook,
+  Twitter,
+  Linkedin,
+  MessageCircle,
+  Mail,
+  Send,
+  Music2,
+  Youtube,
+  Megaphone,
 } from "lucide-react";
 import { toast } from "sonner";
 
