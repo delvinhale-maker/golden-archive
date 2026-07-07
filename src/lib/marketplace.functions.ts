@@ -137,8 +137,11 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
       .eq("status", "approved")
       .eq("published", true)
       .order("created_at", { ascending: false });
-    if (opts.category && opts.category !== "All") {
-      const slug = labelToSlug(opts.category) ?? opts.category.toLowerCase();
+    if (opts.category && opts.category.toLowerCase() !== "all") {
+      const slug =
+        getCategoryDef(opts.category)?.slug ??
+        labelToSlug(opts.category) ??
+        opts.category.toLowerCase();
       query = query.eq(
         "category",
         slug as Database["public"]["Enums"]["product_category"],
