@@ -136,7 +136,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   // - Otherwise strip query string + hash before reading the extension so signed/remote
   //   URLs like `https://.../file.pdf?token=abc` still resolve to "pdf".
   const ext = (() => {
-    const hashMarker = manuscriptPath.match(/#\.(docx|pdf|epub)(?:$|\?)/i);
+    const hashMarker = manuscriptPath.match(/#\.(docx|pdf|epub|zip|jpg|jpeg|png)(?:$|\?)/i);
     if (hashMarker) return hashMarker[1].toLowerCase();
     const cleaned = manuscriptPath.split("#")[0].split("?")[0];
     return cleaned.split(".").pop()?.toLowerCase() ?? "";
@@ -144,6 +144,9 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   const isPdf = ext === "pdf";
   const isDocx = ext === "docx";
   const isEpub = ext === "epub";
+  const isImage = ext === "jpg" || ext === "jpeg" || ext === "png";
+  const isZip = ext === "zip";
+
 
   // Detect RTL from the document / nearest [dir] ancestor at mount.
   const [isRTL, setIsRTL] = useState(false);
