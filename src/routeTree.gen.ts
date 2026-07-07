@@ -48,6 +48,7 @@ import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ApiAiStudioStreamRouteImport } from './routes/api/ai-studio-stream'
+import { Route as AccountSettingsRouteImport } from './routes/account.settings'
 import { Route as ABrandSlugRouteImport } from './routes/a.$brandSlug'
 import { Route as AuthenticatedReferRouteImport } from './routes/_authenticated/refer'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
@@ -282,6 +283,11 @@ const ApiAiStudioStreamRoute = ApiAiStudioStreamRouteImport.update({
   id: '/api/ai-studio-stream',
   path: '/api/ai-studio-stream',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AccountSettingsRoute = AccountSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AccountRoute,
 } as any)
 const ABrandSlugRoute = ABrandSlugRouteImport.update({
   id: '/a/$brandSlug',
@@ -522,7 +528,7 @@ const AuthenticatedAdminHealthCoversAlertsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRoute
+  '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
   '/auth': typeof AuthRoute
@@ -552,6 +558,7 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
+  '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -602,7 +609,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRoute
+  '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
   '/auth': typeof AuthRoute
@@ -631,6 +638,7 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
+  '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -683,7 +691,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
-  '/account': typeof AccountRoute
+  '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
   '/auth': typeof AuthRoute
@@ -713,6 +721,7 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/_authenticated/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
+  '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/download/$token': typeof DownloadTokenRoute
@@ -795,6 +804,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/refer'
     | '/a/$brandSlug'
+    | '/account/settings'
     | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/download/$token'
@@ -874,6 +884,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/refer'
     | '/a/$brandSlug'
+    | '/account/settings'
     | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/download/$token'
@@ -955,6 +966,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/_authenticated/refer'
     | '/a/$brandSlug'
+    | '/account/settings'
     | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/download/$token'
@@ -1007,7 +1019,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
-  AccountRoute: typeof AccountRoute
+  AccountRoute: typeof AccountRouteWithChildren
   AffiliateDisclosureRoute: typeof AffiliateDisclosureRoute
   AffiliatesRoute: typeof AffiliatesRoute
   AuthRoute: typeof AuthRoute
@@ -1330,6 +1342,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/ai-studio-stream'
       preLoaderRoute: typeof ApiAiStudioStreamRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/account/settings': {
+      id: '/account/settings'
+      path: '/settings'
+      fullPath: '/account/settings'
+      preLoaderRoute: typeof AccountSettingsRouteImport
+      parentRoute: typeof AccountRoute
     }
     '/a/$brandSlug': {
       id: '/a/$brandSlug'
@@ -1693,6 +1712,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AccountRouteChildren {
+  AccountSettingsRoute: typeof AccountSettingsRoute
+}
+
+const AccountRouteChildren: AccountRouteChildren = {
+  AccountSettingsRoute: AccountSettingsRoute,
+}
+
+const AccountRouteWithChildren =
+  AccountRoute._addFileChildren(AccountRouteChildren)
+
 interface ProductsRouteChildren {
   ProductsIdRoute: typeof ProductsIdRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
@@ -1711,7 +1741,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
-  AccountRoute: AccountRoute,
+  AccountRoute: AccountRouteWithChildren,
   AffiliateDisclosureRoute: AffiliateDisclosureRoute,
   AffiliatesRoute: AffiliatesRoute,
   AuthRoute: AuthRoute,
