@@ -249,6 +249,9 @@ function AdminProductsPage() {
                 <textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })}
                   rows={6} className="w-full rounded-md border border-ink/15 p-3" />
               </Field>
+              <Field label="Preview images (shown to shoppers)">
+                <ProductPreviewsManager productId={editing.id} sellerId={editing.seller_id} />
+              </Field>
             </div>
             <div className="flex items-center justify-end gap-2 p-5 border-t border-ink/10">
               <button onClick={() => setEditing(null)} className="px-4 py-2 text-sm rounded-md border border-ink/15 hover:bg-ink/5">Cancel</button>
