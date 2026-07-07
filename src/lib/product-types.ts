@@ -121,14 +121,23 @@ export const PRODUCT_TYPES: Record<ProductTypeKey, ProductTypeConfig> = {
     key: "printable_journal",
     label: "Digital Journal",
     emoji: "📓",
-    tagline: "Digital journal pages",
+    tagline: "PDF, EPUB, ZIP, or image journal pages",
     category: "printable_journals",
     categoryLabel: "Digital Journal",
 
-    fileExts: ["pdf"],
-    fileMimes: ["application/pdf"],
-    acceptString: ".pdf,application/pdf",
-    acceptedHint: ".PDF",
+    fileExts: ["pdf", "epub", "zip", "jpg", "jpeg", "png"],
+    fileMimes: [
+      "application/pdf",
+      "application/epub+zip",
+      "application/zip",
+      "application/x-zip-compressed",
+      "image/jpeg",
+      "image/png",
+    ],
+    acceptString:
+      ".pdf,.epub,.zip,.jpg,.jpeg,.png,application/pdf,application/epub+zip,application/zip,image/jpeg,image/png",
+    acceptedHint: ".PDF, .EPUB, .ZIP, .JPG, .PNG",
+
     suggestedPriceCents: 999,
     accent: "#BE185D",
     isEbook: false,
