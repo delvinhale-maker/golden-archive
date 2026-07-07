@@ -235,7 +235,29 @@ export function ProductPreviewsManager({
       ) : (
         <ul className="space-y-2">
           {rows.map((row, i) => (
-            <li key={row.id} className="flex gap-3 items-start rounded-md border border-ink/10 bg-white p-2">
+            <li
+              key={row.id}
+              onDragOver={(e) => onDragOver(e, row.id)}
+              onDrop={(e) => onDrop(e, row.id)}
+              onDragLeave={() => dragOverId === row.id && setDragOverId(null)}
+              className={[
+                "flex gap-2 items-start rounded-md border bg-white p-2 transition",
+                dragId === row.id ? "opacity-40" : "",
+                dragOverId === row.id ? "border-gold ring-2 ring-gold/40" : "border-ink/10",
+              ].join(" ")}
+            >
+              <button
+                type="button"
+                draggable={!busy}
+                onDragStart={() => onDragStart(row.id)}
+                onDragEnd={onDragEnd}
+                className="self-stretch flex items-center px-1 text-mute hover:text-navy cursor-grab active:cursor-grabbing disabled:cursor-not-allowed"
+                title="Drag to reorder"
+                disabled={busy}
+                aria-label={`Drag preview page ${row.page_order}`}
+              >
+                <GripVertical size={16} />
+              </button>
               <div className="w-16 h-20 shrink-0 rounded bg-ink/5 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={row.image_url} alt={row.alt_text ?? `Preview page ${row.page_order}`} className="w-full h-full object-cover" />
