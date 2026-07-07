@@ -399,7 +399,7 @@ function Hero() {
               <motion.span
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
-                className="inline-flex h-12 items-center rounded-full bg-gold px-7 text-sm font-bold text-navy shadow-gold-glow"
+                className="inline-flex h-12 items-center rounded-full bg-gold px-7 text-sm font-bold text-navy shadow-gold-glow transition-colors hover:bg-gold-soft"
               >
                 Shop Now →
               </motion.span>
