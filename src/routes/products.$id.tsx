@@ -535,8 +535,9 @@ function ProductPage() {
                 {previewLoading ? (
                   <><Loader2 size={16} className="animate-spin" /> Opening preview…</>
                 ) : (
-                  <><BookOpen size={16} /> Preview inside — {product.previewPages!.length} pages</>
+                  <><BookOpen size={16} /> {previewLabel}</>
                 )}
+
               </button>
             )}
 
