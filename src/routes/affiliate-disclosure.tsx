@@ -21,7 +21,7 @@ function AffiliateDisclosurePage() {
   return (
     <MarketShell>
       <div className="mx-auto max-w-3xl px-4 py-10 md:px-8 md:py-16">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-gold/15 px-3 py-1 text-[11px] font-bold uppercase tracking-caps text-gold">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-gold/15 px-3 py-1 text-[11px] font-bold uppercase tracking-caps text-gold-ink">
           <Info size={12} /> FTC Disclosure
         </div>
         <h1 className="font-display text-3xl font-bold text-navy md:text-4xl">
@@ -41,7 +41,7 @@ function AffiliateDisclosurePage() {
             How Kingdom Picks works
           </h2>
           <p>
-            Products in our <Link to="/kingdom-picks" className="text-gold underline">Kingdom Picks</Link>{" "}
+            Products in our <Link to="/kingdom-picks" className="text-gold-ink underline">Kingdom Picks</Link>{" "}
             section are curated by our team. When you click a partner link and
             complete a purchase on Amazon, Walmart, or another partner site, we
             may receive a small referral commission from that retailer — at no
@@ -59,7 +59,7 @@ function AffiliateDisclosurePage() {
 
           <h2 className="mt-8 font-display text-xl text-navy">Questions?</h2>
           <p>
-            Reach out via our <Link to="/contact" className="text-gold underline">contact page</Link>{" "}
+            Reach out via our <Link to="/contact" className="text-gold-ink underline">contact page</Link>{" "}
             if you have any questions about our partnerships or disclosures.
           </p>
         </div>

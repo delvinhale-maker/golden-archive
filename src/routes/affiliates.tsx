@@ -27,7 +27,7 @@ function AffiliatesPage() {
     <MarketShell>
       <section className="av-hero-bg border-b border-white/10">
         <div className="mx-auto max-w-4xl px-6 py-20 text-center lg:px-8">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold">
+          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold-ink">
             <DollarSign size={14} /> PLATFORM AFFILIATE PROGRAM
           </div>
           <h1 className="mt-3 font-display text-4xl font-bold text-white md:text-5xl">
@@ -77,7 +77,7 @@ function AffiliatesPage() {
                 key={f.title}
                 className="rounded-xl border border-white/10 bg-white/5 p-6"
               >
-                <f.icon size={20} className="text-gold" />
+                <f.icon size={20} className="text-gold-ink" />
                 <div className="mt-3 font-display text-lg font-bold text-white">
                   {f.title}
                 </div>

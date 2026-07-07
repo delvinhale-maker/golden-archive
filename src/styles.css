@@ -199,9 +199,13 @@
   .text-navy { color: var(--navy); }
   .bg-navy { background-color: var(--navy); }
   .bg-navy-2 { background-color: var(--navy-2); }
+  /* .text-gold keeps the bright gold (--gold) so it stays readable on the
+     dark navy hero/footer. On white surfaces use .text-gold-ink instead —
+     it resolves to #9A6C08 (~5.4:1 on white, WCAG AA for normal text). */
   .text-gold { color: var(--gold); }
-  .bg-gold { background-color: var(--gold); }
   .text-gold-soft { color: var(--gold-soft); }
+  .text-gold-ink { color: #9A6C08; }
+  .bg-gold { background-color: var(--gold); }
   .text-emerald { color: var(--emerald); }
   .border-gold { border-color: var(--gold); }
   .bg-ink { background-color: var(--ink); }

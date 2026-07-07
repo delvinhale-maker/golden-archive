@@ -657,7 +657,7 @@ function ResourcesTab() {
                 className="group rounded-xl border border-line bg-white p-4 shadow-sm transition hover:border-navy/40 hover:shadow-md"
               >
                 <div className="mb-1 flex items-center gap-2">
-                  <Star size={14} className="text-gold" />
+                  <Star size={14} className="text-gold-ink" />
                   <span className="text-[10px] font-bold uppercase tracking-caps text-mute">
                     Guide
                   </span>

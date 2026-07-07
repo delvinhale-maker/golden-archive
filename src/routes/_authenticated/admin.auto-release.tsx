@@ -154,7 +154,7 @@ function AdminAutoReleasePage() {
       <header className="bg-navy text-white">
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 flex items-center gap-4">
           <Link to="/"><AVLogo /></Link>
-          <span className="inline-flex items-center gap-1.5 text-sm rounded-full bg-gold/15 text-gold px-3 py-1">
+          <span className="inline-flex items-center gap-1.5 text-sm rounded-full bg-gold/15 text-gold-ink px-3 py-1">
             <ShieldCheck size={14} /> Admin · Auto-release
           </span>
           <Link to="/admin" className="ml-auto text-sm text-white/70 hover:text-white inline-flex items-center gap-1">
@@ -327,7 +327,7 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: "su
   const toneMap: Record<string, string> = {
     success: "text-emerald-700",
     danger: "text-red-700",
-    gold: "text-gold",
+    gold: "text-gold-ink",
   };
   return (
     <div className="rounded-xl border border-ink/10 bg-white px-4 py-3">

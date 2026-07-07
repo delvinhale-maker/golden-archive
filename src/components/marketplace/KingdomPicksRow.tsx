@@ -65,7 +65,7 @@ export function KingdomPicksRow() {
     <section className="bg-bg-page py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold">
+          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold-ink">
             <Crown size={14} /> CURATED PICKS
           </div>
           <h2
@@ -101,7 +101,7 @@ export function KingdomPicksRow() {
 
               <div className="flex flex-1 flex-col p-4">
                 {p.source && (
-                  <span className="mb-2 inline-flex w-fit items-center rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold">
+                  <span className="mb-2 inline-flex w-fit items-center rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold-ink">
                     {p.source}
                   </span>
                 )}
@@ -109,7 +109,7 @@ export function KingdomPicksRow() {
                   {p.title}
                 </h3>
                 {p.price != null && (
-                  <div className="mt-2 font-display text-lg font-bold text-gold">
+                  <div className="mt-2 font-display text-lg font-bold text-gold-ink">
                     ${p.price.toFixed(2)}
                   </div>
                 )}
@@ -134,7 +134,7 @@ export function KingdomPicksRow() {
         <div className="mt-8 text-center">
           <Link
             to="/kingdom-picks"
-            className="inline-flex h-11 items-center rounded-full border border-gold px-6 text-sm font-bold text-gold hover:bg-gold hover:text-navy"
+            className="inline-flex h-11 items-center rounded-full border border-gold px-6 text-sm font-bold text-gold-ink hover:bg-gold hover:text-navy"
           >
             See all Curated Picks →
           </Link>

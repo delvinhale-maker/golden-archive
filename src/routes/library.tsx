@@ -144,7 +144,7 @@ function LibraryPage() {
     <MarketShell>
       <div className="mx-auto max-w-5xl px-4 py-8 md:px-8">
         <header className="flex items-center gap-3">
-          <Crown className="text-gold" size={28} />
+          <Crown className="text-gold-ink" size={28} />
           <div>
             <h1 className="font-display text-3xl font-bold text-ink md:text-4xl">
               My Kingdom Library
@@ -230,7 +230,7 @@ function EmptyState({ hasQuery }: { hasQuery: boolean }) {
   }
   return (
     <div className="rounded-2xl border border-line bg-white p-10 text-center">
-      <BookOpen className="mx-auto text-gold" size={40} />
+      <BookOpen className="mx-auto text-gold-ink" size={40} />
       <p className="mt-4 text-base font-semibold text-ink">
         Your library is empty.
       </p>
@@ -295,7 +295,7 @@ function LibraryCard({
             Purchased {formatDate(item.purchasedAt)}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider">
-            <span className="rounded-full bg-navy px-2 py-0.5 text-gold">
+            <span className="rounded-full bg-navy px-2 py-0.5 text-gold-ink">
               {format}
             </span>
             {size && (

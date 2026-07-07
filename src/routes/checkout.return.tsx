@@ -117,7 +117,7 @@ function CheckoutReturn() {
             transition={{ delay: 0.5 }}
             className="absolute -right-2 -top-2"
           >
-            <Sparkles size={18} className="text-gold" />
+            <Sparkles size={18} className="text-gold-ink" />
           </motion.div>
         </motion.div>
 
@@ -143,7 +143,7 @@ function CheckoutReturn() {
         <div className="mx-auto mt-8 max-w-lg">
           {view.status === "loading" && (
             <div className="flex items-center justify-center gap-2 rounded-2xl border border-line bg-white px-5 py-5 text-sm text-mute shadow-sm">
-              <Loader2 className="animate-spin text-gold" size={16} />
+              <Loader2 className="animate-spin text-gold-ink" size={16} />
               Preparing your downloads…
             </div>
           )}
@@ -204,7 +204,7 @@ function CheckoutReturn() {
           transition={{ delay: 0.55 }}
           className="mt-6 inline-flex items-center gap-2 rounded-full border border-line bg-white px-5 py-2.5 text-xs text-mute shadow-sm"
         >
-          <Mail size={14} className="text-gold" />
+          <Mail size={14} className="text-gold-ink" />
           Links valid for 90 days · check your email for a copy
         </motion.div>
 
@@ -228,7 +228,7 @@ function CheckoutReturn() {
           </Link>
           <Link
             to="/products"
-            className="inline-flex h-11 items-center justify-center rounded-full border-2 border-gold px-6 text-sm font-bold text-gold hover:bg-gold hover:text-navy"
+            className="inline-flex h-11 items-center justify-center rounded-full border-2 border-gold px-6 text-sm font-bold text-gold-ink hover:bg-gold hover:text-navy"
           >
             Keep shopping
           </Link>

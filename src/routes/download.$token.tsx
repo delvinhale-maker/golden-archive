@@ -127,7 +127,7 @@ function DownloadPage() {
     return (
       <MarketShell>
         <div className="mx-auto max-w-xl px-6 py-20 text-center">
-          <Loader2 size={32} className="mx-auto animate-spin text-gold" />
+          <Loader2 size={32} className="mx-auto animate-spin text-gold-ink" />
           <p className="mt-4 text-sm text-mute">Preparing your download…</p>
         </div>
       </MarketShell>

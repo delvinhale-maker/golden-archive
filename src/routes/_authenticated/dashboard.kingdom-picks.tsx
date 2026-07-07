@@ -242,7 +242,7 @@ function KingdomPicksAdminPage() {
     <PublisherShell accent={ACCENTS.bookshelf}>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-caps text-gold">
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-caps text-gold-ink">
             <Crown size={12} /> AFFILIATE PARTNERS
           </div>
           <h1 className="mt-1 font-display text-3xl md:text-4xl text-navy">Kingdom Picks</h1>
@@ -275,7 +275,7 @@ function KingdomPicksAdminPage() {
         <div className="flex items-center gap-2 rounded-full border border-navy/10 bg-white px-3 py-1.5">
           <button
             onClick={() => setAutoRefresh((v) => !v)}
-            className={`inline-flex items-center gap-1.5 transition ${autoRefresh ? "text-gold" : "text-mute"}`}
+            className={`inline-flex items-center gap-1.5 transition ${autoRefresh ? "text-gold-ink" : "text-mute"}`}
             aria-pressed={autoRefresh}
             aria-label="Toggle auto-refresh"
           >
@@ -349,7 +349,7 @@ function KingdomPicksAdminPage() {
                   <th className="p-3">
                     <span className="inline-flex items-center gap-1">
                       Clicks
-                      {refreshingClicks && <RefreshCw size={10} className="animate-spin text-gold" />}
+                      {refreshingClicks && <RefreshCw size={10} className="animate-spin text-gold-ink" />}
                     </span>
                   </th>
                   <th className="p-3">Featured</th>
@@ -387,7 +387,7 @@ function KingdomPicksAdminPage() {
                       </td>
                       <td className="p-3 max-w-xs">
                         <p className="font-medium text-navy line-clamp-1">{p.title}</p>
-                        <a href={p.affiliate_url} target="_blank" rel="nofollow sponsored noopener" className="text-[11px] text-mute hover:text-gold inline-flex items-center gap-1">
+                        <a href={p.affiliate_url} target="_blank" rel="nofollow sponsored noopener" className="text-[11px] text-mute hover:text-gold-ink inline-flex items-center gap-1">
                           Test link <ExternalLink size={10} />
                         </a>
                       </td>

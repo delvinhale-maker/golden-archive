@@ -99,7 +99,7 @@ export function UploadFab() {
                     onClick={() => goToNew("ebook")}
                     className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 text-left transition hover:border-gold hover:bg-gold/5"
                   >
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gold/15 text-gold">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gold/15 text-gold-ink">
                       <BookPlus size={20} />
                     </span>
                     <span className="flex-1">

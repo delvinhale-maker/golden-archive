@@ -158,7 +158,7 @@ function SearchPage() {
                     <button
                       key={r}
                       onClick={() => setQ(r)}
-                      className="rounded-full border border-line bg-white px-4 py-1.5 text-sm text-ink hover:border-gold hover:text-gold"
+                      className="rounded-full border border-line bg-white px-4 py-1.5 text-sm text-ink hover:border-gold hover:text-gold-ink"
                     >
                       {r}
                     </button>
@@ -168,7 +168,7 @@ function SearchPage() {
             )}
 
             <section>
-              <h2 className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-caps text-gold">
+              <h2 className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-caps text-gold-ink">
                 <Flame size={12} /> Trending now
               </h2>
               <div className="flex flex-wrap gap-2">
@@ -248,8 +248,8 @@ function SearchPage() {
             {affiliateMatches.length > 0 && (
               <section className="mt-10">
                 <div className="mb-3 flex items-center gap-2">
-                  <Crown size={14} className="text-gold" />
-                  <h2 className="text-[11px] font-bold uppercase tracking-caps text-gold">
+                  <Crown size={14} className="text-gold-ink" />
+                  <h2 className="text-[11px] font-bold uppercase tracking-caps text-gold-ink">
                     Kingdom Picks — Partner Resources
                   </h2>
                 </div>

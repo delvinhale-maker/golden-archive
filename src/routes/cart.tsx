@@ -67,7 +67,7 @@ function CartPage() {
 
         {cart.items.length === 0 ? (
           <div className="mt-12 rounded-2xl border border-line bg-white py-16 text-center">
-            <ShoppingBag size={36} className="mx-auto text-gold" />
+            <ShoppingBag size={36} className="mx-auto text-gold-ink" />
             <p className="mt-4 font-display text-xl font-bold text-ink">Your cart is empty</p>
             <p className="mt-1 text-sm text-mute">Discover premium digital products in the Vault.</p>
             <Link
@@ -99,7 +99,7 @@ function CartPage() {
                     />
                   </Link>
                   <div className="flex min-w-0 flex-1 flex-col">
-                    <span className="text-[10px] font-semibold uppercase tracking-caps text-gold">
+                    <span className="text-[10px] font-semibold uppercase tracking-caps text-gold-ink">
                       {it.category}
                     </span>
                     <Link
@@ -136,7 +136,7 @@ function CartPage() {
                       </button>
                     </div>
                   </div>
-                  <div className="font-display text-lg font-bold text-gold tabular-nums whitespace-nowrap">
+                  <div className="font-display text-lg font-bold text-gold-ink tabular-nums whitespace-nowrap">
                     ${(it.price * it.qty).toFixed(2)}
                   </div>
                 </li>
@@ -155,7 +155,7 @@ function CartPage() {
                   <Row label="Delivery" value="Instant" />
                   <div className="flex items-center justify-between border-t border-line pt-3 text-base font-bold text-ink">
                     <span>Total</span>
-                    <span className="font-display text-xl text-gold">${total.toFixed(2)}</span>
+                    <span className="font-display text-xl text-gold-ink">${total.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -200,10 +200,10 @@ function CartPage() {
 
               <ul className="space-y-2 rounded-xl border border-line bg-[#fafaf7] p-4 text-xs text-mute">
                 <li className="flex items-center gap-2">
-                  <ShieldCheck size={14} className="text-gold" /> SSL-encrypted checkout
+                  <ShieldCheck size={14} className="text-gold-ink" /> SSL-encrypted checkout
                 </li>
                 <li className="flex items-center gap-2">
-                  <Truck size={14} className="text-gold" /> Instant digital delivery
+                  <Truck size={14} className="text-gold-ink" /> Instant digital delivery
                 </li>
               </ul>
             </aside>

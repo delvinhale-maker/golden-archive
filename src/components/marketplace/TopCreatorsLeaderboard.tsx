@@ -20,7 +20,7 @@ export function TopCreatorsLeaderboard() {
     <section className="bg-bg-page py-16 md:py-24">
       <div className="mx-auto max-w-4xl px-6 lg:px-8">
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold">
+          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold-ink">
             <Trophy size={14} /> TOP CREATORS THIS MONTH
           </div>
           <h2 className="mt-2 font-display text-3xl font-bold text-white md:text-4xl">
@@ -53,7 +53,7 @@ export function TopCreatorsLeaderboard() {
                   </div>
                 </div>
                 <div className="hidden text-right sm:block">
-                  <div className="font-display text-lg font-bold text-gold">
+                  <div className="font-display text-lg font-bold text-gold-ink">
                     ${(r.grossCents / 100).toFixed(0)}
                   </div>
                 </div>
@@ -79,7 +79,7 @@ export function TopCreatorsLeaderboard() {
         <div className="mt-6 text-center">
           <Link
             to="/creators"
-            className="inline-flex h-11 items-center rounded-full border border-gold px-6 text-sm font-bold text-gold hover:bg-gold hover:text-navy"
+            className="inline-flex h-11 items-center rounded-full border border-gold px-6 text-sm font-bold text-gold-ink hover:bg-gold hover:text-navy"
           >
             See all creators →
           </Link>

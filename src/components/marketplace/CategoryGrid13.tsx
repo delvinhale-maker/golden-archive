@@ -16,7 +16,7 @@ export function CategoryGrid13() {
     <section id="categories" className="bg-bg-page py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-10 flex flex-col items-center text-center">
-          <div className="text-[11px] font-semibold tracking-caps text-gold">
+          <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
             ALL CATEGORIES
           </div>
           <h2 className="mt-2 font-display text-3xl font-bold text-white md:text-4xl">

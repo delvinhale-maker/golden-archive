@@ -18,7 +18,7 @@ export function FeaturedCreatorsRow() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
-            <div className="text-[11px] font-semibold tracking-caps text-gold">
+            <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
               FEATURED CREATORS
             </div>
             <h2 className="mt-1 font-display text-2xl font-bold text-white md:text-3xl">
@@ -27,7 +27,7 @@ export function FeaturedCreatorsRow() {
           </div>
           <Link
             to="/creators"
-            className="hidden shrink-0 text-sm font-bold text-gold hover:underline md:inline"
+            className="hidden shrink-0 text-sm font-bold text-gold-ink hover:underline md:inline"
           >
             Browse all creators →
           </Link>
@@ -53,7 +53,7 @@ export function FeaturedCreatorsRow() {
                   {c.avatarUrl ? (
                     <img src={c.avatarUrl} alt="" className="h-full w-full object-cover" />
                   ) : (
-                    <span className="font-display text-lg text-gold">
+                    <span className="font-display text-lg text-gold-ink">
                       {c.brandName.slice(0, 1)}
                     </span>
                   )}
@@ -80,7 +80,7 @@ export function FeaturedCreatorsRow() {
           ))}
         </div>
         <div className="mt-4 text-center md:hidden">
-          <Link to="/creators" className="text-sm font-bold text-gold hover:underline">
+          <Link to="/creators" className="text-sm font-bold text-gold-ink hover:underline">
             Browse all creators →
           </Link>
         </div>

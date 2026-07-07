@@ -75,7 +75,7 @@ export function CartDrawer() {
             {/* Header */}
             <div className="flex items-center justify-between border-b border-line px-5 py-4">
               <div className="flex items-center gap-2 font-display text-lg font-bold text-ink">
-                <ShoppingBag size={18} className="text-gold" />
+                <ShoppingBag size={18} className="text-gold-ink" />
                 {step === "cart" ? `Your Cart (${cart.count})` : "Secure Checkout"}
               </div>
               <div className="flex items-center gap-1">
@@ -125,7 +125,7 @@ export function CartDrawer() {
                               />
                             </div>
                             <div className="flex flex-1 flex-col">
-                              <div className="text-[10px] font-semibold uppercase tracking-caps text-gold">
+                              <div className="text-[10px] font-semibold uppercase tracking-caps text-gold-ink">
                                 {it.category}
                               </div>
                               <div className="line-clamp-2 text-sm font-semibold text-ink">
@@ -151,7 +151,7 @@ export function CartDrawer() {
                                     <Plus size={12} />
                                   </button>
                                 </div>
-                                <div className="font-display text-sm font-bold text-gold">
+                                <div className="font-display text-sm font-bold text-gold-ink">
                                   ${(it.price * it.qty).toFixed(2)}
                                 </div>
                               </div>
@@ -212,7 +212,7 @@ export function CartDrawer() {
                       )}
                       <div className="flex items-center justify-between pt-2 text-base font-bold text-ink">
                         <span>Total</span>
-                        <span className="font-display text-xl text-gold">
+                        <span className="font-display text-xl text-gold-ink">
                           ${total.toFixed(2)}
                         </span>
                       </div>
@@ -269,7 +269,7 @@ function Step({ active, done, label }: { active?: boolean; done?: boolean; label
   return (
     <li
       className={`${
-        active ? "text-gold" : done ? "text-emerald" : "text-mute"
+        active ? "text-gold-ink" : done ? "text-emerald" : "text-mute"
       }`}
     >
       {label}
@@ -292,7 +292,7 @@ function EmptyCart({ onClose }: { onClose: () => void }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f5f4ef]">
-        <ShoppingBag size={28} className="text-gold" />
+        <ShoppingBag size={28} className="text-gold-ink" />
       </div>
       <h3 className="mt-5 font-display text-xl font-bold text-ink">
         Your vault is empty

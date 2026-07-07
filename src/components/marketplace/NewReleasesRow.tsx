@@ -15,7 +15,7 @@ export function NewReleasesRow() {
     <section className="bg-bg-page py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="text-[11px] font-semibold tracking-caps text-gold">
+          <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
             JUST DROPPED
           </div>
           <h2

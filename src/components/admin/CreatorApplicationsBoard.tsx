@@ -389,7 +389,7 @@ export function CreatorApplicationsBoard() {
                         <Link
                           to="/store/$slug"
                           params={{ slug: c.app.brand_slug }}
-                          className="inline-flex items-center gap-1 text-navy hover:text-gold text-xs"
+                          className="inline-flex items-center gap-1 text-navy hover:text-gold-ink text-xs"
                         >
                           /store/{c.app.brand_slug} <ExternalLink size={11} />
                         </Link>
@@ -411,7 +411,7 @@ export function CreatorApplicationsBoard() {
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => setOpenApp(c.app)}
-                        className="text-xs text-navy hover:text-gold underline underline-offset-2"
+                        className="text-xs text-navy hover:text-gold-ink underline underline-offset-2"
                       >
                         View
                       </button>
@@ -521,7 +521,7 @@ function ApplicationModal({
                 href={app.website}
                 target="_blank"
                 rel="noreferrer"
-                className="text-navy hover:text-gold inline-flex items-center gap-1 text-sm"
+                className="text-navy hover:text-gold-ink inline-flex items-center gap-1 text-sm"
               >
                 <Globe size={13} /> {app.website}
               </a>
@@ -535,7 +535,7 @@ function ApplicationModal({
                   v ? (
                     <li key={k}>
                       <span className="text-mute capitalize mr-2">{k}:</span>
-                      <a href={v} target="_blank" rel="noreferrer" className="text-navy hover:text-gold">
+                      <a href={v} target="_blank" rel="noreferrer" className="text-navy hover:text-gold-ink">
                         {v}
                       </a>
                     </li>
@@ -558,7 +558,7 @@ function ApplicationModal({
               <Link
                 to="/store/$slug"
                 params={{ slug: app.brand_slug }}
-                className="text-navy hover:text-gold inline-flex items-center gap-1 text-sm"
+                className="text-navy hover:text-gold-ink inline-flex items-center gap-1 text-sm"
               >
                 <ExternalLink size={13} /> /store/{app.brand_slug}
               </Link>

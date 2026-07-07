@@ -189,7 +189,7 @@ function ValueProps() {
   return (
     <section className="bg-paper py-16 md:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
+        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-gold-ink">
           Why AurumVault
         </p>
         <h2
@@ -235,7 +235,7 @@ function HowItWorks() {
     <section id="how-it-works" className="bg-white py-16 md:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">The Path</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold-ink">The Path</p>
           <h2
             className="mt-2 text-3xl md:text-5xl text-navy"
             style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
@@ -280,7 +280,7 @@ function WhatToSell() {
     <section className="bg-paper py-16 md:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">Product Types</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold-ink">Product Types</p>
           <h2
             className="mt-2 text-3xl md:text-5xl text-navy"
             style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
@@ -378,7 +378,7 @@ function FAQ() {
     <section className="bg-white py-16 md:py-24">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <div className="text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">Questions</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold-ink">Questions</p>
           <h2
             className="mt-2 text-3xl md:text-5xl text-navy"
             style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
@@ -391,7 +391,7 @@ function FAQ() {
             <details key={it.q} className="group py-5">
               <summary className="flex cursor-pointer items-center justify-between gap-4 font-semibold text-navy">
                 {it.q}
-                <span className="text-gold transition-transform group-open:rotate-45">+</span>
+                <span className="text-gold-ink transition-transform group-open:rotate-45">+</span>
               </summary>
               <p className="mt-3 text-sm leading-relaxed text-ink/70">{it.a}</p>
             </details>

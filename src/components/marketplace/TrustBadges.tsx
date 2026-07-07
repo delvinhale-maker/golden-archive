@@ -11,7 +11,7 @@ export function TrustBadges() {
     <div className="mt-6 grid grid-cols-2 gap-2 md:grid-cols-4">
       {items.map(({ icon: Icon, label, sub }) => (
         <div key={label} className="flex items-start gap-2 rounded-lg border border-line bg-white p-3">
-          <Icon size={16} className="mt-0.5 text-gold" />
+          <Icon size={16} className="mt-0.5 text-gold-ink" />
           <div>
             <div className="text-[12px] font-bold text-ink">{label}</div>
             <div className="text-[11px] text-mute">{sub}</div>
@@ -26,11 +26,11 @@ export function KingdomGuarantee() {
   return (
     <div className="mt-5 rounded-xl border-2 border-gold/40 bg-gradient-to-br from-[#fdf9ec] to-white p-5">
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold-ink">
           <ShieldCheck size={20} />
         </div>
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-caps text-gold">
+          <div className="text-[11px] font-bold uppercase tracking-caps text-gold-ink">
             The AurumVault Guarantee
           </div>
           <h3 className="mt-1 font-display text-lg font-bold text-ink">
