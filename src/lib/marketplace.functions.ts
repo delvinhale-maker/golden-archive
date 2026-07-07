@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { slugToLabel, labelToSlug } from "@/lib/categories";
+import { slugToLabel, labelToSlug, getCategoryDef } from "@/lib/categories";
 
 const API_BASE = "https://web-builder-pro-delvinhale.replit.app/api";
 
