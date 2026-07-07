@@ -25,6 +25,8 @@ export function ProductPreviewsManager({
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [altDrafts, setAltDrafts] = useState<Record<string, string>>({});
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
