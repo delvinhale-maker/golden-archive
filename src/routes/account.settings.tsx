@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, KeyRound, Loader2, LogOut, Save, Upload, User as UserIcon } from "lucide-react";
+import { ArrowLeft, KeyRound, Loader2, LogOut, Save, Trash2, Upload, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { useAuth } from "@/hooks/use-auth";
@@ -33,6 +33,7 @@ function AccountSettingsPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [removingAvatar, setRemovingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [newPassword, setNewPassword] = useState("");
@@ -149,6 +150,48 @@ function AccountSettingsPage() {
     }
   }
 
+  async function handleRemoveAvatar() {
+    if (!user) return;
+    if (!avatarUrl && !avatarPreview) return;
+    if (typeof window !== "undefined" && !window.confirm("Remove your profile photo?")) return;
+    setRemovingAvatar(true);
+    try {
+      // Delete all files under the user's avatar folder in storage
+      const { data: files, error: listError } = await supabase.storage
+        .from("avatars")
+        .list(user.id);
+      if (listError) throw listError;
+      if (files && files.length > 0) {
+        const paths = files.map((f) => `${user.id}/${f.name}`);
+        const { error: removeError } = await supabase.storage.from("avatars").remove(paths);
+        if (removeError) throw removeError;
+      }
+
+      // Clear from auth metadata + profiles
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { full_name: fullName.trim(), avatar_url: null },
+      });
+      if (authError) throw authError;
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: null })
+        .eq("id", user.id);
+      if (profileError) throw profileError;
+
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+      setAvatarPreview(null);
+      setAvatarUrl("");
+      toast.success("Profile photo removed");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to remove avatar";
+      toast.error(message);
+    } finally {
+      setRemovingAvatar(false);
+    }
+  }
+
+
+
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
@@ -236,6 +279,21 @@ function AccountSettingsPage() {
                     )}
                     Upload new photo
                   </button>
+                  {(avatarUrl || avatarPreview) && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAvatar}
+                      disabled={removingAvatar || uploadingAvatar}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+                    >
+                      {removingAvatar ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={14} />
+                      )}
+                      Remove photo
+                    </button>
+                  )}
                   <p className="text-[11px] text-mute">PNG, JPG, WEBP, or GIF. Max 5 MB.</p>
                 </div>
               </div>
