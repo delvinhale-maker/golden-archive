@@ -121,7 +121,7 @@ function Home() {
       <HighlightsBoundary fallback={<HeroCarousel />} errorLabel="hero product">
         <FeaturedHero />
       </HighlightsBoundary>
-      <HeroStatsBar />
+      <FeaturedCollections />
       <TrustBar />
       <RefreshHighlightsBar />
       <ContinueBrowsingRow />
@@ -148,6 +148,7 @@ function Home() {
         <IllustriousCreator />
       </HighlightsBoundary>
       <CreatorSpotlight />
+      <HeroStatsBar />
       <Suspense fallback={null}>
         <TopCreatorsLeaderboard />
       </Suspense>
@@ -157,6 +158,7 @@ function Home() {
     </MarketShell>
   );
 }
+
 
 
 
