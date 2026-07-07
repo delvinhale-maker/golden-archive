@@ -1212,3 +1212,260 @@ function eventMeta(event: string) {
       };
   }
 }
+
+function PromoteDialog({
+  product,
+  onClose,
+}: {
+  product: Product;
+  onClose: () => void;
+}) {
+  const url =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/products/${product.id}`
+      : `https://www.aurumvault.store/products/${product.id}`;
+  const title = product.title;
+  const caption = `${title} — now on AurumVault. Get it here: ${url}`;
+  const encTitle = encodeURIComponent(title);
+  const encUrl = encodeURIComponent(url);
+  const encCaption = encodeURIComponent(caption);
+
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedCaption, setCopiedCaption] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  async function copy(text: string, which: "link" | "caption") {
+    try {
+      await navigator.clipboard.writeText(text);
+      if (which === "link") {
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 1500);
+      } else {
+        setCopiedCaption(true);
+        setTimeout(() => setCopiedCaption(false), 1500);
+      }
+      toast.success("Copied to clipboard");
+    } catch {
+      toast.error("Couldn't copy");
+    }
+  }
+
+  async function nativeShare() {
+    if (typeof navigator !== "undefined" && "share" in navigator) {
+      try {
+        await navigator.share({ title, text: caption, url });
+      } catch {
+        /* user cancelled */
+      }
+    } else {
+      copy(url, "link");
+    }
+  }
+
+  const shares: {
+    label: string;
+    href: string;
+    icon: React.ReactNode;
+    color: string;
+  }[] = [
+    {
+      label: "Facebook",
+      href: `https://www.facebook.com/sharer/sharer.php?u=${encUrl}`,
+      icon: <Facebook size={16} />,
+      color: "#1877F2",
+    },
+    {
+      label: "X / Twitter",
+      href: `https://twitter.com/intent/tweet?text=${encTitle}&url=${encUrl}`,
+      icon: <Twitter size={16} />,
+      color: "#0F1419",
+    },
+    {
+      label: "WhatsApp",
+      href: `https://wa.me/?text=${encCaption}`,
+      icon: <MessageCircle size={16} />,
+      color: "#25D366",
+    },
+    {
+      label: "SMS",
+      href: `sms:?&body=${encCaption}`,
+      icon: <MessageCircle size={16} />,
+      color: "#34B7F1",
+    },
+    {
+      label: "Email",
+      href: `mailto:?subject=${encTitle}&body=${encCaption}`,
+      icon: <Mail size={16} />,
+      color: "#6B7280",
+    },
+    {
+      label: "LinkedIn",
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encUrl}`,
+      icon: <Linkedin size={16} />,
+      color: "#0A66C2",
+    },
+    {
+      label: "Telegram",
+      href: `https://t.me/share/url?url=${encUrl}&text=${encTitle}`,
+      icon: <Send size={16} />,
+      color: "#26A5E4",
+    },
+    {
+      label: "Reddit",
+      href: `https://www.reddit.com/submit?url=${encUrl}&title=${encTitle}`,
+      icon: <Share2 size={16} />,
+      color: "#FF4500",
+    },
+  ];
+
+  const captionOnly: { label: string; icon: React.ReactNode; color: string }[] = [
+    { label: "TikTok", icon: <Music2 size={16} />, color: "#000000" },
+    { label: "YouTube", icon: <Youtube size={16} />, color: "#FF0000" },
+    { label: "Instagram", icon: <Share2 size={16} />, color: "#E1306C" },
+  ];
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+    >
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className="absolute inset-0 bg-navy/40 backdrop-blur-sm"
+      />
+      <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="flex items-start justify-between p-5 border-b border-ink/10">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-10 w-10 rounded-full bg-gold/15 text-gold-ink flex items-center justify-center shrink-0">
+              <Megaphone size={18} />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-display text-lg text-navy leading-tight">
+                Promote &amp; advertise
+              </h3>
+              <p className="text-xs text-mute truncate">{title}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="p-1.5 rounded-full hover:bg-paper text-ink/70"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto p-5 space-y-5">
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wider text-mute">
+              Shareable link
+            </label>
+            <div className="mt-2 flex gap-2">
+              <input
+                readOnly
+                value={url}
+                onFocus={(e) => e.currentTarget.select()}
+                className="flex-1 min-w-0 px-3 py-2 text-sm rounded-lg border border-ink/15 bg-paper focus:outline-none focus:ring-2 focus:ring-gold/60"
+              />
+              <button
+                type="button"
+                onClick={() => copy(url, "link")}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-navy text-white px-3 py-2 text-sm font-semibold hover:bg-navy/90 shrink-0"
+              >
+                {copiedLink ? <Check size={14} /> : <Copy size={14} />}
+                {copiedLink ? "Copied" : "Copy"}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wider text-mute">
+              Share directly
+            </label>
+            <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button
+                type="button"
+                onClick={nativeShare}
+                className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-ink/10 bg-white hover:border-gold/40 px-2 py-3 text-xs font-semibold text-ink"
+              >
+                <Share2 size={16} />
+                Share…
+              </button>
+              {shares.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-ink/10 bg-white hover:border-gold/40 px-2 py-3 text-xs font-semibold text-ink"
+                  style={{ color: s.color }}
+                >
+                  {s.icon}
+                  <span className="text-ink">{s.label}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wider text-mute">
+              Caption for TikTok, YouTube &amp; Instagram
+            </label>
+            <p className="mt-1 text-xs text-mute">
+              These platforms don't support direct link sharing. Copy the caption
+              below, then paste it into your post or bio.
+            </p>
+            <textarea
+              readOnly
+              value={caption}
+              onFocus={(e) => e.currentTarget.select()}
+              rows={3}
+              className="mt-2 w-full px-3 py-2 text-sm rounded-lg border border-ink/15 bg-paper focus:outline-none focus:ring-2 focus:ring-gold/60 resize-none"
+            />
+            <div className="mt-2 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => copy(caption, "caption")}
+                className="inline-flex items-center gap-1.5 rounded-full bg-gold text-navy px-4 py-2 text-xs font-semibold hover:bg-gold/90"
+              >
+                {copiedCaption ? <Check size={12} /> : <Copy size={12} />}
+                {copiedCaption ? "Caption copied" : "Copy caption"}
+              </button>
+              {captionOnly.map((c) => (
+                <span
+                  key={c.label}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-semibold text-ink"
+                  style={{ color: c.color }}
+                >
+                  {c.icon}
+                  <span className="text-ink">{c.label}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 border-t border-ink/10 bg-paper/50 flex justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full bg-white border border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:border-gold/40"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
