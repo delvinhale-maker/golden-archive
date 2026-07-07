@@ -92,30 +92,80 @@ export function ProductPreviewsManager({
     }
   }
 
-  async function move(index: number, dir: -1 | 1) {
-    const j = index + dir;
-    if (j < 0 || j >= rows.length) return;
-    const a = rows[index];
-    const b = rows[j];
+  async function persistOrder(next: PreviewRow[]) {
+    // Detect actual moves to skip no-op writes.
+    const changed = next
+      .map((r, i) => ({ id: r.id, from: r.page_order, to: i + 1 }))
+      .filter((c) => c.from !== c.to);
+    if (changed.length === 0) return;
+
+    // Optimistic UI: reflect the new order immediately.
+    setRows(next.map((r, i) => ({ ...r, page_order: i + 1 })));
     setBusy(true);
     try {
-      // Swap page_order using a temporary negative to dodge the unique constraint.
-      const tmp = -Math.abs(a.page_order) - 1;
-      let r = await supabase.from("product_previews").update({ page_order: tmp }).eq("id", a.id);
-      if (r.error) throw r.error;
-      r = await supabase.from("product_previews").update({ page_order: a.page_order }).eq("id", b.id);
-      if (r.error) throw r.error;
-      r = await supabase.from("product_previews").update({ page_order: b.page_order }).eq("id", a.id);
-      if (r.error) throw r.error;
+      // Two-phase to dodge the (product_id, page_order) unique constraint:
+      // 1) move everything to a negative temporary slot,
+      // 2) set the final 1..N ordering.
+      for (let i = 0; i < next.length; i++) {
+        const r = await supabase
+          .from("product_previews")
+          .update({ page_order: -(i + 1) })
+          .eq("id", next[i].id);
+        if (r.error) throw r.error;
+      }
+      for (let i = 0; i < next.length; i++) {
+        const r = await supabase
+          .from("product_previews")
+          .update({ page_order: i + 1 })
+          .eq("id", next[i].id);
+        if (r.error) throw r.error;
+      }
       await refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Reorder failed");
+      await refresh();
     } finally {
       setBusy(false);
     }
   }
 
-  async function remove(row: PreviewRow) {
+  async function move(index: number, dir: -1 | 1) {
+    const j = index + dir;
+    if (j < 0 || j >= rows.length) return;
+    const next = rows.slice();
+    [next[index], next[j]] = [next[j], next[index]];
+    await persistOrder(next);
+  }
+
+  function onDragStart(id: string) {
+    if (busy) return;
+    setDragId(id);
+  }
+  function onDragOver(e: React.DragEvent, id: string) {
+    if (!dragId || dragId === id) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverId !== id) setDragOverId(id);
+  }
+  function onDragEnd() {
+    setDragId(null);
+    setDragOverId(null);
+  }
+  async function onDrop(e: React.DragEvent, targetId: string) {
+    e.preventDefault();
+    const sourceId = dragId;
+    setDragId(null);
+    setDragOverId(null);
+    if (!sourceId || sourceId === targetId) return;
+    const from = rows.findIndex((r) => r.id === sourceId);
+    const to = rows.findIndex((r) => r.id === targetId);
+    if (from < 0 || to < 0) return;
+    const next = rows.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    await persistOrder(next);
+  }
+
     if (!window.confirm(`Delete preview page ${row.page_order}? This cannot be undone.`)) return;
     setBusy(true);
     try {
