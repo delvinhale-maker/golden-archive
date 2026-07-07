@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { slugToLabel, labelToSlug } from "@/lib/categories";
+import { slugToLabel, labelToSlug, getCategoryDef } from "@/lib/categories";
 
 const API_BASE = "https://web-builder-pro-delvinhale.replit.app/api";
 
@@ -137,8 +137,11 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
       .eq("status", "approved")
       .eq("published", true)
       .order("created_at", { ascending: false });
-    if (opts.category && opts.category !== "All") {
-      const slug = labelToSlug(opts.category) ?? opts.category.toLowerCase();
+    if (opts.category && opts.category.toLowerCase() !== "all") {
+      const slug =
+        getCategoryDef(opts.category)?.slug ??
+        labelToSlug(opts.category) ??
+        opts.category.toLowerCase();
       query = query.eq(
         "category",
         slug as Database["public"]["Enums"]["product_category"],
