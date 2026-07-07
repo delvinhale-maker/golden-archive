@@ -1575,11 +1575,25 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
                 </div>
 
               ) : isImage && signedUrl ? (
-                <div className="flex flex-col items-center justify-center w-full h-full p-3">
+                <div className="w-full h-full p-3 overflow-auto">
                   <img
                     src={signedUrl}
                     alt="Journal page preview"
-                    className="max-w-full max-h-full object-contain shadow-md rounded"
+                    onLoad={(e) => {
+                      const img = e.currentTarget;
+                      setImageNatural({ w: img.naturalWidth, h: img.naturalHeight });
+                    }}
+                    className="block rounded shadow-md"
+                    style={{
+                      maxWidth: "none",
+                      maxHeight: "none",
+                      width: imageFitWidth
+                        ? "100%"
+                        : imageNatural
+                          ? `${Math.round(imageNatural.w * imageZoom)}px`
+                          : `${Math.round(100 * imageZoom)}%`,
+                      height: "auto",
+                    }}
                   />
                 </div>
               ) : isZip ? (
