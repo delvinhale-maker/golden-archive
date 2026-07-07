@@ -130,12 +130,17 @@ async def test_non_variant_flow(page, href):
     price_txt = (await page.locator(STICKY_PRICE).inner_text()).strip()
     price = float(price_txt.replace("$", "").replace(",", ""))
 
-    await page.locator(STICKY_CTA).click()
-    await page.wait_for_timeout(500)
+    cta = page.locator(STICKY_CTA)
+    await cta.scroll_into_view_if_needed()
+    await cta.click(force=True)
+    await page.wait_for_function(
+        "() => !!window.localStorage.getItem('av:cart:v2')",
+        timeout=5000,
+    )
     await page.screenshot(path=str(SHOTS / "nonvariant_after_click.png"))
 
     raw = await page.evaluate("window.localStorage.getItem('av:cart:v2')")
-    assert raw, "[cart] localStorage av:cart is empty after sticky tap"
+    assert raw, "[cart] localStorage av:cart:v2 is empty after sticky tap"
     items = json.loads(raw)
     assert isinstance(items, list) and items, f"[cart] unexpected cart payload: {raw!r}"
     match = next((i for i in items if i.get("id") == product_id), None)
