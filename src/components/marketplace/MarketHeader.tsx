@@ -133,6 +133,14 @@ export function MarketHeader() {
                 >
                   <LayoutDashboard size={20} />
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => void handleSignOut()}
+                  aria-label="Sign out"
+                  className="relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10"
+                >
+                  <LogOut size={20} />
+                </button>
               </>
             ) : (
               <Link
