@@ -136,10 +136,10 @@ export const Route = createFileRoute("/")({
 
 const CATS = [
   { label: "eBooks", icon: BookOpen, slug: "eBooks" },
-  { label: "Courses", icon: GraduationCap, slug: "Courses" },
+  { label: "Journals", icon: GraduationCap, slug: "Journals" },
   { label: "Templates", icon: LayoutTemplate, slug: "Templates" },
   { label: "Audio", icon: Headphones, slug: "Audio" },
-  { label: "Finance", icon: Wallet, slug: "Finance" },
+  { label: "Financial Planners", icon: Wallet, slug: "Financial Planners" },
   { label: "Leadership", icon: Crown, slug: "Leadership" },
   { label: "Purpose", icon: Swords, slug: "Purpose" },
   { label: "Business", icon: Briefcase, slug: "Business" },
