@@ -150,7 +150,7 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
                 <motion.span
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
-                  className="inline-flex h-12 items-center rounded-full px-7 text-sm font-bold text-navy"
+                  className="inline-flex h-12 items-center rounded-full px-7 text-sm font-bold text-navy transition-[filter] hover:brightness-110"
                   style={{
                     backgroundColor: "var(--accent-color)",
                     boxShadow:
