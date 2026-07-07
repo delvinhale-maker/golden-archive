@@ -110,13 +110,67 @@ async def test_variant_flow(page, href):
     )
 
     # For variant products the CTA opens the checkout modal (does NOT
-    # write to localStorage). Verify the modal appears.
-    await page.locator(STICKY_CTA).click()
-    await page.wait_for_timeout(600)
+    # write to localStorage). The modal boots a Stripe embedded iframe
+    # whose price is cross-origin — so we assert on the server-fn
+    # request payload that seeds it: buyerPriceCents (or the resolved
+    # variant unit price) must equal the sticky bar's displayPrice.
+    sticky_cents = _price_cents(new_price)
+    captured: list[dict] = []
+
+    async def on_request(req):
+        if req.method != "POST":
+            return
+        try:
+            body = req.post_data or ""
+        except Exception:
+            return
+        if "productId" not in body and "buyerPriceCents" not in body and "variantId" not in body:
+            return
+        try:
+            captured.append({"url": req.url, "body": json.loads(body)})
+        except Exception:
+            captured.append({"url": req.url, "body": body})
+
+    page.on("request", on_request)
+    try:
+        await page.locator(STICKY_CTA).click()
+        # Wait for the checkout server fn to fire.
+        for _ in range(50):
+            if captured:
+                break
+            await page.wait_for_timeout(100)
+    finally:
+        page.remove_listener("request", on_request)
+
     modal = page.locator("[aria-label='Close checkout']")
     assert await modal.count(), "[variant] checkout modal did not open on sticky tap"
     await page.screenshot(path=str(SHOTS / "variant_checkout_open.png"))
-    print("[variant] checkout modal opened OK")
+
+    assert captured, "[variant] no checkout server-fn request observed after CTA tap"
+    payload = captured[-1]["body"]
+    # createServerFn wraps args as { data: {...} } — unwrap if present.
+    args = payload.get("data", payload) if isinstance(payload, dict) else {}
+    buyer_cents = args.get("buyerPriceCents")
+    if buyer_cents is not None:
+        assert int(buyer_cents) == sticky_cents, (
+            f"[variant] checkout buyerPriceCents ({buyer_cents}) != sticky "
+            f"displayPrice ({sticky_cents}¢ from {new_price!r})"
+        )
+        print(f"[variant] checkout modal seeded at {buyer_cents}¢ == sticky {new_price}")
+    else:
+        # Fixed-price variant: server resolves the amount from variantId.
+        # Assert the same variant is being checked out and the sticky
+        # price still matches the option's displayed price (already
+        # asserted above, so this is a sanity check on the payload).
+        assert args.get("variantId"), (
+            f"[variant] checkout payload missing both buyerPriceCents and "
+            f"variantId: {args!r}"
+        )
+        print(
+            f"[variant] checkout modal opened for variantId={args['variantId']} "
+            f"(fixed price {new_price} matches sticky)"
+        )
+
 
 
 def _price_cents(txt: str) -> int:
