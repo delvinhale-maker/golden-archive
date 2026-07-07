@@ -24,7 +24,7 @@ const COLLECTIONS: Collection[] = [
     blurb: "Playbooks and systems from operators who've built lasting wealth.",
     image: financialImg,
     to: "/products",
-    search: { category: "Finance" },
+    search: { category: "Financial Planners" },
     size: "lg",
   },
   {
