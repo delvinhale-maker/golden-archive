@@ -436,6 +436,10 @@ function BookshelfPage() {
               const p = products.find((x) => x.id === id);
               if (p) setHistoryProduct(p);
             }}
+            onPromote={(id) => {
+              const p = products.find((x) => x.id === id);
+              if (p) setPromoteProduct(p);
+            }}
           />
         )}
       </section>
@@ -444,6 +448,13 @@ function BookshelfPage() {
         <HistoryDialog
           product={historyProduct}
           onClose={() => setHistoryProduct(null)}
+        />
+      )}
+
+      {promoteProduct && (
+        <PromoteDialog
+          product={promoteProduct}
+          onClose={() => setPromoteProduct(null)}
         />
       )}
 
