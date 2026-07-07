@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Loader2, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   recordMount as recordEpubNavMount,
