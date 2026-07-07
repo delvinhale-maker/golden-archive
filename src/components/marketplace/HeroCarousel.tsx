@@ -117,12 +117,13 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
 
   return (
     <section
-      className="av-hero-bg relative overflow-hidden"
+      className="av-hero-bg av-hero-particles relative overflow-hidden"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       aria-roledescription="carousel"
     >
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-[55%_45%] md:py-24 lg:px-8 lg:py-28">
+      <div className="av-hero-reflection" aria-hidden />
+      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-[55%_45%] md:py-28 lg:px-8 lg:py-36">
         <AnimatePresence mode="wait">
           <motion.div
             key={`text-${i}`}
