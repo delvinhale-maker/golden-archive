@@ -257,6 +257,102 @@ async def test_non_variant_flow(page, href):
         f"qty={match2['qty']} matches sticky {sticky_price_txt}"
     )
 
+    # Reopen the checkout modal from the cart drawer after the qty bump.
+    # createCartCheckout's payload must carry the same unit priceCents as
+    # the sticky bar's displayPrice — qty scales the line item, but the
+    # per-unit price must never drift from what the PDP advertised.
+    captured: list[dict] = []
+
+    async def on_request(req):
+        if req.method != "POST":
+            return
+        try:
+            body = req.post_data or ""
+        except Exception:
+            return
+        if "createCartCheckout" not in req.url and "cart" not in req.url.lower():
+            if "priceCents" not in body or '"items"' not in body:
+                return
+        try:
+            captured.append({"url": req.url, "body": json.loads(body)})
+        except Exception:
+            captured.append({"url": req.url, "body": body})
+
+    page.on("request", on_request)
+    try:
+        proceed = page.get_by_role("button", name="Proceed to Checkout").first
+        await proceed.wait_for(timeout=5000)
+        await proceed.click()
+        for _ in range(50):
+            if captured:
+                break
+            await page.wait_for_timeout(100)
+    finally:
+        page.remove_listener("request", on_request)
+
+    await page.screenshot(path=str(SHOTS / "nonvariant_checkout_reopen.png"))
+    assert captured, "[cart] no cart-checkout server-fn request observed after Proceed tap"
+    # Prefer the cart-checkout request; fall back to last captured.
+    cart_call = next(
+        (c for c in captured if "createCartCheckout" in c["url"] or "cart" in c["url"].lower()),
+        captured[-1],
+    )
+    print(f"[cart] captured checkout call url={cart_call['url']}")
+
+    # TanStack encodes server-fn args as a tagged tree with parallel
+    # keys/values arrays: nodes look like { p: { k: [...], v: [...] } }
+    # for objects and { a: [...] } for arrays, with primitives in `s`.
+    # Walk the tree to find the items[] map for our product.
+    def find_line(node, pid):
+        if isinstance(node, dict):
+            p = node.get("p")
+            if isinstance(p, dict) and "k" in p and "v" in p:
+                keys = p["k"]
+                vals = p["v"]
+                if {"id", "priceCents", "qty"}.issubset(set(keys)):
+                    obj = {k: (v.get("s") if isinstance(v, dict) else v) for k, v in zip(keys, vals)}
+                    if obj.get("id") == pid:
+                        return obj
+                for v in vals:
+                    r = find_line(v, pid)
+                    if r is not None:
+                        return r
+            a = node.get("a")
+            if isinstance(a, list):
+                for v in a:
+                    r = find_line(v, pid)
+                    if r is not None:
+                        return r
+            # Recurse into any nested dicts we haven't covered.
+            for v in node.values():
+                if isinstance(v, (dict, list)):
+                    r = find_line(v, pid)
+                    if r is not None:
+                        return r
+        elif isinstance(node, list):
+            for v in node:
+                r = find_line(v, pid)
+                if r is not None:
+                    return r
+        return None
+
+    line = find_line(cart_call["body"], product_id)
+    assert line, (
+        f"[cart] cart-checkout payload missing product {product_id}: "
+        f"url={cart_call['url']} body={cart_call['body']!r}"
+    )
+    assert int(line["priceCents"]) == sticky_cents, (
+        f"[cart] cart-checkout unit priceCents ({line['priceCents']}) != sticky "
+        f"displayPrice ({sticky_cents}¢ from {sticky_price_txt!r})"
+    )
+    assert int(line["qty"]) == 2, (
+        f"[cart] cart-checkout qty should reflect drawer bump (2), got {line['qty']}"
+    )
+    print(
+        f"[cart] checkout modal reopened at unit={line['priceCents']}¢ x qty={line['qty']} "
+        f"— matches sticky {sticky_price_txt}"
+    )
+
 
 async def main():
     async with async_playwright() as p:
