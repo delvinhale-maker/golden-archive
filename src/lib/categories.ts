@@ -190,10 +190,23 @@ export function slugToLabel(slug?: string | null): string {
   return key.charAt(0).toUpperCase() + key.slice(1);
 }
 
+// Aliases for short tab labels used in the header nav.
+const LABEL_ALIAS: Record<string, string> = {
+  Journals: "printable_journals",
+  "Financial Planners": "financial_planners",
+  Courses: "courses",
+  Finance: "financial_planners",
+  Leadership: "business_templates",
+  Purpose: "printable_journals",
+  Business: "business_operating_systems",
+};
+
 export function labelToSlug(label?: string | null): string | undefined {
   if (!label) return undefined;
   const direct = CATEGORY_BY_LABEL[label];
   if (direct) return direct.slug;
+  const alias = LABEL_ALIAS[label];
+  if (alias) return alias;
   const lower = label.toLowerCase();
   if (CATEGORY_BY_SLUG[lower]) return lower;
   return undefined;
