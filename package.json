@@ -13,6 +13,7 @@
     "check:slugs": "node scripts/check-slug-integrity.mjs",
     "check:prepublish": "node scripts/prepublish-check.mjs",
     "smoke:previews": "node scripts/smoke-previews.mjs",
+    "check:hero-contrast": "node scripts/check-hero-cta-contrast.mjs",
     "format": "prettier --write ."
   },
   "dependencies": {
