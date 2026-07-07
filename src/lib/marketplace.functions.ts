@@ -201,10 +201,10 @@ export type ProductDetailResult =
 
 const CATEGORIES = [
   "eBooks",
-  "Courses",
+  "Journals",
   "Templates",
   "Audio",
-  "Finance",
+  "Financial Planners",
   "Leadership",
   "Purpose",
   "Business",
