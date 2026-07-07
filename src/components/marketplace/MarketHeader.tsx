@@ -40,6 +40,7 @@ const CATEGORIES = [
 
 export function MarketHeader() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchState = useRouterState({
     select: (s) => s.location.search,
@@ -51,6 +52,13 @@ export function MarketHeader() {
   const cart = useCart();
   const { user, isAdmin, isSeller } = useAuth();
   const canUpload = isAdmin || isSeller;
+
+  const handleSignOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
 
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
