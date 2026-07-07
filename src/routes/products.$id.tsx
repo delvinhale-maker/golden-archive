@@ -711,14 +711,7 @@ function ProductPage() {
           pageCount={product.previewPages?.length ?? 0}
           stage={previewStage}
           progress={previewProgress}
-          onCancel={() => {
-            if (previewTickerRef.current) {
-              window.clearInterval(previewTickerRef.current);
-              previewTickerRef.current = null;
-            }
-            setPreviewOpen(false);
-            setPreviewLoading(false);
-          }}
+          onCancel={cancelPreview}
         />
       )}
     </MarketShell>
