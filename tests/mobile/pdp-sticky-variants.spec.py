@@ -119,6 +119,14 @@ async def test_variant_flow(page, href):
     print("[variant] checkout modal opened OK")
 
 
+def _price_cents(txt: str) -> int:
+    """Parse '$12.34' / 'From $12.34' → 1234 cents (integer, no float drift)."""
+    clean = txt.replace("From ", "").replace("$", "").replace(",", "").strip()
+    dollars, _, frac = clean.partition(".")
+    frac = (frac + "00")[:2] if frac else "00"
+    return int(dollars) * 100 + int(frac)
+
+
 async def test_non_variant_flow(page, href):
     print(f"[cart] using {href}")
     await page.goto(f"{BASE}{href}", wait_until="networkidle")
@@ -127,8 +135,12 @@ async def test_non_variant_flow(page, href):
     await page.evaluate("window.localStorage.removeItem('av:cart:v2')")
 
     product_id = href.rsplit("/", 1)[-1]
-    price_txt = (await page.locator(STICKY_PRICE).inner_text()).strip()
-    price = float(price_txt.replace("$", "").replace(",", ""))
+
+    # Snapshot the sticky displayPrice immediately before the click, in
+    # integer cents to avoid float rounding. The CTA text must also
+    # embed the same price so label + price + CTA agree.
+    sticky_price_txt = (await page.locator(STICKY_PRICE).inner_text()).strip()
+    sticky_cents = _price_cents(sticky_price_txt)
 
     cta = page.locator(STICKY_CTA)
     await cta.scroll_into_view_if_needed()
@@ -139,17 +151,53 @@ async def test_non_variant_flow(page, href):
     )
     await page.screenshot(path=str(SHOTS / "nonvariant_after_click.png"))
 
+    # Sticky price must not drift as a result of the add.
+    after_price_txt = (await page.locator(STICKY_PRICE).inner_text()).strip()
+    assert _price_cents(after_price_txt) == sticky_cents, (
+        f"[cart] sticky price changed after add: "
+        f"{sticky_price_txt!r} -> {after_price_txt!r}"
+    )
+
     raw = await page.evaluate("window.localStorage.getItem('av:cart:v2')")
     assert raw, "[cart] localStorage av:cart:v2 is empty after sticky tap"
     items = json.loads(raw)
     assert isinstance(items, list) and items, f"[cart] unexpected cart payload: {raw!r}"
     match = next((i for i in items if i.get("id") == product_id), None)
     assert match, f"[cart] product {product_id} not found in cart items {items!r}"
-    assert abs(match["price"] - price) < 0.005, (
-        f"[cart] price mismatch: sticky showed {price}, cart stored {match['price']}"
+
+    stored_cents = int(round(float(match["price"]) * 100))
+    assert stored_cents == sticky_cents, (
+        f"[cart] stored CartItem price ({stored_cents}¢) does not equal "
+        f"sticky displayPrice ({sticky_cents}¢ from {sticky_price_txt!r})"
     )
-    assert match.get("qty", 0) >= 1, f"[cart] qty missing/zero: {match!r}"
-    print(f"[cart] OK — {match['title']!r} added at ${match['price']:.2f}")
+    assert match.get("qty", 0) == 1, f"[cart] expected qty=1 after first add, got {match!r}"
+
+    # Bump quantity via the cart drawer (opened by the first add). The
+    # unit price stored in the cart must still equal the sticky
+    # displayPrice — qty scales, price-per-unit does not.
+    increase = page.get_by_role("button", name="Increase").first
+    await increase.wait_for(timeout=5000)
+    await increase.click()
+    await page.wait_for_function(
+        "(pid) => { const raw = window.localStorage.getItem('av:cart:v2');"
+        "  if (!raw) return false;"
+        "  const it = JSON.parse(raw).find(i => i.id === pid);"
+        "  return !!it && it.qty >= 2; }",
+        arg=product_id,
+        timeout=5000,
+    )
+    raw2 = await page.evaluate("window.localStorage.getItem('av:cart:v2')")
+    match2 = next(i for i in json.loads(raw2) if i.get("id") == product_id)
+    stored_cents2 = int(round(float(match2["price"]) * 100))
+    assert stored_cents2 == sticky_cents, (
+        f"[cart] after qty bump, stored unit price ({stored_cents2}¢) "
+        f"drifted from sticky displayPrice ({sticky_cents}¢)"
+    )
+    assert match2["qty"] == 2, f"[cart] expected qty=2 after second add, got {match2!r}"
+    print(
+        f"[cart] OK — {match2['title']!r} unit=${match2['price']:.2f} "
+        f"qty={match2['qty']} matches sticky {sticky_price_txt}"
+    )
 
 
 async def main():
