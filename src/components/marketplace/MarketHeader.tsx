@@ -6,6 +6,7 @@ import {
   Heart,
   LayoutDashboard,
   Loader2,
+  LogOut,
   Menu,
   Search,
   ShoppingBag,
@@ -16,13 +17,14 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AVLogo } from "./AVLogo";
 import { ProductCover } from "./ProductCover";
 import { useCart, useWishlist, openCartDrawer } from "@/hooks/use-av-store";
 import { useAuth } from "@/hooks/use-auth";
 import { getProducts } from "@/lib/marketplace.functions";
 import { NotificationsBell } from "./NotificationsBell";
+import { supabase } from "@/integrations/supabase/client";
 
 const CATEGORIES = [
   "All",
@@ -38,6 +40,7 @@ const CATEGORIES = [
 
 export function MarketHeader() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchState = useRouterState({
     select: (s) => s.location.search,
@@ -49,6 +52,13 @@ export function MarketHeader() {
   const cart = useCart();
   const { user, isAdmin, isSeller } = useAuth();
   const canUpload = isAdmin || isSeller;
+
+  const handleSignOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
 
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -123,6 +133,14 @@ export function MarketHeader() {
                 >
                   <LayoutDashboard size={20} />
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => void handleSignOut()}
+                  aria-label="Sign out"
+                  className="relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10"
+                >
+                  <LogOut size={20} />
+                </button>
               </>
             ) : (
               <Link
@@ -316,13 +334,35 @@ export function MarketHeader() {
                   Sell on AurumVault
                 </Link>
               )}
-              <Link
-                to={user ? "/dashboard" : "/auth"}
-                onClick={() => setMenuOpen(false)}
-                className="block w-full rounded-full bg-white/10 py-3 text-center text-sm font-semibold text-white"
-              >
-                {user ? "My dashboard" : "Sign in"}
-              </Link>
+              {user ? (
+                <>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="block w-full rounded-full bg-white/10 py-3 text-center text-sm font-semibold text-white"
+                  >
+                    My dashboard
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      void handleSignOut();
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-full border border-white/20 py-3 text-center text-sm font-semibold text-white"
+                  >
+                    <LogOut size={16} /> Sign out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/auth"
+                  onClick={() => setMenuOpen(false)}
+                  className="block w-full rounded-full bg-white/10 py-3 text-center text-sm font-semibold text-white"
+                >
+                  Sign in
+                </Link>
+              )}
               <Link
                 to="/products"
                 onClick={() => setMenuOpen(false)}
@@ -331,7 +371,6 @@ export function MarketHeader() {
               >
                 Shop the Vault
               </Link>
-
             </div>
           </motion.div>
         )}
