@@ -53,7 +53,7 @@ async def collect_product_links(page):
 async def find_variant_pdp(page, links):
     """Visit product pages until one exposes the variant picker."""
     for href in links[:MAX_SCAN]:
-        await page.goto(f"{BASE}{href}", wait_until="domcontentloaded")
+        await page.goto(f"{BASE}{href}", wait_until="networkidle")
         await page.wait_for_selector(STICKY_BAR, timeout=8000)
         # VariantPicker uses this heading text.
         picker = page.get_by_text("Choose a version", exact=True)
@@ -64,7 +64,7 @@ async def find_variant_pdp(page, links):
 
 async def test_variant_flow(page, href):
     print(f"[variant] using {href}")
-    await page.goto(f"{BASE}{href}", wait_until="domcontentloaded")
+    await page.goto(f"{BASE}{href}", wait_until="networkidle")
     await page.wait_for_selector(STICKY_BAR)
     await page.wait_for_selector("text=Choose a version")
 
@@ -121,7 +121,7 @@ async def test_variant_flow(page, href):
 
 async def test_non_variant_flow(page, href):
     print(f"[cart] using {href}")
-    await page.goto(f"{BASE}{href}", wait_until="domcontentloaded")
+    await page.goto(f"{BASE}{href}", wait_until="networkidle")
     await page.wait_for_selector(STICKY_BAR)
     # Clear cart before the test.
     await page.evaluate("window.localStorage.removeItem('av:cart:v2')")
@@ -180,7 +180,7 @@ async def main():
         for href in links[:MAX_SCAN]:
             if href == variant_href:
                 continue
-            await page.goto(f"{BASE}{href}", wait_until="domcontentloaded")
+            await page.goto(f"{BASE}{href}", wait_until="networkidle")
             await page.wait_for_selector(STICKY_BAR, timeout=8000)
             if not await page.get_by_text("Choose a version", exact=True).count():
                 cart_href = href
