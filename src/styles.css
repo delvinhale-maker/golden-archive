@@ -260,6 +260,24 @@
     50% { transform: translateY(-12px); }
   }
 
+  /* Gentle glow pulse — used on premium CTAs. Respects reduced motion. */
+  .av-glow-pulse {
+    animation: av-glow-pulse 3.6s ease-in-out infinite;
+  }
+  @keyframes av-glow-pulse {
+    0%, 100% {
+      box-shadow: 0 8px 24px -12px rgba(201, 162, 39, 0.45),
+                  0 0 0 0 rgba(201, 162, 39, 0.0);
+    }
+    50% {
+      box-shadow: 0 14px 40px -12px rgba(201, 162, 39, 0.75),
+                  0 0 0 6px rgba(201, 162, 39, 0.08);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .av-glow-pulse { animation: none; }
+  }
+
   .av-skeleton {
     background: linear-gradient(90deg, #f3f4f6 0%, #ececec 50%, #f3f4f6 100%);
     background-size: 200% 100%;
