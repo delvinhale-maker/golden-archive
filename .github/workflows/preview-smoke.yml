@@ -1,0 +1,133 @@
+name: Preview Smoke Tests
+
+# Runs the format-appropriate preview smoke test against the PR's build so
+# regressions in the PDF / EPUB / DOCX / audio / video preview flow are
+# caught before merge. On pushes to main it runs against the freshly built
+# app too, giving us a post-merge signal in addition to the PR gate.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Override target URL (defaults to the local build)"
+        required: false
+        type: string
+
+jobs:
+  preview-smoke:
+    name: Product preview smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Bun global store
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-store-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-store-
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json') }}
+
+      - name: Install JS dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        id: cache-playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-chromium-node-v1
+
+      - name: Install Playwright chromium
+        run: |
+          if [ "${{ steps.cache-playwright.outputs.cache-hit }}" = "true" ]; then
+            bunx playwright install-deps chromium
+          else
+            bunx playwright install --with-deps chromium
+          fi
+
+      - name: Cache Vite build
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules/.vite
+            .vinxi
+            .output
+            .tanstack
+          key: ${{ runner.os }}-vite-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json', 'vite.config.*') }}-${{ hashFiles('src/**', 'app/**') }}
+          restore-keys: |
+            ${{ runner.os }}-vite-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json', 'vite.config.*') }}-
+            ${{ runner.os }}-vite-
+
+      - name: Build app
+        if: inputs.base_url == ''
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+
+      - name: Start dev server
+        if: inputs.base_url == ''
+        run: |
+          bun run dev > /tmp/dev-server.log 2>&1 &
+          echo $! > /tmp/dev-server.pid
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+
+      - name: Wait for server (http://localhost:8080)
+        if: inputs.base_url == ''
+        run: |
+          for i in {1..60}; do
+            if curl -sSf http://localhost:8080 > /dev/null; then
+              echo "Server up after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server did not start in time"
+          tail -n 200 /tmp/dev-server.log
+          exit 1
+
+      - name: Run preview smoke
+        env:
+          BASE_URL: ${{ inputs.base_url != '' && inputs.base_url || 'http://localhost:8080' }}
+        run: bun run smoke:previews
+
+      - name: Upload artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-smoke-artifacts
+          path: |
+            /tmp/dev-server.log
+          if-no-files-found: ignore
+
+      - name: Stop dev server
+        if: always() && inputs.base_url == ''
+        run: |
+          if [ -f /tmp/dev-server.pid ]; then
+            kill "$(cat /tmp/dev-server.pid)" || true
+          fi
