@@ -213,12 +213,26 @@ function ProductPage() {
   const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
   const previewBlobRef = useRef<string | null>(null);
   const previewTickerRef = useRef<number | null>(null);
+  const previewAbortRef = useRef<AbortController | null>(null);
   useEffect(() => {
     return () => {
       if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
       if (previewTickerRef.current) window.clearInterval(previewTickerRef.current);
+      previewAbortRef.current?.abort();
     };
   }, []);
+  function cancelPreview() {
+    previewAbortRef.current?.abort();
+    previewAbortRef.current = null;
+    if (previewTickerRef.current) {
+      window.clearInterval(previewTickerRef.current);
+      previewTickerRef.current = null;
+    }
+    setPreviewOpen(false);
+    setPreviewLoading(false);
+    setPreviewProgress(0);
+    setPreviewStage(0);
+  }
   async function openPreview() {
     if (previewLoading) return;
     // Open modal immediately with skeleton so the user sees instant response.
@@ -227,6 +241,10 @@ function ProductPage() {
     setPreviewProgress(4);
     setPreviewBlobUrl(null);
     setPreviewOpen(true);
+    // Fresh abort controller so the user can cancel the in-flight request.
+    previewAbortRef.current?.abort();
+    const controller = new AbortController();
+    previewAbortRef.current = controller;
     // Simulated staged progress — we can't stream a base64 JSON body, so
     // pace the bar against realistic timings for the fetch → watermark →
     // render stages the server actually performs.
@@ -240,7 +258,11 @@ function ProductPage() {
       });
     }, 180);
     try {
-      const res = await getPublicPreview({ data: { productId: product.id } });
+      const res = await getPublicPreview({
+        data: { productId: product.id },
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) return;
       if (!("ok" in res) || !res.ok) {
         setPreviewOpen(false);
         toast.error("Preview is temporarily unavailable. Please try again shortly.");
@@ -257,8 +279,14 @@ function ProductPage() {
       setPreviewProgress(100);
       // Brief settle so the 100% state is visible before the reader appears.
       await new Promise((r) => setTimeout(r, 220));
+      if (controller.signal.aborted) {
+        URL.revokeObjectURL(url);
+        previewBlobRef.current = null;
+        return;
+      }
       setPreviewBlobUrl(url);
     } catch (e) {
+      if (controller.signal.aborted) return;
       console.error("[preview] load failed", e);
       setPreviewOpen(false);
       toast.error("Preview is temporarily unavailable. Please try again shortly.");
@@ -267,9 +295,11 @@ function ProductPage() {
         window.clearInterval(previewTickerRef.current);
         previewTickerRef.current = null;
       }
+      if (previewAbortRef.current === controller) previewAbortRef.current = null;
       setPreviewLoading(false);
     }
   }
+
 
   useEffect(() => {
     let cancelled = false;
@@ -681,14 +711,7 @@ function ProductPage() {
           pageCount={product.previewPages?.length ?? 0}
           stage={previewStage}
           progress={previewProgress}
-          onCancel={() => {
-            if (previewTickerRef.current) {
-              window.clearInterval(previewTickerRef.current);
-              previewTickerRef.current = null;
-            }
-            setPreviewOpen(false);
-            setPreviewLoading(false);
-          }}
+          onCancel={cancelPreview}
         />
       )}
     </MarketShell>
@@ -825,6 +848,14 @@ function PreviewLoadingOverlay({
             </div>
           ))}
         </div>
+
+        <button
+          type="button"
+          onClick={onCancel}
+          className="mt-5 flex h-11 w-full items-center justify-center rounded-full border border-ink/15 bg-white text-sm font-semibold text-navy hover:bg-ink/5"
+        >
+          Cancel preview
+        </button>
       </div>
     </motion.div>
   );
