@@ -257,6 +257,59 @@ async def test_non_variant_flow(page, href):
         f"qty={match2['qty']} matches sticky {sticky_price_txt}"
     )
 
+    # Reopen the checkout modal from the cart drawer after the qty bump.
+    # createCartCheckout's payload must carry the same unit priceCents as
+    # the sticky bar's displayPrice — qty scales the line item, but the
+    # per-unit price must never drift from what the PDP advertised.
+    captured: list[dict] = []
+
+    async def on_request(req):
+        if req.method != "POST":
+            return
+        try:
+            body = req.post_data or ""
+        except Exception:
+            return
+        if "items" not in body or "priceCents" not in body:
+            return
+        try:
+            captured.append({"url": req.url, "body": json.loads(body)})
+        except Exception:
+            captured.append({"url": req.url, "body": body})
+
+    page.on("request", on_request)
+    try:
+        proceed = page.get_by_role("button", name="Proceed to Checkout").first
+        await proceed.wait_for(timeout=5000)
+        await proceed.click()
+        for _ in range(50):
+            if captured:
+                break
+            await page.wait_for_timeout(100)
+    finally:
+        page.remove_listener("request", on_request)
+
+    await page.screenshot(path=str(SHOTS / "nonvariant_checkout_reopen.png"))
+    assert captured, "[cart] no cart-checkout server-fn request observed after Proceed tap"
+    payload = captured[-1]["body"]
+    args = payload.get("data", payload) if isinstance(payload, dict) else {}
+    line_items = args.get("items") or []
+    line = next((li for li in line_items if li.get("id") == product_id), None)
+    assert line, (
+        f"[cart] cart-checkout payload missing product {product_id}: {line_items!r}"
+    )
+    assert int(line["priceCents"]) == sticky_cents, (
+        f"[cart] cart-checkout unit priceCents ({line['priceCents']}) != sticky "
+        f"displayPrice ({sticky_cents}¢ from {sticky_price_txt!r})"
+    )
+    assert int(line["qty"]) == 2, (
+        f"[cart] cart-checkout qty should reflect drawer bump (2), got {line['qty']}"
+    )
+    print(
+        f"[cart] checkout modal reopened at unit={line['priceCents']}¢ x qty={line['qty']} "
+        f"— matches sticky {sticky_price_txt}"
+    )
+
 
 async def main():
     async with async_playwright() as p:
