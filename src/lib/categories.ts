@@ -75,7 +75,7 @@ export const CATEGORIES: CategoryDef[] = [
   },
   {
     slug: "printable_journals",
-    label: "Printable Journals",
+    label: "Digital Journals",
     accent: "#8F3A5B",
     ink: "#FFFFFF",
     icon: "📓",
