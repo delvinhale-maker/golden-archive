@@ -27,6 +27,11 @@ import {
 } from "@/components/marketplace/ProductCard";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
+import { FeaturedCollections } from "@/components/marketplace/FeaturedCollections";
+import statProductsImg from "@/assets/stat-products.jpg";
+import statCategoriesImg from "@/assets/stat-categories.jpg";
+import statCreatorsImg from "@/assets/stat-creators.jpg";
+import statDownloadsImg from "@/assets/stat-downloads.jpg";
 
 import { KingdomPicksRow, kingdomPicksRowQ } from "@/components/marketplace/KingdomPicksRow";
 import { NewReleasesRow, newReleasesRowQ } from "@/components/marketplace/NewReleasesRow";
