@@ -92,6 +92,9 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   const [epubRenderError, setEpubRenderError] = useState<string | null>(null);
   const [epubNavBusy, setEpubNavBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [imageZoom, setImageZoom] = useState(1);
+  const [imageFitWidth, setImageFitWidth] = useState(false);
+  const [imageNatural, setImageNatural] = useState<{ w: number; h: number } | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const scrollFrameRef = useRef<HTMLDivElement>(null);
