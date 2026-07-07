@@ -259,7 +259,7 @@ function TemplatesIcon(props: IconProps) {
 
 export const CATEGORY_ICONS: Record<
   string,
-  (props: IconProps) => JSX.Element
+  (props: IconProps) => ReactElement
 > = {
   ebooks: EbookIcon,
   financial_planners: FinancialPlannerIcon,
