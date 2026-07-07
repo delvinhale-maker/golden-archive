@@ -80,6 +80,7 @@ function BookshelfPage() {
     error: string | null;
   } | null>(null);
   const [historyProduct, setHistoryProduct] = useState<Product | null>(null);
+  const [promoteProduct, setPromoteProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     if (!user) return;
