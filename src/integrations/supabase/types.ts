@@ -2078,7 +2078,66 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_seller_storefronts: {
+        Row: {
+          brand_name: string | null
+          brand_slug: string | null
+          categories: string[] | null
+          country: string | null
+          cover_url: string | null
+          created_at: string | null
+          credentials: string[] | null
+          extended_bio: string | null
+          featured_media_url: string | null
+          id: string | null
+          pitch: string | null
+          price_range: string | null
+          product_types: string | null
+          social_links: Json | null
+          story: string | null
+          user_id: string | null
+          website: string | null
+        }
+        Insert: {
+          brand_name?: string | null
+          brand_slug?: string | null
+          categories?: string[] | null
+          country?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          credentials?: string[] | null
+          extended_bio?: string | null
+          featured_media_url?: string | null
+          id?: string | null
+          pitch?: string | null
+          price_range?: string | null
+          product_types?: string | null
+          social_links?: Json | null
+          story?: string | null
+          user_id?: string | null
+          website?: string | null
+        }
+        Update: {
+          brand_name?: string | null
+          brand_slug?: string | null
+          categories?: string[] | null
+          country?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          credentials?: string[] | null
+          extended_bio?: string | null
+          featured_media_url?: string | null
+          id?: string | null
+          pitch?: string | null
+          price_range?: string | null
+          product_types?: string | null
+          social_links?: Json | null
+          story?: string | null
+          user_id?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_decide_payout_request: {
