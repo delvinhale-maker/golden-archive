@@ -557,11 +557,11 @@ function ProductPage() {
             {previewAvailable && (
               <button
                 type="button"
-                onClick={openPreview}
-                disabled={previewLoading}
+                onClick={isPdf ? () => setImageViewerOpen(true) : openPreview}
+                disabled={!isPdf && previewLoading}
                 className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-navy/20 bg-white text-sm font-bold text-navy hover:border-navy/40 disabled:opacity-60"
               >
-                {previewLoading ? (
+                {!isPdf && previewLoading ? (
                   <><Loader2 size={16} className="animate-spin" /> Opening preview…</>
                 ) : (
                   <><BookOpen size={16} /> {previewLabel}</>
