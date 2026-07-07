@@ -294,24 +294,25 @@
   @property --accent-color {
     syntax: "<color>";
     inherits: true;
-    initial-value: #D4AF37;
+    initial-value: #9A6C08;
   }
   @property --gradient-start {
     syntax: "<color>";
     inherits: true;
-    initial-value: #0F1E35;
+    initial-value: #FFFFFF;
   }
   @property --gradient-end {
     syntax: "<color>";
     inherits: true;
-    initial-value: #0A0A0A;
+    initial-value: #FFFFFF;
   }
 
   :root {
-    --accent-color: #D4AF37;
-    --gradient-start: #0F1E35;
-    --gradient-end: #0A0A0A;
-    --page-gradient: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    --accent-color: #9A6C08;
+    --gradient-start: #FFFFFF;
+    --gradient-end: #FFFFFF;
+    --page-gradient: linear-gradient(180deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+
     transition:
       --accent-color 300ms ease,
       --gradient-start 300ms ease,
