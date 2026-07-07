@@ -208,19 +208,41 @@ function ProductPage() {
     (product.previewPages?.length ?? 0) > 0 && product.fileExt === "pdf";
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewStage, setPreviewStage] = useState(0); // 0..3
+  const [previewProgress, setPreviewProgress] = useState(0); // 0..100
   const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
   const previewBlobRef = useRef<string | null>(null);
+  const previewTickerRef = useRef<number | null>(null);
   useEffect(() => {
     return () => {
       if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
+      if (previewTickerRef.current) window.clearInterval(previewTickerRef.current);
     };
   }, []);
   async function openPreview() {
     if (previewLoading) return;
+    // Open modal immediately with skeleton so the user sees instant response.
     setPreviewLoading(true);
+    setPreviewStage(1);
+    setPreviewProgress(4);
+    setPreviewBlobUrl(null);
+    setPreviewOpen(true);
+    // Simulated staged progress — we can't stream a base64 JSON body, so
+    // pace the bar against realistic timings for the fetch → watermark →
+    // render stages the server actually performs.
+    if (previewTickerRef.current) window.clearInterval(previewTickerRef.current);
+    previewTickerRef.current = window.setInterval(() => {
+      setPreviewProgress((p) => {
+        const next = p + (p < 40 ? 3 : p < 75 ? 1.4 : 0.4);
+        const capped = Math.min(next, 92);
+        setPreviewStage(capped < 35 ? 1 : capped < 75 ? 2 : 3);
+        return capped;
+      });
+    }, 180);
     try {
       const res = await getPublicPreview({ data: { productId: product.id } });
       if (!("ok" in res) || !res.ok) {
+        setPreviewOpen(false);
         toast.error("Preview is temporarily unavailable. Please try again shortly.");
         return;
       }
@@ -231,12 +253,20 @@ function ProductPage() {
       if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
       const url = URL.createObjectURL(blob);
       previewBlobRef.current = url;
+      setPreviewStage(3);
+      setPreviewProgress(100);
+      // Brief settle so the 100% state is visible before the reader appears.
+      await new Promise((r) => setTimeout(r, 220));
       setPreviewBlobUrl(url);
-      setPreviewOpen(true);
     } catch (e) {
       console.error("[preview] load failed", e);
+      setPreviewOpen(false);
       toast.error("Preview is temporarily unavailable. Please try again shortly.");
     } finally {
+      if (previewTickerRef.current) {
+        window.clearInterval(previewTickerRef.current);
+        previewTickerRef.current = null;
+      }
       setPreviewLoading(false);
     }
   }
