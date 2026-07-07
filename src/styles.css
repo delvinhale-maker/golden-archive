@@ -199,9 +199,13 @@
   .text-navy { color: var(--navy); }
   .bg-navy { background-color: var(--navy); }
   .bg-navy-2 { background-color: var(--navy-2); }
-  .text-gold { color: var(--gold); }
+  /* Text uses the darker gold ink (#9A6C08 ≈ 5.4:1 on white → WCAG AA).
+     Backgrounds/borders keep the brighter --gold so buttons and badges pop.
+     Opt back into the bright gold on dark surfaces with `.text-gold-bright`. */
+  .text-gold { color: var(--gold-deep); }
+  .text-gold-soft { color: var(--gold-deep); }
+  .text-gold-bright { color: var(--gold); }
   .bg-gold { background-color: var(--gold); }
-  .text-gold-soft { color: var(--gold-soft); }
   .text-emerald { color: var(--emerald); }
   .border-gold { border-color: var(--gold); }
   .bg-ink { background-color: var(--ink); }
