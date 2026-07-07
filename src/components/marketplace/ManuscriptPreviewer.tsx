@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Loader2, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   recordMount as recordEpubNavMount,
@@ -92,6 +92,9 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
   const [epubRenderError, setEpubRenderError] = useState<string | null>(null);
   const [epubNavBusy, setEpubNavBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [imageZoom, setImageZoom] = useState(1);
+  const [imageFitWidth, setImageFitWidth] = useState(false);
+  const [imageNatural, setImageNatural] = useState<{ w: number; h: number } | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const scrollFrameRef = useRef<HTMLDivElement>(null);
@@ -339,6 +342,19 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
               setLoading(false);
             }
           }
+          return;
+        }
+
+        if (isImage) {
+          // Image journals: content is the manuscript itself. Show it at
+          // location 2 (after the cover slot) so the previewer nav still works.
+          setPageCount(2);
+          setLocation(2);
+          setLocationInput("2");
+          setImageZoom(1);
+          setImageFitWidth(false);
+          setImageNatural(null);
+          setLoading(false);
           return;
         }
 
@@ -1268,6 +1284,54 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
           </select>
         </label>
 
+        {isImage && (
+          <label className="flex items-center gap-2">
+            <span className="text-white/70">Zoom</span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => { setImageFitWidth(false); setImageZoom((z) => Math.max(0.25, +(z - 0.25).toFixed(2))); }}
+                aria-label="Zoom out"
+                className="h-9 w-9 rounded-md bg-black/40 border border-white/15 inline-flex items-center justify-center hover:bg-white/10 disabled:opacity-40"
+                disabled={imageFitWidth}
+              >
+                <ZoomOut size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => { setImageFitWidth(false); setImageZoom((z) => Math.min(3, +(z + 0.25).toFixed(2))); }}
+                aria-label="Zoom in"
+                className="h-9 w-9 rounded-md bg-black/40 border border-white/15 inline-flex items-center justify-center hover:bg-white/10"
+              >
+                <ZoomIn size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => { setImageFitWidth(false); setImageZoom(1); }}
+                aria-label="Reset zoom"
+                className="h-9 px-2 rounded-md bg-black/40 border border-white/15 text-white/80 text-xs hover:bg-white/10"
+              >
+                {Math.round(imageZoom * 100)}%
+              </button>
+            </div>
+          </label>
+        )}
+
+        {isImage && (
+          <button
+            type="button"
+            onClick={() => setImageFitWidth((f) => !f)}
+            aria-label="Toggle fit to width"
+            className={`flex items-center gap-1.5 h-9 px-2.5 rounded-md border text-xs font-medium transition ${
+              imageFitWidth
+                ? "bg-[#d4af37]/20 border-[#d4af37] text-[#d4af37]"
+                : "bg-black/40 border-white/15 text-white/80 hover:bg-white/10"
+            }`}
+          >
+            <Maximize2 size={14} />
+            Fit width
+          </button>
+        )}
 
         <label className="flex items-center gap-2 ml-auto">
           <span className="text-white/70">Device</span>
@@ -1334,7 +1398,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
               style={{
                 background: location === 1 ? "transparent" : dev.bg,
                 overflowY: "auto",
-                overflowX: "hidden",
+                overflowX: isImage ? "auto" : "hidden",
                 WebkitOverflowScrolling: "touch",
                 scrollBehavior: "smooth",
               }}
@@ -1511,11 +1575,25 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
                 </div>
 
               ) : isImage && signedUrl ? (
-                <div className="flex flex-col items-center justify-center w-full h-full p-3">
+                <div className="w-full h-full p-3 overflow-auto">
                   <img
                     src={signedUrl}
                     alt="Journal page preview"
-                    className="max-w-full max-h-full object-contain shadow-md rounded"
+                    onLoad={(e) => {
+                      const img = e.currentTarget;
+                      setImageNatural({ w: img.naturalWidth, h: img.naturalHeight });
+                    }}
+                    className="block rounded shadow-md"
+                    style={{
+                      maxWidth: "none",
+                      maxHeight: "none",
+                      width: imageFitWidth
+                        ? "100%"
+                        : imageNatural
+                          ? `${Math.round(imageNatural.w * imageZoom)}px`
+                          : `${Math.round(100 * imageZoom)}%`,
+                      height: "auto",
+                    }}
                   />
                 </div>
               ) : isZip ? (
