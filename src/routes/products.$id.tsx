@@ -16,6 +16,11 @@ import { toast } from "sonner";
 import { Loader2, BookOpen } from "lucide-react";
 import { getFormatPreview } from "@/lib/preview.functions";
 import {
+  listProductPreviews,
+  type ProductPreviewImage,
+} from "@/lib/product-previews.functions";
+import { ProductPreviewViewer } from "@/components/marketplace/ProductPreviewViewer";
+import {
   FormatPreviewModal,
   FormatPreviewLoading,
   type FormatPreview,
