@@ -12,7 +12,7 @@ import {
 import { getProducts, type Product } from "@/lib/marketplace.functions";
 import { CategoryHero } from "@/components/marketplace/CategoryHero";
 import { getCategoryTheme } from "@/lib/category-theme";
-import { CATEGORIES as CATEGORY_DEFS, slugToLabel } from "@/lib/categories";
+import { CATEGORIES as CATEGORY_DEFS, slugToLabel, getCategoryDef } from "@/lib/categories";
 
 const searchSchema = z.object({
   category: z.string().optional(),
