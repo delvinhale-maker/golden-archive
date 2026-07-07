@@ -151,7 +151,9 @@ function Home() {
       <HighlightsBoundary fallback={<HeroCarousel />} errorLabel="hero product">
         <FeaturedHero />
       </HighlightsBoundary>
-      <FeaturedCollections />
+      <Suspense fallback={null}>
+        <FeaturedCollections />
+      </Suspense>
       <TrustBar />
       <RefreshHighlightsBar />
       <ContinueBrowsingRow />
@@ -177,17 +179,26 @@ function Home() {
       <HighlightsBoundary fallback={<CreatorSkeleton />} errorLabel="featured creator">
         <IllustriousCreator />
       </HighlightsBoundary>
-      <CreatorSpotlight />
+      <Suspense fallback={null}>
+        <CreatorSpotlight />
+      </Suspense>
       <SectionDivider variant="ivory-to-navy" />
       <HeroStatsBar />
       <Suspense fallback={null}>
         <TopCreatorsLeaderboard />
       </Suspense>
       <SectionDivider variant="navy-to-ivory" />
-      <WhyAurumVault />
+      <Suspense fallback={null}>
+        <WhyAurumVault />
+      </Suspense>
       <SocialsSection />
-      <KingdomBibleAppBanner />
-      <EmailCaptureBanner />
+      <Suspense fallback={null}>
+        <KingdomBibleAppBanner />
+      </Suspense>
+      <Suspense fallback={null}>
+        <EmailCaptureBanner />
+      </Suspense>
+
     </MarketShell>
   );
 }
