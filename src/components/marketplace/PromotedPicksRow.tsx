@@ -18,12 +18,10 @@ export function PromotedPicksRow() {
           <div className="text-[11px] font-semibold tracking-caps text-gold">
             SPONSORED — AURUMVAULT
           </div>
-          <h2
-            className="mt-2 font-display text-3xl font-bold md:text-4xl"
-            style={{ color: "#ffffff" }}
-          >
+          <h2 className="mt-2 font-display text-3xl font-bold text-navy md:text-4xl">
             Promoted Picks
           </h2>
+
           <span className="mt-3 block h-[2px] w-10 bg-gold" />
         </div>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-4">

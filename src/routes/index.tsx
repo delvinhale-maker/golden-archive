@@ -343,7 +343,7 @@ function HeroStatsBar() {
                 >
                   <s.icon size={18} className="text-gold" />
                 </span>
-                <span className="text-[12px] font-semibold tracking-wide text-white sm:text-[13px]">
+                <span className="text-[12px] font-semibold tracking-wide text-navy sm:text-[13px]">
                   {s.label}
                 </span>
               </Link>
@@ -505,10 +505,11 @@ function CategoriesSection() {
               <Link
                 to="/products"
                 search={{ category: c.slug } as never}
-                className="group flex h-[120px] flex-col items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 transition-all duration-200 ease-out hover:-translate-y-1 hover:border-gold hover:bg-white/10"
+                className="group flex h-[120px] flex-col items-center justify-center gap-2 rounded-lg border border-line bg-white transition-all duration-200 ease-out hover:-translate-y-1 hover:border-gold hover:shadow-card-hover"
               >
                 <c.icon className="text-gold transition-transform duration-200 group-hover:scale-110" size={32} strokeWidth={1.6} />
-                <span className="text-sm font-bold text-white">{c.label}</span>
+                <span className="text-sm font-bold text-navy">{c.label}</span>
+
               </Link>
             </motion.div>
           ))}
@@ -578,7 +579,7 @@ function IllustriousCreator() {
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
             whileHover={{ y: -4 }}
-            className="overflow-hidden rounded-lg border border-white/10 bg-white/5 shadow-card"
+            className="overflow-hidden rounded-lg border border-line bg-white shadow-card"
           >
             <div
               className="h-[120px]"
@@ -599,18 +600,19 @@ function IllustriousCreator() {
                 />
               </div>
               <div className="mt-3 flex items-center gap-1.5">
-                <div className="font-display text-lg font-bold text-white">
+                <div className="font-display text-lg font-bold text-navy">
                   Delvin Hale
                 </div>
                 <BadgeCheck size={16} className="text-emerald" />
               </div>
-              <div className="text-[13px] text-white/70">
+              <div className="text-[13px] text-mute">
                 Author · Entrepreneur · Kingdom Builder
               </div>
               <div className="mt-4 flex items-center gap-6 text-[13px]">
                 <div>
-                  <div className="font-bold text-white">{count}</div>
-                  <div className="text-[11px] text-white/60">Products</div>
+                  <div className="font-bold text-navy">{count}</div>
+                  <div className="text-[11px] text-mute">Products</div>
+
                 </div>
               </div>
               <Link
@@ -637,19 +639,20 @@ function TrustBar() {
     { icon: Star, label: "5-Star Rated" },
   ];
   return (
-    <section className="border-y border-white/10 bg-bg-page">
+    <section className="border-y border-line bg-bg-page">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-around gap-4 px-6 py-6 lg:px-8">
         {items.map((it, i) => (
           <div key={i} className="flex items-center gap-2">
             <it.icon size={16} className="text-gold" />
-            <span className="text-[13px] font-medium text-white">{it.label}</span>
+            <span className="text-[13px] font-medium text-navy">{it.label}</span>
             {i < items.length - 1 && (
-              <span className="ml-4 hidden h-1 w-1 rounded-full bg-white/40 md:block" />
+              <span className="ml-4 hidden h-1 w-1 rounded-full bg-navy/40 md:block" />
             )}
           </div>
         ))}
       </div>
     </section>
+
 
   );
 }
@@ -669,13 +672,13 @@ function SocialsSection() {
   ];
 
   return (
-    <section className="border-y border-white/10 bg-bg-page">
+    <section className="border-y border-line bg-bg-page">
       <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
         <div className="mb-8 text-center">
           <div className="text-[11px] font-semibold tracking-caps text-gold">
             STAY CONNECTED
           </div>
-          <h2 className="mt-2 font-display text-2xl font-bold text-white md:text-3xl">
+          <h2 className="mt-2 font-display text-2xl font-bold text-navy md:text-3xl">
             Follow AurumVault
           </h2>
         </div>
@@ -686,7 +689,7 @@ function SocialsSection() {
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-gold hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-5 py-2.5 text-sm font-semibold text-navy transition hover:-translate-y-0.5 hover:border-gold hover:shadow-card-hover"
             >
               <link.icon size={16} className="text-gold" />
               {link.label}
@@ -695,5 +698,6 @@ function SocialsSection() {
         </div>
       </div>
     </section>
+
   );
 }

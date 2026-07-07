@@ -66,12 +66,13 @@
   --mute: #6b7280;
   --line: #e5e7eb;
   --onyx: #0f1629;
-  --bg-page: #0F1E35;
+  --bg-page: #ffffff;
 
   --card: #ffffff;
   --card-foreground: #1a1a2e;
   --popover: #ffffff;
   --popover-foreground: #1a1a2e;
+
 
   --primary: #c9a227;
   --primary-foreground: #0f1629;
@@ -97,11 +98,12 @@
   --shadow-gold-glow: 0 10px 30px -10px rgba(201, 162, 39, 0.55);
 
   /* Scroll-driven scheme tokens (updated by HomeRows IntersectionObserver) */
-  --scheme-bg: #0F1E35;
-  --scheme-fg: #ffffff;
-  --scheme-muted: rgba(255, 255, 255, 0.72);
-  --scheme-kicker: #c9a227;
-  --scheme-border: rgba(255, 255, 255, 0.10);
+  --scheme-bg: #ffffff;
+  --scheme-fg: #0F1E35;
+  --scheme-muted: rgba(15, 30, 53, 0.70);
+  --scheme-kicker: #9A6C08;
+  --scheme-border: rgba(15, 30, 53, 0.10);
+
 }
 
 /* Smooth cross-scheme fade for surfaces that opt in */
@@ -292,24 +294,25 @@
   @property --accent-color {
     syntax: "<color>";
     inherits: true;
-    initial-value: #D4AF37;
+    initial-value: #9A6C08;
   }
   @property --gradient-start {
     syntax: "<color>";
     inherits: true;
-    initial-value: #0F1E35;
+    initial-value: #FFFFFF;
   }
   @property --gradient-end {
     syntax: "<color>";
     inherits: true;
-    initial-value: #0A0A0A;
+    initial-value: #FFFFFF;
   }
 
   :root {
-    --accent-color: #D4AF37;
-    --gradient-start: #0F1E35;
-    --gradient-end: #0A0A0A;
-    --page-gradient: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    --accent-color: #9A6C08;
+    --gradient-start: #FFFFFF;
+    --gradient-end: #FFFFFF;
+    --page-gradient: linear-gradient(180deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+
     transition:
       --accent-color 300ms ease,
       --gradient-start 300ms ease,

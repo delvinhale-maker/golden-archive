@@ -15,29 +15,20 @@ type Scheme = {
   border: string;
 };
 
-const SCHEMES: Record<"darkNavy" | "lightCream" | "darkOnyx", Scheme> = {
-  darkNavy: {
-    bg: "#0F1E35",
-    fg: "#ffffff",
-    muted: "rgba(255,255,255,0.72)",
-    kicker: "#E3C25B",
-    border: "rgba(255,255,255,0.10)",
-  },
-  lightCream: {
-    bg: "#F5EFE0",
-    fg: "#0F1E35",
-    muted: "rgba(15,30,53,0.70)",
-    kicker: "#9A7A14",
-    border: "rgba(15,30,53,0.10)",
-  },
-  darkOnyx: {
-    bg: "#0A0A0A",
-    fg: "#ffffff",
-    muted: "rgba(255,255,255,0.72)",
-    kicker: "#C9A227",
-    border: "rgba(255,255,255,0.10)",
-  },
+const LIGHT: Scheme = {
+  bg: "#FFFFFF",
+  fg: "#0F1E35",
+  muted: "rgba(15,30,53,0.70)",
+  kicker: "#9A6C08",
+  border: "rgba(15,30,53,0.10)",
 };
+
+const SCHEMES: Record<"darkNavy" | "lightCream" | "darkOnyx", Scheme> = {
+  darkNavy: LIGHT,
+  lightCream: LIGHT,
+  darkOnyx: { ...LIGHT, bg: "#FAFAFA" },
+};
+
 
 function applyScheme(s: Scheme) {
   if (typeof document === "undefined") return;
