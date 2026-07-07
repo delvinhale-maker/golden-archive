@@ -343,7 +343,7 @@ function HeroStatsBar() {
                 >
                   <s.icon size={18} className="text-gold" />
                 </span>
-                <span className="text-[12px] font-semibold tracking-wide text-white sm:text-[13px]">
+                <span className="text-[12px] font-semibold tracking-wide text-navy sm:text-[13px]">
                   {s.label}
                 </span>
               </Link>
