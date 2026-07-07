@@ -125,6 +125,15 @@ export function MarketHeader() {
               <>
                 <NotificationsBell />
                 <Link
+                  to="/account"
+                  aria-label="Account"
+                  data-nav-tab
+                  data-active={pathname.startsWith("/account") ? "true" : "false"}
+                  className="relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10"
+                >
+                  <User size={20} />
+                </Link>
+                <Link
                   to="/dashboard"
                   aria-label="Dashboard"
                   data-nav-tab
