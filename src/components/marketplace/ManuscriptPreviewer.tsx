@@ -1510,6 +1510,33 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
                   )}
                 </div>
 
+              ) : isImage && signedUrl ? (
+                <div className="flex flex-col items-center justify-center w-full h-full p-3">
+                  <img
+                    src={signedUrl}
+                    alt="Journal page preview"
+                    className="max-w-full max-h-full object-contain shadow-md rounded"
+                  />
+                </div>
+              ) : isZip ? (
+                <div className="text-center px-6 text-black/70 text-sm max-w-xs mx-auto">
+                  <p className="font-semibold mb-2 text-black/80">
+                    Digital Journal bundle uploaded
+                  </p>
+                  <p className="mb-3 text-black/60 text-xs">
+                    ZIP archives are delivered as-is to buyers. Live in-browser
+                    preview isn't available for zipped bundles — open it to
+                    verify the contents before publishing.
+                  </p>
+                  <a
+                    href={signedUrl ?? "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline text-navy font-medium"
+                  >
+                    Download &amp; inspect ZIP
+                  </a>
+                </div>
               ) : notPdf ? (
                 <div className="text-center px-6 text-black/70 text-sm">
                   <p className="font-semibold mb-2">
@@ -1524,6 +1551,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
                     Open file in new tab
                   </a>
                 </div>
+
               ) : (
                 <canvas ref={canvasRef} className="block max-w-full" />
               )}
