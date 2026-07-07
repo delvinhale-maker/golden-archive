@@ -117,7 +117,7 @@ function KingdomPicksPage() {
                 onClick={() => setFilter(f)}
                 className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
                   filter === f
-                    ? "bg-navy text-gold-ink"
+                    ? "bg-navy text-gold"
                     : "border border-line bg-white text-ink hover:border-gold"
                 }`}
               >
