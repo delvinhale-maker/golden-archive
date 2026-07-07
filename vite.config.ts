@@ -12,4 +12,19 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    resolve: {
+      alias: {
+        // pdf-lib (used by the watermarked preview generator) imports tslib
+        // helpers via `import { __awaiter } from "tslib"`. In the Cloudflare
+        // Workers bundle, esbuild's CJS→ESM interop resolves tslib's CJS
+        // entry and destructures `.default`, which is undefined — the
+        // resulting runtime error crashes the preview endpoint with
+        // "Cannot destructure property '__extends' of ...default". Pin
+        // tslib to its native ESM build so named helpers resolve directly.
+        tslib: "tslib/tslib.es6.mjs",
+      },
+    },
+  },
 });
+
