@@ -298,13 +298,48 @@ async def test_non_variant_flow(page, href):
         captured[-1],
     )
     print(f"[cart] captured checkout call url={cart_call['url']}")
-    payload = cart_call["body"]
-    args = payload.get("data", payload) if isinstance(payload, dict) else {}
-    line_items = args.get("items") or []
-    line = next((li for li in line_items if li.get("id") == product_id), None)
+
+    # TanStack encodes server-fn args as a tagged tree with parallel
+    # keys/values arrays: nodes look like { p: { k: [...], v: [...] } }
+    # for objects and { a: [...] } for arrays, with primitives in `s`.
+    # Walk the tree to find the items[] map for our product.
+    def find_line(node, pid):
+        if isinstance(node, dict):
+            p = node.get("p")
+            if isinstance(p, dict) and "k" in p and "v" in p:
+                keys = p["k"]
+                vals = p["v"]
+                if {"id", "priceCents", "qty"}.issubset(set(keys)):
+                    obj = {k: (v.get("s") if isinstance(v, dict) else v) for k, v in zip(keys, vals)}
+                    if obj.get("id") == pid:
+                        return obj
+                for v in vals:
+                    r = find_line(v, pid)
+                    if r is not None:
+                        return r
+            a = node.get("a")
+            if isinstance(a, list):
+                for v in a:
+                    r = find_line(v, pid)
+                    if r is not None:
+                        return r
+            # Recurse into any nested dicts we haven't covered.
+            for v in node.values():
+                if isinstance(v, (dict, list)):
+                    r = find_line(v, pid)
+                    if r is not None:
+                        return r
+        elif isinstance(node, list):
+            for v in node:
+                r = find_line(v, pid)
+                if r is not None:
+                    return r
+        return None
+
+    line = find_line(cart_call["body"], product_id)
     assert line, (
         f"[cart] cart-checkout payload missing product {product_id}: "
-        f"url={cart_call['url']} body={payload!r}"
+        f"url={cart_call['url']} body={cart_call['body']!r}"
     )
     assert int(line["priceCents"]) == sticky_cents, (
         f"[cart] cart-checkout unit priceCents ({line['priceCents']}) != sticky "
