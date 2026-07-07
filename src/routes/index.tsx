@@ -639,19 +639,20 @@ function TrustBar() {
     { icon: Star, label: "5-Star Rated" },
   ];
   return (
-    <section className="border-y border-white/10 bg-bg-page">
+    <section className="border-y border-line bg-bg-page">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-around gap-4 px-6 py-6 lg:px-8">
         {items.map((it, i) => (
           <div key={i} className="flex items-center gap-2">
             <it.icon size={16} className="text-gold" />
-            <span className="text-[13px] font-medium text-white">{it.label}</span>
+            <span className="text-[13px] font-medium text-navy">{it.label}</span>
             {i < items.length - 1 && (
-              <span className="ml-4 hidden h-1 w-1 rounded-full bg-white/40 md:block" />
+              <span className="ml-4 hidden h-1 w-1 rounded-full bg-navy/40 md:block" />
             )}
           </div>
         ))}
       </div>
     </section>
+
 
   );
 }
