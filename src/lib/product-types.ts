@@ -69,7 +69,7 @@ export const PRODUCT_TYPES: Record<ProductTypeKey, ProductTypeConfig> = {
     acceptString: ".pdf,.epub,.docx,application/pdf,application/epub+zip," + OFFICE_DOCX,
     acceptedHint: ".PDF, .EPUB, .DOCX",
     suggestedPriceCents: 999,
-    accent: "#B8860B",
+    accent: "#9A6C08", // text-gold-ink — AA on white (~4.6:1)
     isEbook: true,
   },
   financial_planner: {
