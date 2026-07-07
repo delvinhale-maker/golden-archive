@@ -166,6 +166,7 @@ export function ProductPreviewsManager({
     await persistOrder(next);
   }
 
+  async function remove(row: PreviewRow) {
     if (!window.confirm(`Delete preview page ${row.page_order}? This cannot be undone.`)) return;
     setBusy(true);
     try {
