@@ -15,7 +15,7 @@ export function RecommendedRow() {
     <section className="bg-bg-page py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="text-[11px] font-semibold tracking-caps text-gold">
+          <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
             RECOMMENDED FOR YOU
           </div>
           <h2 className="mt-2 font-display text-3xl font-bold text-navy md:text-4xl">

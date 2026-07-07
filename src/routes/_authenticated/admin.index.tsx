@@ -145,7 +145,7 @@ function AdminPage() {
       <header className="bg-navy text-white">
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 flex items-center gap-4">
           <Link to="/"><AVLogo /></Link>
-          <span className="inline-flex items-center gap-1.5 text-sm rounded-full bg-gold/15 text-gold px-3 py-1">
+          <span className="inline-flex items-center gap-1.5 text-sm rounded-full bg-gold/15 text-gold-ink px-3 py-1">
             <ShieldCheck size={14} /> Admin
           </span>
           <Link to="/admin/products" className="ml-auto text-sm text-white/70 hover:text-white">All products</Link>
@@ -188,7 +188,7 @@ function AdminPage() {
                     </div>
                     <p className="font-display text-xl text-navy">{p.title}</p>
                     <p className="text-sm text-mute mt-1 line-clamp-2">{p.description}</p>
-                    <p className="text-gold font-medium mt-2">${(p.price_cents / 100).toFixed(2)}</p>
+                    <p className="text-gold-ink font-medium mt-2">${(p.price_cents / 100).toFixed(2)}</p>
                   </div>
                   <div className="flex flex-col gap-2">
                     <button onClick={() => approveProd(p)} className="inline-flex items-center gap-1 text-sm rounded-full bg-emerald-600 text-white px-3 py-1.5 hover:bg-emerald-700">
@@ -223,7 +223,7 @@ function AdminPage() {
                       <div>
                         <p className="text-[11px] font-semibold text-navy uppercase tracking-wider mb-1">Suggested SEO blurb</p>
                         <p className="text-xs text-ink/80 italic">"{p.ai_review_blurb}"</p>
-                        <button onClick={() => applyBlurb(p)} className="mt-1.5 text-xs text-gold hover:underline">
+                        <button onClick={() => applyBlurb(p)} className="mt-1.5 text-xs text-gold-ink hover:underline">
                           Apply to description →
                         </button>
                       </div>

@@ -43,7 +43,7 @@ export function QASection({ productId }: { productId: string }) {
           <Link
             to="/auth"
             search={{ redirect: `/products/${productId}` }}
-            className="inline-flex items-center gap-2 rounded-full border-2 border-gold px-4 py-2 text-sm font-bold text-gold hover:bg-[var(--accent)]"
+            className="inline-flex items-center gap-2 rounded-full border-2 border-gold px-4 py-2 text-sm font-bold text-gold-ink hover:bg-[var(--accent)]"
           >
             <LogIn size={14} /> Sign in to ask
           </Link>
@@ -116,7 +116,7 @@ function QACard({
   return (
     <div className="rounded-lg border border-line bg-white p-5">
       <div className="flex items-start gap-3">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-navy text-xs font-bold text-gold">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-navy text-xs font-bold text-gold-ink">
           Q
         </span>
         <div className="min-w-0 flex-1">
@@ -150,7 +150,7 @@ function QACard({
             <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-mute">
               <span className="font-semibold text-ink">{q.answerer_name}</span>
               {q.answered_by_admin && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold">
+                <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold-ink">
                   <BadgeCheck size={11} /> AurumVault
                 </span>
               )}
@@ -201,7 +201,7 @@ function QACard({
           ) : (
             <button
               onClick={() => setAnswering(true)}
-              className="text-xs font-semibold text-gold hover:underline"
+              className="text-xs font-semibold text-gold-ink hover:underline"
             >
               + Answer as AurumVault
             </button>
@@ -240,7 +240,7 @@ function AskButton({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-full border-2 border-gold px-4 py-2 text-sm font-bold text-gold hover:bg-[var(--accent)]"
+        className="inline-flex items-center gap-2 rounded-full border-2 border-gold px-4 py-2 text-sm font-bold text-gold-ink hover:bg-[var(--accent)]"
       >
         <MessageCircleQuestion size={14} /> Ask a Question
       </button>

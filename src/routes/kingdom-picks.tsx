@@ -77,12 +77,12 @@ function KingdomPicksPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
         {!dismissed && (
           <div className="mb-6 flex items-start gap-3 rounded-2xl border border-gold/40 bg-paper p-4 text-sm text-ink/80">
-            <Info size={18} className="mt-0.5 shrink-0 text-gold" />
+            <Info size={18} className="mt-0.5 shrink-0 text-gold-ink" />
             <p className="flex-1">
               <strong className="text-navy">Disclosure:</strong> AurumVault earns
               a commission on purchases made through partner links on this page.
               Curated by AurumVault at no extra cost to you.{" "}
-              <Link to="/affiliate-disclosure" className="text-gold underline">
+              <Link to="/affiliate-disclosure" className="text-gold-ink underline">
                 Learn more
               </Link>
               .
@@ -98,7 +98,7 @@ function KingdomPicksPage() {
         )}
 
         <header className="mb-8">
-          <div className="flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold">
+          <div className="flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold-ink">
             <Crown size={14} /> KINGDOM PICKS
           </div>
           <h1 className="mt-1 font-display text-3xl font-bold text-navy md:text-4xl">
@@ -117,7 +117,7 @@ function KingdomPicksPage() {
                 onClick={() => setFilter(f)}
                 className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
                   filter === f
-                    ? "bg-navy text-gold"
+                    ? "bg-navy text-gold-ink"
                     : "border border-line bg-white text-ink hover:border-gold"
                 }`}
               >

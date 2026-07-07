@@ -138,7 +138,7 @@ export function FormatPreviewModal({
 
         <footer className="border-t border-ink/10 bg-white/70 px-4 py-2 text-[11px] font-semibold text-mute">
           <span className="inline-flex items-center gap-1.5">
-            <Lock size={12} className="text-gold" />
+            <Lock size={12} className="text-gold-ink" />
             Watermarked preview — the full file is delivered after purchase.
           </span>
         </footer>
@@ -316,7 +316,7 @@ function TextBody({ text }: { text: string }) {
         className="pointer-events-none fixed inset-0 flex items-center justify-center"
       >
         <span
-          className="select-none font-display text-4xl font-black tracking-widest text-gold/25 sm:text-6xl"
+          className="select-none font-display text-4xl font-black tracking-widest text-gold-ink/25 sm:text-6xl"
           style={{ transform: "rotate(-28deg)" }}
         >
           AURUMVAULT PREVIEW

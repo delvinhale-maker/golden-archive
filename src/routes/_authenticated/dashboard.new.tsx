@@ -1955,7 +1955,7 @@ function CoverInput({ file, preview, onFile, acceptedHint, onZoom, uploaded }: {
         <button type="button" onClick={openPicker} {...handlers}
           aria-label="Upload cover image"
           className={`w-full min-h-[160px] flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition active:scale-[0.99] ${isOver ? "border-gold bg-gold/10" : "border-ink/20 bg-paper hover:border-navy/30"}`}>
-          <ImageIcon size={28} className={isOver ? "text-gold" : "text-mute"} />
+          <ImageIcon size={28} className={isOver ? "text-gold-ink" : "text-mute"} />
           <span className="text-sm font-medium text-ink/80">{isOver ? "Drop image here" : "Tap to choose a cover"}</span>
           <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
         </button>
@@ -1987,7 +1987,7 @@ function FileInput({ file, onFile, accept, hint, acceptedHint }: { file: File | 
       <button type="button" onClick={openPicker} {...handlers}
         aria-label="Upload manuscript file"
         className={`w-full min-h-[160px] flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-7 text-center transition active:scale-[0.99] ${isOver ? "border-gold bg-gold/10" : file ? "border-emerald-300 bg-emerald-50/40" : "border-ink/20 bg-paper hover:border-navy/30"}`}>
-        {file ? <FileText size={26} className="text-emerald-700" /> : <Plus size={26} className={isOver ? "text-gold" : "text-mute"} />}
+        {file ? <FileText size={26} className="text-emerald-700" /> : <Plus size={26} className={isOver ? "text-gold-ink" : "text-mute"} />}
         <span className="text-sm font-medium text-ink/80">{file ? file.name : isOver ? "Drop file here" : hint}</span>
         <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
       </button>

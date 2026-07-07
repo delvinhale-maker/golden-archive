@@ -45,7 +45,7 @@ export function StorefrontBadgeRow({ sellerId, hideIfEmpty = true, className }: 
             title={b.earned ? b.label : `${b.label} — ${b.hint}`}
             className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium tracking-wide transition ${
               b.earned
-                ? "border-gold/40 bg-gold/15 text-gold"
+                ? "border-gold/40 bg-gold/15 text-gold-ink"
                 : "border-muted/30 bg-muted/10 text-mute opacity-60"
             }`}
           >

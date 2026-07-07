@@ -252,7 +252,7 @@ export const Route = createFileRoute("/store/$slug")({
       <div>
         <p className="font-display text-3xl text-navy">Storefront not found</p>
         <p className="text-mute mt-2">This creator's page doesn't exist or isn't live yet.</p>
-        <Link to="/" className="inline-flex items-center gap-1 text-navy hover:text-gold mt-4">
+        <Link to="/" className="inline-flex items-center gap-1 text-navy hover:text-gold-ink mt-4">
           <ArrowLeft size={14} /> Back to home
         </Link>
       </div>
@@ -440,7 +440,7 @@ function StorefrontPage() {
               <h1 className="font-display text-3xl md:text-4xl text-navy leading-tight">
                 {data.brandName}
               </h1>
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider px-2 py-1 rounded-full bg-gold/15 text-gold border border-gold/30">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider px-2 py-1 rounded-full bg-gold/15 text-gold-ink border border-gold/30">
                 <BadgeCheck size={13} /> Verified Creator
               </span>
             </div>
@@ -452,7 +452,7 @@ function StorefrontPage() {
                 {data.categories.map((c) => (
                   <span
                     key={c}
-                    className="text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full bg-gold/10 text-gold border border-gold/20"
+                    className="text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full bg-gold/10 text-gold-ink border border-gold/20"
                   >
                     {c}
                   </span>
@@ -514,7 +514,7 @@ function StorefrontPage() {
               href={data.website}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 hover:text-gold"
+              className="inline-flex items-center gap-1 hover:text-gold-ink"
             >
               <Globe size={13} /> Website
             </a>
@@ -529,7 +529,7 @@ function StorefrontPage() {
                   href={v}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 capitalize hover:text-gold"
+                  className="inline-flex items-center gap-1 capitalize hover:text-gold-ink"
                 >
                   <Icon size={13} /> {k}
                 </a>
@@ -766,12 +766,12 @@ function ProductCard({ p, rating }: { p: Product; rating: number }) {
       />
       <div className="p-3">
         <p className="text-[10px] uppercase tracking-wider text-mute">{p.category}</p>
-        <p className="text-sm font-medium text-navy line-clamp-2 mt-0.5 group-hover:text-gold">
+        <p className="text-sm font-medium text-navy line-clamp-2 mt-0.5 group-hover:text-gold-ink">
           {p.title}
         </p>
         <div className="mt-1.5 flex items-baseline justify-between gap-2">
           <div className="flex items-baseline gap-2">
-            <span className="text-gold font-medium">${(p.price_cents / 100).toFixed(2)}</span>
+            <span className="text-gold-ink font-medium">${(p.price_cents / 100).toFixed(2)}</span>
             {p.compare_at_price_cents && p.compare_at_price_cents > p.price_cents ? (
               <span className="text-[11px] text-mute line-through">
                 ${(p.compare_at_price_cents / 100).toFixed(2)}
@@ -780,7 +780,7 @@ function ProductCard({ p, rating }: { p: Product; rating: number }) {
           </div>
           {rating > 0 && (
             <span className="text-[11px] text-mute inline-flex items-center gap-0.5">
-              <Star size={11} className="fill-gold text-gold" /> {rating.toFixed(1)}
+              <Star size={11} className="fill-gold text-gold-ink" /> {rating.toFixed(1)}
             </span>
           )}
         </div>
@@ -852,7 +852,7 @@ function BundlesTab({ bundles, products }: { bundles: Bundle[]; products: Produc
                 {b.description && <p className="text-sm text-mute mt-1">{b.description}</p>}
               </div>
               {pct > 0 && (
-                <span className="px-2 py-1 rounded-full bg-gold/15 text-gold text-[11px] font-medium">
+                <span className="px-2 py-1 rounded-full bg-gold/15 text-gold-ink text-[11px] font-medium">
                   Save {pct}%
                 </span>
               )}
@@ -874,7 +874,7 @@ function BundlesTab({ bundles, products }: { bundles: Bundle[]; products: Produc
             <div className="mt-4 flex items-center justify-between">
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="font-display text-2xl text-gold">
+                  <span className="font-display text-2xl text-gold-ink">
                     ${(b.price_cents / 100).toFixed(2)}
                   </span>
                   {savings > 0 && (
@@ -924,7 +924,7 @@ function AboutTab({ data }: { data: StorefrontData }) {
             <ul className="space-y-2">
               {data.credentials.map((c, i) => (
                 <li key={i} className="flex gap-2 text-navy/85">
-                  <BadgeCheck size={16} className="text-gold flex-shrink-0 mt-0.5" />
+                  <BadgeCheck size={16} className="text-gold-ink flex-shrink-0 mt-0.5" />
                   <span>{c}</span>
                 </li>
               ))}
@@ -1007,7 +1007,7 @@ function ReviewsTab({
     <div className="grid md:grid-cols-3 gap-6">
       <aside className="bg-white border border-ink/10 rounded-2xl p-5 h-fit">
         <p className="font-display text-4xl text-navy">{avgRating.toFixed(1)}</p>
-        <div className="flex text-gold mt-1">
+        <div className="flex text-gold-ink mt-1">
           {[1, 2, 3, 4, 5].map((s) => (
             <Star
               key={s}
@@ -1095,7 +1095,7 @@ function ReviewsTab({
                     {r.verified_purchase && " · Verified purchase"}
                   </p>
                 </div>
-                <div className="flex text-gold">
+                <div className="flex text-gold-ink">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <Star key={s} size={13} className={s <= r.rating ? "fill-gold" : "opacity-30"} />
                   ))}

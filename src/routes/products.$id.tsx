@@ -184,7 +184,7 @@ function ProductPage() {
       <MarketShell>
         <div className="mx-auto max-w-2xl px-4 py-20 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold/10">
-            <EyeOff size={32} className="text-gold" />
+            <EyeOff size={32} className="text-gold-ink" />
           </div>
           <h1 className="mt-6 font-display text-2xl font-bold text-ink">
             {result.title ? `“${result.title}” is not yet available` : "This product is not yet available"}
@@ -424,15 +424,15 @@ function ProductPage() {
                 {product.creator.name}
                 {product.creator.verified && (
                   <span
-                    className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold"
+                    className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold-ink"
                     title="Verified creator"
                     aria-label="Verified creator"
                   >
-                    <BadgeCheck size={12} className="text-gold" /> Verified
+                    <BadgeCheck size={12} className="text-gold-ink" /> Verified
                   </span>
                 )}
               </div>
-              <button className="text-sm font-semibold text-gold hover:underline">
+              <button className="text-sm font-semibold text-gold-ink hover:underline">
                 View Store →
               </button>
             </div>
@@ -500,7 +500,7 @@ function ProductPage() {
 
             {product.isPreorder && (
               <div className="mt-5 rounded-xl border border-gold/40 bg-gold/10 p-4">
-                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-caps text-gold">
+                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-caps text-gold-ink">
                   Pre-order
                 </div>
                 <div className="mt-1 text-sm font-bold text-ink">
@@ -515,7 +515,7 @@ function ProductPage() {
             {owned ? (
               <Link
                 to="/library"
-                className="mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-full border-2 border-gold bg-navy text-base font-bold text-gold shadow-gold-glow hover:bg-navy/90"
+                className="mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-full border-2 border-gold bg-navy text-base font-bold text-gold-ink shadow-gold-glow hover:bg-navy/90"
                 aria-label="You already own this — open your library"
               >
                 ✓ You own this · Open Library
@@ -577,7 +577,7 @@ function ProductPage() {
               className={`mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 text-sm font-bold ${
                 liked
                   ? "border-gold bg-[var(--accent)] text-navy"
-                  : "border-gold text-gold hover:bg-[var(--accent)]"
+                  : "border-gold text-gold-ink hover:bg-[var(--accent)]"
               }`}
             >
               <Heart
@@ -601,7 +601,7 @@ function ProductPage() {
                 <ul className="space-y-2 text-sm text-ink">
                   {product.included.map((f) => (
                     <li key={f} className="flex items-start gap-2">
-                      <Check size={16} className="mt-0.5 text-gold" />
+                      <Check size={16} className="mt-0.5 text-gold-ink" />
                       <span>{f}</span>
                     </li>
                   ))}
@@ -624,11 +624,11 @@ function ProductPage() {
                   {product.creator.name}
                   {product.creator.verified && (
                     <span
-                      className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold"
+                      className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold-ink"
                       title="Verified creator"
                       aria-label="Verified creator"
                     >
-                      <BadgeCheck size={12} className="text-gold" /> Verified
+                      <BadgeCheck size={12} className="text-gold-ink" /> Verified
                     </span>
                   )}
                 </div>
@@ -636,7 +636,7 @@ function ProductPage() {
                   Verified creator on AurumVault. Building purpose-driven
                   resources for operators and leaders.
                 </p>
-                <button className="mt-2 text-xs font-semibold text-gold hover:underline">
+                <button className="mt-2 text-xs font-semibold text-gold-ink hover:underline">
                   Visit store →
                 </button>
               </div>
@@ -776,7 +776,7 @@ function ProductPage() {
           {owned ? (
             <Link
               to="/library"
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full border-2 border-gold bg-navy px-6 py-3 text-sm font-bold text-gold"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full border-2 border-gold bg-navy px-6 py-3 text-sm font-bold text-gold-ink"
             >
               Open Library
             </Link>

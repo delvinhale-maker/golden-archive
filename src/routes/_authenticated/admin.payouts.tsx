@@ -194,7 +194,7 @@ function AdminPayoutsPage() {
           <Link to="/">
             <AVLogo />
           </Link>
-          <span className="inline-flex items-center gap-1.5 text-sm rounded-full bg-gold/15 text-gold px-3 py-1">
+          <span className="inline-flex items-center gap-1.5 text-sm rounded-full bg-gold/15 text-gold-ink px-3 py-1">
             <ShieldCheck size={14} /> Admin · Payouts
           </span>
           <Link

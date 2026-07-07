@@ -46,7 +46,7 @@ function SupportPage() {
   return (
     <MarketShell>
       <main className="mx-auto max-w-3xl px-6 py-16 lg:px-8">
-        <p className="text-[11px] font-semibold uppercase tracking-caps text-gold">
+        <p className="text-[11px] font-semibold uppercase tracking-caps text-gold-ink">
           Help Center
         </p>
         <h1 className="mt-2 font-display text-4xl text-navy md:text-5xl">
@@ -64,7 +64,7 @@ function SupportPage() {
               className="rounded-2xl border border-ink/10 bg-white p-5 md:p-6"
             >
               <div className="flex items-start gap-4">
-                <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy text-gold">
+                <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy text-gold-ink">
                   <Icon size={18} />
                 </div>
                 <div>
@@ -84,7 +84,7 @@ function SupportPage() {
             Email{" "}
             <a
               href="mailto:support@aurumvault.store"
-              className="text-gold hover:underline"
+              className="text-gold-ink hover:underline"
             >
               support@aurumvault.store
             </a>{" "}

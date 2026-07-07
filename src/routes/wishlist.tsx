@@ -43,7 +43,7 @@ function WishlistPage() {
     return (
       <MarketShell>
         <div className="py-24 text-center">
-          <Loader2 className="mx-auto animate-spin text-gold" />
+          <Loader2 className="mx-auto animate-spin text-gold-ink" />
         </div>
       </MarketShell>
     );
@@ -63,11 +63,11 @@ function WishlistPage() {
 
         {query.isLoading ? (
           <div className="py-16 text-center">
-            <Loader2 className="mx-auto animate-spin text-gold" />
+            <Loader2 className="mx-auto animate-spin text-gold-ink" />
           </div>
         ) : items.length === 0 ? (
           <div className="mt-12 rounded-2xl border border-line bg-white py-16 text-center">
-            <Heart size={36} className="mx-auto text-gold" />
+            <Heart size={36} className="mx-auto text-gold-ink" />
             <p className="mt-4 font-display text-xl font-bold text-ink">
               Your wishlist is empty
             </p>
@@ -116,10 +116,10 @@ function WishlistPage() {
                   >
                     {p.title}
                   </Link>
-                  <span className="mt-1 text-xs uppercase tracking-caps text-gold">
+                  <span className="mt-1 text-xs uppercase tracking-caps text-gold-ink">
                     {p.category}
                   </span>
-                  <span className="mt-auto font-display text-lg font-bold text-gold tabular-nums whitespace-nowrap">
+                  <span className="mt-auto font-display text-lg font-bold text-gold-ink tabular-nums whitespace-nowrap">
                     ${(p.price_cents / 100).toFixed(2)}
                   </span>
 

@@ -63,7 +63,7 @@ function AccountPage() {
     return (
       <MarketShell>
         <div className="py-24 text-center">
-          <Loader2 className="mx-auto animate-spin text-gold" />
+          <Loader2 className="mx-auto animate-spin text-gold-ink" />
         </div>
       </MarketShell>
     );
@@ -73,7 +73,7 @@ function AccountPage() {
     return (
       <MarketShell>
         <div className="mx-auto max-w-md px-6 py-16 text-center">
-          <UserIcon size={36} className="mx-auto text-gold" />
+          <UserIcon size={36} className="mx-auto text-gold-ink" />
           <h1 className="mt-4 font-display text-3xl font-bold text-ink">
             Your Account
           </h1>
@@ -121,7 +121,7 @@ function AccountPage() {
             {avatar ? (
               <img src={avatar} alt={displayName} className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-xl font-bold text-gold">
+              <div className="flex h-full w-full items-center justify-center text-xl font-bold text-gold-ink">
                 {displayName[0]?.toUpperCase()}
               </div>
             )}
@@ -140,7 +140,7 @@ function AccountPage() {
           <div className="mt-3 rounded-2xl border border-line bg-white p-5">
             {ordersQ.isLoading ? (
               <div className="flex items-center gap-3">
-                <Loader2 size={18} className="animate-spin text-gold" />
+                <Loader2 size={18} className="animate-spin text-gold-ink" />
                 <span className="text-sm text-mute">Loading your library…</span>
               </div>
             ) : ordersQ.isError ? (
@@ -188,7 +188,7 @@ function AccountPage() {
           to="/dashboard"
           className="mt-3 flex items-center gap-2 rounded-xl border border-gold/40 bg-gold/5 p-4 font-semibold text-navy hover:bg-gold/10"
         >
-          <LayoutDashboard size={18} className="text-gold" />
+          <LayoutDashboard size={18} className="text-gold-ink" />
           Open Publisher Dashboard
         </Link>
       )}
@@ -197,7 +197,7 @@ function AccountPage() {
         <section className="mt-8">
           <h2 className="font-display text-xl font-bold text-ink">My Downloads</h2>
           {ordersQ.isLoading ? (
-            <Loader2 className="mt-4 animate-spin text-gold" />
+            <Loader2 className="mt-4 animate-spin text-gold-ink" />
           ) : ordersFailed ? (
             <p className="mt-3 text-sm text-red-700">
               We couldn't load your downloads right now.{" "}
@@ -214,7 +214,7 @@ function AccountPage() {
                 <button
                   type="button"
                   onClick={() => setRemovedIds(new Set())}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold underline"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold-ink underline"
                 >
                   Show all
                 </button>
@@ -276,7 +276,7 @@ function AccountPage() {
             <button
               type="button"
               onClick={() => setRemovedIds(new Set())}
-              className="mt-3 text-xs font-semibold text-gold underline"
+              className="mt-3 text-xs font-semibold text-gold-ink underline"
             >
               Show {removedIds.size} hidden item{removedIds.size === 1 ? "" : "s"}
             </button>
@@ -287,7 +287,7 @@ function AccountPage() {
         <section className="mt-8">
           <h2 className="font-display text-xl font-bold text-ink">Order History</h2>
           {ordersQ.isLoading ? (
-            <Loader2 className="mt-4 animate-spin text-gold" />
+            <Loader2 className="mt-4 animate-spin text-gold-ink" />
           ) : orders.length === 0 ? (
             <p className="mt-3 text-sm text-mute">No orders yet.</p>
           ) : (
@@ -297,7 +297,7 @@ function AccountPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="flex items-center gap-2 text-sm font-semibold text-ink">
-                        <Package size={14} className="text-gold" />
+                        <Package size={14} className="text-gold-ink" />
                         Order #{o.id.slice(0, 8)}
                       </p>
                       <p className="text-xs text-mute">
@@ -305,7 +305,7 @@ function AccountPage() {
                         item{o.items.length === 1 ? "" : "s"}
                       </p>
                     </div>
-                    <p className="font-display font-bold text-gold">
+                    <p className="font-display font-bold text-gold-ink">
                       ${(o.amount_cents / 100).toFixed(2)}
                     </p>
                   </div>

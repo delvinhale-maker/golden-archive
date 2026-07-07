@@ -169,7 +169,7 @@ function ProductsPage() {
 
             {!query.isLoading && products.length === 0 && (
               <div className="flex flex-col items-center justify-center py-24 text-center">
-                <Crown size={40} className="text-gold" />
+                <Crown size={40} className="text-gold-ink" />
                 <h3 className="mt-4 font-display text-2xl font-bold text-ink">
                   No products found
                 </h3>
@@ -313,7 +313,7 @@ function SidebarFilters({
 
       <button
         onClick={onClear}
-        className="text-sm font-semibold text-gold hover:underline"
+        className="text-sm font-semibold text-gold-ink hover:underline"
       >
         Clear all
       </button>

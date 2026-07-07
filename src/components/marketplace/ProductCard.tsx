@@ -69,7 +69,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             animate={liked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
             transition={{ type: "spring", stiffness: 380, damping: 12 }}
             aria-label="Toggle wishlist"
-            className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-navy/70 text-white/90 shadow-card backdrop-blur-sm hover:text-gold"
+            className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-navy/70 text-white/90 shadow-card backdrop-blur-sm hover:text-gold-ink"
           >
             <Heart
               size={14}
@@ -104,7 +104,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
           {product.creator.verified && (
             <BadgeCheck
               size={14}
-              className="text-gold shrink-0"
+              className="text-gold-ink shrink-0"
               aria-label="Verified creator"
             />
           )}
@@ -134,7 +134,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         <div className="mt-3 flex items-baseline gap-2">
           <span
             data-testid="product-price"
-            className="font-display text-[18px] font-bold text-gold"
+            className="font-display text-[18px] font-bold text-gold-ink"
           >
             ${product.price.toFixed(2)}
           </span>
@@ -150,7 +150,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         {owned ? (
           <Link
             to="/library"
-            className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-full border-2 border-gold bg-navy py-2.5 text-[13px] font-bold text-gold hover:bg-navy/90"
+            className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-full border-2 border-gold bg-navy py-2.5 text-[13px] font-bold text-gold-ink hover:bg-navy/90"
             aria-label={`You own ${product.title} — open your library`}
           >
             <BookOpen size={14} />

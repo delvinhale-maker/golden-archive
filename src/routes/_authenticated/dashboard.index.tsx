@@ -583,7 +583,7 @@ function BookshelfTable({
                     <Money cents={p.price_cents} />
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums text-ink whitespace-nowrap">{s.units}</td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-gold">
+                  <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-gold-ink">
                     <Money cents={s.earnings_cents} />
                   </td>
                   <td className="px-4 py-3">

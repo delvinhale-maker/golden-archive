@@ -61,7 +61,7 @@ function CreatorsPage() {
     <MarketShell>
       <section className="av-hero-bg border-b border-white/10">
         <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
-          <div className="text-[11px] font-semibold tracking-caps text-gold">
+          <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
             THE CREATORS
           </div>
           <h1 className="mt-2 font-display text-4xl font-bold text-white md:text-5xl">
@@ -143,7 +143,7 @@ function CreatorsPage() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <span className="font-display text-lg text-gold">
+                        <span className="font-display text-lg text-gold-ink">
                           {c.brandName.slice(0, 1)}
                         </span>
                       )}

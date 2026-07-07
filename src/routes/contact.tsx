@@ -84,7 +84,7 @@ function ContactPage() {
   return (
     <MarketShell>
       <main className="mx-auto max-w-3xl px-6 py-16 lg:px-8">
-        <p className="text-[11px] font-semibold uppercase tracking-caps text-gold">
+        <p className="text-[11px] font-semibold uppercase tracking-caps text-gold-ink">
           Contact
         </p>
         <h1 className="mt-2 font-display text-4xl text-navy md:text-5xl">
@@ -101,7 +101,7 @@ function ContactPage() {
         >
           {status === "success" ? (
             <div className="flex flex-col items-center gap-3 py-8 text-center">
-              <CheckCircle2 className="h-10 w-10 text-gold" />
+              <CheckCircle2 className="h-10 w-10 text-gold-ink" />
               <h2 className="font-display text-2xl text-navy">Message sent.</h2>
               <p className="max-w-md text-sm text-ink/70">
                 Thanks for reaching out — we received your message and will reply within 24 hours.
@@ -109,7 +109,7 @@ function ContactPage() {
               <button
                 type="button"
                 onClick={() => setStatus("idle")}
-                className="mt-2 text-sm font-medium text-navy underline underline-offset-4 hover:text-gold"
+                className="mt-2 text-sm font-medium text-navy underline underline-offset-4 hover:text-gold-ink"
               >
                 Send another message
               </button>
@@ -217,12 +217,12 @@ function ContactPage() {
               href={`mailto:${email}`}
               className="group rounded-2xl border border-ink/10 bg-white p-5 transition hover:border-gold/40 hover:shadow-sm"
             >
-              <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-navy text-gold">
+              <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-navy text-gold-ink">
                 <Icon size={16} />
               </div>
               <div className="mt-3 font-display text-lg text-navy">{title}</div>
               <p className="mt-1 text-sm text-mute">{body}</p>
-              <div className="mt-3 text-sm font-medium text-navy group-hover:text-gold">
+              <div className="mt-3 text-sm font-medium text-navy group-hover:text-gold-ink">
                 {email}
               </div>
             </a>

@@ -50,20 +50,20 @@ export function AffiliateCard({ product, className = "" }: Props) {
           {SOURCE_LABEL[product.source]}
         </span>
         {product.badge && (
-          <span className="absolute right-2 top-2 inline-flex items-center rounded-full bg-navy px-2.5 py-0.5 text-[10px] font-bold text-gold">
+          <span className="absolute right-2 top-2 inline-flex items-center rounded-full bg-navy px-2.5 py-0.5 text-[10px] font-bold text-gold-ink">
             {product.badge}
           </span>
         )}
       </div>
       <div className="p-3">
-        <div className="text-[10px] font-semibold tracking-caps text-gold uppercase">
+        <div className="text-[10px] font-semibold tracking-caps text-gold-ink uppercase">
           {product.category}
         </div>
         <div className="mt-1 line-clamp-2 font-display text-sm font-bold text-ink min-h-[2.5rem]">
           {product.title}
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="font-display text-base font-bold text-gold">
+          <span className="font-display text-base font-bold text-gold-ink">
             ${Number(product.price).toFixed(2)}
           </span>
           {hasStrike && (

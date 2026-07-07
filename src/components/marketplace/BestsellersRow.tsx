@@ -13,7 +13,7 @@ export function BestsellersRow({ products }: { products: Product[] }) {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold">
+            <div className="flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold-ink">
               <Trophy size={14} /> BESTSELLING TITLES
             </div>
             <h2 className="mt-1 font-display text-3xl font-bold text-white md:text-4xl">
@@ -22,7 +22,7 @@ export function BestsellersRow({ products }: { products: Product[] }) {
           </div>
           <Link
             to="/products"
-            className="hidden text-sm font-bold text-gold underline-offset-4 hover:underline md:inline"
+            className="hidden text-sm font-bold text-gold-ink underline-offset-4 hover:underline md:inline"
           >
             See all →
           </Link>
@@ -49,18 +49,18 @@ export function BestsellersRow({ products }: { products: Product[] }) {
                     category={p.category}
                     className="h-full w-full object-cover"
                   />
-                  <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-navy px-2 py-0.5 text-[10px] font-bold text-gold">
+                  <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-navy px-2 py-0.5 text-[10px] font-bold text-gold-ink">
                     #{i + 1}
                   </span>
                 </div>
                 <div className="p-3">
-                  <div className="text-[10px] font-semibold tracking-caps text-gold">
+                  <div className="text-[10px] font-semibold tracking-caps text-gold-ink">
                     {p.category.toUpperCase()}
                   </div>
                   <div className="mt-1 line-clamp-2 font-display text-sm font-bold text-ink">
                     {p.title}
                   </div>
-                  <div className="mt-2 font-display text-base font-bold text-gold">
+                  <div className="mt-2 font-display text-base font-bold text-gold-ink">
                     ${p.price.toFixed(2)}
                   </div>
                 </div>

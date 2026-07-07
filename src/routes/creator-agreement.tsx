@@ -41,7 +41,7 @@ function CreatorAgreementPage() {
   return (
     <MarketShell>
       <main className="mx-auto max-w-3xl px-6 py-16 lg:px-8">
-        <p className="text-[11px] font-semibold uppercase tracking-caps text-gold">
+        <p className="text-[11px] font-semibold uppercase tracking-caps text-gold-ink">
           For Sellers
         </p>
         <h1 className="mt-2 font-display text-4xl text-navy md:text-5xl">
@@ -71,7 +71,7 @@ function CreatorAgreementPage() {
             <ul className="mt-3 space-y-2">
               {POINTS.slice(0, 3).map((text) => (
                 <li key={text} className="flex items-start gap-3 text-sm">
-                  <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gold/20 text-gold">
+                  <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gold/20 text-gold-ink">
                     <Check size={10} />
                   </span>
                   {text}
@@ -130,7 +130,7 @@ function CreatorAgreementPage() {
               Seller questions:{" "}
               <a
                 href="mailto:creators@aurumvault.store"
-                className="text-navy hover:text-gold hover:underline"
+                className="text-navy hover:text-gold-ink hover:underline"
               >
                 creators@aurumvault.store
               </a>

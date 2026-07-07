@@ -21,7 +21,7 @@ export function RouteErrorFallback({
   return (
     <MarketShell>
       <div className="mx-auto max-w-md px-6 py-16 text-center">
-        <AlertTriangle size={36} className="mx-auto text-gold" />
+        <AlertTriangle size={36} className="mx-auto text-gold-ink" />
         <h1 className="mt-4 font-display text-2xl font-bold text-ink">{title}</h1>
         <p className="mt-2 text-sm text-mute break-words">{message}</p>
         <div className="mt-6 flex flex-col gap-3">

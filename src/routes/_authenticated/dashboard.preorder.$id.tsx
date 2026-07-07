@@ -115,7 +115,7 @@ function PreorderPage() {
     return (
       <PublisherShell accent={ACCENTS.publishStep2}>
         <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-          <Loader2 className="mx-auto animate-spin text-gold" />
+          <Loader2 className="mx-auto animate-spin text-gold-ink" />
         </div>
       </PublisherShell>
     );

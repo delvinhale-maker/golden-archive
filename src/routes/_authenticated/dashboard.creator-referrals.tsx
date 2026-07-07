@@ -101,7 +101,7 @@ function CreatorReferralsPage() {
 
       <section className="mx-auto max-w-5xl px-4 md:px-8 py-10">
         <div className="rounded-2xl bg-gradient-to-br from-navy to-[#22335A] text-white p-6 md:p-8">
-          <p className="text-gold text-xs uppercase tracking-[0.3em] font-semibold inline-flex items-center gap-2">
+          <p className="text-gold-ink text-xs uppercase tracking-[0.3em] font-semibold inline-flex items-center gap-2">
             <Sparkles size={14} /> Creator Referral Program
           </p>
           <h1 className="mt-3 font-display text-3xl md:text-4xl leading-tight">

@@ -55,13 +55,13 @@ export function CustomersAlsoBought({
                   />
                 </div>
                 <div className="p-3">
-                  <div className="text-[10px] font-semibold tracking-caps text-gold">
+                  <div className="text-[10px] font-semibold tracking-caps text-gold-ink">
                     {p.category.toUpperCase()}
                   </div>
                   <div className="mt-1 line-clamp-2 font-display text-sm font-bold text-ink">
                     {p.title}
                   </div>
-                  <div className="mt-2 font-display text-base font-bold text-gold">
+                  <div className="mt-2 font-display text-base font-bold text-gold-ink">
                     ${p.price.toFixed(2)}
                   </div>
                 </div>

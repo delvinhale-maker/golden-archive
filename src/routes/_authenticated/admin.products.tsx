@@ -128,7 +128,7 @@ function AdminProductsPage() {
       <header className="bg-navy text-white">
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 flex items-center gap-4">
           <Link to="/"><AVLogo /></Link>
-          <span className="inline-flex items-center gap-1.5 text-sm rounded-full bg-gold/15 text-gold px-3 py-1">
+          <span className="inline-flex items-center gap-1.5 text-sm rounded-full bg-gold/15 text-gold-ink px-3 py-1">
             <ShieldCheck size={14} /> Admin · Products
           </span>
           <Link to="/admin" className="ml-auto text-sm text-white/70 hover:text-white inline-flex items-center gap-1">
@@ -180,7 +180,7 @@ function AdminProductsPage() {
                   <p className="font-display text-xl text-navy truncate">{p.title}</p>
                   <p className="text-xs text-mute">{p.creator_name ?? "—"}</p>
                   <p className="text-sm text-ink/80 mt-1 line-clamp-2">{p.description}</p>
-                  <p className="text-gold font-medium mt-1">${(p.price_cents / 100).toFixed(2)}</p>
+                  <p className="text-gold-ink font-medium mt-1">${(p.price_cents / 100).toFixed(2)}</p>
                 </div>
                 <div className="flex flex-col gap-2">
                   <button onClick={() => setEditing(p)}

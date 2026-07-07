@@ -87,7 +87,7 @@ export function FrequentlyBoughtTogether({ product }: { product: Product }) {
                     <div className="line-clamp-2 text-xs font-semibold text-ink">
                       {p.title}
                     </div>
-                    <div className="mt-0.5 text-xs font-bold text-gold">
+                    <div className="mt-0.5 text-xs font-bold text-gold-ink">
                       ${Number(p.price).toFixed(2)}
                     </div>
                   </div>

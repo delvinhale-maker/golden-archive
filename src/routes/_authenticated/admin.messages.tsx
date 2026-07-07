@@ -112,7 +112,7 @@ function AdminMessagesPage() {
       <header className="bg-navy text-white">
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 flex items-center gap-4">
           <Link to="/"><AVLogo /></Link>
-          <span className="inline-flex items-center gap-1.5 text-sm rounded-full bg-gold/15 text-gold px-3 py-1">
+          <span className="inline-flex items-center gap-1.5 text-sm rounded-full bg-gold/15 text-gold-ink px-3 py-1">
             <ShieldCheck size={14} /> Admin
           </span>
           <Link to="/admin" className="ml-auto text-sm text-white/70 hover:text-white inline-flex items-center gap-1">
@@ -124,7 +124,7 @@ function AdminMessagesPage() {
       <main className="mx-auto max-w-6xl px-4 md:px-8 py-8 space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h1 className="font-display text-3xl md:text-4xl text-navy inline-flex items-center gap-2">
-            <Mail className="text-gold" /> Contact messages
+            <Mail className="text-gold-ink" /> Contact messages
           </h1>
           <button
             onClick={refresh}
@@ -172,7 +172,7 @@ function AdminMessagesPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-display text-lg text-navy">{m.name}</span>
-                        <a href={`mailto:${m.email}`} className="text-sm text-gold hover:underline break-all">{m.email}</a>
+                        <a href={`mailto:${m.email}`} className="text-sm text-gold-ink hover:underline break-all">{m.email}</a>
                         <span className="text-[10px] uppercase tracking-wider rounded-full bg-navy/5 text-navy px-2 py-0.5">{m.topic || "other"}</span>
                       </div>
                       <p className="text-[11px] text-mute mt-0.5">

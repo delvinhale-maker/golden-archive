@@ -88,7 +88,7 @@ export function ReviewsSection({
           <Link
             to="/auth"
             search={{ redirect: `/products/${productId}` }}
-            className="inline-flex items-center gap-2 rounded-full border-2 border-gold px-4 py-2 text-sm font-bold text-gold hover:bg-[var(--accent)]"
+            className="inline-flex items-center gap-2 rounded-full border-2 border-gold px-4 py-2 text-sm font-bold text-gold-ink hover:bg-[var(--accent)]"
           >
             <LogIn size={14} /> Sign in to review
           </Link>
@@ -405,7 +405,7 @@ function WriteReviewButton({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-full border-2 border-gold px-4 py-2 text-sm font-bold text-gold hover:bg-[var(--accent)]"
+        className="inline-flex items-center gap-2 rounded-full border-2 border-gold px-4 py-2 text-sm font-bold text-gold-ink hover:bg-[var(--accent)]"
       >
         <PenSquare size={14} /> Write a review
       </button>

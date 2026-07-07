@@ -27,7 +27,7 @@ function AboutPage() {
   return (
     <MarketShell>
       <main className="mx-auto max-w-3xl px-6 py-16 lg:px-8">
-        <p className="text-[11px] font-semibold uppercase tracking-caps text-gold">
+        <p className="text-[11px] font-semibold uppercase tracking-caps text-gold-ink">
           About
         </p>
         <h1 className="mt-2 font-display text-4xl text-navy md:text-5xl">

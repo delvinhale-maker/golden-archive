@@ -170,7 +170,7 @@ function RefreshHighlightsBar() {
           }
           disabled={isFetching}
           aria-label="Refresh hero product and AurumVault Originals count"
-          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-white px-3 text-[11px] font-semibold tracking-caps text-navy transition hover:border-gold hover:text-gold disabled:opacity-60"
+          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-white px-3 text-[11px] font-semibold tracking-caps text-navy transition hover:border-gold hover:text-gold-ink disabled:opacity-60"
         >
           <RefreshCw
             size={12}
@@ -202,7 +202,7 @@ function HighlightsBoundary({
         <section className="bg-white py-12">
           <div className="mx-auto max-w-2xl px-6 text-center">
             <div className="rounded-xl border border-line bg-[#fff8f0] p-6">
-              <div className="text-[11px] font-semibold tracking-caps text-gold">
+              <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
                 COULDN'T LOAD
               </div>
               <p className="mt-2 text-sm text-ink">
@@ -341,7 +341,7 @@ function HeroStatsBar() {
                     border: "1px solid rgba(201,168,76,0.45)",
                   }}
                 >
-                  <s.icon size={18} className="text-gold" />
+                  <s.icon size={18} className="text-gold-ink" />
                 </span>
                 <span className="text-[12px] font-semibold tracking-wide text-navy sm:text-[13px]">
                   {s.label}
@@ -364,7 +364,7 @@ function Hero() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="text-[11px] font-semibold tracking-caps text-gold"
+            className="text-[11px] font-semibold tracking-caps text-gold-ink"
           >
             AURUMVAULT — GOLD STANDARD COMMERCE
           </motion.div>
@@ -450,14 +450,14 @@ function HeroStack() {
             <ProductCover title={c.title} category={c.cat} className="h-full w-full object-cover" />
           </div>
           <div className="p-4">
-            <div className="text-[10px] font-semibold tracking-caps text-gold">
+            <div className="text-[10px] font-semibold tracking-caps text-gold-ink">
               {c.cat.toUpperCase()}
             </div>
             <div className="mt-1 font-display text-base font-bold text-ink">
               {c.title}
             </div>
             <div className="mt-2 flex items-center justify-between">
-              <span className="font-display text-lg font-bold text-gold">
+              <span className="font-display text-lg font-bold text-gold-ink">
                 ${c.price}
               </span>
               <div className="flex items-center gap-1 text-[11px] text-mute">
@@ -475,7 +475,7 @@ function SectionHeader({ kicker, title }: { kicker?: string; title: string }) {
   return (
     <div className="mb-10 flex flex-col items-center text-center">
       {kicker && (
-        <div className="text-[11px] font-semibold tracking-caps text-gold">
+        <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
           {kicker}
         </div>
       )}
@@ -507,7 +507,7 @@ function CategoriesSection() {
                 search={{ category: c.slug } as never}
                 className="group flex h-[120px] flex-col items-center justify-center gap-2 rounded-lg border border-line bg-white transition-all duration-200 ease-out hover:-translate-y-1 hover:border-gold hover:shadow-card-hover"
               >
-                <c.icon className="text-gold transition-transform duration-200 group-hover:scale-110" size={32} strokeWidth={1.6} />
+                <c.icon className="text-gold-ink transition-transform duration-200 group-hover:scale-110" size={32} strokeWidth={1.6} />
                 <span className="text-sm font-bold text-navy">{c.label}</span>
 
               </Link>
@@ -534,7 +534,7 @@ function FeaturedProducts() {
         <div className="mt-10 text-center">
           <Link
             to="/products"
-            className="inline-flex h-11 items-center rounded-full border border-gold px-6 text-sm font-bold text-gold hover:bg-gold hover:text-navy"
+            className="inline-flex h-11 items-center rounded-full border border-gold px-6 text-sm font-bold text-gold-ink hover:bg-gold hover:text-navy"
           >
             See all products →
           </Link>
@@ -617,7 +617,7 @@ function IllustriousCreator() {
               </div>
               <Link
                 to="/products"
-                className="mt-4 inline-flex items-center text-sm font-bold text-gold hover:underline"
+                className="mt-4 inline-flex items-center text-sm font-bold text-gold-ink hover:underline"
               >
                 View Store →
               </Link>
@@ -643,7 +643,7 @@ function TrustBar() {
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-around gap-4 px-6 py-6 lg:px-8">
         {items.map((it, i) => (
           <div key={i} className="flex items-center gap-2">
-            <it.icon size={16} className="text-gold" />
+            <it.icon size={16} className="text-gold-ink" />
             <span className="text-[13px] font-medium text-navy">{it.label}</span>
             {i < items.length - 1 && (
               <span className="ml-4 hidden h-1 w-1 rounded-full bg-navy/40 md:block" />
@@ -675,7 +675,7 @@ function SocialsSection() {
     <section className="border-y border-line bg-bg-page">
       <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
         <div className="mb-8 text-center">
-          <div className="text-[11px] font-semibold tracking-caps text-gold">
+          <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
             STAY CONNECTED
           </div>
           <h2 className="mt-2 font-display text-2xl font-bold text-navy md:text-3xl">
@@ -691,7 +691,7 @@ function SocialsSection() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-5 py-2.5 text-sm font-semibold text-navy transition hover:-translate-y-0.5 hover:border-gold hover:shadow-card-hover"
             >
-              <link.icon size={16} className="text-gold" />
+              <link.icon size={16} className="text-gold-ink" />
               {link.label}
             </a>
           ))}
