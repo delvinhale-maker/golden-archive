@@ -292,12 +292,19 @@ async def test_non_variant_flow(page, href):
 
     await page.screenshot(path=str(SHOTS / "nonvariant_checkout_reopen.png"))
     assert captured, "[cart] no cart-checkout server-fn request observed after Proceed tap"
-    payload = captured[-1]["body"]
+    # Prefer the cart-checkout request; fall back to last captured.
+    cart_call = next(
+        (c for c in captured if "createCartCheckout" in c["url"] or "cart" in c["url"].lower()),
+        captured[-1],
+    )
+    print(f"[cart] captured checkout call url={cart_call['url']}")
+    payload = cart_call["body"]
     args = payload.get("data", payload) if isinstance(payload, dict) else {}
     line_items = args.get("items") or []
     line = next((li for li in line_items if li.get("id") == product_id), None)
     assert line, (
-        f"[cart] cart-checkout payload missing product {product_id}: {line_items!r}"
+        f"[cart] cart-checkout payload missing product {product_id}: "
+        f"url={cart_call['url']} body={payload!r}"
     )
     assert int(line["priceCents"]) == sticky_cents, (
         f"[cart] cart-checkout unit priceCents ({line['priceCents']}) != sticky "
