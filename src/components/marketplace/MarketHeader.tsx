@@ -518,7 +518,7 @@ function LiveSearch({
                     setFocused(false);
                     navigate({ to: "/products", search: { q: debounced } as never });
                   }}
-                  className="block w-full border-t border-line bg-[#fafaf7] py-2.5 text-center text-xs font-bold uppercase tracking-caps text-navy hover:text-gold"
+                  className="block w-full border-t border-line bg-[#fafaf7] py-2.5 text-center text-xs font-bold uppercase tracking-caps text-navy hover:text-gold-ink"
                 >
                   See all results for "{debounced}" →
                 </button>
