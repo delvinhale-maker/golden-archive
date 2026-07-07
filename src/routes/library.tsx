@@ -295,7 +295,7 @@ function LibraryCard({
             Purchased {formatDate(item.purchasedAt)}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider">
-            <span className="rounded-full bg-navy px-2 py-0.5 text-gold-ink">
+            <span className="rounded-full bg-navy px-2 py-0.5 text-gold">
               {format}
             </span>
             {size && (

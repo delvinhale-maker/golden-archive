@@ -50,7 +50,7 @@ export function AffiliateCard({ product, className = "" }: Props) {
           {SOURCE_LABEL[product.source]}
         </span>
         {product.badge && (
-          <span className="absolute right-2 top-2 inline-flex items-center rounded-full bg-navy px-2.5 py-0.5 text-[10px] font-bold text-gold-ink">
+          <span className="absolute right-2 top-2 inline-flex items-center rounded-full bg-navy px-2.5 py-0.5 text-[10px] font-bold text-gold">
             {product.badge}
           </span>
         )}

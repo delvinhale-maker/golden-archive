@@ -515,7 +515,7 @@ function ProductPage() {
             {owned ? (
               <Link
                 to="/library"
-                className="mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-full border-2 border-gold bg-navy text-base font-bold text-gold-ink shadow-gold-glow hover:bg-navy/90"
+                className="mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-full border-2 border-gold bg-navy text-base font-bold text-gold shadow-gold-glow hover:bg-navy/90"
                 aria-label="You already own this — open your library"
               >
                 ✓ You own this · Open Library
@@ -776,7 +776,7 @@ function ProductPage() {
           {owned ? (
             <Link
               to="/library"
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full border-2 border-gold bg-navy px-6 py-3 text-sm font-bold text-gold-ink"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full border-2 border-gold bg-navy px-6 py-3 text-sm font-bold text-gold"
             >
               Open Library
             </Link>

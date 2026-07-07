@@ -116,7 +116,7 @@ function QACard({
   return (
     <div className="rounded-lg border border-line bg-white p-5">
       <div className="flex items-start gap-3">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-navy text-xs font-bold text-gold-ink">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-navy text-xs font-bold text-gold">
           Q
         </span>
         <div className="min-w-0 flex-1">

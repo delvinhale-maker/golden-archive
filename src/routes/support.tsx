@@ -64,7 +64,7 @@ function SupportPage() {
               className="rounded-2xl border border-ink/10 bg-white p-5 md:p-6"
             >
               <div className="flex items-start gap-4">
-                <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy text-gold-ink">
+                <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy text-gold">
                   <Icon size={18} />
                 </div>
                 <div>
