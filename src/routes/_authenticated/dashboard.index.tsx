@@ -624,6 +624,7 @@ function BookshelfTable({
                         onRepublish={() => onRepublish(p.id)}
                         onDelete={() => onDelete(p.id)}
                         onHistory={() => onHistory(p.id)}
+                        onPromote={() => onPromote(p.id)}
                       />
                     </div>
                   </td>
