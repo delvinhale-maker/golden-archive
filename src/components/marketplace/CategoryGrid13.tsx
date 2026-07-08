@@ -35,8 +35,8 @@ const CATEGORY_BLURBS: Record<string, string> = {
     "All-in-one bundles of templates, checklists, and prompts grouped by role and outcome.",
   business_operating_systems:
     "Notion, ClickUp, and Airtable systems that run hiring, ops, delivery, and finance.",
-  audio:
-    "Audiobooks, sermons, meditations, and focus soundscapes for deep work and quiet reflection.",
+  prompt_packs:
+    "Battle-tested prompt libraries for ChatGPT, Claude, and Gemini — for marketing, writing, ops, and research.",
   templates:
     "Ready-to-ship templates for Figma, Notion, Docs, and Slides — designed by working operators.",
 };
