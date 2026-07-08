@@ -77,7 +77,7 @@ export function FormatPreviewModal({
       aria-modal="true"
       aria-label={`Preview of ${preview.title}`}
     >
-      <div className="relative flex h-[95vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-paper shadow-2xl">
+      <div className="relative flex h-[95vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-background shadow-2xl">
         <header className="flex items-center justify-between gap-3 border-b border-ink/10 bg-white/70 px-4 py-3">
           <div className="flex items-center gap-2 min-w-0">
             <KindIcon kind={preview.kind} />
@@ -309,7 +309,7 @@ function escapeHtml(s: string) {
 
 function TextBody({ text }: { text: string }) {
   return (
-    <div className="relative h-full overflow-y-auto bg-paper">
+    <div className="relative h-full overflow-y-auto bg-background">
       {/* Diagonal watermark overlay */}
       <div
         aria-hidden="true"
@@ -441,7 +441,7 @@ function CoverBody({
   reason?: string;
 }) {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-6 overflow-y-auto bg-paper p-8">
+    <div className="flex h-full w-full flex-col items-center justify-center gap-6 overflow-y-auto bg-background p-8">
       {coverUrl ? (
         <img
           src={coverUrl}
@@ -500,7 +500,7 @@ export function FormatPreviewLoading({
       >
         <X size={18} />
       </button>
-      <div className="w-full max-w-sm rounded-2xl bg-paper p-6 shadow-2xl">
+      <div className="w-full max-w-sm rounded-2xl bg-background p-6 shadow-2xl">
         <div className="flex items-start gap-4">
           <div className="relative h-24 w-[68px] flex-shrink-0 overflow-hidden rounded-md bg-ink/10">
             {coverUrl ? (
