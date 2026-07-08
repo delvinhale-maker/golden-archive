@@ -72,7 +72,7 @@ export function KingdomPicksRow() {
             className="mt-2 font-display text-3xl font-bold md:text-4xl"
             style={{ color: "#ffffff" }}
           >
-            👑 Curated Picks
+            Curated Picks
           </h2>
           <p className="mt-2 max-w-md text-sm text-white/70">
             Handpicked resources we recommend — from trusted partners.

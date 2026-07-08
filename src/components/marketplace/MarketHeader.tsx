@@ -30,7 +30,6 @@ const CATEGORIES = [
   "All",
   "eBooks",
   "Journals",
-  "Prompt Packs",
   "Financial Planners",
 ];
 

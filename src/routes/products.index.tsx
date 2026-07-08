@@ -29,6 +29,9 @@ const HIDDEN_CATEGORY_SLUGS = new Set([
   "bible_studies",
   "digital_toolkits",
   "budget_spreadsheets",
+  "business_templates",
+  "ai_prompt_packs",
+  "prompt_packs",
 ]);
 const CATEGORIES = CATEGORY_DEFS.filter((c) => !HIDDEN_CATEGORY_SLUGS.has(c.slug)).map((c) => c.label);
 
