@@ -150,15 +150,23 @@ export function MarketHeader() {
                 </button>
               </>
             ) : (
-              <Link
-                to="/auth"
-                aria-label="Sign in"
-                data-nav-tab
-                data-active={pathname.startsWith("/auth") ? "true" : "false"}
-                className="relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10"
-              >
-                <User size={20} />
-              </Link>
+              <>
+                <Link
+                  to="/auth"
+                  aria-label="Sign in"
+                  data-nav-tab
+                  data-active={pathname.startsWith("/auth") ? "true" : "false"}
+                  className="relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10"
+                >
+                  <User size={20} />
+                </Link>
+                <Link
+                  to="/auth"
+                  className="hidden md:inline-flex items-center rounded-full px-3 py-1.5 text-[12px] font-semibold text-white/80 hover:bg-white/10 hover:text-white"
+                >
+                  Forgot password?
+                </Link>
+              </>
             )}
 
             <Link
@@ -369,13 +377,22 @@ export function MarketHeader() {
                   </button>
                 </>
               ) : (
-                <Link
-                  to="/auth"
-                  onClick={() => setMenuOpen(false)}
-                  className="block w-full rounded-full bg-white/10 py-3 text-center text-sm font-semibold text-white"
-                >
-                  Sign in
-                </Link>
+                <>
+                  <Link
+                    to="/auth"
+                    onClick={() => setMenuOpen(false)}
+                    className="block w-full rounded-full bg-white/10 py-3 text-center text-sm font-semibold text-white"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    to="/auth"
+                    onClick={() => setMenuOpen(false)}
+                    className="block w-full rounded-full border border-white/20 py-3 text-center text-sm font-semibold text-white"
+                  >
+                    Forgot password?
+                  </Link>
+                </>
               )}
               <Link
                 to="/products"
