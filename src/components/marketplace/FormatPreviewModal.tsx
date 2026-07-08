@@ -545,3 +545,230 @@ export function FormatPreviewLoading({
     </motion.div>
   );
 }
+
+// -------- Download excerpt ----------------------------------------------
+
+function DownloadExcerptMenu({ title, getText }: { title: string; getText: () => string }) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState<"txt" | "pdf" | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  const filenameBase = sanitizeFilename(title) || "excerpt";
+
+  const downloadTxt = () => {
+    setBusy("txt");
+    try {
+      const body =
+        `${title}\n\nAURUMVAULT PREVIEW — Not for distribution\n\n` + getText().trim() + "\n";
+      const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
+      triggerBlobDownload(blob, `${filenameBase}-excerpt.txt`);
+      setOpen(false);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const downloadPdf = async () => {
+    setBusy("pdf");
+    try {
+      const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+      const doc = await PDFDocument.create();
+      const font = await doc.embedFont(StandardFonts.TimesRoman);
+      const bold = await doc.embedFont(StandardFonts.TimesRomanBold);
+      const pageW = 595.28;
+      const pageH = 841.89;
+      const margin = 56;
+      const maxWidth = pageW - margin * 2;
+      const size = 11;
+      const lineH = 16;
+      const navy = rgb(0.11, 0.14, 0.25);
+      const gold = rgb(0.79, 0.66, 0.3);
+
+      let page = doc.addPage([pageW, pageH]);
+      let y = pageH - margin;
+
+      const safeTitle = toWinAnsi(title);
+      const titleLines = wrapForFont(safeTitle, bold, 16, maxWidth);
+      for (const line of titleLines) {
+        page.drawText(line, { x: margin, y, size: 16, font: bold, color: navy });
+        y -= 22;
+      }
+      y -= 10;
+
+      const rawText = toWinAnsi(getText());
+      const paragraphs = rawText.split(/\n{1,}/);
+      for (const para of paragraphs) {
+        const lines = wrapForFont(para, font, size, maxWidth);
+        for (const line of lines) {
+          if (y < margin + 40) {
+            page = doc.addPage([pageW, pageH]);
+            y = pageH - margin;
+          }
+          page.drawText(line, { x: margin, y, size, font, color: navy });
+          y -= lineH;
+        }
+        y -= 6;
+      }
+
+      for (const p of doc.getPages()) {
+        p.drawText("AURUMVAULT PREVIEW - Not for distribution", {
+          x: margin,
+          y: 28,
+          size: 9,
+          font,
+          color: gold,
+        });
+      }
+
+      const bytes = await doc.save();
+      const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
+      triggerBlobDownload(blob, `${filenameBase}-excerpt.pdf`);
+      setOpen(false);
+    } catch (err) {
+      console.error("[DownloadExcerptMenu] pdf", err);
+      alert("Could not generate PDF. Please try the .txt download instead.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1.5 text-[11px] font-bold uppercase tracking-caps text-navy hover:bg-gold/25"
+      >
+        <Download size={13} />
+        Download
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-full z-10 mt-1 w-44 overflow-hidden rounded-lg border border-ink/10 bg-white shadow-xl"
+        >
+          <button
+            role="menuitem"
+            type="button"
+            onClick={downloadTxt}
+            disabled={busy !== null}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-navy hover:bg-ink/5 disabled:opacity-50"
+          >
+            {busy === "txt" ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />}
+            Save as .txt
+          </button>
+          <button
+            role="menuitem"
+            type="button"
+            onClick={downloadPdf}
+            disabled={busy !== null}
+            className="flex w-full items-center gap-2 border-t border-ink/5 px-3 py-2 text-left text-xs font-semibold text-navy hover:bg-ink/5 disabled:opacity-50"
+          >
+            {busy === "pdf" ? <Loader2 size={12} className="animate-spin" /> : <BookOpen size={12} />}
+            Save as .pdf
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function triggerBlobDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function sanitizeFilename(s: string) {
+  return s
+    .replace(/[^a-zA-Z0-9-_ ]+/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .slice(0, 60)
+    .toLowerCase();
+}
+
+function htmlToPlainText(html: string): string {
+  if (typeof document === "undefined") return html.replace(/<[^>]+>/g, "");
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.querySelectorAll("script,style").forEach((n) => n.remove());
+  doc.querySelectorAll("br").forEach((n) => n.replaceWith("\n"));
+  doc.querySelectorAll("p,div,li,h1,h2,h3,h4,h5,h6,blockquote").forEach((n) => {
+    n.appendChild(doc.createTextNode("\n\n"));
+  });
+  return (doc.body.textContent || "").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+/**
+ * pdf-lib's StandardFonts use WinAnsi encoding which can't render most
+ * non-latin characters. Replace common smart punctuation and strip anything
+ * else so drawText doesn't throw.
+ */
+function toWinAnsi(s: string): string {
+  return s
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/\u2026/g, "...")
+    .replace(/\u00A0/g, " ")
+    .replace(/[^\x09\x0A\x0D\x20-\x7E\xA1-\xFF]/g, "");
+}
+
+function wrapForFont(
+  text: string,
+  font: { widthOfTextAtSize: (t: string, s: number) => number },
+  size: number,
+  maxWidth: number,
+): string[] {
+  const out: string[] = [];
+  const paragraphs = text.split(/\n/);
+  for (const para of paragraphs) {
+    if (!para.trim()) {
+      out.push("");
+      continue;
+    }
+    const words = para.split(/\s+/);
+    let line = "";
+    for (const word of words) {
+      const trial = line ? line + " " + word : word;
+      if (font.widthOfTextAtSize(trial, size) <= maxWidth) {
+        line = trial;
+      } else {
+        if (line) out.push(line);
+        // Word longer than line — hard-break it
+        if (font.widthOfTextAtSize(word, size) > maxWidth) {
+          let chunk = "";
+          for (const ch of word) {
+            if (font.widthOfTextAtSize(chunk + ch, size) > maxWidth) {
+              out.push(chunk);
+              chunk = ch;
+            } else {
+              chunk += ch;
+            }
+          }
+          line = chunk;
+        } else {
+          line = word;
+        }
+      }
+    }
+    if (line) out.push(line);
+  }
+  return out;
+}
