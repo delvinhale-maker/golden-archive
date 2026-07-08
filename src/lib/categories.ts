@@ -183,10 +183,8 @@ export function slugToLabel(slug?: string | null): string {
 const LABEL_ALIAS: Record<string, string> = {
   "Digital Journals": "printable_journals",
   Finance: "financial_planners",
-  Leadership: "business_templates",
-  Purpose: "printable_journals",
-  Business: "business_operating_systems",
 };
+
 
 export function labelToSlug(label?: string | null): string | undefined {
   if (!label) return undefined;
