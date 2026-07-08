@@ -189,7 +189,15 @@ export function CategoryGrid13() {
 
         {/* Premium category cards */}
         <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {CATEGORIES.map((c) => {
+          {CATEGORIES.filter(
+            (c) =>
+              ![
+                "business_operating_systems",
+                "bible_studies",
+                "digital_toolkits",
+                "budget_spreadsheets",
+              ].includes(c.slug),
+          ).map((c) => {
             const count = counts[c.slug] ?? 0;
             const blurb = CATEGORY_BLURBS[c.slug] ?? "";
             return (
