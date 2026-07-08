@@ -24,6 +24,7 @@ export const CATEGORY_THEMES: Record<string, ThemeTokens> = {
   journals:            mk("Journals",           "#8F3A5B"),
   templates:           mk("Templates",          "#2D6A4F"),
   audio:               mk("Audio",              "#0D6470"),
+  prompt_packs:        mk("Prompt Packs",       "#6C3AD1"),
   "financial planners":mk("Financial Planners", "#1A6B3A"),
   leadership:          mk("Leadership",         "#A85E00"),
   purpose:             mk("Purpose",            "#7B1F3A"),
