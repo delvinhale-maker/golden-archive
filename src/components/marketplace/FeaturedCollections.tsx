@@ -51,7 +51,7 @@ const COLLECTIONS: Collection[] = [
     blurb: "Curated prompt libraries and AI toolkits for modern builders.",
     image: aiImg,
     to: "/products",
-    search: { category: "Templates" },
+    search: { category: "Prompt Packs" },
     size: "md",
   },
   {
