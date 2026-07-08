@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { slugToLabel, labelToSlug, getCategoryDef } from "@/lib/categories";
+import { MARKETPLACE_PAGE_SIZE, FEATURED_PRODUCTS_LIMIT } from "@/lib/marketplace-config";
 
 const API_BASE = "https://web-builder-pro-delvinhale.replit.app/api";
 
@@ -459,7 +460,7 @@ async function safeFetch<T>(path: string, fallback: T): Promise<T> {
 
 export const getFeaturedProducts = createServerFn({ method: "GET" }).handler(async () => {
   const dbItems = await fetchDbProducts();
-  return dbItems.slice(0, 12);
+  return dbItems.slice(0, FEATURED_PRODUCTS_LIMIT);
 });
 
 export const getProducts = createServerFn({ method: "GET" })
@@ -469,13 +470,23 @@ export const getProducts = createServerFn({ method: "GET" })
         category: z.string().optional(),
         sort: z.string().optional(),
         page: z.number().int().min(1).default(1),
+        pageSize: z.number().int().min(1).max(100).default(MARKETPLACE_PAGE_SIZE),
         q: z.string().optional(),
       })
       .parse(input ?? {}),
   )
   .handler(async ({ data }) => {
-    const dbItems = await fetchDbProducts({ category: data.category, q: data.q });
-    return { items: dbItems, page: data.page, hasMore: false };
+    const all = await fetchDbProducts({ category: data.category, q: data.q });
+    const total = all.length;
+    const start = (data.page - 1) * data.pageSize;
+    const items = all.slice(start, start + data.pageSize);
+    return {
+      items,
+      page: data.page,
+      pageSize: data.pageSize,
+      total,
+      hasMore: start + items.length < total,
+    };
   });
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
