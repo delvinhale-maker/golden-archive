@@ -129,15 +129,15 @@ export const CATEGORIES: CategoryDef[] = [
     subs: ["Notion", "ClickUp", "Airtable", "EOS", "Agency", "Studio"],
   },
   {
-    slug: "audio",
-    label: "Audio",
-    accent: "#0D7A8A",
+    slug: "prompt_packs",
+    label: "Prompt Packs",
+    accent: "#6C3AD1",
     ink: "#FFFFFF",
-    icon: "🎵",
+    icon: "✨",
     blurb:
-      "Audiobooks, guided meditations, sermons, and focus soundscapes for deep work and quiet reflection.",
-    gradient: grad("#052A31", "#094E58", "#0D7A8A"),
-    subs: ["Audiobook", "Sermon", "Meditation", "Focus", "Worship", "Podcast"],
+      "Battle-tested prompt libraries for ChatGPT, Claude, and Gemini — for marketing, ops, writing, and research.",
+    gradient: grad("#150A2E", "#2A1657", "#6C3AD1"),
+    subs: ["ChatGPT", "Claude", "Gemini", "Marketing", "Writing", "Research"],
   },
   {
     slug: "templates",

@@ -272,6 +272,7 @@ export const CATEGORY_ICONS: Record<
   courses: CourseIcon,
   digital_toolkits: ToolkitIcon,
   business_operating_systems: BusinessOSIcon,
+  prompt_packs: AIPromptIcon,
   audio: AudioIcon,
   templates: TemplatesIcon,
 };
