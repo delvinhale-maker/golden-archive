@@ -196,6 +196,9 @@ export function CategoryGrid13() {
                 "bible_studies",
                 "digital_toolkits",
                 "budget_spreadsheets",
+                "business_templates",
+                "ai_prompt_packs",
+                "prompt_packs",
               ].includes(c.slug),
           ).map((c) => {
             const count = counts[c.slug] ?? 0;
