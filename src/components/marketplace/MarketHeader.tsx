@@ -377,13 +377,22 @@ export function MarketHeader() {
                   </button>
                 </>
               ) : (
-                <Link
-                  to="/auth"
-                  onClick={() => setMenuOpen(false)}
-                  className="block w-full rounded-full bg-white/10 py-3 text-center text-sm font-semibold text-white"
-                >
-                  Sign in
-                </Link>
+                <>
+                  <Link
+                    to="/auth"
+                    onClick={() => setMenuOpen(false)}
+                    className="block w-full rounded-full bg-white/10 py-3 text-center text-sm font-semibold text-white"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    to="/auth"
+                    onClick={() => setMenuOpen(false)}
+                    className="block w-full rounded-full border border-white/20 py-3 text-center text-sm font-semibold text-white"
+                  >
+                    Forgot password?
+                  </Link>
+                </>
               )}
               <Link
                 to="/products"
