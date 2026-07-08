@@ -174,21 +174,37 @@ function ProductsPage() {
                   ))}
             </div>
 
-            {!query.isLoading && products.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-24 text-center">
-                <Crown size={40} className="text-gold-ink" />
-                <h3 className="mt-4 font-display text-2xl font-bold text-ink">
-                  No products found
-                </h3>
-                <p className="mt-1 text-sm text-mute">Try adjusting your filters.</p>
-                <button
-                  onClick={clearAll}
-                  className="mt-6 rounded-full bg-gold px-6 py-2.5 text-sm font-bold text-navy"
-                >
-                  Clear Filters
-                </button>
-              </div>
-            )}
+            {!query.isLoading && products.length === 0 && (() => {
+              const onlyCategoryFilter =
+                !!search.category &&
+                !search.q &&
+                !search.sub &&
+                search.minPrice == null &&
+                search.maxPrice == null &&
+                search.rating == null;
+              return (
+                <div className="flex flex-col items-center justify-center py-24 text-center">
+                  <Crown size={40} className="text-gold-ink" />
+                  <h3 className="mt-4 font-display text-2xl font-bold text-ink">
+                    {onlyCategoryFilter
+                      ? `New ${slugToLabel(search.category)} coming soon`
+                      : "No products found"}
+                  </h3>
+                  <p className="mt-1 text-sm text-mute">
+                    {onlyCategoryFilter
+                      ? "This collection is being curated. In the meantime, explore the rest of the vault."
+                      : "Try adjusting your filters."}
+                  </p>
+                  <button
+                    onClick={clearAll}
+                    className="mt-6 rounded-full bg-gold px-6 py-2.5 text-sm font-bold text-navy"
+                  >
+                    {onlyCategoryFilter ? "Browse the Vault" : "Clear Filters"}
+                  </button>
+                </div>
+              );
+            })()}
+
           </div>
         </div>
       </div>
