@@ -24,7 +24,13 @@ const searchSchema = z.object({
   sub: z.string().optional(),
 });
 
-const CATEGORIES = CATEGORY_DEFS.map((c) => c.label);
+const HIDDEN_CATEGORY_SLUGS = new Set([
+  "business_operating_systems",
+  "bible_studies",
+  "digital_toolkits",
+  "budget_spreadsheets",
+]);
+const CATEGORIES = CATEGORY_DEFS.filter((c) => !HIDDEN_CATEGORY_SLUGS.has(c.slug)).map((c) => c.label);
 
 const SORTS = [
   { v: "featured", l: "Featured" },
