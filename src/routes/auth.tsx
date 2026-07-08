@@ -334,19 +334,22 @@ function AuthPage() {
 
           <div className="mt-6 flex border-b border-ink/10">
             {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setMode(tab.key)}
-                aria-pressed={mode === tab.key}
-                className={`flex-1 pb-2.5 text-sm font-medium transition-colors ${
-                  mode === tab.key
-                    ? "border-b-2 border-navy text-navy"
-                    : "text-mute hover:text-ink"
-                }`}
-              >
-                {tab.label}
-              </button>
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => {
+                setMode(tab.key);
+                if (tab.key !== "forgot") setResetSent(false);
+              }}
+              aria-pressed={mode === tab.key}
+              className={`flex-1 pb-2.5 text-sm font-medium transition-colors ${
+                mode === tab.key
+                  ? "border-b-2 border-navy text-navy"
+                  : "text-mute hover:text-ink"
+              }`}
+            >
+              {tab.label}
+            </button>
             ))}
           </div>
 
