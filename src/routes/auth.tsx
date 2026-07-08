@@ -45,7 +45,7 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in | AurumVault" },
-      { name: "description", content: "Sign in or create your AurumVault account to buy and sell purpose-driven digital products." },
+      { name: "description", content: "Sign in, create your AurumVault account, or reset your password." },
       { name: "robots", content: "noindex, follow" },
       { property: "og:title", content: "Sign in | AurumVault" },
       { property: "og:description", content: "Sign in or create your AurumVault account." },
@@ -57,10 +57,12 @@ export const Route = createFileRoute("/auth")({
   }),
 });
 
+type AuthMode = "signin" | "signup" | "forgot";
+
 function AuthPage() {
   const navigate = useNavigate();
   const { redirect, message } = useSearch({ from: "/auth" });
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<AuthMode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -108,7 +110,7 @@ function AuthPage() {
     }
   }
 
-  async function submit(e: React.FormEvent) {
+  async function submitAuth(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
@@ -162,9 +164,10 @@ function AuthPage() {
     }
   }
 
-  async function resetPassword() {
+  async function submitReset(e: React.FormEvent) {
+    e.preventDefault();
     if (!email) {
-      toast.error("Enter your email above first, then tap Forgot password.");
+      toast.error("Enter your email address to receive a reset link.");
       return;
     }
     setBusy(true);
@@ -174,13 +177,13 @@ function AuthPage() {
       });
       if (error) throw error;
       toast.success("Password reset email sent. Check your inbox.");
+      setMode("signin");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not send reset email");
     } finally {
       setBusy(false);
     }
   }
-
 
   async function google() {
     setBusy(true);
@@ -295,6 +298,12 @@ function AuthPage() {
     }
   }
 
+  const tabs: { key: AuthMode; label: string }[] = [
+    { key: "signin", label: "Sign in" },
+    { key: "signup", label: "Sign up" },
+    { key: "forgot", label: "Forgot password" },
+  ];
+
   return (
     <div className="min-h-screen bg-[#0F1A33] text-white flex flex-col">
       <div className="px-4 py-5 md:px-8">
@@ -307,12 +316,14 @@ function AuthPage() {
           className="w-full max-w-md rounded-2xl bg-white text-ink p-7 md:p-9 shadow-2xl"
         >
           <h1 className="font-display text-3xl md:text-4xl text-navy">
-            {mode === "signin" ? "Welcome back" : "Join AurumVault"}
+            {mode === "signin" && "Welcome back"}
+            {mode === "signup" && "Join AurumVault"}
+            {mode === "forgot" && "Reset your password"}
           </h1>
           <p className="mt-1 text-sm text-mute">
-            {mode === "signin"
-              ? "Sign in to access your library and seller tools."
-              : "Create your account to buy, sell, and curate Kingdom resources."}
+            {mode === "signin" && "Sign in to access your library and seller tools."}
+            {mode === "signup" && "Create your account to buy, sell, and curate Kingdom resources."}
+            {mode === "forgot" && "Enter your email and we'll send you a reset link."}
           </p>
 
           {message && (
@@ -321,70 +332,110 @@ function AuthPage() {
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={google}
-            disabled={busy}
-            className="mt-6 w-full h-11 rounded-full border border-ink/15 bg-white text-sm font-medium hover:bg-ink/5 flex items-center justify-center gap-2"
-          >
-            <GoogleGlyph /> Continue with Google
-          </button>
-
-          <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-mute">
-            <div className="flex-1 h-px bg-ink/10" /> or <div className="flex-1 h-px bg-ink/10" />
+          <div className="mt-6 flex border-b border-ink/10">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setMode(tab.key)}
+                aria-pressed={mode === tab.key}
+                className={`flex-1 pb-2.5 text-sm font-medium transition-colors ${
+                  mode === tab.key
+                    ? "border-b-2 border-navy text-navy"
+                    : "text-mute hover:text-ink"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          <form onSubmit={submit} className="space-y-3">
-            {mode === "signup" && (
-              <Field label="Full name">
+          {mode !== "forgot" && (
+            <>
+              <button
+                type="button"
+                onClick={google}
+                disabled={busy}
+                className="mt-6 w-full h-11 rounded-full border border-ink/15 bg-white text-sm font-medium hover:bg-ink/5 flex items-center justify-center gap-2"
+              >
+                <GoogleGlyph /> Continue with Google
+              </button>
+
+              <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-mute">
+                <div className="flex-1 h-px bg-ink/10" /> or <div className="flex-1 h-px bg-ink/10" />
+              </div>
+            </>
+          )}
+
+          {mode === "forgot" ? (
+            <form onSubmit={submitReset} className="mt-6 space-y-3">
+              <Field label="Email">
                 <input
-                  required value={name} onChange={(e) => setName(e.target.value)}
-                  className="auth-input" placeholder="Your name"
+                  type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                  className="auth-input" placeholder="you@example.com"
                 />
               </Field>
-            )}
-            <Field label="Email">
-              <input
-                type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                className="auth-input" placeholder="you@example.com"
-              />
-            </Field>
-            <Field label="Password">
-              <input
-                type="password" required minLength={6}
-                value={password} onChange={(e) => setPassword(e.target.value)}
-                className="auth-input" placeholder="At least 6 characters"
-              />
-            </Field>
-            {mode === "signin" && (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={resetPassword}
-                  disabled={busy}
-                  className="text-xs font-medium text-navy hover:underline disabled:opacity-60"
-                >
-                  Forgot password?
-                </button>
-              </div>
-            )}
-            <button
-              type="submit" disabled={busy}
-              className="mt-2 w-full h-11 rounded-full bg-navy text-white font-semibold text-sm hover:bg-navy/90 disabled:opacity-60"
-            >
-              {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
-            </button>
-
-          </form>
+              <button
+                type="submit" disabled={busy}
+                className="mt-2 w-full h-11 rounded-full bg-navy text-white font-semibold text-sm hover:bg-navy/90 disabled:opacity-60"
+              >
+                {busy ? "Please wait…" : "Send reset link"}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={submitAuth} className="space-y-3">
+              {mode === "signup" && (
+                <Field label="Full name">
+                  <input
+                    required value={name} onChange={(e) => setName(e.target.value)}
+                    className="auth-input" placeholder="Your name"
+                  />
+                </Field>
+              )}
+              <Field label="Email">
+                <input
+                  type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                  className="auth-input" placeholder="you@example.com"
+                />
+              </Field>
+              <Field label="Password">
+                <input
+                  type="password" required minLength={6}
+                  value={password} onChange={(e) => setPassword(e.target.value)}
+                  className="auth-input" placeholder="At least 6 characters"
+                />
+              </Field>
+              <button
+                type="submit" disabled={busy}
+                className="mt-2 w-full h-11 rounded-full bg-navy text-white font-semibold text-sm hover:bg-navy/90 disabled:opacity-60"
+              >
+                {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+              </button>
+            </form>
+          )}
 
           <p className="mt-5 text-center text-sm text-mute">
-            {mode === "signin" ? "New to AurumVault?" : "Already have an account?"}{" "}
-            <button
-              onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-              className="font-medium text-navy underline-offset-2 hover:underline"
-            >
-              {mode === "signin" ? "Create an account" : "Sign in"}
-            </button>
+            {mode === "forgot" ? (
+              <>
+                Remember your password?{" "}
+                <button
+                  onClick={() => setMode("signin")}
+                  className="font-medium text-navy underline-offset-2 hover:underline"
+                >
+                  Sign in
+                </button>
+              </>
+            ) : (
+              <>
+                {mode === "signin" ? "New to AurumVault?" : "Already have an account?"}{" "}
+                <button
+                  onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+                  className="font-medium text-navy underline-offset-2 hover:underline"
+                >
+                  {mode === "signin" ? "Create an account" : "Sign in"}
+                </button>
+              </>
+            )}
           </p>
         </motion.div>
       </div>
