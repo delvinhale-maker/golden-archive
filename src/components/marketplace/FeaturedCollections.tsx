@@ -28,12 +28,12 @@ const COLLECTIONS: Collection[] = [
     size: "lg",
   },
   {
-    title: "Kingdom Leadership",
-    kicker: "Lead With Purpose",
-    blurb: "Frameworks for leaders shaping people, teams, and legacy.",
+    title: "Journals",
+    kicker: "Reflect & Record",
+    blurb: "Beautiful printable journals for reflection, gratitude, prayer, and creative practice.",
     image: leadershipImg,
     to: "/products",
-    search: { category: "Leadership" },
+    search: { category: "Journals" },
     size: "md",
   },
   {
