@@ -271,12 +271,8 @@ export const PRODUCT_TYPES: Record<ProductTypeKey, ProductTypeConfig> = {
 export const PRODUCT_TYPE_ORDER: ProductTypeKey[] = [
   "financial_planner",
   "ai_prompt_pack",
-  "budget_spreadsheet",
   "printable_journal",
   "childrens_educational",
-  "bible_study",
-  "course",
-  "digital_toolkit",
   "business_operating_system",
   "business_template",
   "audio",
