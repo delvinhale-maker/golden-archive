@@ -30,10 +30,10 @@ const CATEGORIES = [
   "All",
   "eBooks",
   "Journals",
-  "Templates",
   "Prompt Packs",
   "Financial Planners",
 ];
+
 
 
 export function MarketHeader() {
