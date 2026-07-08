@@ -371,20 +371,39 @@ function AuthPage() {
           )}
 
           {mode === "forgot" ? (
-            <form onSubmit={submitReset} className="mt-6 space-y-3">
-              <Field label="Email">
-                <input
-                  type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                  className="auth-input" placeholder="you@example.com"
-                />
-              </Field>
-              <button
-                type="submit" disabled={busy}
-                className="mt-2 w-full h-11 rounded-full bg-navy text-white font-semibold text-sm hover:bg-navy/90 disabled:opacity-60"
-              >
-                {busy ? "Please wait…" : "Send reset link"}
-              </button>
-            </form>
+            resetSent ? (
+              <div className="mt-6 rounded-xl border border-gold/30 bg-gold/10 p-5 text-center">
+                <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-gold/20 text-navy">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                </div>
+                <h2 className="font-display text-lg text-navy">Check your inbox</h2>
+                <p className="mt-1 text-sm text-ink/80">
+                  If an account exists for <span className="font-semibold text-navy">{email}</span>, we sent a password reset link.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setResetSent(false)}
+                  className="mt-4 text-sm font-medium text-navy underline-offset-2 hover:underline"
+                >
+                  Use a different email
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={submitReset} className="mt-6 space-y-3">
+                <Field label="Email">
+                  <input
+                    type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                    className="auth-input" placeholder="you@example.com"
+                  />
+                </Field>
+                <button
+                  type="submit" disabled={busy}
+                  className="mt-2 w-full h-11 rounded-full bg-navy text-white font-semibold text-sm hover:bg-navy/90 disabled:opacity-60"
+                >
+                  {busy ? "Please wait…" : "Send reset link"}
+                </button>
+              </form>
+            )
           ) : (
             <form onSubmit={submitAuth} className="space-y-3">
               {mode === "signup" && (
