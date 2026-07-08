@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { X, Loader2, BookOpen, FileText, Music2, Video, ImageOff, Lock } from "lucide-react";
+import { X, Loader2, BookOpen, FileText, Music2, Video, ImageOff, Lock, Download } from "lucide-react";
 
 export type FormatPreview =
   | {
