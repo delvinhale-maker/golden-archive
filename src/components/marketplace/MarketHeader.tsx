@@ -34,9 +34,6 @@ const CATEGORIES = [
   "Audio",
   "Prompt Packs",
   "Financial Planners",
-  "Leadership",
-  "Purpose",
-  "Business",
 ];
 
 export function MarketHeader() {
