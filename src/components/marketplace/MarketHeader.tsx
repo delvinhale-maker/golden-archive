@@ -31,10 +31,10 @@ const CATEGORIES = [
   "eBooks",
   "Journals",
   "Templates",
-  "Audio",
   "Prompt Packs",
   "Financial Planners",
 ];
+
 
 export function MarketHeader() {
   const navigate = useNavigate();
