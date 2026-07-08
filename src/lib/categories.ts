@@ -196,16 +196,22 @@ export function labelToSlug(label?: string | null): string | undefined {
   if (alias) return alias;
   const lower = label.toLowerCase();
   if (CATEGORY_BY_SLUG[lower]) return lower;
+  // Case-insensitive label match (e.g. "journals" -> "Journals").
+  const caseInsensitive = CATEGORIES.find((c) => c.label.toLowerCase() === lower);
+  if (caseInsensitive) return caseInsensitive.slug;
   return undefined;
 }
 
 export function getCategoryDef(labelOrSlug?: string | null): CategoryDef | undefined {
   if (!labelOrSlug) return undefined;
+  const lower = labelOrSlug.toLowerCase();
   return (
     CATEGORY_BY_LABEL[labelOrSlug] ??
-    CATEGORY_BY_SLUG[labelOrSlug.toLowerCase()] ??
-    (LEGACY_ALIAS[labelOrSlug.toLowerCase()]
-      ? CATEGORY_BY_SLUG[LEGACY_ALIAS[labelOrSlug.toLowerCase()]]
+    CATEGORY_BY_SLUG[lower] ??
+    // Case-insensitive label match (e.g. "journals" -> printable_journals).
+    CATEGORIES.find((c) => c.label.toLowerCase() === lower) ??
+    (LEGACY_ALIAS[lower]
+      ? CATEGORY_BY_SLUG[LEGACY_ALIAS[lower]]
       : undefined)
   );
 }
