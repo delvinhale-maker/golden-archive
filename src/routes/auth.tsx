@@ -67,6 +67,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const explicitRedirect = redirect ?? null;
 
   useEffect(() => {
