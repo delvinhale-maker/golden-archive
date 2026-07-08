@@ -177,8 +177,7 @@ function AuthPage() {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
-      toast.success("Password reset email sent. Check your inbox.");
-      setMode("signin");
+      setResetSent(true);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not send reset email");
     } finally {
