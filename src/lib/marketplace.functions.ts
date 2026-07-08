@@ -138,10 +138,13 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
       .eq("published", true)
       .order("created_at", { ascending: false });
     if (opts.category && opts.category.toLowerCase() !== "all") {
-      const slug =
+      let slug =
         getCategoryDef(opts.category)?.slug ??
         labelToSlug(opts.category) ??
         opts.category.toLowerCase();
+      // The DB enum stores prompt packs under `ai_prompt_packs`; the UI
+      // exposes a friendlier `prompt_packs` slug — map it back for the query.
+      if (slug === "prompt_packs") slug = "ai_prompt_packs";
       query = query.eq(
         "category",
         slug as Database["public"]["Enums"]["product_category"],
