@@ -32,6 +32,7 @@ const CATEGORIES = [
   "Journals",
   "Templates",
   "Audio",
+  "Prompt Packs",
   "Financial Planners",
   "Leadership",
   "Purpose",
