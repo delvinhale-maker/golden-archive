@@ -90,14 +90,27 @@ export function FormatPreviewModal({
               </h2>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close preview"
-            className="rounded-full bg-ink/5 p-2 text-navy hover:bg-ink/10"
-          >
-            <X size={16} />
-          </button>
+          <div className="flex items-center gap-2">
+            {preview.kind === "text" && (
+              <DownloadExcerptMenu title={preview.title} getText={() => preview.text} />
+            )}
+            {preview.kind === "epub" && (
+              <DownloadExcerptMenu
+                title={preview.title}
+                getText={() =>
+                  `${preview.chapterTitle ? preview.chapterTitle + "\n\n" : ""}${htmlToPlainText(preview.chapterHtml)}`
+                }
+              />
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close preview"
+              className="rounded-full bg-ink/5 p-2 text-navy hover:bg-ink/10"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </header>
 
         <div className="relative flex-1 overflow-hidden">
