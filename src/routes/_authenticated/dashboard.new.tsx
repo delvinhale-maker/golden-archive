@@ -499,9 +499,12 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     if (f.size === 0) return setFileError("File is empty.");
     const ext = f.name.toLowerCase().split(".").pop() ?? "";
     if (!typeCfg.fileExts.includes(ext)) return setFileError(`Unsupported .${ext}. Accepted: ${typeCfg.acceptedHint}.`);
-    if (f.type && typeCfg.fileMimes.length > 0 && !typeCfg.fileMimes.includes(f.type)) {
-      return setFileError(`File content (${f.type}) doesn't match ${typeCfg.label}.`);
-    }
+    // NOTE: We intentionally do NOT enforce f.type against fileMimes here.
+    // Mobile browsers (Android Chrome especially) frequently report .docx as
+    // "application/octet-stream" or an empty string, which caused valid Word
+    // documents to be rejected on the AI Prompt Pack upload. The extension
+    // check above plus the structural validation below (for ebooks) is a
+    // safer, more reliable signal than the browser-supplied MIME.
     if (f.size > MAX_FILE_MB * 1024 * 1024) return setFileError(`File exceeds ${MAX_FILE_MB} MB limit.`);
     // Structural validation is only meaningful for ebook manuscripts (pdf/epub/docx).
     // For other product types, skip the deep validation to allow zip/mp3/mp4/etc.
