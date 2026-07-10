@@ -47,7 +47,15 @@
   --color-line: var(--line);
   --color-onyx: var(--onyx);
   --color-bg-page: var(--bg-page);
+
+  /* Secondary accent palette (per-category flavor) */
+  --color-accent-emerald: var(--accent-emerald);
+  --color-accent-burgundy: var(--accent-burgundy);
+  --color-accent-amber: var(--accent-amber);
+  --color-accent-dusty: var(--accent-dusty);
+  --color-accent-cream: var(--accent-cream);
 }
+
 
 /* MARKETPLACE (default / light) */
 :root {
