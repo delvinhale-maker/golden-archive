@@ -641,11 +641,9 @@ function IllustriousCreator() {
     <section className="bg-bg-page py-16 md:py-24" aria-busy={isFetching}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader kicker="FEATURED CREATOR" title="Featured Creator" />
-        {isFetching && (
-          <div className="mb-4 text-center text-[11px] font-semibold tracking-caps text-mute" aria-live="polite">
-            Refreshing…
-          </div>
-        )}
+        <span className="sr-only" aria-live="polite">
+          {isFetching ? "Refreshing featured creator" : ""}
+        </span>
         <div className="mx-auto max-w-md">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
