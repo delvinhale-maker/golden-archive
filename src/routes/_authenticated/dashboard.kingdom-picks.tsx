@@ -188,8 +188,37 @@ function KingdomPicksAdminPage() {
   }
 
   function startCreate() {
-    setForm(EMPTY);
+    let initial: FormState = EMPTY;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as { form: FormState; savedAt: string };
+        if (parsed?.form) {
+          initial = { ...EMPTY, ...parsed.form, id: undefined };
+          setDraftSavedAt(new Date(parsed.savedAt));
+          toast.info("Draft restored — continue where you left off");
+        }
+      }
+    } catch {}
+    setForm(initial);
     setOpen(true);
+  }
+
+  function saveDraft() {
+    try {
+      const now = new Date();
+      const { id: _id, ...rest } = form;
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ form: rest, savedAt: now.toISOString() }));
+      setDraftSavedAt(now);
+      toast.success("Progress saved");
+    } catch (e) {
+      toast.error("Couldn't save draft");
+    }
+  }
+
+  function discardDraft() {
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    setDraftSavedAt(null);
   }
   function startEdit(p: AffiliateProduct) {
     setForm({
