@@ -167,6 +167,29 @@ function PayoutsPage() {
     }
   }
 
+  async function confirmRemoveMethod() {
+    if (deleteConfirmText.trim().toUpperCase() !== "REMOVE") {
+      toast.error('Type REMOVE to confirm.');
+      return;
+    }
+    setDeletingMethod(true);
+    try {
+      await deleteMethodFn();
+      toast.success("Payout method removed");
+      setConfirmDelete(false);
+      setDeleteConfirmText("");
+      setDetails({});
+      setSelectedMethod("bank");
+      setEditingMethod(false);
+      setSavedAt(null);
+      await refresh();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not remove payout method");
+    } finally {
+      setDeletingMethod(false);
+    }
+  }
+
   async function submitRequest() {
     setRequesting(true);
     try {
