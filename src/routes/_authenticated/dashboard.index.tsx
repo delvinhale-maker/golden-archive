@@ -328,12 +328,8 @@ function BookshelfPage() {
             >
               <DollarSign size={16} /> Payouts
             </Link>
-            <Link
-              to="/dashboard/new"
-              className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 bg-gold text-navy shadow-md transition-all duration-300 hover:shadow-lg hover:bg-gold/90"
-            >
-              <Plus size={16} /> Create New Title
-            </Link>
+            <CreateNewTitleMenu />
+
           </div>
 
         )}
