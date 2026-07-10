@@ -10,7 +10,9 @@ import {
   type AffiliateProduct,
   type AffiliateSource,
 } from "@/lib/affiliate";
-import { Crown, Plus, Pencil, Trash2, ExternalLink, ShieldAlert, RefreshCw, Clock, Upload, Loader2 } from "lucide-react";
+import { Crown, Plus, Pencil, Trash2, ExternalLink, ShieldAlert, RefreshCw, Clock, Upload, Loader2, Save } from "lucide-react";
+
+const DRAFT_KEY = "kingdom-picks:new-draft";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/kingdom-picks")({
@@ -54,6 +56,7 @@ function KingdomPicksAdminPage() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [refreshingClicks, setRefreshingClicks] = useState(false);
   const [clicksUpdatedAt, setClicksUpdatedAt] = useState<Date | null>(null);
@@ -185,8 +188,37 @@ function KingdomPicksAdminPage() {
   }
 
   function startCreate() {
-    setForm(EMPTY);
+    let initial: FormState = EMPTY;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as { form: FormState; savedAt: string };
+        if (parsed?.form) {
+          initial = { ...EMPTY, ...parsed.form, id: undefined };
+          setDraftSavedAt(new Date(parsed.savedAt));
+          toast.info("Draft restored — continue where you left off");
+        }
+      }
+    } catch {}
+    setForm(initial);
     setOpen(true);
+  }
+
+  function saveDraft() {
+    try {
+      const now = new Date();
+      const { id: _id, ...rest } = form;
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ form: rest, savedAt: now.toISOString() }));
+      setDraftSavedAt(now);
+      toast.success("Progress saved");
+    } catch (e) {
+      toast.error("Couldn't save draft");
+    }
+  }
+
+  function discardDraft() {
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    setDraftSavedAt(null);
   }
   function startEdit(p: AffiliateProduct) {
     setForm({
@@ -234,6 +266,7 @@ function KingdomPicksAdminPage() {
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success(form.id ? "Updated" : "Kingdom Pick added");
+    if (!form.id) discardDraft();
     setOpen(false);
     refresh();
   }
@@ -523,11 +556,37 @@ function KingdomPicksAdminPage() {
                 Active
               </label>
             </div>
-            <div className="mt-5 flex justify-end gap-2">
-              <button onClick={() => setOpen(false)} className="rounded-full px-4 py-2 text-sm text-mute hover:bg-paper">Cancel</button>
-              <button disabled={busy} onClick={save} className="rounded-full px-5 py-2 text-sm font-semibold text-white disabled:opacity-50" style={{ background: "var(--page-accent)" }}>
-                {busy ? "Saving…" : form.id ? "Save changes" : "Add Pick"}
-              </button>
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+              <div className="text-[11px] text-mute">
+                {!form.id && draftSavedAt && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    Draft saved {draftSavedAt.toLocaleTimeString()}
+                    <button
+                      type="button"
+                      onClick={() => { discardDraft(); toast.success("Draft discarded"); }}
+                      className="ml-2 underline hover:text-navy"
+                    >
+                      Discard
+                    </button>
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setOpen(false)} className="rounded-full px-4 py-2 text-sm text-mute hover:bg-paper">Cancel</button>
+                {!form.id && (
+                  <button
+                    type="button"
+                    onClick={saveDraft}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-navy/20 px-4 py-2 text-sm font-semibold text-navy hover:bg-navy/5"
+                  >
+                    <Save size={14} /> Save progress
+                  </button>
+                )}
+                <button disabled={busy} onClick={save} className="rounded-full px-5 py-2 text-sm font-semibold text-white disabled:opacity-50" style={{ background: "var(--page-accent)" }}>
+                  {busy ? "Saving…" : form.id ? "Save changes" : "Add Pick"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
