@@ -196,6 +196,8 @@ function AuthPage() {
 
   async function google() {
     setBusy(true);
+    setDiagnostics(null);
+    setShowDiagnostics(false);
     const correlationId = beginOAuthAttempt("google");
     if (redirect) {
       sessionStorage.setItem("av_oauth_redirect", redirect);
@@ -205,6 +207,86 @@ function AuthPage() {
       clearOAuthCorrelationId();
       setBusy(false);
     };
+
+    const showFailure = (opts: {
+      reason: Parameters<typeof logOAuthFailure>[0]["reason"];
+      title: string;
+      description: string;
+      rawMessage?: unknown;
+      runDiag?: boolean;
+    }) => {
+      logOAuthFailure({ provider: "google", reason: opts.reason, rawMessage: opts.rawMessage });
+      const diag = opts.runDiag !== false ? runGoogleSignInDiagnostics() : null;
+      if (diag) {
+        setDiagnostics(diag);
+        setShowDiagnostics(true);
+      }
+      toast.error(opts.title, {
+        description:
+          opts.description +
+          (diag ? ` — ${diagnosticsShortLine(diag)}` : "") +
+          ` (ref ${correlationId.slice(0, 8)})`,
+        duration: 10000,
+        action: diag
+          ? {
+              label: "Show details",
+              onClick: () => setShowDiagnostics(true),
+            }
+          : undefined,
+      });
+    };
+
+    // Pre-flight: catch obvious local blockers before hitting Google.
+    const preflight = runGoogleSignInDiagnostics();
+    const hardFail = preflight.checks.find((c) => c.status === "fail");
+    if (hardFail) {
+      if (hardFail.id === "cookies") {
+        showFailure({
+          reason: "cookiesBlocked",
+          title: "Cookies are blocked",
+          description:
+            hardFail.detail ??
+            "Enable cookies for aurumvault.store, then try Continue with Google again.",
+          runDiag: false,
+        });
+        setDiagnostics(preflight);
+        setShowDiagnostics(true);
+      } else if (hardFail.id === "localStorage" || hardFail.id === "sessionStorage") {
+        showFailure({
+          reason: "storageBlocked",
+          title: "Browser storage is blocked",
+          description:
+            hardFail.detail ??
+            "Private/Incognito mode may block sign-in. Try a normal window.",
+          runDiag: false,
+        });
+        setDiagnostics(preflight);
+        setShowDiagnostics(true);
+      } else if (hardFail.id === "popup") {
+        showFailure({
+          reason: "popupBlocked",
+          title: "Popups are blocked",
+          description:
+            hardFail.detail ??
+            "Allow popups for aurumvault.store, then try Continue with Google again.",
+          runDiag: false,
+        });
+        setDiagnostics(preflight);
+        setShowDiagnostics(true);
+      } else if (hardFail.id === "online") {
+        showFailure({
+          reason: "network",
+          title: "You appear to be offline",
+          description: "Check your connection and try again.",
+          runDiag: false,
+        });
+        setDiagnostics(preflight);
+        setShowDiagnostics(true);
+      }
+      finish();
+      return;
+    }
+
     try {
       const res = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
@@ -218,30 +300,58 @@ function AuthPage() {
           raw.includes("window") ||
           raw.includes("closed")
         ) {
-          logOAuthFailure({ provider: "google", reason: "popupBlocked", rawMessage: raw });
-          toast.error("Popup blocked", {
+          showFailure({
+            reason: "popupBlocked",
+            title: "Popup blocked or closed",
             description:
-              `Allow popups for aurumvault.store in your browser settings, then tap Continue with Google again. On iOS Safari, also disable Cross-Site Tracking Prevention. (ref ${correlationId.slice(0, 8)})`,
-            duration: 9000,
+              "Allow popups for aurumvault.store, then tap Continue with Google. On iOS Safari, also disable Cross-Site Tracking Prevention.",
+            rawMessage: raw,
           });
-        } else if (raw.includes("network") || raw.includes("fetch")) {
-          logOAuthFailure({ provider: "google", reason: "network", rawMessage: raw });
-          toast.error("Network error", {
-            description: `Check your connection and try again. (ref ${correlationId.slice(0, 8)})`,
+        } else if (raw.includes("cookie") || raw.includes("storage")) {
+          showFailure({
+            reason: "cookiesBlocked",
+            title: "Cookies or storage blocked",
+            description:
+              "Google couldn't set the cookies needed to complete sign-in. Enable cookies for this site (and disable strict tracking prevention), then retry.",
+            rawMessage: raw,
           });
-        } else if (raw.includes("cancel") || raw.includes("denied") || raw.includes("access_denied")) {
+        } else if (
+          raw.includes("redirect") ||
+          raw.includes("redirect_uri") ||
+          raw.includes("origin")
+        ) {
+          showFailure({
+            reason: "redirectMismatch",
+            title: "Redirect URL not accepted",
+            description:
+              "Google rejected the redirect URL for this site. This is a configuration issue — copy the ref below and contact support.",
+            rawMessage: raw,
+          });
+        } else if (raw.includes("network") || raw.includes("fetch") || raw.includes("timeout")) {
+          showFailure({
+            reason: "network",
+            title: "Network error reaching Google",
+            description: "Check your connection or try again in a moment.",
+            rawMessage: raw,
+          });
+        } else if (
+          raw.includes("cancel") ||
+          raw.includes("denied") ||
+          raw.includes("access_denied")
+        ) {
           logOAuthFailure({ provider: "google", reason: "cancelled", rawMessage: raw });
           toast.error("Sign-in cancelled", {
-            description: "You closed the Google window before finishing. Tap Continue with Google to retry.",
+            description:
+              "You closed the Google window before finishing. Tap Continue with Google to retry.",
           });
         } else {
-          logOAuthFailure({ provider: "google", reason: "unknown", rawMessage: raw });
-          toast.error("Google sign-in failed", {
+          showFailure({
+            reason: "unknown",
+            title: "Google sign-in failed",
             description:
-              ((res.error as { message?: string } | null)?.message ||
-                "Please try again, or use email and password below.") +
-              ` (ref ${correlationId.slice(0, 8)})`,
-            duration: 8000,
+              (res.error as { message?: string } | null)?.message ||
+              "Please try again, or use email and password below.",
+            rawMessage: raw,
           });
         }
         finish();
@@ -251,11 +361,11 @@ function AuthPage() {
         // Confirm a session actually landed before navigating.
         const { data: sess } = await supabase.auth.getSession();
         if (!sess.session) {
-          logOAuthFailure({ provider: "google", reason: "noSession" });
-          toast.error("Google sign-in didn't complete", {
+          showFailure({
+            reason: "noSession",
+            title: "Google sign-in didn't complete",
             description:
-              `We didn't receive a session back from Google. Please try again or sign in with email. (ref ${correlationId.slice(0, 8)})`,
-            duration: 8000,
+              "Google returned success but we didn't receive a session — usually a cookie or third-party-cookie block. See details below.",
           });
           finish();
           return;
@@ -278,34 +388,53 @@ function AuthPage() {
           correlationId,
           event: "oauth.redirected",
         });
-        // Browser is navigating to Google; keep correlation id in sessionStorage.
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message.toLowerCase() : "";
       if (msg.includes("popup") || msg.includes("blocked") || msg.includes("window")) {
-        logOAuthFailure({ provider: "google", reason: "popupBlocked", rawMessage: msg });
-        toast.error("Popup blocked", {
+        showFailure({
+          reason: "popupBlocked",
+          title: "Popup blocked",
           description:
-            `Your browser blocked the Google popup. Allow popups for this site and try again. (ref ${correlationId.slice(0, 8)})`,
-          duration: 9000,
+            "Your browser blocked the Google popup. Allow popups for this site and try again.",
+          rawMessage: msg,
+        });
+      } else if (msg.includes("cookie") || msg.includes("storage")) {
+        showFailure({
+          reason: "cookiesBlocked",
+          title: "Cookies or storage blocked",
+          description:
+            "Sign-in couldn't complete because cookies/storage are restricted. See details below.",
+          rawMessage: msg,
+        });
+      } else if (msg.includes("redirect") || msg.includes("origin")) {
+        showFailure({
+          reason: "redirectMismatch",
+          title: "Redirect URL issue",
+          description:
+            "Google rejected the redirect URL for this site. This is a configuration issue — contact support with the ref below.",
+          rawMessage: msg,
         });
       } else if (msg.includes("network") || msg.includes("fetch")) {
-        logOAuthFailure({ provider: "google", reason: "network", rawMessage: msg });
-        toast.error("Network error", {
-          description: `Check your connection and try again. (ref ${correlationId.slice(0, 8)})`,
+        showFailure({
+          reason: "network",
+          title: "Network error",
+          description: "Check your connection and try again.",
+          rawMessage: msg,
         });
       } else {
-        logOAuthFailure({ provider: "google", reason: "unknown", rawMessage: msg });
-        toast.error("Couldn't reach Google", {
+        showFailure({
+          reason: "unknown",
+          title: "Couldn't reach Google",
           description:
-            (err instanceof Error ? err.message : "Unexpected error. Please try again.") +
-            ` (ref ${correlationId.slice(0, 8)})`,
-          duration: 8000,
+            err instanceof Error ? err.message : "Unexpected error. Please try again.",
+          rawMessage: msg,
         });
       }
       finish();
     }
   }
+
 
   const tabs: { key: AuthMode; label: string }[] = [
     { key: "signin", label: "Sign in" },
