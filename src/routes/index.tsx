@@ -678,7 +678,7 @@ function IllustriousCreator() {
                 <BadgeCheck size={16} className="text-emerald" />
               </div>
               <div className="text-[13px] text-mute">
-                Author · Entrepreneur · Kingdom Builder
+                Author · Entrepreneur · Digital Creator
               </div>
               <div className="mt-4 flex items-center gap-6 text-[13px]">
                 <div>
