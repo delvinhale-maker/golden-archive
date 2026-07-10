@@ -6,6 +6,7 @@ import leadershipImg from "@/assets/coll-leadership.jpg";
 import businessImg from "@/assets/coll-business.jpg";
 import aiImg from "@/assets/coll-ai.jpg";
 import faithImg from "@/assets/coll-faith.jpg";
+import { accentFor } from "@/lib/categories";
 
 type Collection = {
   title: string;
@@ -15,6 +16,7 @@ type Collection = {
   to: string;
   search?: Record<string, string>;
   size: "lg" | "md";
+  accentSlug: string;
 };
 
 const COLLECTIONS: Collection[] = [
