@@ -266,6 +266,7 @@ function KingdomPicksAdminPage() {
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success(form.id ? "Updated" : "Kingdom Pick added");
+    if (!form.id) discardDraft();
     setOpen(false);
     refresh();
   }
