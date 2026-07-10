@@ -1255,7 +1255,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
 
 /* ---------- Stepper ---------- */
 
-function StepperBar({ step }: { step: StepNum }) {
+function StepperBar({ step, step1Label = "Book Details" }: { step: StepNum; step1Label?: string }) {
   return (
     <ol className="mt-6 grid grid-cols-4 gap-2">
       {STEPS.map((s) => {
