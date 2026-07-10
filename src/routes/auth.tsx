@@ -188,7 +188,9 @@ function AuthPage() {
         navigate({ to: await resolveRedirectForSession(explicitRedirect) });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      if (/failed to fetch|network|load failed/i.test(msg)) setFetchFailed(true);
+      toast.error(msg);
     } finally {
       setBusy(false);
     }
