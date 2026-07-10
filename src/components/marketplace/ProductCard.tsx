@@ -18,6 +18,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
   const owned = useOwnsProduct(product.id);
   const [imgFailed, setImgFailed] = useState(false);
   const hasImage = !imgFailed && !!product.image && /^https?:\/\//.test(product.image);
+  const accent = accentFor(product.category);
 
   return (
     <motion.article
@@ -28,7 +29,8 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.4, delay: (index % 8) * 0.04 }}
       whileHover={{ y: -4 }}
-      className="av-card group flex min-w-0 flex-col overflow-hidden border border-[rgba(184,134,11,0.3)]"
+      style={{ borderTop: `3px solid ${accent}`, ["--av-accent" as string]: accent }}
+      className="av-card av-accent-hover group flex min-w-0 flex-col overflow-hidden border border-[rgba(184,134,11,0.3)]"
     >
       <Link
         to="/products/$id"
