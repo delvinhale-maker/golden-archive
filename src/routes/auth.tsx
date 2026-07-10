@@ -14,6 +14,12 @@ import {
   sessionMarker,
 } from "@/lib/oauth-telemetry";
 import { resolvePostAuthRedirect } from "@/lib/post-auth-redirect";
+import {
+  runGoogleSignInDiagnostics,
+  diagnosticsShortLine,
+  type DiagnosticsResult,
+} from "@/lib/oauth-diagnostics";
+
 
 async function fetchRolesFor(userId: string): Promise<string[]> {
   try {
