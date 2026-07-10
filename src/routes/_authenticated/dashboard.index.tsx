@@ -575,8 +575,7 @@ function CreateNewTitleMenu() {
         id={`${menuId}-trigger`}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-controls={open ? menuId : undefined}
-        aria-label="Create a new title — choose product type"
+        aria-controls={menuId}
         onClick={() => (open ? setOpen(false) : openMenu(0))}
         onKeyDown={onTriggerKeyDown}
         className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 bg-gold text-navy shadow-md transition-all duration-300 hover:shadow-lg hover:bg-gold/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
@@ -589,7 +588,8 @@ function CreateNewTitleMenu() {
         <div
           role="menu"
           id={menuId}
-          aria-labelledby={`${menuId}-trigger`}
+          aria-labelledby={`${menuId}-label`}
+          aria-activedescendant={`${menuId}-item-${CREATE_TYPE_ORDER[activeIndex]}`}
           onKeyDown={onMenuKeyDown}
           className="absolute right-0 sm:right-auto sm:left-0 z-40 mt-2 w-72 max-h-[70vh] overflow-auto rounded-2xl border border-ink/10 bg-white shadow-xl p-1.5"
         >
@@ -599,14 +599,17 @@ function CreateNewTitleMenu() {
           {CREATE_TYPE_ORDER.map((key, i) => {
             const t = PRODUCT_TYPES[key];
             const active = i === activeIndex;
+            const itemId = `${menuId}-item-${key}`;
+            const descId = `${itemId}-desc`;
             return (
               <button
                 key={key}
+                id={itemId}
                 ref={(el) => { itemRefs.current[i] = el; }}
                 role="menuitem"
                 type="button"
                 tabIndex={active ? 0 : -1}
-                aria-label={`${t.label} — ${t.tagline}`}
+                aria-describedby={descId}
                 onClick={() => choose(key)}
                 onMouseEnter={() => setActiveIndex(i)}
                 onFocus={() => setActiveIndex(i)}
@@ -615,7 +618,7 @@ function CreateNewTitleMenu() {
                 <span className="text-xl leading-none mt-0.5" aria-hidden="true">{t.emoji}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-navy">{t.label}</span>
-                  <span className="block text-xs text-mute truncate">{t.tagline}</span>
+                  <span id={descId} className="block text-xs text-mute truncate">{t.tagline}</span>
                 </span>
               </button>
             );
