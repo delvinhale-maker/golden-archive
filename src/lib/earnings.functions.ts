@@ -158,6 +158,28 @@ export const upsertPayoutMethod = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deletePayoutMethod = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Block removal while an open (pending/approved) payout request exists.
+    const { data: openReqs } = await supabaseAdmin
+      .from("payout_requests" as any)
+      .select("id")
+      .eq("seller_id", context.userId)
+      .in("status", ["pending", "approved"])
+      .limit(1);
+    if (openReqs && (openReqs as unknown[]).length > 0) {
+      throw new Error("You have an open payout request. Wait until it's decided before removing your method.");
+    }
+    const { error } = await supabaseAdmin
+      .from("creator_payout_methods" as any)
+      .delete()
+      .eq("seller_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 const requestPayoutSchema = z.object({
   amount_cents: z.number().int().min(2500).max(10_000_000),
   note: z.string().max(500).optional().nullable(),
