@@ -6,6 +6,7 @@ import {
   getMyEarnings,
   getMyPayoutMethod,
   upsertPayoutMethod,
+  deletePayoutMethod,
   requestPayout,
   submitTaxForm,
   listMyTaxForms,
@@ -15,7 +16,7 @@ import {
 } from "@/lib/earnings.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Banknote, Wallet, Send, FileText, Loader2, CheckCircle2, Clock, XCircle, Mail } from "lucide-react";
+import { Banknote, Wallet, Send, FileText, Loader2, CheckCircle2, Clock, XCircle, Mail, Pencil, Trash2, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/payouts")({
   component: PayoutsPage,
@@ -69,6 +70,15 @@ function validateDetails(method: PayoutMethod["method"], details: Record<string,
   return { ok: true, cleaned };
 }
 
+function maskDetail(key: string, value: string): string {
+  const k = key.toLowerCase();
+  const sensitive = k.includes("account_number") || k.includes("routing") || k.includes("iban") || k.includes("swift");
+  if (sensitive && value.length > 4) {
+    return "•".repeat(Math.max(4, value.length - 4)) + value.slice(-4);
+  }
+  return value;
+}
+
 function PayoutsPage() {
   const [summary, setSummary] = useState<MyEarningsSummary | null>(null);
   const [method, setMethod] = useState<PayoutMethod | null>(null);
@@ -80,6 +90,10 @@ function PayoutsPage() {
   const [savingMethod, setSavingMethod] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [editingMethod, setEditingMethod] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deletingMethod, setDeletingMethod] = useState(false);
 
   const [requestAmount, setRequestAmount] = useState("");
   const [requestNote, setRequestNote] = useState("");
@@ -93,6 +107,7 @@ function PayoutsPage() {
   const fetchMethod = useServerFn(getMyPayoutMethod);
   const fetchTax = useServerFn(listMyTaxForms);
   const saveMethodFn = useServerFn(upsertPayoutMethod);
+  const deleteMethodFn = useServerFn(deletePayoutMethod);
   const requestFn = useServerFn(requestPayout);
   const submitTaxFn = useServerFn(submitTaxForm);
 
@@ -158,6 +173,29 @@ function PayoutsPage() {
       toast.error(e?.message ?? "Save failed");
     } finally {
       setSavingMethod(false);
+    }
+  }
+
+  async function confirmRemoveMethod() {
+    if (deleteConfirmText.trim().toUpperCase() !== "REMOVE") {
+      toast.error('Type REMOVE to confirm.');
+      return;
+    }
+    setDeletingMethod(true);
+    try {
+      await deleteMethodFn();
+      toast.success("Payout method removed");
+      setConfirmDelete(false);
+      setDeleteConfirmText("");
+      setDetails({});
+      setSelectedMethod("bank");
+      setEditingMethod(false);
+      setSavedAt(null);
+      await refresh();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not remove payout method");
+    } finally {
+      setDeletingMethod(false);
     }
   }
 
@@ -276,79 +314,201 @@ function PayoutsPage() {
             <p className="text-sm text-mute mt-1">
               Where should AurumVault send your payouts? Details are private and only visible to admin during payout.
             </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {(["bank", "paypal", "wise", "other"] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => {
-                    setSelectedMethod(m);
-                    setDetails({});
-                    setFieldErrors({});
-                    setSavedAt(null);
-                  }}
-                  className={`px-3 py-1.5 rounded-lg text-sm border capitalize ${
-                    selectedMethod === m ? "bg-navy text-white border-navy" : "border-navy/20 text-navy"
-                  }`}
+
+            {method && !editingMethod ? (
+              <div className="mt-4 rounded-xl border border-navy/10 bg-ink/[0.02] p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-mute">Saved method</div>
+                    <div className="mt-1 flex items-center gap-2 text-navy">
+                      <CheckCircle2 size={16} className="text-emerald-700" />
+                      <span className="font-medium capitalize">{method.method}</span>
+                      <span className="text-mute text-xs">
+                        · updated {new Date(method.updated_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingMethod(true);
+                        setSelectedMethod(method.method);
+                        setDetails(method.details ?? {});
+                        setFieldErrors({});
+                        setSavedAt(null);
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-navy/20 text-navy px-3 py-1.5 text-sm hover:bg-navy/5"
+                    >
+                      <Pencil size={14} /> Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setConfirmDelete(true);
+                        setDeleteConfirmText("");
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 text-red-700 px-3 py-1.5 text-sm hover:bg-red-50"
+                    >
+                      <Trash2 size={14} /> Remove
+                    </button>
+                  </div>
+                </div>
+                <dl className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                  {Object.entries(method.details ?? {}).map(([k, v]) => (
+                    <div key={k} className="flex gap-2">
+                      <dt className="text-mute capitalize">{k.replace(/_/g, " ")}:</dt>
+                      <dd className="text-navy break-all">{maskDetail(k, v)}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ) : (
+              <>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {(["bank", "paypal", "wise", "other"] as const).map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => {
+                        setSelectedMethod(m);
+                        setDetails({});
+                        setFieldErrors({});
+                        setSavedAt(null);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-sm border capitalize ${
+                        selectedMethod === m ? "bg-navy text-white border-navy" : "border-navy/20 text-navy"
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {METHOD_FIELDS[selectedMethod].map((f) => {
+                    const err = fieldErrors[f.key];
+                    return (
+                      <label key={f.key} className="text-sm">
+                        <span className="block text-navy/70 mb-1">
+                          {f.label}
+                          {f.required ? <span className="text-red-600 ml-0.5" aria-hidden="true">*</span> : null}
+                        </span>
+                        <input
+                          type={f.type === "email" ? "email" : "text"}
+                          value={details[f.key] ?? ""}
+                          placeholder={f.placeholder}
+                          aria-invalid={err ? true : undefined}
+                          aria-required={f.required || undefined}
+                          onChange={(e) => {
+                            setDetails((d) => ({ ...d, [f.key]: e.target.value }));
+                            if (fieldErrors[f.key]) {
+                              setFieldErrors((prev) => {
+                                const next = { ...prev };
+                                delete next[f.key];
+                                return next;
+                              });
+                            }
+                            if (savedAt) setSavedAt(null);
+                          }}
+                          className={`w-full rounded-lg border px-3 py-2 ${err ? "border-red-400 bg-red-50" : "border-navy/15"}`}
+                        />
+                        {err ? <span className="mt-1 block text-xs text-red-600">{err}</span> : null}
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="mt-3 text-xs text-mute">
+                  <span className="text-red-600">*</span> Required fields. All fields marked required must be filled before saving.
+                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={async () => {
+                      await saveMethod();
+                      setEditingMethod(false);
+                    }}
+                    disabled={savingMethod}
+                    className="inline-flex items-center gap-2 rounded-lg bg-navy text-white px-4 py-2 text-sm disabled:opacity-60"
+                  >
+                    {savingMethod ? <Loader2 className="animate-spin" size={14} /> : null}
+                    {method ? "Update method" : "Save method"}
+                  </button>
+                  {editingMethod ? (
+                    <button
+                      onClick={() => {
+                        setEditingMethod(false);
+                        setFieldErrors({});
+                        if (method) {
+                          setSelectedMethod(method.method);
+                          setDetails(method.details ?? {});
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-navy/20 text-navy px-3 py-2 text-sm hover:bg-navy/5"
+                    >
+                      <X size={14} /> Cancel
+                    </button>
+                  ) : null}
+                  {savedAt ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1 text-xs">
+                      <CheckCircle2 size={14} /> Saved {savedAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                    </span>
+                  ) : null}
+                </div>
+              </>
+            )}
+
+            {confirmDelete ? (
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="remove-method-title"
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                onClick={() => (!deletingMethod ? setConfirmDelete(false) : null)}
+              >
+                <div
+                  className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {m}
-                </button>
-              ))}
-            </div>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-              {METHOD_FIELDS[selectedMethod].map((f) => {
-                const err = fieldErrors[f.key];
-                return (
-                  <label key={f.key} className="text-sm">
+                  <h3 id="remove-method-title" className="font-display text-xl text-navy flex items-center gap-2">
+                    <Trash2 size={18} className="text-red-600" /> Remove payout method?
+                  </h3>
+                  <p className="mt-2 text-sm text-mute">
+                    This deletes your saved <strong className="text-navy capitalize">{method?.method}</strong> details.
+                    You'll need to add a payout method again before you can request future payouts. This does not
+                    affect payouts already sent.
+                  </p>
+                  <label className="mt-4 block text-sm">
                     <span className="block text-navy/70 mb-1">
-                      {f.label}
-                      {f.required ? <span className="text-red-600 ml-0.5" aria-hidden="true">*</span> : null}
+                      Type <strong>REMOVE</strong> to confirm
                     </span>
                     <input
-                      type={f.type === "email" ? "email" : "text"}
-                      value={details[f.key] ?? ""}
-                      placeholder={f.placeholder}
-                      aria-invalid={err ? true : undefined}
-                      aria-required={f.required || undefined}
-                      onChange={(e) => {
-                        setDetails((d) => ({ ...d, [f.key]: e.target.value }));
-                        if (fieldErrors[f.key]) {
-                          setFieldErrors((prev) => {
-                            const next = { ...prev };
-                            delete next[f.key];
-                            return next;
-                          });
-                        }
-                        if (savedAt) setSavedAt(null);
-                      }}
-                      className={`w-full rounded-lg border px-3 py-2 ${err ? "border-red-400 bg-red-50" : "border-navy/15"}`}
+                      type="text"
+                      value={deleteConfirmText}
+                      onChange={(e) => setDeleteConfirmText(e.target.value)}
+                      autoFocus
+                      className="w-full rounded-lg border border-navy/15 px-3 py-2"
+                      placeholder="REMOVE"
                     />
-                    {err ? <span className="mt-1 block text-xs text-red-600">{err}</span> : null}
                   </label>
-                );
-              })}
-            </div>
-            <p className="mt-3 text-xs text-mute">
-              <span className="text-red-600">*</span> Required fields. All fields marked required must be filled before saving.
-            </p>
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <button
-                onClick={saveMethod}
-                disabled={savingMethod}
-                className="inline-flex items-center gap-2 rounded-lg bg-navy text-white px-4 py-2 text-sm disabled:opacity-60"
-              >
-                {savingMethod ? <Loader2 className="animate-spin" size={14} /> : null}
-                {method ? "Update method" : "Save method"}
-              </button>
-              {savedAt ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1 text-xs">
-                  <CheckCircle2 size={14} /> Saved {savedAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
-                </span>
-              ) : method ? (
-                <span className="text-xs text-mute">
-                  Current method on file: <strong className="text-navy capitalize">{method.method}</strong>
-                </span>
-              ) : null}
-            </div>
+                  <div className="mt-5 flex justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setConfirmDelete(false);
+                        setDeleteConfirmText("");
+                      }}
+                      disabled={deletingMethod}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-navy/20 text-navy px-3 py-2 text-sm hover:bg-navy/5 disabled:opacity-60"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={confirmRemoveMethod}
+                      disabled={deletingMethod || deleteConfirmText.trim().toUpperCase() !== "REMOVE"}
+                      className="inline-flex items-center gap-2 rounded-lg bg-red-600 text-white px-4 py-2 text-sm disabled:opacity-60"
+                    >
+                      {deletingMethod ? <Loader2 className="animate-spin" size={14} /> : <Trash2 size={14} />}
+                      Remove method
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </section>
 
           {/* Request payout */}
