@@ -502,59 +502,117 @@ const CREATE_TYPE_ORDER: ProductTypeKey[] = ["ebook", ...PRODUCT_TYPE_ORDER];
 function CreateNewTitleMenu() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const menuId = "create-new-title-menu";
 
   useEffect(() => {
     if (!open) return;
     function onDown(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-    }
     document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
+    return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
+
+  // Move DOM focus to the active item whenever it changes while open.
+  useEffect(() => {
+    if (!open) return;
+    itemRefs.current[activeIndex]?.focus();
+  }, [open, activeIndex]);
 
   function choose(key: ProductTypeKey) {
     setOpen(false);
+    buttonRef.current?.focus();
     navigate({ to: "/dashboard/new", search: { type: key } });
+  }
+
+  function openMenu(startIndex: number) {
+    setActiveIndex(startIndex);
+    setOpen(true);
+  }
+
+  function onTriggerKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openMenu(0);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      openMenu(CREATE_TYPE_ORDER.length - 1);
+    }
+  }
+
+  function onMenuKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    const last = CREATE_TYPE_ORDER.length - 1;
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setOpen(false);
+      buttonRef.current?.focus();
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((i) => (i >= last ? 0 : i + 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((i) => (i <= 0 ? last : i - 1));
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      setActiveIndex(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      setActiveIndex(last);
+    } else if (e.key === "Tab") {
+      setOpen(false);
+    }
   }
 
   return (
     <div ref={ref} className="relative">
       <button
+        ref={buttonRef}
         type="button"
+        id={`${menuId}-trigger`}
         aria-haspopup="menu"
         aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 bg-gold text-navy shadow-md transition-all duration-300 hover:shadow-lg hover:bg-gold/90"
+        aria-controls={open ? menuId : undefined}
+        aria-label="Create a new title — choose product type"
+        onClick={() => (open ? setOpen(false) : openMenu(0))}
+        onKeyDown={onTriggerKeyDown}
+        className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 bg-gold text-navy shadow-md transition-all duration-300 hover:shadow-lg hover:bg-gold/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
       >
-        <Plus size={16} /> Create New Title
-        <ChevronDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+        <Plus size={16} aria-hidden="true" />
+        <span>Create New Title</span>
+        <ChevronDown size={16} aria-hidden="true" className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
         <div
           role="menu"
+          id={menuId}
+          aria-labelledby={`${menuId}-trigger`}
+          onKeyDown={onMenuKeyDown}
           className="absolute right-0 sm:right-auto sm:left-0 z-40 mt-2 w-72 max-h-[70vh] overflow-auto rounded-2xl border border-ink/10 bg-white shadow-xl p-1.5"
         >
-          <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-mute">
+          <p id={`${menuId}-label`} className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-mute">
             Choose product type
           </p>
-          {CREATE_TYPE_ORDER.map((key) => {
+          {CREATE_TYPE_ORDER.map((key, i) => {
             const t = PRODUCT_TYPES[key];
+            const active = i === activeIndex;
             return (
               <button
                 key={key}
+                ref={(el) => { itemRefs.current[i] = el; }}
                 role="menuitem"
+                type="button"
+                tabIndex={active ? 0 : -1}
+                aria-label={`${t.label} — ${t.tagline}`}
                 onClick={() => choose(key)}
-                className="w-full flex items-start gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-ink/5 focus:bg-ink/5 focus:outline-none"
+                onMouseEnter={() => setActiveIndex(i)}
+                onFocus={() => setActiveIndex(i)}
+                className="w-full flex items-start gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-ink/5 focus:bg-ink/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-navy"
               >
-                <span className="text-xl leading-none mt-0.5" aria-hidden>{t.emoji}</span>
+                <span className="text-xl leading-none mt-0.5" aria-hidden="true">{t.emoji}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-navy">{t.label}</span>
                   <span className="block text-xs text-mute truncate">{t.tagline}</span>
@@ -567,6 +625,7 @@ function CreateNewTitleMenu() {
     </div>
   );
 }
+
 
 
 function statusBadge(p: Product) {
