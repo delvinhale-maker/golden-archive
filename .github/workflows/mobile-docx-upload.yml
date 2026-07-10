@@ -84,16 +84,16 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-chromium-v1
+          key: ${{ runner.os }}-playwright-${{ matrix.browser }}-v1
 
-      - name: Install Playwright (Python) + Chromium
+      - name: Install Playwright (Python) + ${{ matrix.browser }}
         run: |
           python -m pip install --upgrade pip
           python -m pip install playwright
           if [ "${{ steps.cache-playwright.outputs.cache-hit }}" = "true" ]; then
-            python -m playwright install-deps chromium
+            python -m playwright install-deps ${{ matrix.browser }}
           else
-            python -m playwright install --with-deps chromium
+            python -m playwright install --with-deps ${{ matrix.browser }}
           fi
 
       - name: Cache Vite build
