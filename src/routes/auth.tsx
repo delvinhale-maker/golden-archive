@@ -502,11 +502,74 @@ function AuthPage() {
                 <GoogleGlyph /> Continue with Google
               </button>
 
+              <div className="mt-2 flex items-center justify-between text-[11px] text-mute">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const d = runGoogleSignInDiagnostics();
+                    setDiagnostics(d);
+                    setShowDiagnostics(true);
+                  }}
+                  className="underline-offset-2 hover:underline"
+                >
+                  Diagnose sign-in issues
+                </button>
+                {diagnostics && (
+                  <button
+                    type="button"
+                    onClick={() => setShowDiagnostics((v) => !v)}
+                    className="underline-offset-2 hover:underline"
+                  >
+                    {showDiagnostics ? "Hide details" : "Show details"}
+                  </button>
+                )}
+              </div>
+
+              {showDiagnostics && diagnostics && (
+                <div className="mt-3 rounded-xl border border-ink/10 bg-ink/[0.02] p-4 text-sm">
+                  <p className="font-medium text-navy">{diagnostics.summary}</p>
+                  <ul className="mt-3 space-y-1.5">
+                    {diagnostics.checks.map((c) => {
+                      const dot =
+                        c.status === "ok"
+                          ? "bg-emerald-500"
+                          : c.status === "warn"
+                            ? "bg-amber-500"
+                            : c.status === "fail"
+                              ? "bg-rose-500"
+                              : "bg-ink/30";
+                      return (
+                        <li key={c.id} className="flex items-start gap-2">
+                          <span className={`mt-1.5 h-2 w-2 rounded-full ${dot}`} aria-hidden />
+                          <div>
+                            <div className="text-[13px] font-medium text-ink">
+                              {c.label}
+                              <span className="ml-2 text-[11px] uppercase tracking-wider text-mute">
+                                {c.status}
+                              </span>
+                            </div>
+                            {c.detail && (
+                              <div className="text-[12px] text-ink/70">{c.detail}</div>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <p className="mt-3 text-[11px] text-mute">
+                    If everything shows OK but Google still fails, it's likely a Google-side
+                    redirect/config issue — copy the ref shown in the error toast and share it
+                    with support.
+                  </p>
+                </div>
+              )}
+
               <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-mute">
                 <div className="flex-1 h-px bg-ink/10" /> or <div className="flex-1 h-px bg-ink/10" />
               </div>
             </>
           )}
+
 
           {mode === "forgot" ? (
             resetSent ? (
