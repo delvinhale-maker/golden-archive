@@ -93,8 +93,10 @@ const STEPS = [
 type StepNum = 1 | 2 | 3 | 4;
 
 function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType }: { editingId?: string; productTypeKey?: ProductTypeKey; invalidType?: string }) {
-  const typeCfg = getProductType(productTypeKey);
+  const [editProductTypeKey, setEditProductTypeKey] = useState<ProductTypeKey | undefined>(undefined);
+  const typeCfg = getProductType(productTypeKey ?? editProductTypeKey);
   const navigate = useNavigate();
+
   const queryClient = useQueryClient();
   const { user, isAdmin } = useAuth();
   const runReview = useServerFn(reviewProduct);
