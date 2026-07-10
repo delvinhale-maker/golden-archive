@@ -422,6 +422,15 @@
   .av-card:hover {
     box-shadow: var(--shadow-card-hover);
   }
+  /* Per-category accent hover: subtle glow + border intensification.
+     Consumers set --av-accent inline to a category accent color. */
+  .av-accent-hover:hover {
+    border-color: color-mix(in srgb, var(--av-accent, var(--gold)) 55%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--av-accent, var(--gold)) 35%, transparent),
+      0 12px 28px -12px color-mix(in srgb, var(--av-accent, var(--gold)) 55%, transparent),
+      var(--shadow-card-hover);
+  }
 }
 
 @layer base {
