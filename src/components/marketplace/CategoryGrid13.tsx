@@ -14,9 +14,9 @@ export const categoryCountsQ = queryOptions({
 // One-line editorial descriptions per category slug.
 const CATEGORY_BLURBS: Record<string, string> = {
   ebooks:
-    "Long-form reads on wealth, leadership, and stewardship — curated from operators and thinkers.",
+    "Battle-tested playbooks on wealth, leadership, and stewardship — written by operators who've shipped.",
   financial_planners:
-    "Build wealth through budgeting, investing, debt reduction, and long-horizon planning.",
+    "Real-formula planners for budgeting, investing, and debt payoff — built to move numbers, not just track them.",
   ai_prompt_packs:
     "Automation, prompts, workflows, and future-ready tools for the AI-native builder.",
   business_templates:
@@ -24,9 +24,9 @@ const CATEGORY_BLURBS: Record<string, string> = {
   budget_spreadsheets:
     "Real-formula workbooks for personal, household, ministry, and small-business finance.",
   printable_journals:
-    "Reflection, gratitude, prayer, and creative journals — print at home or bind for keeps.",
+    "Print-and-go journals for reflection, gratitude, and habit-building — designed for daily use, not decoration.",
   childrens_educational:
-    "Faith-forward worksheets, unit studies, and activity packs for raising sharp, kind kids.",
+    "Worksheets, unit studies, and activity packs for raising sharp, kind kids.",
   bible_studies:
     "Verse-by-verse guides, devotionals, and small-group curricula rooted in Scripture.",
   courses:
