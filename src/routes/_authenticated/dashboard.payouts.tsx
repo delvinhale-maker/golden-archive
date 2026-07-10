@@ -25,18 +25,49 @@ function fmt(cents: number) {
   return `$${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-const METHOD_FIELDS: Record<PayoutMethod["method"], { key: string; label: string; placeholder?: string }[]> = {
-  bank: [
-    { key: "account_holder", label: "Account holder name" },
-    { key: "bank_name", label: "Bank name" },
-    { key: "account_number", label: "Account number" },
-    { key: "routing_number", label: "Routing / SWIFT" },
-    { key: "country", label: "Country" },
-  ],
-  paypal: [{ key: "paypal_email", label: "PayPal email", placeholder: "you@example.com" }],
-  wise: [{ key: "wise_email", label: "Wise email or handle" }],
-  other: [{ key: "instructions", label: "Payment instructions" }],
+type FieldDef = {
+  key: string;
+  label: string;
+  placeholder?: string;
+  required?: boolean;
+  type?: "text" | "email";
+  minLength?: number;
 };
+const METHOD_FIELDS: Record<PayoutMethod["method"], FieldDef[]> = {
+  bank: [
+    { key: "account_holder", label: "Account holder name", required: true, minLength: 2 },
+    { key: "bank_name", label: "Bank name", required: true, minLength: 2 },
+    { key: "account_number", label: "Account number", required: true, minLength: 4 },
+    { key: "routing_number", label: "Routing / SWIFT", required: true, minLength: 4 },
+    { key: "country", label: "Country", required: true, minLength: 2 },
+  ],
+  paypal: [{ key: "paypal_email", label: "PayPal email", placeholder: "you@example.com", required: true, type: "email" }],
+  wise: [{ key: "wise_email", label: "Wise email or handle", required: true, minLength: 3 }],
+  other: [{ key: "instructions", label: "Payment instructions", required: true, minLength: 10 }],
+};
+
+function validateDetails(method: PayoutMethod["method"], details: Record<string, string>): { ok: true; cleaned: Record<string, string> } | { ok: false; errors: Record<string, string> } {
+  const errors: Record<string, string> = {};
+  const cleaned: Record<string, string> = {};
+  for (const f of METHOD_FIELDS[method]) {
+    const v = (details[f.key] ?? "").trim();
+    if (f.required && !v) {
+      errors[f.key] = `${f.label} is required`;
+      continue;
+    }
+    if (v && f.minLength && v.length < f.minLength) {
+      errors[f.key] = `${f.label} is too short`;
+      continue;
+    }
+    if (v && f.type === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+      errors[f.key] = "Enter a valid email address";
+      continue;
+    }
+    if (v) cleaned[f.key] = v;
+  }
+  if (Object.keys(errors).length) return { ok: false, errors };
+  return { ok: true, cleaned };
+}
 
 function PayoutsPage() {
   const [summary, setSummary] = useState<MyEarningsSummary | null>(null);
