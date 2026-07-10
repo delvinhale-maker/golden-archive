@@ -1032,7 +1032,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       )}
 
       <div className="flex items-center justify-between gap-3">
-        <StepperBar step={step} />
+        <StepperBar step={step} step1Label={typeCfg.isEbook ? "Book Details" : `${typeCfg.label} Details`} />
         <div aria-live="polite" className="hidden sm:flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-mute min-h-[20px]">
           {(["metadata", "cover", "manuscript"] as const).map((kind) => {
             const err = autosaveErrors[kind];
