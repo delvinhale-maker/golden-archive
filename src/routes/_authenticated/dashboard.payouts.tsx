@@ -25,18 +25,49 @@ function fmt(cents: number) {
   return `$${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-const METHOD_FIELDS: Record<PayoutMethod["method"], { key: string; label: string; placeholder?: string }[]> = {
-  bank: [
-    { key: "account_holder", label: "Account holder name" },
-    { key: "bank_name", label: "Bank name" },
-    { key: "account_number", label: "Account number" },
-    { key: "routing_number", label: "Routing / SWIFT" },
-    { key: "country", label: "Country" },
-  ],
-  paypal: [{ key: "paypal_email", label: "PayPal email", placeholder: "you@example.com" }],
-  wise: [{ key: "wise_email", label: "Wise email or handle" }],
-  other: [{ key: "instructions", label: "Payment instructions" }],
+type FieldDef = {
+  key: string;
+  label: string;
+  placeholder?: string;
+  required?: boolean;
+  type?: "text" | "email";
+  minLength?: number;
 };
+const METHOD_FIELDS: Record<PayoutMethod["method"], FieldDef[]> = {
+  bank: [
+    { key: "account_holder", label: "Account holder name", required: true, minLength: 2 },
+    { key: "bank_name", label: "Bank name", required: true, minLength: 2 },
+    { key: "account_number", label: "Account number", required: true, minLength: 4 },
+    { key: "routing_number", label: "Routing / SWIFT", required: true, minLength: 4 },
+    { key: "country", label: "Country", required: true, minLength: 2 },
+  ],
+  paypal: [{ key: "paypal_email", label: "PayPal email", placeholder: "you@example.com", required: true, type: "email" }],
+  wise: [{ key: "wise_email", label: "Wise email or handle", required: true, minLength: 3 }],
+  other: [{ key: "instructions", label: "Payment instructions", required: true, minLength: 10 }],
+};
+
+function validateDetails(method: PayoutMethod["method"], details: Record<string, string>): { ok: true; cleaned: Record<string, string> } | { ok: false; errors: Record<string, string> } {
+  const errors: Record<string, string> = {};
+  const cleaned: Record<string, string> = {};
+  for (const f of METHOD_FIELDS[method]) {
+    const v = (details[f.key] ?? "").trim();
+    if (f.required && !v) {
+      errors[f.key] = `${f.label} is required`;
+      continue;
+    }
+    if (v && f.minLength && v.length < f.minLength) {
+      errors[f.key] = `${f.label} is too short`;
+      continue;
+    }
+    if (v && f.type === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+      errors[f.key] = "Enter a valid email address";
+      continue;
+    }
+    if (v) cleaned[f.key] = v;
+  }
+  if (Object.keys(errors).length) return { ok: false, errors };
+  return { ok: true, cleaned };
+}
 
 function PayoutsPage() {
   const [summary, setSummary] = useState<MyEarningsSummary | null>(null);
@@ -47,6 +78,8 @@ function PayoutsPage() {
   const [selectedMethod, setSelectedMethod] = useState<PayoutMethod["method"]>("bank");
   const [details, setDetails] = useState<Record<string, string>>({});
   const [savingMethod, setSavingMethod] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
 
   const [requestAmount, setRequestAmount] = useState("");
   const [requestNote, setRequestNote] = useState("");
@@ -108,18 +141,17 @@ function PayoutsPage() {
   }
 
   async function saveMethod() {
+    const result = validateDetails(selectedMethod, details);
+    if (!result.ok) {
+      setFieldErrors(result.errors);
+      toast.error("Fix the highlighted fields before saving.");
+      return;
+    }
+    setFieldErrors({});
     setSavingMethod(true);
     try {
-      // strip empty
-      const cleaned: Record<string, string> = {};
-      Object.entries(details).forEach(([k, v]) => {
-        if (v && v.trim().length) cleaned[k] = v.trim();
-      });
-      if (Object.keys(cleaned).length === 0) {
-        toast.error("Add at least one field");
-        return;
-      }
-      await saveMethodFn({ data: { method: selectedMethod, details: cleaned } });
+      await saveMethodFn({ data: { method: selectedMethod, details: result.cleaned } });
+      setSavedAt(new Date());
       toast.success("Payout method saved");
       await refresh();
     } catch (e: any) {
@@ -251,6 +283,8 @@ function PayoutsPage() {
                   onClick={() => {
                     setSelectedMethod(m);
                     setDetails({});
+                    setFieldErrors({});
+                    setSavedAt(null);
                   }}
                   className={`px-3 py-1.5 rounded-lg text-sm border capitalize ${
                     selectedMethod === m ? "bg-navy text-white border-navy" : "border-navy/20 text-navy"
@@ -261,27 +295,60 @@ function PayoutsPage() {
               ))}
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-              {METHOD_FIELDS[selectedMethod].map((f) => (
-                <label key={f.key} className="text-sm">
-                  <span className="block text-navy/70 mb-1">{f.label}</span>
-                  <input
-                    type="text"
-                    value={details[f.key] ?? ""}
-                    placeholder={f.placeholder}
-                    onChange={(e) => setDetails((d) => ({ ...d, [f.key]: e.target.value }))}
-                    className="w-full rounded-lg border border-navy/15 px-3 py-2"
-                  />
-                </label>
-              ))}
+              {METHOD_FIELDS[selectedMethod].map((f) => {
+                const err = fieldErrors[f.key];
+                return (
+                  <label key={f.key} className="text-sm">
+                    <span className="block text-navy/70 mb-1">
+                      {f.label}
+                      {f.required ? <span className="text-red-600 ml-0.5" aria-hidden="true">*</span> : null}
+                    </span>
+                    <input
+                      type={f.type === "email" ? "email" : "text"}
+                      value={details[f.key] ?? ""}
+                      placeholder={f.placeholder}
+                      aria-invalid={err ? true : undefined}
+                      aria-required={f.required || undefined}
+                      onChange={(e) => {
+                        setDetails((d) => ({ ...d, [f.key]: e.target.value }));
+                        if (fieldErrors[f.key]) {
+                          setFieldErrors((prev) => {
+                            const next = { ...prev };
+                            delete next[f.key];
+                            return next;
+                          });
+                        }
+                        if (savedAt) setSavedAt(null);
+                      }}
+                      className={`w-full rounded-lg border px-3 py-2 ${err ? "border-red-400 bg-red-50" : "border-navy/15"}`}
+                    />
+                    {err ? <span className="mt-1 block text-xs text-red-600">{err}</span> : null}
+                  </label>
+                );
+              })}
             </div>
-            <button
-              onClick={saveMethod}
-              disabled={savingMethod}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-navy text-white px-4 py-2 text-sm disabled:opacity-60"
-            >
-              {savingMethod ? <Loader2 className="animate-spin" size={14} /> : null}
-              {method ? "Update method" : "Save method"}
-            </button>
+            <p className="mt-3 text-xs text-mute">
+              <span className="text-red-600">*</span> Required fields. All fields marked required must be filled before saving.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <button
+                onClick={saveMethod}
+                disabled={savingMethod}
+                className="inline-flex items-center gap-2 rounded-lg bg-navy text-white px-4 py-2 text-sm disabled:opacity-60"
+              >
+                {savingMethod ? <Loader2 className="animate-spin" size={14} /> : null}
+                {method ? "Update method" : "Save method"}
+              </button>
+              {savedAt ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1 text-xs">
+                  <CheckCircle2 size={14} /> Saved {savedAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                </span>
+              ) : method ? (
+                <span className="text-xs text-mute">
+                  Current method on file: <strong className="text-navy capitalize">{method.method}</strong>
+                </span>
+              ) : null}
+            </div>
           </section>
 
           {/* Request payout */}
