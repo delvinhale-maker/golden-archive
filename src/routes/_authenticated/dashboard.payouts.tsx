@@ -81,6 +81,10 @@ function PayoutsPage() {
   const [savingMethod, setSavingMethod] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [editingMethod, setEditingMethod] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deletingMethod, setDeletingMethod] = useState(false);
 
   const [requestAmount, setRequestAmount] = useState("");
   const [requestNote, setRequestNote] = useState("");
@@ -94,6 +98,7 @@ function PayoutsPage() {
   const fetchMethod = useServerFn(getMyPayoutMethod);
   const fetchTax = useServerFn(listMyTaxForms);
   const saveMethodFn = useServerFn(upsertPayoutMethod);
+  const deleteMethodFn = useServerFn(deletePayoutMethod);
   const requestFn = useServerFn(requestPayout);
   const submitTaxFn = useServerFn(submitTaxForm);
 
