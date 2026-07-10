@@ -28,6 +28,7 @@ const COLLECTIONS: Collection[] = [
     to: "/products",
     search: { category: "Financial Planners" },
     size: "lg",
+    accentSlug: "financial_planners",
   },
   {
     title: "Journals",
@@ -37,6 +38,7 @@ const COLLECTIONS: Collection[] = [
     to: "/products",
     search: { category: "Journals" },
     size: "md",
+    accentSlug: "printable_journals",
   },
   {
     title: "Business Systems",
@@ -46,6 +48,7 @@ const COLLECTIONS: Collection[] = [
     to: "/products",
     search: { category: "Business" },
     size: "md",
+    accentSlug: "business_operating_systems",
   },
   {
     title: "AI Prompt Vault",
@@ -55,6 +58,7 @@ const COLLECTIONS: Collection[] = [
     to: "/products",
     search: { category: "Prompt Packs" },
     size: "md",
+    accentSlug: "ai_prompt_packs",
   },
   {
     title: "Faith & Growth",
@@ -64,6 +68,7 @@ const COLLECTIONS: Collection[] = [
     to: "/products",
     search: { category: "Purpose" },
     size: "md",
+    accentSlug: "bible_studies",
   },
 ];
 
