@@ -7,6 +7,7 @@ import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { useOwnsProduct } from "@/hooks/use-owned-products";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { categoryDisplay } from "@/lib/product-types";
+import { accentFor } from "@/lib/categories";
 
 import type { Product } from "@/lib/marketplace.functions";
 
