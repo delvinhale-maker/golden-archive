@@ -396,7 +396,9 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       setDescription(data.description ?? "");
       setLanguage(data.language ?? "English");
       setCategory((data.category as typeof CATEGORIES[number]["value"]) ?? "ebooks");
+      setEditProductTypeKey(getProductTypeKeyByCategory(data.category as string));
       setPrice(((data.price_cents ?? 0) / 100).toString());
+
       setExistingCoverUrl(data.cover_url ?? null);
       setExistingFilePath(data.file_path ?? null);
       const rowPreview = (data as unknown as { preview_pages?: number[] | null }).preview_pages;
