@@ -141,18 +141,17 @@ function PayoutsPage() {
   }
 
   async function saveMethod() {
+    const result = validateDetails(selectedMethod, details);
+    if (!result.ok) {
+      setFieldErrors(result.errors);
+      toast.error("Fix the highlighted fields before saving.");
+      return;
+    }
+    setFieldErrors({});
     setSavingMethod(true);
     try {
-      // strip empty
-      const cleaned: Record<string, string> = {};
-      Object.entries(details).forEach(([k, v]) => {
-        if (v && v.trim().length) cleaned[k] = v.trim();
-      });
-      if (Object.keys(cleaned).length === 0) {
-        toast.error("Add at least one field");
-        return;
-      }
-      await saveMethodFn({ data: { method: selectedMethod, details: cleaned } });
+      await saveMethodFn({ data: { method: selectedMethod, details: result.cleaned } });
+      setSavedAt(new Date());
       toast.success("Payout method saved");
       await refresh();
     } catch (e: any) {
