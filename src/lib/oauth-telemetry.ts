@@ -12,7 +12,11 @@ export type OAuthFailureReason =
   | "cancelled"
   | "network"
   | "noSession"
+  | "cookiesBlocked"
+  | "storageBlocked"
+  | "redirectMismatch"
   | "unknown";
+
 
 export type OAuthProvider = "google" | "apple" | "microsoft" | "lovable";
 
