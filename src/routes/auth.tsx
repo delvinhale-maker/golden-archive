@@ -492,6 +492,28 @@ function AuthPage() {
             </div>
           )}
 
+          {(embedded || fetchFailed) && (
+            <div className="mt-4 rounded-lg border border-navy/20 bg-navy/5 px-4 py-3 text-sm text-navy">
+              <p className="font-medium">
+                {fetchFailed
+                  ? "Sign-in couldn't reach the server from this preview."
+                  : "You're viewing this inside an embedded preview."}
+              </p>
+              <p className="mt-1 text-mute">
+                Embedded previews can block cookies and auth requests. Open sign-in in a new tab to complete it reliably.
+              </p>
+              <button
+                type="button"
+                onClick={openInNewTab}
+                className="mt-3 inline-flex h-9 items-center justify-center rounded-full bg-navy px-4 text-xs font-medium text-white hover:bg-navy/90"
+              >
+                Open sign-in in a new tab
+              </button>
+            </div>
+          )}
+
+
+
           <div className="mt-6 flex border-b border-ink/10">
             {tabs.map((tab) => (
             <button
