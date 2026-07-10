@@ -1914,7 +1914,7 @@ function useDropZone(onFile: (f: File | null) => void) {
 function CoverInput({ file, preview, onFile, acceptedHint, onZoom, uploaded }: { file: File | null; preview: string | null; onFile: (f: File | null) => void; acceptedHint: string; onZoom?: () => void; uploaded?: boolean }) {
   const ref = useRef<HTMLInputElement>(null);
   const { isOver, handlers } = useDropZone(onFile);
-  const openPicker = () => {
+  const openReplace = () => {
     const el = ref.current;
     if (!el) return;
     el.value = "";
@@ -1922,80 +1922,102 @@ function CoverInput({ file, preview, onFile, acceptedHint, onZoom, uploaded }: {
   };
   return (
     <div className="space-y-2">
-      <input
-        ref={ref}
-        type="file"
-        accept=".jpg,.jpeg,.png,image/png,image/jpeg"
-        style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", overflow: "hidden" }}
-        tabIndex={-1}
-        aria-hidden="true"
-        onChange={(e) => onFile(e.target.files?.[0] ?? null)}
-      />
       {preview ? (
-        <div className="relative rounded-xl border border-ink/10 bg-paper overflow-hidden" {...handlers}>
-          <div className="relative mx-auto bg-white group" style={{ aspectRatio: "1 / 1.6", maxWidth: "300px" }}>
-            <img src={preview} alt="Cover preview" className="w-full h-full object-cover shadow-lg" />
-            {onZoom && (
-              <button type="button" onClick={onZoom} className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-navy/80 hover:bg-navy text-white text-xs font-medium px-2.5 py-1.5 backdrop-blur" aria-label="View full size">
-                <Maximize2 size={12} /> Full size
-              </button>
-            )}
-            {uploaded && (
-              <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-[11px] font-semibold px-2 py-0.5 shadow">
-                <CheckCircle2 size={12} /> Uploaded
-              </span>
-            )}
-          </div>
+        <>
+          <input
+            ref={ref}
+            type="file"
+            accept=".jpg,.jpeg,.png,image/png,image/jpeg"
+            className="sr-only"
+            onChange={(e) => {
+              const f = e.target.files?.[0] ?? null;
+              e.target.value = "";
+              onFile(f);
+            }}
+          />
+          <div className="relative rounded-xl border border-ink/10 bg-paper overflow-hidden" {...handlers}>
+            <div className="relative mx-auto bg-white group" style={{ aspectRatio: "1 / 1.6", maxWidth: "300px" }}>
+              <img src={preview} alt="Cover preview" className="w-full h-full object-cover shadow-lg" />
+              {onZoom && (
+                <button type="button" onClick={onZoom} className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-navy/80 hover:bg-navy text-white text-xs font-medium px-2.5 py-1.5 backdrop-blur" aria-label="View full size">
+                  <Maximize2 size={12} /> Full size
+                </button>
+              )}
+              {uploaded && (
+                <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-[11px] font-semibold px-2 py-0.5 shadow">
+                  <CheckCircle2 size={12} /> Uploaded
+                </span>
+              )}
+            </div>
 
-          {isOver && <div className="absolute inset-0 bg-gold/20 border-2 border-dashed border-gold rounded-xl flex items-center justify-center pointer-events-none"><span className="text-sm font-semibold text-navy">Drop to replace</span></div>}
-          <div className="flex items-center justify-between px-3 py-2 bg-white border-t border-ink/10">
-            <span className="text-xs text-mute truncate">{file?.name} {file ? `· ${(file.size / 1024 / 1024).toFixed(2)} MB` : ""}</span>
-            <div className="flex gap-2">
-              <button type="button" onClick={openPicker} className="text-xs font-medium text-navy hover:underline">Replace</button>
-              <button type="button" onClick={() => onFile(null)} className="text-xs text-red-600 hover:underline inline-flex items-center gap-1"><X size={12} />Remove</button>
+            {isOver && <div className="absolute inset-0 bg-gold/20 border-2 border-dashed border-gold rounded-xl flex items-center justify-center pointer-events-none"><span className="text-sm font-semibold text-navy">Drop to replace</span></div>}
+            <div className="flex items-center justify-between px-3 py-2 bg-white border-t border-ink/10">
+              <span className="text-xs text-mute truncate">{file?.name} {file ? `· ${(file.size / 1024 / 1024).toFixed(2)} MB` : ""}</span>
+              <div className="flex gap-2">
+                <button type="button" onClick={openReplace} className="text-xs font-medium text-navy hover:underline">Replace</button>
+                <button type="button" onClick={() => onFile(null)} className="text-xs text-red-600 hover:underline inline-flex items-center gap-1"><X size={12} />Remove</button>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       ) : (
-        <button type="button" onClick={openPicker} {...handlers}
+        <label
+          {...handlers}
           aria-label="Upload cover image"
-          className={`w-full min-h-[160px] flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition active:scale-[0.99] ${isOver ? "border-gold bg-gold/10" : "border-ink/20 bg-paper hover:border-navy/30"}`}>
-          <ImageIcon size={28} className={isOver ? "text-gold-ink" : "text-mute"} />
-          <span className="text-sm font-medium text-ink/80">{isOver ? "Drop image here" : "Tap to choose a cover"}</span>
-          <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
-        </button>
+          className={`relative block w-full min-h-[160px] cursor-pointer rounded-xl border-2 border-dashed px-4 py-8 text-center transition active:scale-[0.99] ${isOver ? "border-gold bg-gold/10" : "border-ink/20 bg-paper hover:border-navy/30"}`}
+        >
+          <div className="flex flex-col items-center justify-center gap-2">
+            <ImageIcon size={28} className={isOver ? "text-gold-ink" : "text-mute"} />
+            <span className="text-sm font-medium text-ink/80">{isOver ? "Drop image here" : "Tap to choose a cover"}</span>
+            <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
+          </div>
+          <input
+            type="file"
+            accept=".jpg,.jpeg,.png,image/png,image/jpeg"
+            className="sr-only"
+            onChange={(e) => {
+              const f = e.target.files?.[0] ?? null;
+              e.target.value = "";
+              onFile(f);
+            }}
+          />
+        </label>
       )}
     </div>
   );
 }
 
 function FileInput({ file, onFile, accept, hint, acceptedHint }: { file: File | null; onFile: (f: File | null) => void; accept: string; hint: string; acceptedHint: string }) {
-  const ref = useRef<HTMLInputElement>(null);
   const { isOver, handlers } = useDropZone(onFile);
-  const openPicker = () => {
-    const el = ref.current;
-    if (!el) return;
-    el.value = "";
-    el.click();
-  };
+  // Use a native <label> wrapping the <input> so tapping the drop-zone
+  // opens the OS file picker from a real user gesture. Programmatic
+  // input.click() is unreliable on Android Chrome Custom Tabs (opened from
+  // another app / social browsers) — the picker may return but the tab
+  // closes back to its parent, appearing as if upload silently failed.
   return (
     <div>
-      <input
-        ref={ref}
-        type="file"
-        accept={accept}
-        style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", overflow: "hidden" }}
-        tabIndex={-1}
-        aria-hidden="true"
-        onChange={(e) => onFile(e.target.files?.[0] ?? null)}
-      />
-      <button type="button" onClick={openPicker} {...handlers}
+      <label
+        {...handlers}
         aria-label="Upload manuscript file"
-        className={`w-full min-h-[160px] flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-7 text-center transition active:scale-[0.99] ${isOver ? "border-gold bg-gold/10" : file ? "border-emerald-300 bg-emerald-50/40" : "border-ink/20 bg-paper hover:border-navy/30"}`}>
-        {file ? <FileText size={26} className="text-emerald-700" /> : <Plus size={26} className={isOver ? "text-gold-ink" : "text-mute"} />}
-        <span className="text-sm font-medium text-ink/80">{file ? file.name : isOver ? "Drop file here" : hint}</span>
-        <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
-      </button>
+        className={`relative block w-full min-h-[160px] cursor-pointer rounded-xl border-2 border-dashed px-4 py-7 text-center transition active:scale-[0.99] ${isOver ? "border-gold bg-gold/10" : file ? "border-emerald-300 bg-emerald-50/40" : "border-ink/20 bg-paper hover:border-navy/30"}`}
+      >
+        <div className="flex flex-col items-center justify-center gap-2">
+          {file ? <FileText size={26} className="text-emerald-700" /> : <Plus size={26} className={isOver ? "text-gold-ink" : "text-mute"} />}
+          <span className="text-sm font-medium text-ink/80">{file ? file.name : isOver ? "Drop file here" : hint}</span>
+          <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
+        </div>
+        <input
+          type="file"
+          accept={accept}
+          className="sr-only"
+          onChange={(e) => {
+            const f = e.target.files?.[0] ?? null;
+            // Reset so re-picking the same file re-fires onChange.
+            e.target.value = "";
+            onFile(f);
+          }}
+        />
+      </label>
     </div>
   );
 }
