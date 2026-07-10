@@ -283,6 +283,8 @@ function PayoutsPage() {
                   onClick={() => {
                     setSelectedMethod(m);
                     setDetails({});
+                    setFieldErrors({});
+                    setSavedAt(null);
                   }}
                   className={`px-3 py-1.5 rounded-lg text-sm border capitalize ${
                     selectedMethod === m ? "bg-navy text-white border-navy" : "border-navy/20 text-navy"
@@ -293,27 +295,60 @@ function PayoutsPage() {
               ))}
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-              {METHOD_FIELDS[selectedMethod].map((f) => (
-                <label key={f.key} className="text-sm">
-                  <span className="block text-navy/70 mb-1">{f.label}</span>
-                  <input
-                    type="text"
-                    value={details[f.key] ?? ""}
-                    placeholder={f.placeholder}
-                    onChange={(e) => setDetails((d) => ({ ...d, [f.key]: e.target.value }))}
-                    className="w-full rounded-lg border border-navy/15 px-3 py-2"
-                  />
-                </label>
-              ))}
+              {METHOD_FIELDS[selectedMethod].map((f) => {
+                const err = fieldErrors[f.key];
+                return (
+                  <label key={f.key} className="text-sm">
+                    <span className="block text-navy/70 mb-1">
+                      {f.label}
+                      {f.required ? <span className="text-red-600 ml-0.5" aria-hidden="true">*</span> : null}
+                    </span>
+                    <input
+                      type={f.type === "email" ? "email" : "text"}
+                      value={details[f.key] ?? ""}
+                      placeholder={f.placeholder}
+                      aria-invalid={err ? true : undefined}
+                      aria-required={f.required || undefined}
+                      onChange={(e) => {
+                        setDetails((d) => ({ ...d, [f.key]: e.target.value }));
+                        if (fieldErrors[f.key]) {
+                          setFieldErrors((prev) => {
+                            const next = { ...prev };
+                            delete next[f.key];
+                            return next;
+                          });
+                        }
+                        if (savedAt) setSavedAt(null);
+                      }}
+                      className={`w-full rounded-lg border px-3 py-2 ${err ? "border-red-400 bg-red-50" : "border-navy/15"}`}
+                    />
+                    {err ? <span className="mt-1 block text-xs text-red-600">{err}</span> : null}
+                  </label>
+                );
+              })}
             </div>
-            <button
-              onClick={saveMethod}
-              disabled={savingMethod}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-navy text-white px-4 py-2 text-sm disabled:opacity-60"
-            >
-              {savingMethod ? <Loader2 className="animate-spin" size={14} /> : null}
-              {method ? "Update method" : "Save method"}
-            </button>
+            <p className="mt-3 text-xs text-mute">
+              <span className="text-red-600">*</span> Required fields. All fields marked required must be filled before saving.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <button
+                onClick={saveMethod}
+                disabled={savingMethod}
+                className="inline-flex items-center gap-2 rounded-lg bg-navy text-white px-4 py-2 text-sm disabled:opacity-60"
+              >
+                {savingMethod ? <Loader2 className="animate-spin" size={14} /> : null}
+                {method ? "Update method" : "Save method"}
+              </button>
+              {savedAt ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1 text-xs">
+                  <CheckCircle2 size={14} /> Saved {savedAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                </span>
+              ) : method ? (
+                <span className="text-xs text-mute">
+                  Current method on file: <strong className="text-navy capitalize">{method.method}</strong>
+                </span>
+              ) : null}
+            </div>
           </section>
 
           {/* Request payout */}
