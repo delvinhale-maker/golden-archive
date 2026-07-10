@@ -209,12 +209,10 @@ export function CategoryGrid13() {
                 key={c.slug}
                 to="/products"
                 search={{ category: c.slug } as never}
-                style={
-                  {
-                    borderTopColor: accent,
-                    "--cat-accent": accent,
-                  } as React.CSSProperties
-                }
+                style={{
+                  borderTopColor: accent,
+                  ["--cat-accent" as string]: accent,
+                } as Record<string, string>}
                 className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 border-t-[3px] bg-gradient-to-b from-white/[0.045] to-white/[0.015] p-6 transition-all duration-500 hover:-translate-y-1 hover:from-white/[0.08] hover:to-white/[0.03] hover:shadow-[0_0_0_1px_var(--cat-accent),0_18px_40px_-24px_var(--cat-accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#08101D]"
               >
                 {/* corner filigree */}
