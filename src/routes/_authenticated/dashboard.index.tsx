@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
-import { categoryDisplay } from "@/lib/product-types";
+import { categoryDisplay, PRODUCT_TYPES, PRODUCT_TYPE_ORDER, type ProductTypeKey } from "@/lib/product-types";
+import { ChevronDown } from "lucide-react";
 import {
   BookOpen,
   Plus,
@@ -327,12 +328,8 @@ function BookshelfPage() {
             >
               <DollarSign size={16} /> Payouts
             </Link>
-            <Link
-              to="/dashboard/new"
-              className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 bg-gold text-navy shadow-md transition-all duration-300 hover:shadow-lg hover:bg-gold/90"
-            >
-              <Plus size={16} /> Create New Title
-            </Link>
+            <CreateNewTitleMenu />
+
           </div>
 
         )}
@@ -495,17 +492,82 @@ function EmptyState({ canPublish }: { canPublish: boolean }) {
         You haven't published any titles yet.
       </p>
       <p className="mt-1 text-sm text-mute">Click "+ Create New Title" to get started.</p>
-      {canPublish && (
-        <Link
-          to="/dashboard/new"
-          className="mt-5 inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 bg-gold text-navy"
+      {canPublish && <div className="mt-5 flex justify-center"><CreateNewTitleMenu /></div>}
+    </div>
+  );
+}
+
+const CREATE_TYPE_ORDER: ProductTypeKey[] = ["ebook", ...PRODUCT_TYPE_ORDER];
+
+function CreateNewTitleMenu() {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  function choose(key: ProductTypeKey) {
+    setOpen(false);
+    navigate({ to: "/dashboard/new", search: { type: key } });
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-2 rounded-full font-semibold px-5 py-2.5 bg-gold text-navy shadow-md transition-all duration-300 hover:shadow-lg hover:bg-gold/90"
+      >
+        <Plus size={16} /> Create New Title
+        <ChevronDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 sm:right-auto sm:left-0 z-40 mt-2 w-72 max-h-[70vh] overflow-auto rounded-2xl border border-ink/10 bg-white shadow-xl p-1.5"
         >
-          <Plus size={16} /> Create New Title
-        </Link>
+          <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-mute">
+            Choose product type
+          </p>
+          {CREATE_TYPE_ORDER.map((key) => {
+            const t = PRODUCT_TYPES[key];
+            return (
+              <button
+                key={key}
+                role="menuitem"
+                onClick={() => choose(key)}
+                className="w-full flex items-start gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-ink/5 focus:bg-ink/5 focus:outline-none"
+              >
+                <span className="text-xl leading-none mt-0.5" aria-hidden>{t.emoji}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-navy">{t.label}</span>
+                  <span className="block text-xs text-mute truncate">{t.tagline}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
       )}
     </div>
   );
 }
+
 
 function statusBadge(p: Product) {
   if (p.published && p.status === "approved")
