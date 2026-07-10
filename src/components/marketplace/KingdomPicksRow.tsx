@@ -62,19 +62,19 @@ export function KingdomPicksRow() {
   if (picks.length === 0) return null;
 
   return (
-    <section className="bg-bg-page py-12 md:py-16">
+    <section
+      className="py-12 md:py-16"
+      style={{ backgroundColor: "var(--accent-cream)" }}
+    >
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold-ink">
+          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-caps text-gold-deep">
             <Crown size={14} /> EDITOR'S PICKS
           </div>
-          <h2
-            className="mt-2 font-display text-3xl font-bold md:text-4xl"
-            style={{ color: "#ffffff" }}
-          >
+          <h2 className="mt-2 font-display text-3xl font-bold text-navy md:text-4xl">
             Editor's Picks
           </h2>
-          <p className="mt-2 max-w-md text-sm text-white/70">
+          <p className="mt-2 max-w-md text-sm text-navy/70">
             Handpicked reads we recommend — from trusted partners.
           </p>
           <span className="mt-3 block h-[2px] w-10 bg-gold" />
@@ -84,7 +84,7 @@ export function KingdomPicksRow() {
           {picks.slice(0, 8).map((p) => (
             <article
               key={p.id}
-              className="flex flex-col overflow-hidden rounded-xl border border-white/10 bg-white/5 shadow-card"
+              className="flex flex-col overflow-hidden rounded-xl border border-navy/10 bg-white shadow-card"
             >
               <div className="aspect-[4/5] w-full overflow-hidden bg-[#0F1E35]">
                 {isPlaceholderImage(p.imageUrl) ? (
@@ -101,15 +101,15 @@ export function KingdomPicksRow() {
 
               <div className="flex flex-1 flex-col p-4">
                 {p.source && (
-                  <span className="mb-2 inline-flex w-fit items-center rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold-ink">
+                  <span className="mb-2 inline-flex w-fit items-center rounded-full border border-gold/50 bg-gold/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold-deep">
                     {p.source}
                   </span>
                 )}
-                <h3 className="line-clamp-2 font-display text-sm font-bold text-white">
+                <h3 className="line-clamp-2 font-display text-sm font-bold text-navy">
                   {p.title}
                 </h3>
                 {p.price != null && (
-                  <div className="mt-2 font-display text-lg font-bold text-gold-ink">
+                  <div className="mt-2 font-display text-lg font-bold text-gold-deep">
                     ${p.price.toFixed(2)}
                   </div>
                 )}
@@ -134,7 +134,7 @@ export function KingdomPicksRow() {
         <div className="mt-8 text-center">
           <Link
             to="/kingdom-picks"
-            className="inline-flex h-11 items-center rounded-full border border-gold px-6 text-sm font-bold text-gold-ink hover:bg-gold hover:text-navy"
+            className="inline-flex h-11 items-center rounded-full border border-gold-deep px-6 text-sm font-bold text-gold-deep hover:bg-gold hover:text-navy"
           >
             See all Editor's Picks →
           </Link>

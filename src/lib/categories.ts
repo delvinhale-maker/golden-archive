@@ -152,6 +152,37 @@ export const CATEGORIES: CategoryDef[] = [
   },
 ];
 
+// Secondary accent-color assignment (color-coded per-category flavor).
+// Uses tokens defined in src/styles.css: --accent-emerald | --accent-burgundy
+// | --accent-amber | --accent-dusty | --accent-cream. Navy/Gold remain the
+// primary brand voice; these are supporting per-category accents only.
+export const CATEGORY_ACCENT: Record<string, string> = {
+  // Financial / Wealth → Emerald
+  financial_planners: "var(--accent-emerald)",
+  budget_spreadsheets: "var(--accent-emerald)",
+  // Faith & Growth / Personal Growth → Burgundy
+  bible_studies: "var(--accent-burgundy)",
+  ebooks: "var(--accent-burgundy)",
+  childrens_educational: "var(--accent-burgundy)",
+  // AI / Prompt Packs → Amber
+  ai_prompt_packs: "var(--accent-amber)",
+  prompt_packs: "var(--accent-amber)",
+  // Journals & Templates → Dusty Blue
+  printable_journals: "var(--accent-dusty)",
+  templates: "var(--accent-dusty)",
+  business_templates: "var(--accent-dusty)",
+  // Business systems / toolkits → Dusty Blue as neutral operator tone
+  business_operating_systems: "var(--accent-dusty)",
+  digital_toolkits: "var(--accent-dusty)",
+};
+
+export function accentFor(slugOrLabel?: string | null): string {
+  const def = getCategoryDef(slugOrLabel);
+  if (def && CATEGORY_ACCENT[def.slug]) return CATEGORY_ACCENT[def.slug];
+  return "var(--gold)";
+}
+
+
 // Fast lookups (built once at module load).
 export const CATEGORY_BY_SLUG: Record<string, CategoryDef> = Object.fromEntries(
   CATEGORIES.map((c) => [c.slug, c]),

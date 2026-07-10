@@ -15,16 +15,26 @@ export function NewReleasesRow() {
     <section className="bg-bg-page py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
-            JUST DROPPED
-          </div>
+          <span
+            className="inline-flex items-center rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em]"
+            style={{
+              color: "var(--accent-amber)",
+              borderColor: "color-mix(in oklab, var(--accent-amber) 55%, transparent)",
+              backgroundColor: "color-mix(in oklab, var(--accent-amber) 12%, transparent)",
+            }}
+          >
+            Just Dropped
+          </span>
           <h2
-            className="mt-2 font-display text-3xl font-bold md:text-4xl"
+            className="mt-3 font-display text-3xl font-bold md:text-4xl"
             style={{ color: "#ffffff" }}
           >
             Just Dropped
           </h2>
-          <span className="mt-3 block h-[2px] w-10 bg-gold" />
+          <span
+            className="mt-3 block h-[2px] w-10"
+            style={{ background: "var(--accent-amber)" }}
+          />
         </div>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-4">
           {products.slice(0, 8).map((p, i) => (

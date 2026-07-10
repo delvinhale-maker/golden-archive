@@ -47,7 +47,15 @@
   --color-line: var(--line);
   --color-onyx: var(--onyx);
   --color-bg-page: var(--bg-page);
+
+  /* Secondary accent palette (per-category flavor) */
+  --color-accent-emerald: var(--accent-emerald);
+  --color-accent-burgundy: var(--accent-burgundy);
+  --color-accent-amber: var(--accent-amber);
+  --color-accent-dusty: var(--accent-dusty);
+  --color-accent-cream: var(--accent-cream);
 }
+
 
 /* MARKETPLACE (default / light) */
 :root {
@@ -62,6 +70,13 @@
   --gold-soft: #e3c25b;
   --gold-deep: #9a7a14;
   --emerald: #10b981;
+
+  /* Secondary accent palette */
+  --accent-emerald: #1B7A5C;
+  --accent-burgundy: #7A2E3E;
+  --accent-amber: #C9832E;
+  --accent-dusty: #3E5C76;
+  --accent-cream: #F4F1E8;
   --ink: #1a1a2e;
   --mute: #5b6270;
   --line: #e5e7eb;
