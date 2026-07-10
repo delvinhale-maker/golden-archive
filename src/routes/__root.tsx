@@ -109,7 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image", content: "https://www.aurumvault.store/og-image.png" },
       { property: "og:image:width", content: "1024" },
       { property: "og:image:height", content: "1024" },
-      { property: "og:image:alt", content: "AurumVault seal — gold crown and keys on a black medallion." },
+      { property: "og:image:alt", content: "AurumVault AV monogram — gold interlocking A and V mark." },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@AurumVault" },
       { name: "twitter:title", content: "AurumVault — Gold Standard Digital Commerce" },
