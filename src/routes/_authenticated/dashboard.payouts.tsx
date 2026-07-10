@@ -423,8 +423,8 @@ function PayoutsPage() {
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <button
                     onClick={async () => {
-                      await saveMethod();
-                      setEditingMethod(false);
+                      const ok = await saveMethod();
+                      if (ok) setEditingMethod(false);
                     }}
                     disabled={savingMethod}
                     className="inline-flex items-center gap-2 rounded-lg bg-navy text-white px-4 py-2 text-sm disabled:opacity-60"
@@ -432,6 +432,7 @@ function PayoutsPage() {
                     {savingMethod ? <Loader2 className="animate-spin" size={14} /> : null}
                     {method ? "Update method" : "Save method"}
                   </button>
+
                   {editingMethod ? (
                     <button
                       onClick={() => {
