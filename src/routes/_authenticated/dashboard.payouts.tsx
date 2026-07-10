@@ -78,6 +78,8 @@ function PayoutsPage() {
   const [selectedMethod, setSelectedMethod] = useState<PayoutMethod["method"]>("bank");
   const [details, setDetails] = useState<Record<string, string>>({});
   const [savingMethod, setSavingMethod] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
 
   const [requestAmount, setRequestAmount] = useState("");
   const [requestNote, setRequestNote] = useState("");
