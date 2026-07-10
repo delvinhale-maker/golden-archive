@@ -293,7 +293,9 @@ export function getProductType(key: string | undefined | null): ProductTypeConfi
 // styling when the category isn't in our type map.
 export function categoryDisplay(category: string | null | undefined): { label: string; accent: string } {
   const c = (category ?? "").toLowerCase();
-  const match = Object.values(PRODUCT_TYPES).find((t) => t.category === c);
+  const match = Object.values(PRODUCT_TYPES).find(
+    (t) => t.category === c,
+  );
   if (match) return { label: match.categoryLabel, accent: match.accent };
   // Legacy top-level categories
   const legacy: Record<string, { label: string; accent: string }> = {
@@ -305,3 +307,17 @@ export function categoryDisplay(category: string | null | undefined): { label: s
   };
   return legacy[c] ?? { label: category || "Digital", accent: "#6B7280" };
 }
+
+// Map a stored category back to the canonical product type key. Used when
+// editing an existing product so the publish flow header, labels, and file
+// restrictions match the original upload type.
+export function getProductTypeKeyByCategory(
+  category: string | null | undefined,
+): ProductTypeKey | undefined {
+  const c = (category ?? "").toLowerCase();
+  const match = (Object.entries(PRODUCT_TYPES) as [ProductTypeKey, ProductTypeConfig][]).find(
+    ([, t]) => t.category === c,
+  );
+  return match?.[0];
+}
+

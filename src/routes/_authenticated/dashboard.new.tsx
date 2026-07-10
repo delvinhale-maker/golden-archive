@@ -17,7 +17,7 @@ import { PublishSuccessScreen as SuccessScreen } from "@/components/marketplace/
 import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
 import { PreviewPagePicker } from "@/components/marketplace/PreviewPagePicker";
 import { useTheme } from "@/lib/theme/ThemeProvider";
-import { getProductType, categoryDisplay, isProductTypeKey, type ProductTypeKey } from "@/lib/product-types";
+import { getProductType, getProductTypeKeyByCategory, categoryDisplay, isProductTypeKey, type ProductTypeKey } from "@/lib/product-types";
 
 const PUBLISH_STEP_ACCENTS: Record<1 | 2 | 3 | 4, string> = {
   1: "#1A6B3A", // Emerald
@@ -93,8 +93,10 @@ const STEPS = [
 type StepNum = 1 | 2 | 3 | 4;
 
 function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType }: { editingId?: string; productTypeKey?: ProductTypeKey; invalidType?: string }) {
-  const typeCfg = getProductType(productTypeKey);
+  const [editProductTypeKey, setEditProductTypeKey] = useState<ProductTypeKey | undefined>(undefined);
+  const typeCfg = getProductType(productTypeKey ?? editProductTypeKey);
   const navigate = useNavigate();
+
   const queryClient = useQueryClient();
   const { user, isAdmin } = useAuth();
   const runReview = useServerFn(reviewProduct);
@@ -394,7 +396,9 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       setDescription(data.description ?? "");
       setLanguage(data.language ?? "English");
       setCategory((data.category as typeof CATEGORIES[number]["value"]) ?? "ebooks");
+      setEditProductTypeKey(getProductTypeKeyByCategory(data.category as string));
       setPrice(((data.price_cents ?? 0) / 100).toString());
+
       setExistingCoverUrl(data.cover_url ?? null);
       setExistingFilePath(data.file_path ?? null);
       const rowPreview = (data as unknown as { preview_pages?: number[] | null }).preview_pages;
