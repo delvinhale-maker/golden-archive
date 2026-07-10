@@ -155,26 +155,29 @@ function PayoutsPage() {
     }
   }
 
-  async function saveMethod() {
+  async function saveMethod(): Promise<boolean> {
     const result = validateDetails(selectedMethod, details);
     if (!result.ok) {
       setFieldErrors(result.errors);
       toast.error("Fix the highlighted fields before saving.");
-      return;
+      return false;
     }
     setFieldErrors({});
     setSavingMethod(true);
     try {
       await saveMethodFn({ data: { method: selectedMethod, details: result.cleaned } });
       setSavedAt(new Date());
-      toast.success("Payout method saved");
+      toast.success(method ? "Payout method updated" : "Payout method saved");
       await refresh();
+      return true;
     } catch (e: any) {
       toast.error(e?.message ?? "Save failed");
+      return false;
     } finally {
       setSavingMethod(false);
     }
   }
+
 
   async function confirmRemoveMethod() {
     if (deleteConfirmText.trim().toUpperCase() !== "REMOVE") {
@@ -420,8 +423,8 @@ function PayoutsPage() {
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <button
                     onClick={async () => {
-                      await saveMethod();
-                      setEditingMethod(false);
+                      const ok = await saveMethod();
+                      if (ok) setEditingMethod(false);
                     }}
                     disabled={savingMethod}
                     className="inline-flex items-center gap-2 rounded-lg bg-navy text-white px-4 py-2 text-sm disabled:opacity-60"
@@ -429,6 +432,7 @@ function PayoutsPage() {
                     {savingMethod ? <Loader2 className="animate-spin" size={14} /> : null}
                     {method ? "Update method" : "Save method"}
                   </button>
+
                   {editingMethod ? (
                     <button
                       onClick={() => {
