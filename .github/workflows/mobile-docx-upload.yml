@@ -49,6 +49,9 @@ jobs:
           - label: ios-safari
             spec: tests/mobile/upload-docx-ios-safari.spec.py
             browser: webkit
+          - label: ios-safari-rejection
+            spec: tests/mobile/upload-docx-ios-safari-rejection.spec.py
+            browser: webkit
 
     steps:
       - name: Checkout
