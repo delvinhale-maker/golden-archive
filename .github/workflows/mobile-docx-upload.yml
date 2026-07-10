@@ -41,6 +41,9 @@ jobs:
           - label: android-empty-mime
             spec: tests/mobile/upload-docx-android-empty-mime.spec.py
             browser: chromium
+          - label: android-rejection
+            spec: tests/mobile/upload-docx-android-rejection.spec.py
+            browser: chromium
           - label: ios-safari
             spec: tests/mobile/upload-docx-ios-safari.spec.py
             browser: webkit
