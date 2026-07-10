@@ -552,6 +552,7 @@ export function FormatPreviewLoading({
 function DownloadExcerptMenu({ title, getText }: { title: string; getText: () => string }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<"txt" | "pdf" | null>(null);
+  const [progress, setProgress] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -567,12 +568,28 @@ function DownloadExcerptMenu({ title, getText }: { title: string; getText: () =>
 
   const downloadTxt = () => {
     setBusy("txt");
+    const toastId = toast.loading("Preparing .txt…");
     try {
+      const text = getText();
+      if (!text || !text.trim()) {
+        toast.error("Nothing to download", {
+          id: toastId,
+          description: "This excerpt is empty.",
+        });
+        return;
+      }
       const body =
-        `${title}\n\nAURUMVAULT PREVIEW — Not for distribution\n\n` + getText().trim() + "\n";
+        `${title}\n\nAURUMVAULT PREVIEW — Not for distribution\n\n` + text.trim() + "\n";
       const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
       triggerBlobDownload(blob, `${filenameBase}-excerpt.txt`);
+      toast.success("Excerpt saved as .txt", { id: toastId });
       setOpen(false);
+    } catch (err) {
+      console.error("[DownloadExcerptMenu] txt", err);
+      toast.error("Couldn't save .txt", {
+        id: toastId,
+        description: "Please try again in a moment.",
+      });
     } finally {
       setBusy(null);
     }
@@ -580,8 +597,43 @@ function DownloadExcerptMenu({ title, getText }: { title: string; getText: () =>
 
   const downloadPdf = async () => {
     setBusy("pdf");
+    setProgress("Preparing PDF…");
+    const toastId = toast.loading("Preparing PDF…", {
+      description: "Formatting your excerpt.",
+    });
     try {
-      const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+      const text = getText();
+      if (!text || !text.trim()) {
+        toast.error("Nothing to download", {
+          id: toastId,
+          description: "This excerpt is empty.",
+        });
+        return;
+      }
+
+      // Hard cap: very long excerpts (>~250k chars) can lock the main thread
+      // inside pdf-lib's synchronous text layout. Bail out with a friendly
+      // suggestion rather than freezing the browser.
+      const HARD_LIMIT = 250_000;
+      if (text.length > HARD_LIMIT) {
+        toast.error("This excerpt is too long for PDF", {
+          id: toastId,
+          description: "Use the .txt download instead — it handles any length.",
+        });
+        return;
+      }
+
+      const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib").catch(
+        (err) => {
+          console.error("[DownloadExcerptMenu] pdf-lib import failed", err);
+          throw new Error("pdf-lib-unavailable");
+        },
+      );
+
+      // Yield to the paint pipeline so the spinner/toast render before the
+      // synchronous layout pass starts.
+      await new Promise((r) => setTimeout(r, 0));
+
       const doc = await PDFDocument.create();
       const font = await doc.embedFont(StandardFonts.TimesRoman);
       const bold = await doc.embedFont(StandardFonts.TimesRomanBold);
@@ -605,17 +657,31 @@ function DownloadExcerptMenu({ title, getText }: { title: string; getText: () =>
       }
       y -= 10;
 
-      const rawText = toWinAnsi(getText());
+      const rawText = toWinAnsi(text);
       const paragraphs = rawText.split(/\n{1,}/);
-      for (const para of paragraphs) {
+      let pageCount = 1;
+      let sinceYield = 0;
+      for (let i = 0; i < paragraphs.length; i++) {
+        const para = paragraphs[i];
         const lines = wrapForFont(para, font, size, maxWidth);
         for (const line of lines) {
           if (y < margin + 40) {
             page = doc.addPage([pageW, pageH]);
+            pageCount += 1;
             y = pageH - margin;
+            setProgress(`Rendering page ${pageCount}…`);
+            toast.loading(`Rendering page ${pageCount}…`, { id: toastId });
           }
           page.drawText(line, { x: margin, y, size, font, color: navy });
           y -= lineH;
+          sinceYield += 1;
+          // Every ~400 lines, yield so the toast/UI can repaint on long
+          // excerpts. Keeps the tab responsive without noticeably slowing
+          // generation.
+          if (sinceYield >= 400) {
+            sinceYield = 0;
+            await new Promise((r) => setTimeout(r, 0));
+          }
         }
         y -= 6;
       }
@@ -630,15 +696,32 @@ function DownloadExcerptMenu({ title, getText }: { title: string; getText: () =>
         });
       }
 
+      toast.loading("Finalising PDF…", { id: toastId });
       const bytes = await doc.save();
       const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
       triggerBlobDownload(blob, `${filenameBase}-excerpt.pdf`);
+      toast.success("Excerpt saved as .pdf", {
+        id: toastId,
+        description: `${pageCount} page${pageCount === 1 ? "" : "s"}.`,
+      });
       setOpen(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("[DownloadExcerptMenu] pdf", err);
-      alert("Could not generate PDF. Please try the .txt download instead.");
+      const message =
+        err?.message === "pdf-lib-unavailable"
+          ? "PDF library failed to load. Check your connection and try again, or use .txt."
+          : "We couldn't build the PDF for this excerpt. Try the .txt download instead.";
+      toast.error("PDF generation failed", {
+        id: toastId,
+        description: message,
+        action: {
+          label: "Save as .txt",
+          onClick: () => downloadTxt(),
+        },
+      });
     } finally {
       setBusy(null);
+      setProgress(null);
     }
   };
 
@@ -649,10 +732,11 @@ function DownloadExcerptMenu({ title, getText }: { title: string; getText: () =>
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1.5 text-[11px] font-bold uppercase tracking-caps text-navy hover:bg-gold/25"
+        disabled={busy !== null}
+        className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1.5 text-[11px] font-bold uppercase tracking-caps text-navy hover:bg-gold/25 disabled:opacity-60"
       >
-        <Download size={13} />
-        Download
+        {busy !== null ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+        {busy === "pdf" && progress ? progress : busy !== null ? "Preparing…" : "Download"}
       </button>
       {open && (
         <div
@@ -667,17 +751,18 @@ function DownloadExcerptMenu({ title, getText }: { title: string; getText: () =>
             className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-navy hover:bg-ink/5 disabled:opacity-50"
           >
             {busy === "txt" ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />}
-            Save as .txt
+            {busy === "txt" ? "Saving…" : "Save as .txt"}
           </button>
           <button
             role="menuitem"
             type="button"
             onClick={downloadPdf}
             disabled={busy !== null}
+            aria-live="polite"
             className="flex w-full items-center gap-2 border-t border-ink/5 px-3 py-2 text-left text-xs font-semibold text-navy hover:bg-ink/5 disabled:opacity-50"
           >
             {busy === "pdf" ? <Loader2 size={12} className="animate-spin" /> : <BookOpen size={12} />}
-            Save as .pdf
+            {busy === "pdf" ? (progress ?? "Building PDF…") : "Save as .pdf"}
           </button>
         </div>
       )}
