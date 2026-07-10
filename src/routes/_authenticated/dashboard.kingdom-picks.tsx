@@ -562,13 +562,6 @@ function KingdomPicksAdminPage() {
                   <span className="inline-flex items-center gap-1.5">
                     <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                     Draft saved {draftSavedAt.toLocaleTimeString()}
-                    <button
-                      type="button"
-                      onClick={() => { discardDraft(); toast.success("Draft discarded"); }}
-                      className="ml-2 underline hover:text-navy"
-                    >
-                      Discard
-                    </button>
                   </span>
                 )}
               </div>
@@ -581,6 +574,15 @@ function KingdomPicksAdminPage() {
                     className="inline-flex items-center gap-1.5 rounded-full border border-navy/20 px-4 py-2 text-sm font-semibold text-navy hover:bg-navy/5"
                   >
                     <Save size={14} /> Save progress
+                  </button>
+                )}
+                {!form.id && draftSavedAt && (
+                  <button
+                    type="button"
+                    onClick={() => { discardDraft(); toast.success("Draft cleared"); }}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 size={14} /> Clear draft
                   </button>
                 )}
                 <button disabled={busy} onClick={save} className="rounded-full px-5 py-2 text-sm font-semibold text-white disabled:opacity-50" style={{ background: "var(--page-accent)" }}>
