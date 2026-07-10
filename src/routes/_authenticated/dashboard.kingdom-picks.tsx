@@ -56,6 +56,7 @@ function KingdomPicksAdminPage() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [refreshingClicks, setRefreshingClicks] = useState(false);
   const [clicksUpdatedAt, setClicksUpdatedAt] = useState<Date | null>(null);
