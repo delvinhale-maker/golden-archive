@@ -74,18 +74,26 @@ const COLLECTIONS: Collection[] = [
 
 function CollectionCard({ c, index }: { c: Collection; index: number }) {
   const isLarge = c.size === "lg";
+  const accent = accentFor(c.accentSlug);
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.55, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+      style={{ ["--cat-accent" as string]: accent } as Record<string, string>}
       className={
         isLarge
-          ? "group relative col-span-2 row-span-2 overflow-hidden rounded-3xl bg-navy shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)] ring-1 ring-white/10"
-          : "group relative overflow-hidden rounded-3xl bg-navy shadow-[0_16px_44px_-18px_rgba(0,0,0,0.5)] ring-1 ring-white/10"
+          ? "group relative col-span-2 row-span-2 overflow-hidden rounded-3xl bg-navy shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)] ring-1 ring-white/10 transition-shadow duration-500 hover:shadow-[0_0_0_1px_var(--cat-accent),0_24px_60px_-20px_var(--cat-accent)]"
+          : "group relative overflow-hidden rounded-3xl bg-navy shadow-[0_16px_44px_-18px_rgba(0,0,0,0.5)] ring-1 ring-white/10 transition-shadow duration-500 hover:shadow-[0_0_0_1px_var(--cat-accent),0_20px_48px_-20px_var(--cat-accent)]"
       }
     >
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[3px]"
+        style={{ background: accent }}
+      />
+
       <Link
         to={c.to}
         search={c.search as never}
