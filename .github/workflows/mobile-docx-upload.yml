@@ -6,10 +6,15 @@ on:
   pull_request:
     branches: ["**"]
 
-# Runs the Android Chrome .docx upload regression suite against a fresh
+# Runs the mobile .docx upload regression suite against a fresh
 # preview build with a real managed-Supabase session injected via
 # LOVABLE_BROWSER_SUPABASE_* secrets, so the authenticated
 # /dashboard/new?type=ai_prompt_pack flow is reachable end-to-end.
+#
+# Cross-browser coverage:
+#   - Android Chrome + octet-stream MIME (generic Android reporting)
+#   - Android Chrome + empty MIME string (Downloads / third-party picker)
+#   - iOS Safari (WebKit) + correct OOXML MIME (Safari happy path)
 #
 # Required GitHub Actions repository secrets:
 #   VITE_SUPABASE_URL
@@ -22,7 +27,7 @@ on:
 
 jobs:
   docx-upload:
-    name: Android .docx upload (${{ matrix.mime }})
+    name: Mobile .docx upload (${{ matrix.label }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -30,10 +35,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - mime: octet-stream
+          - label: android-octet-stream
             spec: tests/mobile/upload-docx-android.spec.py
-          - mime: empty-string
+            browser: chromium
+          - label: android-empty-mime
             spec: tests/mobile/upload-docx-android-empty-mime.spec.py
+            browser: chromium
+          - label: ios-safari
+            spec: tests/mobile/upload-docx-ios-safari.spec.py
+            browser: webkit
 
     steps:
       - name: Checkout
@@ -74,16 +84,16 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-chromium-v1
+          key: ${{ runner.os }}-playwright-${{ matrix.browser }}-v1
 
-      - name: Install Playwright (Python) + Chromium
+      - name: Install Playwright (Python) + ${{ matrix.browser }}
         run: |
           python -m pip install --upgrade pip
           python -m pip install playwright
           if [ "${{ steps.cache-playwright.outputs.cache-hit }}" = "true" ]; then
-            python -m playwright install-deps chromium
+            python -m playwright install-deps ${{ matrix.browser }}
           else
-            python -m playwright install --with-deps chromium
+            python -m playwright install --with-deps ${{ matrix.browser }}
           fi
 
       - name: Cache Vite build
@@ -153,7 +163,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: mobile-docx-${{ matrix.mime }}-artifacts
+          name: mobile-docx-${{ matrix.label }}-artifacts
           path: |
             tests/mobile/screenshots/**
             /tmp/dev-server.log
