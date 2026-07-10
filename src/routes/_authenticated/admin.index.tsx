@@ -164,6 +164,17 @@ function AdminPage() {
       <main className="mx-auto max-w-6xl px-4 md:px-8 py-8 space-y-6">
         <h1 className="font-display text-3xl md:text-4xl text-navy">Approval queue</h1>
 
+        <Link
+          to="/dashboard/kingdom-picks"
+          className="flex items-center justify-between gap-4 rounded-xl border border-gold/40 bg-gold/10 hover:bg-gold/15 transition-colors px-4 py-3"
+        >
+          <div>
+            <div className="font-display text-navy text-lg">Curated Products (Kingdom Picks)</div>
+            <div className="text-sm text-ink/70">Upload and manage Amazon-affiliated products shown in the Curated Picks row.</div>
+          </div>
+          <span className="text-gold-ink font-medium text-sm shrink-0">Open uploader →</span>
+        </Link>
+
         <SlugIntegrityPanel />
 
 
