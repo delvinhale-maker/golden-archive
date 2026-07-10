@@ -203,12 +203,19 @@ export function CategoryGrid13() {
           ).map((c) => {
             const count = counts[c.slug] ?? 0;
             const blurb = CATEGORY_BLURBS[c.slug] ?? "";
+            const accent = accentFor(c.slug);
             return (
               <Link
                 key={c.slug}
                 to="/products"
                 search={{ category: c.slug } as never}
-                className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.045] to-white/[0.015] p-6 transition-all duration-500 hover:-translate-y-1 hover:border-gold/50 hover:from-white/[0.08] hover:to-white/[0.03] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#08101D]"
+                style={
+                  {
+                    borderTopColor: accent,
+                    "--cat-accent": accent,
+                  } as React.CSSProperties
+                }
+                className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 border-t-[3px] bg-gradient-to-b from-white/[0.045] to-white/[0.015] p-6 transition-all duration-500 hover:-translate-y-1 hover:from-white/[0.08] hover:to-white/[0.03] hover:shadow-[0_0_0_1px_var(--cat-accent),0_18px_40px_-24px_var(--cat-accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#08101D]"
               >
                 {/* corner filigree */}
                 <span
