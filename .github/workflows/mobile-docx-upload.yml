@@ -163,7 +163,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: mobile-docx-${{ matrix.mime }}-artifacts
+          name: mobile-docx-${{ matrix.label }}-artifacts
           path: |
             tests/mobile/screenshots/**
             /tmp/dev-server.log
