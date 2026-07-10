@@ -14,7 +14,9 @@ on:
 # Cross-browser coverage:
 #   - Android Chrome + octet-stream MIME (generic Android reporting)
 #   - Android Chrome + empty MIME string (Downloads / third-party picker)
+#   - Android Chrome + unsupported file type (rejection message)
 #   - iOS Safari (WebKit) + correct OOXML MIME (Safari happy path)
+#   - iOS Safari (WebKit) + unsupported file type (rejection message)
 #
 # Required GitHub Actions repository secrets:
 #   VITE_SUPABASE_URL
@@ -46,6 +48,9 @@ jobs:
             browser: chromium
           - label: ios-safari
             spec: tests/mobile/upload-docx-ios-safari.spec.py
+            browser: webkit
+          - label: ios-safari-rejection
+            spec: tests/mobile/upload-docx-ios-safari-rejection.spec.py
             browser: webkit
 
     steps:
