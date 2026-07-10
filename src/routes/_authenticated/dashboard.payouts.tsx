@@ -70,6 +70,15 @@ function validateDetails(method: PayoutMethod["method"], details: Record<string,
   return { ok: true, cleaned };
 }
 
+function maskDetail(key: string, value: string): string {
+  const k = key.toLowerCase();
+  const sensitive = k.includes("account_number") || k.includes("routing") || k.includes("iban") || k.includes("swift");
+  if (sensitive && value.length > 4) {
+    return "•".repeat(Math.max(4, value.length - 4)) + value.slice(-4);
+  }
+  return value;
+}
+
 function PayoutsPage() {
   const [summary, setSummary] = useState<MyEarningsSummary | null>(null);
   const [method, setMethod] = useState<PayoutMethod | null>(null);
