@@ -1308,7 +1308,7 @@ function StepDetails(p: {
 }) {
   return (
     <div className="space-y-5">
-      <h2 className="font-display text-2xl text-navy">Book details</h2>
+      <h2 className="font-display text-2xl text-navy">{p.isEbook ? "Book details" : `${p.productLabel ?? "Product"} details`}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Title *"><input className="inp" value={p.title} onChange={(e) => p.setTitle(e.target.value)} placeholder="e.g. The Stewardship Codex" /></Field>
         <Field label="Subtitle"><input className="inp" value={p.subtitle} onChange={(e) => p.setSubtitle(e.target.value)} placeholder="A field guide" /></Field>
