@@ -17,7 +17,7 @@ import { PublishSuccessScreen as SuccessScreen } from "@/components/marketplace/
 import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
 import { PreviewPagePicker } from "@/components/marketplace/PreviewPagePicker";
 import { useTheme } from "@/lib/theme/ThemeProvider";
-import { getProductType, categoryDisplay, isProductTypeKey, type ProductTypeKey } from "@/lib/product-types";
+import { getProductType, getProductTypeKeyByCategory, categoryDisplay, isProductTypeKey, type ProductTypeKey } from "@/lib/product-types";
 
 const PUBLISH_STEP_ACCENTS: Record<1 | 2 | 3 | 4, string> = {
   1: "#1A6B3A", // Emerald
