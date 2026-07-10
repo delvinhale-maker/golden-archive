@@ -1970,32 +1970,36 @@ function CoverInput({ file, preview, onFile, acceptedHint, onZoom, uploaded }: {
 }
 
 function FileInput({ file, onFile, accept, hint, acceptedHint }: { file: File | null; onFile: (f: File | null) => void; accept: string; hint: string; acceptedHint: string }) {
-  const ref = useRef<HTMLInputElement>(null);
   const { isOver, handlers } = useDropZone(onFile);
-  const openPicker = () => {
-    const el = ref.current;
-    if (!el) return;
-    el.value = "";
-    el.click();
-  };
+  // Use a native <label> wrapping the <input> so tapping the drop-zone
+  // opens the OS file picker from a real user gesture. Programmatic
+  // input.click() is unreliable on Android Chrome Custom Tabs (opened from
+  // another app / social browsers) — the picker may return but the tab
+  // closes back to its parent, appearing as if upload silently failed.
   return (
     <div>
-      <input
-        ref={ref}
-        type="file"
-        accept={accept}
-        style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", overflow: "hidden" }}
-        tabIndex={-1}
-        aria-hidden="true"
-        onChange={(e) => onFile(e.target.files?.[0] ?? null)}
-      />
-      <button type="button" onClick={openPicker} {...handlers}
+      <label
+        {...handlers}
         aria-label="Upload manuscript file"
-        className={`w-full min-h-[160px] flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-7 text-center transition active:scale-[0.99] ${isOver ? "border-gold bg-gold/10" : file ? "border-emerald-300 bg-emerald-50/40" : "border-ink/20 bg-paper hover:border-navy/30"}`}>
-        {file ? <FileText size={26} className="text-emerald-700" /> : <Plus size={26} className={isOver ? "text-gold-ink" : "text-mute"} />}
-        <span className="text-sm font-medium text-ink/80">{file ? file.name : isOver ? "Drop file here" : hint}</span>
-        <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
-      </button>
+        className={`relative block w-full min-h-[160px] cursor-pointer rounded-xl border-2 border-dashed px-4 py-7 text-center transition active:scale-[0.99] ${isOver ? "border-gold bg-gold/10" : file ? "border-emerald-300 bg-emerald-50/40" : "border-ink/20 bg-paper hover:border-navy/30"}`}
+      >
+        <div className="flex flex-col items-center justify-center gap-2">
+          {file ? <FileText size={26} className="text-emerald-700" /> : <Plus size={26} className={isOver ? "text-gold-ink" : "text-mute"} />}
+          <span className="text-sm font-medium text-ink/80">{file ? file.name : isOver ? "Drop file here" : hint}</span>
+          <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
+        </div>
+        <input
+          type="file"
+          accept={accept}
+          className="sr-only"
+          onChange={(e) => {
+            const f = e.target.files?.[0] ?? null;
+            // Reset so re-picking the same file re-fires onChange.
+            e.target.value = "";
+            onFile(f);
+          }}
+        />
+      </label>
     </div>
   );
 }
