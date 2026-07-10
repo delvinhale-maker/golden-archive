@@ -1,0 +1,167 @@
+name: Mobile Docx Upload
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+# Runs the Android Chrome .docx upload regression suite against a fresh
+# preview build with a real managed-Supabase session injected via
+# LOVABLE_BROWSER_SUPABASE_* secrets, so the authenticated
+# /dashboard/new?type=ai_prompt_pack flow is reachable end-to-end.
+#
+# Required GitHub Actions repository secrets:
+#   VITE_SUPABASE_URL
+#   VITE_SUPABASE_PUBLISHABLE_KEY
+#   VITE_SUPABASE_PROJECT_ID
+#   LOVABLE_BROWSER_SUPABASE_STORAGE_KEY
+#   LOVABLE_BROWSER_SUPABASE_SESSION_JSON
+#   LOVABLE_BROWSER_SUPABASE_COOKIES_JSON   (optional; SSR-cookie path)
+#   LOVABLE_BROWSER_SUPABASE_ACCESS_TOKEN   (optional)
+
+jobs:
+  docx-upload:
+    name: Android .docx upload (${{ matrix.mime }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mime: octet-stream
+            spec: tests/mobile/upload-docx-android.spec.py
+          - mime: empty-string
+            spec: tests/mobile/upload-docx-android-empty-mime.spec.py
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Cache Bun global store
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-store-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-store-
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json') }}
+
+      - name: Install JS dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        id: cache-playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-chromium-v1
+
+      - name: Install Playwright (Python) + Chromium
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright
+          if [ "${{ steps.cache-playwright.outputs.cache-hit }}" = "true" ]; then
+            python -m playwright install-deps chromium
+          else
+            python -m playwright install --with-deps chromium
+          fi
+
+      - name: Cache Vite build
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules/.vite
+            .vinxi
+            .output
+            .tanstack
+          key: ${{ runner.os }}-vite-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json', 'vite.config.*') }}-${{ hashFiles('src/**', 'app/**') }}
+          restore-keys: |
+            ${{ runner.os }}-vite-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json', 'vite.config.*') }}-
+            ${{ runner.os }}-vite-
+
+      - name: Build app
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+
+      - name: Verify browser-auth secrets are present
+        env:
+          STORAGE_KEY: ${{ secrets.LOVABLE_BROWSER_SUPABASE_STORAGE_KEY }}
+          SESSION_JSON: ${{ secrets.LOVABLE_BROWSER_SUPABASE_SESSION_JSON }}
+        run: |
+          if [ -z "$STORAGE_KEY" ] || [ -z "$SESSION_JSON" ]; then
+            echo "Missing LOVABLE_BROWSER_SUPABASE_STORAGE_KEY / _SESSION_JSON."
+            echo "Configure them in repo Settings → Secrets → Actions."
+            exit 1
+          fi
+          echo "Browser-auth secrets present."
+
+      - name: Start dev server
+        run: |
+          bun run dev > /tmp/dev-server.log 2>&1 &
+          echo $! > /tmp/dev-server.pid
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+
+      - name: Wait for server (http://localhost:8080)
+        run: |
+          for i in {1..60}; do
+            if curl -sSf http://localhost:8080 > /dev/null; then
+              echo "Server up after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server did not start in time"
+          tail -n 200 /tmp/dev-server.log
+          exit 1
+
+      - name: Run ${{ matrix.spec }}
+        env:
+          LOVABLE_BROWSER_SUPABASE_STORAGE_KEY: ${{ secrets.LOVABLE_BROWSER_SUPABASE_STORAGE_KEY }}
+          LOVABLE_BROWSER_SUPABASE_SESSION_JSON: ${{ secrets.LOVABLE_BROWSER_SUPABASE_SESSION_JSON }}
+          LOVABLE_BROWSER_SUPABASE_COOKIES_JSON: ${{ secrets.LOVABLE_BROWSER_SUPABASE_COOKIES_JSON }}
+          LOVABLE_BROWSER_SUPABASE_ACCESS_TOKEN: ${{ secrets.LOVABLE_BROWSER_SUPABASE_ACCESS_TOKEN }}
+          LOVABLE_BROWSER_AUTH_STATUS: injected
+        run: python ${{ matrix.spec }}
+
+      - name: Upload artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-docx-${{ matrix.mime }}-artifacts
+          path: |
+            tests/mobile/screenshots/**
+            /tmp/dev-server.log
+          if-no-files-found: ignore
+
+      - name: Stop dev server
+        if: always()
+        run: |
+          if [ -f /tmp/dev-server.pid ]; then
+            kill "$(cat /tmp/dev-server.pid)" || true
+          fi
