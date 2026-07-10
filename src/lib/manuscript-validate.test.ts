@@ -66,7 +66,7 @@ describe("validateManuscriptFile (docx) — MIME regression", () => {
   for (const { label, type } of cases) {
     it(`accepts a valid .docx regardless of browser-reported MIME (${label})`, async () => {
       const bytes = makeDocxBytes();
-      const file = new File([bytes], "manuscript.docx", { type });
+      const file = new File([bytes.buffer as ArrayBuffer], "manuscript.docx", { type });
       const res = await validateManuscriptFile(file);
       expect(res.ok).toBe(true);
       if (res.ok) expect(res.ext).toBe("docx");
