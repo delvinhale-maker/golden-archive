@@ -1032,7 +1032,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       )}
 
       <div className="flex items-center justify-between gap-3">
-        <StepperBar step={step} />
+        <StepperBar step={step} step1Label={typeCfg.isEbook ? "Book Details" : `${typeCfg.label} Details`} />
         <div aria-live="polite" className="hidden sm:flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-mute min-h-[20px]">
           {(["metadata", "cover", "manuscript"] as const).map((kind) => {
             const err = autosaveErrors[kind];
@@ -1084,6 +1084,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
               edition={edition} setEdition={setEdition}
               whatsIncluded={whatsIncluded} setWhatsIncluded={setWhatsIncluded}
               isEbook={typeCfg.isEbook}
+              productLabel={typeCfg.label}
               description={description} setDescription={setDescription}
               language={language} setLanguage={setLanguage}
               category={category} setCategory={setCategory}
@@ -1255,7 +1256,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
 
 /* ---------- Stepper ---------- */
 
-function StepperBar({ step }: { step: StepNum }) {
+function StepperBar({ step, step1Label = "Book Details" }: { step: StepNum; step1Label?: string }) {
   return (
     <ol className="mt-6 grid grid-cols-4 gap-2">
       {STEPS.map((s) => {
@@ -1278,7 +1279,7 @@ function StepperBar({ step }: { step: StepNum }) {
               >
                 {done ? <Check size={12} /> : s.n}
               </span>
-              <span className={`text-xs font-medium ${active || done ? "text-navy" : "text-mute"}`}>{s.title}</span>
+              <span className={`text-xs font-medium ${active || done ? "text-navy" : "text-mute"}`}>{s.n === 1 ? step1Label : s.title}</span>
             </div>
           </li>
         );
@@ -1297,6 +1298,7 @@ function StepDetails(p: {
   edition: string; setEdition: (v: string) => void;
   whatsIncluded: string; setWhatsIncluded: (v: string) => void;
   isEbook: boolean;
+  productLabel?: string;
   description: string; setDescription: (v: string) => void;
   language: string; setLanguage: (v: string) => void;
   category: typeof CATEGORIES[number]["value"]; setCategory: (v: typeof CATEGORIES[number]["value"]) => void;
@@ -1306,7 +1308,7 @@ function StepDetails(p: {
 }) {
   return (
     <div className="space-y-5">
-      <h2 className="font-display text-2xl text-navy">Book details</h2>
+      <h2 className="font-display text-2xl text-navy">{p.isEbook ? "Book details" : `${p.productLabel ?? "Product"} details`}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Title *"><input className="inp" value={p.title} onChange={(e) => p.setTitle(e.target.value)} placeholder="e.g. The Stewardship Codex" /></Field>
         <Field label="Subtitle"><input className="inp" value={p.subtitle} onChange={(e) => p.setSubtitle(e.target.value)} placeholder="A field guide" /></Field>
@@ -1330,7 +1332,7 @@ function StepDetails(p: {
           value={p.description}
           maxLength={DESC_MAX}
           onChange={(e) => p.setDescription(e.target.value.slice(0, DESC_MAX))}
-          placeholder="What's in this book? Who is it for?"
+          placeholder={p.isEbook ? "What's in this book? Who is it for?" : `What's in this ${(p.productLabel ?? "product").toLowerCase()}? Who is it for?`}
         />
         <DescriptionCounter value={p.description} />
       </Field>
