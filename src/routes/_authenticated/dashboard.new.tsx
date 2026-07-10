@@ -1278,7 +1278,7 @@ function StepperBar({ step, step1Label = "Book Details" }: { step: StepNum; step
               >
                 {done ? <Check size={12} /> : s.n}
               </span>
-              <span className={`text-xs font-medium ${active || done ? "text-navy" : "text-mute"}`}>{s.title}</span>
+              <span className={`text-xs font-medium ${active || done ? "text-navy" : "text-mute"}`}>{s.n === 1 ? step1Label : s.title}</span>
             </div>
           </li>
         );
