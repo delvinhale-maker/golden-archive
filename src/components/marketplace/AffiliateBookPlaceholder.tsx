@@ -1,7 +1,7 @@
 /**
  * Navy/gold branded placeholder shown in place of stock imagery
- * for affiliate product cards. Renders the book title centered
- * over a subtle radial-gold background on deep navy.
+ * for affiliate product cards. Renders a book-cover silhouette
+ * with the title centered over a subtle radial-gold background.
  */
 export function AffiliateBookPlaceholder({
   title,
@@ -22,6 +22,17 @@ export function AffiliateBookPlaceholder({
       }}
       aria-label={title}
     >
+      {/* Book-cover silhouette watermark for visual parity with real covers */}
+      <svg
+        aria-hidden
+        viewBox="0 0 100 130"
+        className="absolute inset-0 h-full w-full opacity-[0.10]"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <rect x="22" y="14" width="56" height="102" rx="3" fill="none" stroke="#c9a84c" strokeWidth="1.2" />
+        <line x1="30" y1="26" x2="70" y2="26" stroke="#c9a84c" strokeWidth="0.8" />
+        <line x1="30" y1="104" x2="70" y2="104" stroke="#c9a84c" strokeWidth="0.8" />
+      </svg>
       <div
         aria-hidden
         className="pointer-events-none absolute inset-3 rounded-md border"
@@ -43,3 +54,4 @@ export function isPlaceholderImage(url: string | null | undefined): boolean {
   if (url.includes("unsplash.com")) return true;
   return false;
 }
+

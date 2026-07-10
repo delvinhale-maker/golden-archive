@@ -91,7 +91,7 @@ export const CATEGORIES: CategoryDef[] = [
     ink: "#FFFFFF",
     icon: "🎓",
     blurb:
-      "Faith-forward worksheets, activity packs, and unit studies for parents raising sharp, kind kids.",
+      "Worksheets, activity packs, and unit studies for raising sharp, kind kids.",
     gradient: grad("#062A31", "#0A4E58", "#0D7A8A"),
     subs: ["Preschool", "Elementary", "Middle", "Bible", "Math", "Reading"],
   },
