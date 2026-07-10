@@ -110,7 +110,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
           )}
         </div>
 
-        {product.reviewCount > 0 ? (
+        {product.reviewCount > 0 && (
           <div
             className="mt-2 flex items-center gap-1.5 text-[12px] text-mute"
             aria-label={`Rated ${product.rating.toFixed(1)} out of 5 from ${product.reviewCount} review${product.reviewCount === 1 ? "" : "s"}`}
@@ -128,8 +128,6 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             <span className="tabular-nums">{product.rating.toFixed(1)}</span>
             <span>({product.reviewCount})</span>
           </div>
-        ) : (
-          <div className="mt-2 text-[11px] italic text-mute">No reviews yet</div>
         )}
         <div className="mt-3 flex items-baseline gap-2">
           <span
