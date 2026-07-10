@@ -199,7 +199,7 @@ export function CategoryGrid13() {
                 "business_templates",
                 "ai_prompt_packs",
                 "prompt_packs",
-              ].includes(c.slug),
+              ].includes(c.slug) && (counts[c.slug] ?? 0) > 0,
           ).map((c) => {
             const count = counts[c.slug] ?? 0;
             const blurb = CATEGORY_BLURBS[c.slug] ?? "";
