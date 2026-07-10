@@ -56,7 +56,7 @@ const COLLECTIONS: Collection[] = [
   },
   {
     title: "Faith & Growth",
-    kicker: "Inner Kingdom",
+    kicker: "Personal Growth",
     blurb: "Devotionals, studies, and reflections for a rooted life.",
     image: faithImg,
     to: "/products",
