@@ -1084,6 +1084,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
               edition={edition} setEdition={setEdition}
               whatsIncluded={whatsIncluded} setWhatsIncluded={setWhatsIncluded}
               isEbook={typeCfg.isEbook}
+              productLabel={typeCfg.label}
               description={description} setDescription={setDescription}
               language={language} setLanguage={setLanguage}
               category={category} setCategory={setCategory}
