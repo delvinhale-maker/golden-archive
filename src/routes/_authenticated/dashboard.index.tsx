@@ -314,12 +314,18 @@ function BookshelfPage() {
           <p className="mt-1 text-mute">Manage your published and draft titles.</p>
         </div>
         {canPublish && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Link
               to="/dashboard/storefront"
               className="inline-flex items-center gap-2 rounded-full font-medium px-4 py-2.5 bg-white border border-ink/15 text-navy hover:border-gold/40"
             >
               Storefront
+            </Link>
+            <Link
+              to="/dashboard/payouts"
+              className="inline-flex items-center gap-2 rounded-full font-medium px-4 py-2.5 bg-white border border-ink/15 text-navy hover:border-gold/40"
+            >
+              <DollarSign size={16} /> Payouts
             </Link>
             <Link
               to="/dashboard/new"
@@ -328,6 +334,7 @@ function BookshelfPage() {
               <Plus size={16} /> Create New Title
             </Link>
           </div>
+
         )}
       </div>
 
