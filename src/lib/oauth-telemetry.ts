@@ -104,8 +104,12 @@ const REASON_TO_CODE: Record<OAuthFailureReason, string> = {
   cancelled: "USER_CANCELLED",
   network: "NETWORK_ERROR",
   noSession: "NO_SESSION_RETURNED",
+  cookiesBlocked: "COOKIES_BLOCKED",
+  storageBlocked: "STORAGE_BLOCKED",
+  redirectMismatch: "REDIRECT_MISMATCH",
   unknown: "UNKNOWN_ERROR",
 };
+
 
 const SENSITIVE = /(token|secret|password|email|authorization|cookie|code=|id_token)/i;
 
