@@ -74,7 +74,10 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [diagnostics, setDiagnostics] = useState<DiagnosticsResult | null>(null);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
   const explicitRedirect = redirect ?? null;
+
 
   useEffect(() => {
     let cancelled = false;
