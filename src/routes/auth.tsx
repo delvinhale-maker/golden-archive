@@ -76,6 +76,26 @@ function AuthPage() {
   const [resetSent, setResetSent] = useState(false);
   const [diagnostics, setDiagnostics] = useState<DiagnosticsResult | null>(null);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [embedded, setEmbedded] = useState(false);
+  const [fetchFailed, setFetchFailed] = useState(false);
+
+  useEffect(() => {
+    try {
+      setEmbedded(window.top !== window.self);
+    } catch {
+      // cross-origin access throws → we are embedded
+      setEmbedded(true);
+    }
+  }, []);
+
+  function openInNewTab() {
+    try {
+      const url = window.location.href;
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch {
+      /* popup blocked — user can right-click the link fallback */
+    }
+  }
   const explicitRedirect = redirect ?? null;
 
 
@@ -168,7 +188,9 @@ function AuthPage() {
         navigate({ to: await resolveRedirectForSession(explicitRedirect) });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      if (/failed to fetch|network|load failed/i.test(msg)) setFetchFailed(true);
+      toast.error(msg);
     } finally {
       setBusy(false);
     }
@@ -469,6 +491,28 @@ function AuthPage() {
               {message}
             </div>
           )}
+
+          {(embedded || fetchFailed) && (
+            <div className="mt-4 rounded-lg border border-navy/20 bg-navy/5 px-4 py-3 text-sm text-navy">
+              <p className="font-medium">
+                {fetchFailed
+                  ? "Sign-in couldn't reach the server from this preview."
+                  : "You're viewing this inside an embedded preview."}
+              </p>
+              <p className="mt-1 text-mute">
+                Embedded previews can block cookies and auth requests. Open sign-in in a new tab to complete it reliably.
+              </p>
+              <button
+                type="button"
+                onClick={openInNewTab}
+                className="mt-3 inline-flex h-9 items-center justify-center rounded-full bg-navy px-4 text-xs font-medium text-white hover:bg-navy/90"
+              >
+                Open sign-in in a new tab
+              </button>
+            </div>
+          )}
+
+
 
           <div className="mt-6 flex border-b border-ink/10">
             {tabs.map((tab) => (
