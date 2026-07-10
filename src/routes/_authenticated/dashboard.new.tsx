@@ -1298,6 +1298,7 @@ function StepDetails(p: {
   edition: string; setEdition: (v: string) => void;
   whatsIncluded: string; setWhatsIncluded: (v: string) => void;
   isEbook: boolean;
+  productLabel?: string;
   description: string; setDescription: (v: string) => void;
   language: string; setLanguage: (v: string) => void;
   category: typeof CATEGORIES[number]["value"]; setCategory: (v: typeof CATEGORIES[number]["value"]) => void;
