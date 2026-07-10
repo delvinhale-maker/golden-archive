@@ -76,6 +76,26 @@ function AuthPage() {
   const [resetSent, setResetSent] = useState(false);
   const [diagnostics, setDiagnostics] = useState<DiagnosticsResult | null>(null);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [embedded, setEmbedded] = useState(false);
+  const [fetchFailed, setFetchFailed] = useState(false);
+
+  useEffect(() => {
+    try {
+      setEmbedded(window.top !== window.self);
+    } catch {
+      // cross-origin access throws → we are embedded
+      setEmbedded(true);
+    }
+  }, []);
+
+  function openInNewTab() {
+    try {
+      const url = window.location.href;
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch {
+      /* popup blocked — user can right-click the link fallback */
+    }
+  }
   const explicitRedirect = redirect ?? null;
 
 
