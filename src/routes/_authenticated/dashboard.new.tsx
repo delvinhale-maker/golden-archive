@@ -1332,7 +1332,7 @@ function StepDetails(p: {
           value={p.description}
           maxLength={DESC_MAX}
           onChange={(e) => p.setDescription(e.target.value.slice(0, DESC_MAX))}
-          placeholder="What's in this book? Who is it for?"
+          placeholder={p.isEbook ? "What's in this book? Who is it for?" : `What's in this ${(p.productLabel ?? "product").toLowerCase()}? Who is it for?`}
         />
         <DescriptionCounter value={p.description} />
       </Field>
