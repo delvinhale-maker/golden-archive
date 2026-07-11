@@ -1516,6 +1516,8 @@ function StepContent(p: {
         </p>
         <PreviewPagePicker
           filePath={p.uploadedFilePath ?? p.existingFilePath}
+          fileName={p.uploadedFileMeta?.name ?? p.file?.name ?? null}
+          fileSize={p.uploadedFileMeta?.size ?? p.file?.size ?? null}
           value={p.previewPages}
           onChange={p.setPreviewPages}
           productTypeKey={p.productTypeKey}
