@@ -510,6 +510,35 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     return base;
   }
 
+  function mimeForUploadExt(ext?: string): string | undefined {
+    switch ((ext ?? "").toLowerCase()) {
+      case "pdf": return "application/pdf";
+      case "epub": return "application/epub+zip";
+      case "docx": return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      case "xlsx": return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      case "txt": return "text/plain";
+      case "json": return "application/json";
+      case "csv": return "text/csv";
+      case "zip": return "application/zip";
+      case "mp4": return "video/mp4";
+      case "jpg":
+      case "jpeg": return "image/jpeg";
+      case "png": return "image/png";
+      default: return undefined;
+    }
+  }
+
+  function normalizeUploadFile(f: File, ext?: string): File {
+    const mime = mimeForUploadExt(ext);
+    const safeName = safeStoredFileName(f, ext);
+    // Android/Chrome document pickers often hand back a valid PDF as
+    // application/octet-stream or with no MIME. Storage buckets can reject
+    // those even after byte validation passes, so send the inferred MIME.
+    if (!mime) return f.name === safeName ? f : new File([f], safeName, { type: f.type });
+    if (f.type === mime && f.name === safeName) return f;
+    return new File([f], safeName, { type: mime, lastModified: f.lastModified });
+  }
+
   function handleCoverChange(f: File | null) {
     setCoverError(null);
     setCoverUploadError(null);
@@ -585,9 +614,10 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       toast.error("Upload rejected — couldn't read file", { description: msg, duration: 8000 });
       return setFileError(msg);
     }
-    setFile(f);
+    const uploadFile = normalizeUploadFile(f, ext);
+    setFile(uploadFile);
     // Kick off the upload immediately so each zone operates independently.
-    void uploadManuscript(f, ext);
+    void uploadManuscript(uploadFile, ext);
   }
 
   // Upload helpers — independent per-zone uploads triggered on file select.
@@ -606,6 +636,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       return `[TIMEOUT] ${label} timed out${statusStr}. The upload took too long — tap Retry, ideally on a stronger connection.`;
     if (/payload|too large|413/i.test(raw))
       return `[SERVER_413] ${label} was rejected by the server as too large${statusStr}. Try a smaller file.`;
+    if (/mime|content.?type|not supported|unsupported media/i.test(raw))
+      return `[STORAGE_MIME] ${label} bytes validated, but storage rejected the browser-reported file type${statusStr}. Retry will resend it with the detected file type.`;
     if (/unauthor|401|403|jwt|expired/i.test(raw))
       return `[AUTH_LOST] ${label} was rejected — your session expired or was invalidated${statusStr}. Sign out and back in, then retry.`;
     if (/duplicate|already exists|conflict|409/i.test(raw))
@@ -672,16 +704,20 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
         try {
           const ts = Date.now();
           const ext = extHint ?? await inferAllowedUploadExt(f);
-          const path = `${user.id}/${ts}-${safeStoredFileName(f, ext)}`;
+          const uploadFile = normalizeUploadFile(f, ext);
+          const path = `${user.id}/${ts}-${uploadFile.name}`;
           phase = "storage";
-          const up = await supabase.storage.from("product-files").upload(path, f, { upsert: false });
+          const up = await supabase.storage.from("product-files").upload(path, uploadFile, {
+            upsert: false,
+            contentType: uploadFile.type || mimeForUploadExt(ext),
+          });
           if (up.error) throw up.error;
           setUploadedFilePath(path);
-          setUploadedFileMeta({ name: f.name, size: f.size });
+          setUploadedFileMeta({ name: uploadFile.name, size: uploadFile.size });
           setFileProgress(100);
           setFileUploadError(null);
           phase = "draft";
-          await autosaveDraftToDB({ filePath: path, fileSize: f.size, silent: true });
+          await autosaveDraftToDB({ filePath: path, fileSize: uploadFile.size, silent: true });
           toast.success("Manuscript saved to your draft ✓", { duration: 3000 });
           return;
         } catch (e) {
@@ -882,14 +918,20 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       setUploadProgress(40);
 
       if (willUploadFile && file) {
-        const newFilePath = `${user.id}/${ts}-${safeStoredFileName(file, await inferAllowedUploadExt(file))}`;
+        const ext = await inferAllowedUploadExt(file);
+        const uploadFile = normalizeUploadFile(file, ext);
+        const newFilePath = `${user.id}/${ts}-${uploadFile.name}`;
         const t = setInterval(() => setUploadProgress((p) => (p < 90 ? p + 3 : p)), 400);
         try {
-          const fileUp = await supabase.storage.from("product-files").upload(newFilePath, file, { upsert: false });
+          const fileUp = await supabase.storage.from("product-files").upload(newFilePath, uploadFile, {
+            upsert: false,
+            contentType: uploadFile.type || mimeForUploadExt(ext),
+          });
           if (fileUp.error) throw fileUp.error;
           storedFilePath = newFilePath;
-          fileSize = file.size;
+          fileSize = uploadFile.size;
           setUploadedFilePath(newFilePath);
+          setUploadedFileMeta({ name: uploadFile.name, size: uploadFile.size });
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Manuscript upload failed. Check your connection and try again.";
           setFileUploadError(msg);
