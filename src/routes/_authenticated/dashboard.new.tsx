@@ -528,28 +528,52 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     setUploadedFileMeta(null);
     setFileProgress(0);
     if (!f) { setFile(null); return; }
-    if (f.size === 0) return setFileError("File is empty.");
+    if (f.size === 0) {
+      const msg = "File is empty.";
+      toast.error("Upload rejected", { description: msg });
+      return setFileError(msg);
+    }
     const ext = await inferAllowedUploadExt(f);
-    if (!typeCfg.fileExts.includes(ext)) return setFileError(`Unsupported .${ext}. Accepted: ${typeCfg.acceptedHint}.`);
+    if (!typeCfg.fileExts.includes(ext)) {
+      const nameExt = f.name.toLowerCase().split(".").pop() ?? "";
+      const isPdfType = typeCfg.fileExts.includes("pdf");
+      const looksMissingExt = isPdfType && (!nameExt || nameExt === f.name.toLowerCase() || !nameExt.match(/^[a-z0-9]{2,4}$/));
+      const msg = looksMissingExt
+        ? `We couldn't detect a valid PDF header in "${f.name}". Make sure you're picking the .pdf file itself (not a .zip, screenshot, or shortcut).`
+        : `Unsupported .${ext || "file"}. Accepted: ${typeCfg.acceptedHint}.`;
+      toast.error("Upload rejected", { description: msg, duration: 6000 });
+      return setFileError(msg);
+    }
     // NOTE: We intentionally do NOT enforce f.type against fileMimes here.
     // Mobile browsers (Android Chrome especially) frequently report .docx as
     // "application/octet-stream" or an empty string, which caused valid Word
     // documents to be rejected on the AI Prompt Pack upload. The extension
     // check above plus the structural validation below (for ebooks) is a
     // safer, more reliable signal than the browser-supplied MIME.
-    if (f.size > MAX_FILE_MB * 1024 * 1024) return setFileError(`File exceeds ${MAX_FILE_MB} MB limit.`);
+    if (f.size > MAX_FILE_MB * 1024 * 1024) {
+      const msg = `File exceeds ${MAX_FILE_MB} MB limit (yours is ${(f.size / 1024 / 1024).toFixed(1)} MB).`;
+      toast.error("Upload rejected", { description: msg, duration: 6000 });
+      return setFileError(msg);
+    }
     // Structural validation is only meaningful for ebook manuscripts (pdf/epub/docx).
     // For other product types, skip the deep validation to allow zip/mp3/mp4/etc.
     try {
       if (typeCfg.isEbook) {
         const { validateManuscriptFile } = await import("@/lib/manuscript-validate");
         const res = await validateManuscriptFile(f);
-        if (!res.ok) return setFileError(res.reason);
+        if (!res.ok) {
+          const title = ext === "pdf" ? "PDF couldn't be validated" : "Manuscript couldn't be validated";
+          toast.error(title, {
+            description: `${res.reason} If the file opens correctly on your device, re-save or re-export it and try again.`,
+            duration: 8000,
+          });
+          return setFileError(res.reason);
+        }
       }
     } catch (e) {
-      return setFileError(
-        `Couldn't read that file (${(e as Error).message}). Re-save from the original app and try again.`,
-      );
+      const msg = `Couldn't read that file (${(e as Error).message}). Re-save from the original app and try again.`;
+      toast.error("Upload rejected", { description: msg, duration: 8000 });
+      return setFileError(msg);
     }
     setFile(f);
     // Kick off the upload immediately so each zone operates independently.
