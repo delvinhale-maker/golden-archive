@@ -20,6 +20,10 @@ const RECOMMENDED_LABELS: Record<string, string[]> = {
 export interface PreviewPagePickerProps {
   /** Storage path in the `product-files` bucket, OR a direct http(s)/blob URL. */
   filePath: string | null;
+  /** Original browser filename. Used when mobile storage paths lose the extension. */
+  fileName?: string | null;
+  /** Original browser file size. Large PDFs stay in manual mode until requested. */
+  fileSize?: number | null;
   /** Ordered 1-indexed page numbers the creator has selected. */
   value: number[];
   onChange: (next: number[]) => void;
@@ -36,6 +40,8 @@ export interface PreviewPagePickerProps {
  */
 export function PreviewPagePicker({
   filePath,
+  fileName,
+  fileSize,
   value,
   onChange,
   productTypeKey,
@@ -48,8 +54,11 @@ export function PreviewPagePicker({
   const cancelledRef = useRef(false);
 
   const startsWithScheme = (p: string) => /^(https?|blob):/i.test(p);
-  const ext = (filePath ?? "").split("#")[0].split("?")[0].split(".").pop()?.toLowerCase();
+  const extSource = fileName || filePath || "";
+  const ext = extSource.split("#")[0].split("?")[0].split(".").pop()?.toLowerCase();
   const looksLikePdf = ext === "pdf";
+  const isLargePdf = (fileSize ?? 0) > 25 * 1024 * 1024;
+  const [pageInput, setPageInput] = useState("");
 
   const load = useCallback(async () => {
     if (!filePath) return;
@@ -112,11 +121,18 @@ export function PreviewPagePicker({
   }, [filePath, isReflowFormat, looksLikePdf]);
 
   useEffect(() => {
-    load();
+    setThumbs(null);
+    setLoading(false);
+    setError(null);
+    setPageCount(0);
+    setPageInput("");
+    if (filePath && looksLikePdf && !isReflowFormat && !isLargePdf) {
+      void load();
+    }
     return () => {
       cancelledRef.current = true;
     };
-  }, [load]);
+  }, [filePath, fileName, isLargePdf, isReflowFormat, load, looksLikePdf]);
 
   function toggle(pageNum: number) {
     if (value.includes(pageNum)) {
@@ -137,6 +153,15 @@ export function PreviewPagePicker({
       .filter((p) => p >= 1 && p <= (pageCount || Infinity))
       .slice(0, MAX_PAGES);
     onChange(heuristic);
+  }
+
+  function addManualPage() {
+    const pageNum = Number.parseInt(pageInput, 10);
+    if (!Number.isFinite(pageNum) || pageNum < 1) return;
+    if (pageCount > 0 && pageNum > pageCount) return;
+    if (value.includes(pageNum) || value.length >= MAX_PAGES) return;
+    onChange([...value, pageNum]);
+    setPageInput("");
   }
 
   if (!filePath) {
@@ -188,6 +213,56 @@ export function PreviewPagePicker({
           )}
         </div>
       </div>
+
+      <div className="rounded-lg border border-ink/10 bg-white p-3">
+        <label htmlFor="preview-page-number" className="text-xs font-semibold text-navy">
+          Add preview page by number
+        </label>
+        <div className="mt-2 flex gap-2">
+          <input
+            id="preview-page-number"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={pageCount || undefined}
+            value={pageInput}
+            onChange={(e) => setPageInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addManualPage();
+              }
+            }}
+            className="inp min-w-0 flex-1"
+            placeholder="Page #"
+            disabled={value.length >= MAX_PAGES}
+          />
+          <button
+            type="button"
+            onClick={addManualPage}
+            disabled={value.length >= MAX_PAGES || !pageInput.trim()}
+            className="rounded-full bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy/90 disabled:opacity-50"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+
+      {!thumbs && !loading && (
+        <button
+          type="button"
+          onClick={() => void load()}
+          className="inline-flex items-center gap-1.5 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5"
+        >
+          {isLargePdf ? "Load thumbnails when needed" : "Load page thumbnails"}
+        </button>
+      )}
+
+      {isLargePdf && !thumbs && (
+        <p className="text-xs text-mute">
+          Large PDF detected — use page numbers first, or load thumbnails only if needed.
+        </p>
+      )}
 
       {recommended && (
         <div className="rounded-lg border border-navy/10 bg-navy/[0.03] p-3 text-xs text-navy/80">

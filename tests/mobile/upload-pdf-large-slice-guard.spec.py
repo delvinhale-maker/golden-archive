@@ -232,6 +232,21 @@ async def main() -> None:
             )
         ok("UploadSuccess renders with the large PDF filename")
 
+        # Large PDFs should NOT immediately feed the uploaded PDF into pdf.js
+        # for thumbnail rendering. That post-upload render path can still OOM
+        # mobile browsers even when the validator itself is slice-based.
+        loading_thumbs = page.get_by_text("Loading page thumbnails", exact=False)
+        if await loading_thumbs.count() > 0 and await loading_thumbs.first.is_visible():
+            await page.screenshot(path=str(SCREENSHOTS / "large_pdf_autoload_thumbs.png"))
+            fail("Large PDF began loading page thumbnails automatically after upload.")
+
+        try:
+            await expect(page.get_by_text("Load thumbnails when needed").first).to_be_visible(timeout=5000)
+        except Exception:
+            await page.screenshot(path=str(SCREENSHOTS / "large_pdf_missing_manual_thumbs.png"))
+            fail("Large PDF did not switch the preview picker into manual thumbnail mode.")
+        ok("Large PDF preview thumbnails are manual-only after upload")
+
         # 4) The mobile OOM guard: the validator must NEVER have materialized
         #    more than a few KB in a single arrayBuffer() call for this file.
         max_read = await page.evaluate("window.__afMaxRead || 0")
