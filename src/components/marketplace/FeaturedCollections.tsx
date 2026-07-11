@@ -4,7 +4,8 @@ import { ArrowUpRight } from "lucide-react";
 import financialImg from "@/assets/coll-financial.jpg";
 import leadershipImg from "@/assets/coll-leadership.jpg";
 import businessImg from "@/assets/coll-business.jpg";
-import aiImg from "@/assets/coll-ai.jpg";
+import aiImgAsset from "@/assets/ai-prompt-vault-phone.png.asset.json";
+const aiImg = aiImgAsset.url;
 import faithImg from "@/assets/coll-faith.jpg";
 import { accentFor } from "@/lib/categories";
 
