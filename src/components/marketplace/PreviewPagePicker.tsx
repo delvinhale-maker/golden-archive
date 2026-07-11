@@ -124,12 +124,12 @@ export function PreviewPagePicker({
       }
 
       ensurePdfJsRuntimeCompat();
-      const pdfjs: any = await import("pdfjs-dist");
+      const pdfjs: any = await import("pdfjs-dist/legacy/build/pdf.mjs");
       try {
-        const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+        const workerUrl = (await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url")).default;
         pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
       } catch {
-        pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+        pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`;
       }
       const doc = await pdfjs.getDocument({ url: signed }).promise;
       if (cancelledRef.current) return;

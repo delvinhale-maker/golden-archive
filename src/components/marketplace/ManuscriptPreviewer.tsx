@@ -368,15 +368,15 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
 
 
         ensurePdfJsRuntimeCompat();
-        const pdfjs: any = await import("pdfjs-dist");
+        const pdfjs: any = await import("pdfjs-dist/legacy/build/pdf.mjs");
         // Use the bundled worker URL — Vite emits it as a static asset and the
         // browser fetches it as a classic script, which works reliably across
         // dev and production without needing a module Worker.
         try {
-          const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+          const workerUrl = (await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url")).default;
           pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
         } catch {
-          pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+          pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`;
         }
 
         const loadingTask = pdfjs.getDocument({
