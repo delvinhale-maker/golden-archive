@@ -664,7 +664,9 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           }
         }
       }
-      setFileUploadError(friendlyUploadError(lastErr, "Manuscript"));
+      const finalMsg = friendlyUploadError(lastErr, "Manuscript");
+      setFileUploadError(finalMsg);
+      toast.error("Manuscript upload failed", { description: finalMsg, duration: 8000 });
     } finally {
       clearInterval(tick);
       setFileUploading(false);
