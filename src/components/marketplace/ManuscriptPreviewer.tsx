@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { X, ChevronLeft, ChevronRight, Loader2, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ensurePdfJsRuntimeCompat } from "@/lib/pdfjs-compat";
 import {
   recordMount as recordEpubNavMount,
   recordTap as recordEpubNavTap,
@@ -366,6 +367,7 @@ export function ManuscriptPreviewer({ manuscriptPath, title, coverUrl, onClose, 
         }
 
 
+        ensurePdfJsRuntimeCompat();
         const pdfjs: any = await import("pdfjs-dist");
         // Use the bundled worker URL — Vite emits it as a static asset and the
         // browser fetches it as a classic script, which works reliably across
