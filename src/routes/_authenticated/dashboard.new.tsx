@@ -596,15 +596,25 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
   const MAX_AUTO_ATTEMPTS = 3;
   function friendlyUploadError(e: unknown, label: string): string {
     const raw = e instanceof Error ? e.message : String(e ?? "");
-    if (/network|fetch|failed to fetch|load failed/i.test(raw))
-      return `${label} couldn't reach the server. Check your connection and tap Retry.`;
+    // Attempt to surface an HTTP-ish status if the error object carries one.
+    const status = (typeof e === "object" && e && "statusCode" in e ? (e as { statusCode?: unknown }).statusCode : undefined)
+      ?? (typeof e === "object" && e && "status" in e ? (e as { status?: unknown }).status : undefined);
+    const statusStr = status !== undefined ? ` (HTTP ${String(status)})` : "";
+    if (/network|fetch|failed to fetch|load failed|networkerror/i.test(raw))
+      return `[NETWORK] ${label} couldn't reach the server${statusStr}. Your connection dropped mid-upload — check signal/Wi-Fi and tap Retry.`;
     if (/timeout|timed out/i.test(raw))
-      return `${label} timed out. Tap Retry to try again.`;
+      return `[TIMEOUT] ${label} timed out${statusStr}. The upload took too long — tap Retry, ideally on a stronger connection.`;
     if (/payload|too large|413/i.test(raw))
-      return `${label} is too large for the server. Try a smaller file.`;
-    if (/unauthor|401|403/i.test(raw))
-      return `${label} was rejected (auth). Please sign out and back in.`;
-    return raw || `${label} failed. Tap Retry to try again.`;
+      return `[SERVER_413] ${label} was rejected by the server as too large${statusStr}. Try a smaller file.`;
+    if (/unauthor|401|403|jwt|expired/i.test(raw))
+      return `[AUTH_LOST] ${label} was rejected — your session expired or was invalidated${statusStr}. Sign out and back in, then retry.`;
+    if (/duplicate|already exists|conflict|409/i.test(raw))
+      return `[STORAGE_CONFLICT] ${label} storage path already exists${statusStr}. Tap Retry to generate a new path.`;
+    if (/bucket|not found|404/i.test(raw))
+      return `[STORAGE_ROUTE] ${label} storage bucket route failed${statusStr}. This usually means the server rejected the path — tap Retry.`;
+    if (/5\d\d|server error/i.test(raw))
+      return `[SERVER_5XX] ${label} server error${statusStr}. Tap Retry; if it keeps failing the storage service may be down.`;
+    return `[UPLOAD_FAILED] ${raw || `${label} failed for an unknown reason`}${statusStr}. Tap Retry to try again.`;
   }
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
