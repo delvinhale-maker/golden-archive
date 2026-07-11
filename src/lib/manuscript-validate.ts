@@ -26,6 +26,16 @@ export function extFromName(name: string): ManuscriptExt | "unknown" {
   return "unknown";
 }
 
+function pdfHeaderString(bytes: Uint8Array): string {
+  return String.fromCharCode(
+    bytes[0] ?? 0,
+    bytes[1] ?? 0,
+    bytes[2] ?? 0,
+    bytes[3] ?? 0,
+    bytes[4] ?? 0,
+  );
+}
+
 function isXmlWellFormed(xml: string, requiredTag?: string): boolean {
   // Cheap parser-free validation: matched < / >, presence of the required
   // root tag, and no obvious mid-stream truncation. Avoids DOMParser so we
@@ -135,12 +145,25 @@ export function validateManuscriptBytes(
 }
 
 export async function validateManuscriptFile(file: File): Promise<ValidateResult> {
-  const ext = extFromName(file.name);
-  if (ext === "unknown") {
-    return { ok: false, ext, reason: "Unsupported file type." };
-  }
+  let ext = extFromName(file.name);
   if (file.size === 0) {
     return { ok: false, ext, reason: "File is empty." };
+  }
+
+  const headBuf = await file.slice(0, 5).arrayBuffer();
+  const head = new Uint8Array(headBuf);
+  const headerStr = pdfHeaderString(head);
+
+  // Some Android document providers hand Chrome a valid PDF with a display
+  // name that has no `.pdf` suffix. Accept those by sniffing the PDF header;
+  // storage adds the extension before saving so later server validation and
+  // preview rendering can still identify it.
+  if (ext === "unknown") {
+    if (headerStr === "%PDF-") {
+      ext = "pdf";
+    } else {
+      return { ok: false, ext, reason: "Unsupported file type." };
+    }
   }
 
   // PDFs can be hundreds of MB. Loading the whole file into memory just to
@@ -148,9 +171,6 @@ export async function validateManuscriptFile(file: File): Promise<ValidateResult
   // dies mid-validation and the browser navigates back — appearing as if
   // the upload silently "routes away"). Read only the head + tail slices.
   if (ext === "pdf") {
-    const headBuf = await file.slice(0, 5).arrayBuffer();
-    const head = new Uint8Array(headBuf);
-    const headerStr = String.fromCharCode(head[0] ?? 0, head[1] ?? 0, head[2] ?? 0, head[3] ?? 0, head[4] ?? 0);
     if (headerStr !== "%PDF-") {
       return { ok: false, ext, reason: "Not a valid PDF (missing header)." };
     }
