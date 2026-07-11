@@ -529,8 +529,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     setFileProgress(0);
     if (!f) { setFile(null); return; }
     if (f.size === 0) {
-      const msg = "File is empty.";
-      toast.error("Upload rejected", { description: msg });
+      const msg = "[EMPTY_FILE] File is empty (0 bytes). Pick the actual document, not a placeholder or shortcut.";
+      toast.error("Upload rejected — empty file", { description: msg });
       return setFileError(msg);
     }
     const ext = await inferAllowedUploadExt(f);
@@ -539,9 +539,9 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       const isPdfType = typeCfg.fileExts.includes("pdf");
       const looksMissingExt = isPdfType && (!nameExt || nameExt === f.name.toLowerCase() || !nameExt.match(/^[a-z0-9]{2,4}$/));
       const msg = looksMissingExt
-        ? `We couldn't detect a valid PDF header in "${f.name}". Make sure you're picking the .pdf file itself (not a .zip, screenshot, or shortcut).`
-        : `Unsupported .${ext || "file"}. Accepted: ${typeCfg.acceptedHint}.`;
-      toast.error("Upload rejected", { description: msg, duration: 6000 });
+        ? `[BAD_PDF_HEADER] We couldn't detect a valid %PDF- header in "${f.name}". The bytes don't look like a PDF — make sure you're picking the .pdf file itself (not a .zip, screenshot, or shortcut).`
+        : `[UNSUPPORTED_TYPE] Detected ".${ext || "unknown"}" but this product accepts: ${typeCfg.acceptedHint}.`;
+      toast.error(looksMissingExt ? "Upload rejected — invalid PDF bytes" : "Upload rejected — unsupported type", { description: msg, duration: 6000 });
       return setFileError(msg);
     }
     // NOTE: We intentionally do NOT enforce f.type against fileMimes here.
@@ -551,8 +551,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     // check above plus the structural validation below (for ebooks) is a
     // safer, more reliable signal than the browser-supplied MIME.
     if (f.size > MAX_FILE_MB * 1024 * 1024) {
-      const msg = `File exceeds ${MAX_FILE_MB} MB limit (yours is ${(f.size / 1024 / 1024).toFixed(1)} MB).`;
-      toast.error("Upload rejected", { description: msg, duration: 6000 });
+      const msg = `[TOO_LARGE] File exceeds the ${MAX_FILE_MB} MB limit (yours is ${(f.size / 1024 / 1024).toFixed(1)} MB). Compress or split the file and try again.`;
+      toast.error("Upload rejected — file too large", { description: msg, duration: 6000 });
       return setFileError(msg);
     }
     // Structural validation is only meaningful for ebook manuscripts (pdf/epub/docx).
@@ -562,17 +562,27 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
         const { validateManuscriptFile } = await import("@/lib/manuscript-validate");
         const res = await validateManuscriptFile(f);
         if (!res.ok) {
-          const title = ext === "pdf" ? "PDF couldn't be validated" : "Manuscript couldn't be validated";
-          toast.error(title, {
-            description: `${res.reason} If the file opens correctly on your device, re-save or re-export it and try again.`,
-            duration: 8000,
-          });
-          return setFileError(res.reason);
+          const isPdf = ext === "pdf";
+          const code = /header/i.test(res.reason)
+            ? "BAD_PDF_HEADER"
+            : /EOF|truncat/i.test(res.reason)
+              ? "PDF_TRUNCATED"
+              : /signature/i.test(res.reason)
+                ? "BAD_ZIP_SIGNATURE"
+                : /corrupt/i.test(res.reason)
+                  ? "ARCHIVE_CORRUPT"
+                  : /missing/i.test(res.reason)
+                    ? "MISSING_INTERNAL_PART"
+                    : "STRUCT_INVALID";
+          const title = isPdf ? "Upload rejected — invalid PDF bytes" : "Upload rejected — invalid manuscript structure";
+          const description = `[${code}] ${res.reason} If the file opens correctly on your device, re-save or re-export it and try again.`;
+          toast.error(title, { description, duration: 8000 });
+          return setFileError(description);
         }
       }
     } catch (e) {
-      const msg = `Couldn't read that file (${(e as Error).message}). Re-save from the original app and try again.`;
-      toast.error("Upload rejected", { description: msg, duration: 8000 });
+      const msg = `[READ_ERROR] Couldn't read the file bytes (${(e as Error).message}). The browser may have released the file — re-select it from the picker.`;
+      toast.error("Upload rejected — couldn't read file", { description: msg, duration: 8000 });
       return setFileError(msg);
     }
     setFile(f);
