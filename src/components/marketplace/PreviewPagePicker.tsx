@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ensurePdfJsRuntimeCompat } from "@/lib/pdfjs-compat";
 
 const MAX_PAGES = 5;
 
@@ -54,6 +55,7 @@ export function PreviewPagePicker({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pageCount, setPageCount] = useState(0);
+  const [sniffedPdf, setSniffedPdf] = useState(false);
   const cancelledRef = useRef(false);
 
   const startsWithScheme = (p: string) => /^(https?|blob):/i.test(p);
@@ -65,9 +67,44 @@ export function PreviewPagePicker({
   const fileNameExt = extFrom(fileName);
   const filePathExt = extFrom(filePath);
   const validatedExt = (fileExt ?? "").toLowerCase();
-  const looksLikePdf = validatedExt === "pdf" || fileNameExt === "pdf" || filePathExt === "pdf";
+  const declaredLooksLikePdf = validatedExt === "pdf" || fileNameExt === "pdf" || filePathExt === "pdf";
+  const looksLikePdf = declaredLooksLikePdf || sniffedPdf;
   const isLargePdf = (fileSize ?? 0) > 25 * 1024 * 1024;
   const [pageInput, setPageInput] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    setSniffedPdf(false);
+    if (!filePath || isReflowFormat || declaredLooksLikePdf) return;
+    (async () => {
+      try {
+        let signed = filePath;
+        if (!startsWithScheme(filePath)) {
+          const { data, error: e } = await supabase.storage
+            .from("product-files")
+            .createSignedUrl(filePath, 60 * 15);
+          if (e || !data?.signedUrl) return;
+          signed = data.signedUrl;
+        }
+        const res = await fetch(signed, { headers: { Range: "bytes=0-4" } });
+        if (!res.ok) return;
+        const bytes = new Uint8Array(await res.arrayBuffer());
+        const header = String.fromCharCode(
+          bytes[0] ?? 0,
+          bytes[1] ?? 0,
+          bytes[2] ?? 0,
+          bytes[3] ?? 0,
+          bytes[4] ?? 0,
+        );
+        if (!cancelled && header === "%PDF-") setSniffedPdf(true);
+      } catch {
+        // Keep the non-PDF explanatory state below.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [filePath, isReflowFormat, declaredLooksLikePdf]);
 
   const load = useCallback(async () => {
     if (!filePath) return;
@@ -86,12 +123,13 @@ export function PreviewPagePicker({
         signed = data.signedUrl;
       }
 
-      const pdfjs: any = await import("pdfjs-dist");
+      ensurePdfJsRuntimeCompat();
+      const pdfjs: any = await import("pdfjs-dist/legacy/build/pdf.mjs");
       try {
-        const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+        const workerUrl = (await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url")).default;
         pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
       } catch {
-        pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+        pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`;
       }
       const doc = await pdfjs.getDocument({ url: signed }).promise;
       if (cancelledRef.current) return;

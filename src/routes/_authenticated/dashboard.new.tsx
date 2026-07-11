@@ -191,12 +191,18 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
   const [canSell, setCanSell] = useState<boolean | null>(null);
   // Draft row in DB — for auto-save after each upload + field changes
   const [draftProductId, setDraftProductId] = useState<string | null>(null);
+  const draftProductIdRef = useRef<string | null>(null);
 
   // Pre-publish preview modal
   const [showPreview, setShowPreview] = useState(false);
 
   // Draft banner (offer to resume previous unsaved draft from DB)
   const [draftBanner, setDraftBanner] = useState<{ savedAt: string; productId: string; title: string } | null>(null);
+
+  function rememberDraftProductId(next: string | null) {
+    draftProductIdRef.current = next;
+    setDraftProductId(next);
+  }
   
 
 
@@ -275,7 +281,17 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     fileSize?: number | null;
     silent?: boolean;
   }) {
-    if (!user || autosavingRef.current) return;
+    if (!user) return;
+    const mustPersistAsset = opts?.coverUrl !== undefined || opts?.filePath !== undefined;
+    if (autosavingRef.current) {
+      if (!mustPersistAsset) return;
+      for (let i = 0; i < 20 && autosavingRef.current; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      }
+      if (autosavingRef.current) {
+        throw new Error("Another save is still running. Tap Retry to save this upload.");
+      }
+    }
     if (!title.trim()) return; // need at least a title
     const kind = classifyKind(opts);
     const { silent, ...persistedOpts } = opts ?? {};
@@ -306,7 +322,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
         admin_notes: notes,
         preview_pages: previewPages,
       };
-      const targetId = draftProductId ?? editingId;
+      const targetId = draftProductIdRef.current ?? editingId;
       if (targetId) {
         const { error } = await supabase.from("marketplace_products").update(payload).eq("id", targetId);
         if (error) throw error;
@@ -317,7 +333,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           .select("id")
           .single();
         if (error) throw error;
-        if (data?.id) setDraftProductId(data.id as string);
+        if (data?.id) rememberDraftProductId(data.id as string);
       }
       setLastSavedAt(Date.now());
       setDbUpdatedAt(new Date().toISOString());
@@ -410,8 +426,10 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       if (data.file_path) {
         const rawName = (data.file_path as string).split("/").pop() ?? "manuscript";
         const cleanName = rawName.replace(/^\d+-/, "");
+        const restoredExt = cleanName.toLowerCase().split(".").pop() ?? "";
         setUploadedFilePath(data.file_path as string);
         setUploadedFileMeta({ name: cleanName, size: (data.file_size_bytes as number | null) ?? 0 });
+        if (typeCfg.fileExts.includes(restoredExt)) setFileExt(restoredExt);
       }
       try {
         const raw = data.admin_notes as unknown;
@@ -431,7 +449,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
         // ignore malformed admin_notes
       }
       // Resuming an existing draft / editing — autosave should target this row.
-      setDraftProductId(editingId);
+      rememberDraftProductId(editingId);
       setLoadingEdit(false);
     })();
 
@@ -540,6 +558,16 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     return new File([f], safeName, { type: mime, lastModified: f.lastModified });
   }
 
+  function uploadPayloadForFile(f: File, ext?: string): { body: File; name: string; contentType?: string } {
+    const name = safeStoredFileName(f, ext);
+    const contentType = mimeForUploadExt(ext) ?? (f.type || undefined);
+    // Keep the original File as the upload body. Wrapping PDFs in `new File([f])`
+    // can force Android Chrome/document providers to copy large Blob bytes before
+    // the upload starts. The path carries the corrected filename and contentType
+    // carries the corrected MIME.
+    return { body: f, name, contentType };
+  }
+
   function handleCoverChange(f: File | null) {
     setCoverError(null);
     setCoverUploadError(null);
@@ -616,8 +644,11 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       toast.error("Upload rejected — couldn't read file", { description: msg, duration: 8000 });
       return setFileError(msg);
     }
-    const uploadFile = normalizeUploadFile(f, ext);
     setFileExt(ext);
+    // Keep PDFs as the original File object all the way to storage upload.
+    // Filename/MIME normalization happens in uploadPayloadForFile without
+    // copying the Blob body.
+    const uploadFile = ext === "pdf" ? f : normalizeUploadFile(f, ext);
     setFile(uploadFile);
     // Kick off the upload immediately so each zone operates independently.
     void uploadManuscript(uploadFile, ext);
@@ -707,20 +738,20 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
         try {
           const ts = Date.now();
           const ext = extHint ?? await inferAllowedUploadExt(f);
-          const uploadFile = normalizeUploadFile(f, ext);
+          const uploadFile = uploadPayloadForFile(f, ext);
           const path = `${user.id}/${ts}-${uploadFile.name}`;
           phase = "storage";
-          const up = await supabase.storage.from("product-files").upload(path, uploadFile, {
+          const up = await supabase.storage.from("product-files").upload(path, uploadFile.body, {
             upsert: false,
-            contentType: uploadFile.type || mimeForUploadExt(ext),
+            contentType: uploadFile.contentType,
           });
           if (up.error) throw up.error;
           setUploadedFilePath(path);
-          setUploadedFileMeta({ name: uploadFile.name, size: uploadFile.size });
+          setUploadedFileMeta({ name: uploadFile.name, size: uploadFile.body.size });
           setFileProgress(100);
           setFileUploadError(null);
           phase = "draft";
-          await autosaveDraftToDB({ filePath: path, fileSize: uploadFile.size, silent: true });
+          await autosaveDraftToDB({ filePath: path, fileSize: uploadFile.body.size, silent: true });
           toast.success("Manuscript saved to your draft ✓", { duration: 3000 });
           return;
         } catch (e) {
@@ -922,19 +953,19 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
 
       if (willUploadFile && file) {
         const ext = await inferAllowedUploadExt(file);
-        const uploadFile = normalizeUploadFile(file, ext);
+        const uploadFile = uploadPayloadForFile(file, ext);
         const newFilePath = `${user.id}/${ts}-${uploadFile.name}`;
         const t = setInterval(() => setUploadProgress((p) => (p < 90 ? p + 3 : p)), 400);
         try {
-          const fileUp = await supabase.storage.from("product-files").upload(newFilePath, uploadFile, {
+          const fileUp = await supabase.storage.from("product-files").upload(newFilePath, uploadFile.body, {
             upsert: false,
-            contentType: uploadFile.type || mimeForUploadExt(ext),
+            contentType: uploadFile.contentType,
           });
           if (fileUp.error) throw fileUp.error;
           storedFilePath = newFilePath;
-          fileSize = uploadFile.size;
+          fileSize = uploadFile.body.size;
           setUploadedFilePath(newFilePath);
-          setUploadedFileMeta({ name: uploadFile.name, size: uploadFile.size });
+          setUploadedFileMeta({ name: uploadFile.name, size: uploadFile.body.size });
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Manuscript upload failed. Check your connection and try again.";
           setFileUploadError(msg);
@@ -977,7 +1008,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
         ownsRights, drm, premium, territory,
       });
 
-      const existingRowId = editingId ?? draftProductId;
+      const existingRowId = editingId ?? draftProductIdRef.current;
       let savedId: string | null = existingRowId;
       if (existingRowId) {
         const update = {
@@ -1038,7 +1069,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           );
         }
         toast.success(isEditing ? "Title updated." : "Published to the Vault!");
-        setDraftProductId(null);
+        rememberDraftProductId(null);
         setPublishedId(savedId);
         // Refresh storefront grid so the new upload appears immediately in the 2-column mobile layout
         void queryClient.invalidateQueries({ queryKey: ["mp", "products"] });
