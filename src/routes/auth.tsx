@@ -98,22 +98,26 @@ function AuthPage() {
   }
   const explicitRedirect = redirect ?? null;
 
+  async function finishAuthRedirect(saved?: string | null) {
+    const to = await resolveRedirectForSession(saved ?? explicitRedirect);
+    // TanStack Router's navigate({ to }) expects a typed pathname. If we pass
+    // a combined path+query like "/dashboard/new?type=ebook", it can be
+    // treated as a literal path and fall through to the storefront. Use a
+    // same-origin document navigation whenever query/hash state is present so
+    // the intended publish draft route survives sign-in intact.
+    if (to.includes("?") || to.includes("#")) {
+      window.location.assign(to);
+      return;
+    }
+    navigate({ to });
+  }
+
 
   useEffect(() => {
     let cancelled = false;
     const go = async (saved?: string | null) => {
-      const to = await resolveRedirectForSession(saved ?? explicitRedirect);
       if (cancelled) return;
-      // If the saved redirect carries a query string or hash (e.g.
-      // "/dashboard/new?type=ai_prompt_pack"), navigate({ to }) would treat
-      // the whole thing as a pathname and fail to match, bouncing the user
-      // to the storefront. Fall back to a full navigation so the draft
-      // params/hash reach the protected route intact.
-      if (to.includes("?") || to.includes("#")) {
-        window.location.assign(to);
-        return;
-      }
-      navigate({ to });
+      await finishAuthRedirect(saved);
     };
     // Initial check
     supabase.auth.getSession().then(({ data }) => {
@@ -135,7 +139,7 @@ function AuthPage() {
       cancelled = true;
       sub.subscription.unsubscribe();
     };
-  }, [navigate, explicitRedirect]);
+  }, [explicitRedirect]);
 
   async function tryAttachReferral() {
     try {
@@ -178,7 +182,7 @@ function AuthPage() {
         }
         toast.success("Account created — welcome to AurumVault");
         await tryAttachReferral();
-        navigate({ to: await resolveRedirectForSession(explicitRedirect) });
+        await finishAuthRedirect(explicitRedirect);
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
@@ -195,7 +199,7 @@ function AuthPage() {
         }
         toast.success("Welcome back");
         await tryAttachReferral();
-        navigate({ to: await resolveRedirectForSession(explicitRedirect) });
+        await finishAuthRedirect(explicitRedirect);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
@@ -412,7 +416,7 @@ function AuthPage() {
         const saved = sessionStorage.getItem("av_oauth_redirect");
         sessionStorage.removeItem("av_oauth_redirect");
         clearOAuthCorrelationId();
-        navigate({ to: await resolveRedirectForSession(saved) });
+        await finishAuthRedirect(saved);
       } else {
         logOAuthEvent({
           level: "info",
