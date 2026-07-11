@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
-import financialImg from "@/assets/coll-financial.jpg";
+import financialImgAsset from "@/assets/coll-financial.png.asset.json";
+const financialImg = financialImgAsset.url;
 import journalsImgAsset from "@/assets/journals-hero.png.asset.json";
 const leadershipImg = journalsImgAsset.url;
 import businessImg from "@/assets/coll-business.jpg";
