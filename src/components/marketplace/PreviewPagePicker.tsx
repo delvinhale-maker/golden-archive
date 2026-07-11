@@ -126,10 +126,13 @@ export function PreviewPagePicker({
     setError(null);
     setPageCount(0);
     setPageInput("");
+    if (filePath && looksLikePdf && !isReflowFormat && !isLargePdf) {
+      void load();
+    }
     return () => {
       cancelledRef.current = true;
     };
-  }, [filePath, fileName]);
+  }, [filePath, fileName, isLargePdf, isReflowFormat, load, looksLikePdf]);
 
   function toggle(pageNum: number) {
     if (value.includes(pageNum)) {
