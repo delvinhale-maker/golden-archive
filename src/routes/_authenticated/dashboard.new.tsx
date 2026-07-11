@@ -478,6 +478,38 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     return true;
   }
 
+  async function sniffPdfHeader(f: File): Promise<boolean> {
+    try {
+      const head = new Uint8Array(await f.slice(0, 5).arrayBuffer());
+      return String.fromCharCode(
+        head[0] ?? 0,
+        head[1] ?? 0,
+        head[2] ?? 0,
+        head[3] ?? 0,
+        head[4] ?? 0,
+      ) === "%PDF-";
+    } catch {
+      return false;
+    }
+  }
+
+  async function inferAllowedUploadExt(f: File): Promise<string> {
+    const nameExt = f.name.toLowerCase().split(".").pop() ?? "";
+    if (typeCfg.fileExts.includes(nameExt)) return nameExt;
+    if (typeCfg.fileExts.includes("pdf")) {
+      if (await sniffPdfHeader(f)) return "pdf";
+    }
+    return nameExt;
+  }
+
+  function safeStoredFileName(f: File, inferredExt?: string): string {
+    const base = (f.name.trim() || "manuscript").replace(/[^a-zA-Z0-9.-]/g, "_");
+    if (inferredExt && !base.toLowerCase().endsWith(`.${inferredExt}`)) {
+      return `${base}.${inferredExt}`;
+    }
+    return base;
+  }
+
   function handleCoverChange(f: File | null) {
     setCoverError(null);
     setCoverUploadError(null);
@@ -497,7 +529,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     setFileProgress(0);
     if (!f) { setFile(null); return; }
     if (f.size === 0) return setFileError("File is empty.");
-    const ext = f.name.toLowerCase().split(".").pop() ?? "";
+    const ext = await inferAllowedUploadExt(f);
     if (!typeCfg.fileExts.includes(ext)) return setFileError(`Unsupported .${ext}. Accepted: ${typeCfg.acceptedHint}.`);
     // NOTE: We intentionally do NOT enforce f.type against fileMimes here.
     // Mobile browsers (Android Chrome especially) frequently report .docx as
@@ -521,7 +553,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     }
     setFile(f);
     // Kick off the upload immediately so each zone operates independently.
-    void uploadManuscript(f);
+    void uploadManuscript(f, ext);
   }
 
   // Upload helpers — independent per-zone uploads triggered on file select.
@@ -579,7 +611,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     }
   }
 
-  async function uploadManuscript(f: File) {
+  async function uploadManuscript(f: File, extHint?: string) {
     if (!user) return;
     setFileUploading(true); setFileProgress(8); setFileUploadError(null);
     const tick = setInterval(() => setFileProgress((p) => (p < 88 ? p + 4 : p)), 300);
@@ -588,7 +620,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       for (let attempt = 1; attempt <= MAX_AUTO_ATTEMPTS; attempt++) {
         try {
           const ts = Date.now();
-          const path = `${user.id}/${ts}-${f.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+          const ext = extHint ?? await inferAllowedUploadExt(f);
+          const path = `${user.id}/${ts}-${safeStoredFileName(f, ext)}`;
           const up = await supabase.storage.from("product-files").upload(path, f, { upsert: false });
           if (up.error) throw up.error;
           setUploadedFilePath(path);
@@ -787,7 +820,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       setUploadProgress(40);
 
       if (willUploadFile && file) {
-        const newFilePath = `${user.id}/${ts}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+        const newFilePath = `${user.id}/${ts}-${safeStoredFileName(file, await inferAllowedUploadExt(file))}`;
         const t = setInterval(() => setUploadProgress((p) => (p < 90 ? p + 3 : p)), 400);
         try {
           const fileUp = await supabase.storage.from("product-files").upload(newFilePath, file, { upsert: false });
@@ -1523,8 +1556,13 @@ function StepContent(p: {
           productTypeKey={p.productTypeKey}
           isReflowFormat={(() => {
             const path = p.uploadedFilePath ?? p.existingFilePath ?? "";
-            const e = path.split("#")[0].split("?")[0].split(".").pop()?.toLowerCase();
-            return e === "docx" || e === "epub";
+            const name = p.uploadedFileMeta?.name ?? p.file?.name ?? "";
+            const extFrom = (source: string) => {
+              const cleaned = source.split("#")[0].split("?")[0];
+              return cleaned.includes(".") ? cleaned.split(".").pop()?.toLowerCase() : undefined;
+            };
+            const exts = [extFrom(name), extFrom(path)];
+            return !exts.includes("pdf") && exts.some((e) => e === "docx" || e === "epub");
           })()}
         />
       </div>

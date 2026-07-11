@@ -54,9 +54,14 @@ export function PreviewPagePicker({
   const cancelledRef = useRef(false);
 
   const startsWithScheme = (p: string) => /^(https?|blob):/i.test(p);
-  const extSource = fileName || filePath || "";
-  const ext = extSource.split("#")[0].split("?")[0].split(".").pop()?.toLowerCase();
-  const looksLikePdf = ext === "pdf";
+  const extFrom = (source: string | null | undefined) => {
+    const cleaned = (source ?? "").split("#")[0].split("?")[0];
+    const ext = cleaned.includes(".") ? cleaned.split(".").pop()?.toLowerCase() : undefined;
+    return ext === "pdf" || ext === "docx" || ext === "epub" ? ext : undefined;
+  };
+  const fileNameExt = extFrom(fileName);
+  const filePathExt = extFrom(filePath);
+  const looksLikePdf = fileNameExt === "pdf" || filePathExt === "pdf";
   const isLargePdf = (fileSize ?? 0) > 25 * 1024 * 1024;
   const [pageInput, setPageInput] = useState("");
 

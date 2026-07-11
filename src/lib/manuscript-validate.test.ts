@@ -73,3 +73,21 @@ describe("validateManuscriptFile (docx) — MIME regression", () => {
     });
   }
 });
+
+describe("validateManuscriptFile (pdf) — Android picker filename regression", () => {
+  const pdfBytes = new TextEncoder().encode("%PDF-1.7\n1 0 obj\n<<>>\nendobj\n%%EOF\n");
+
+  it("accepts a valid PDF even when the picked display name has no extension", async () => {
+    const file = new File([pdfBytes], "Not_For_Sale_Manuscript", { type: "application/pdf" });
+    const res = await validateManuscriptFile(file);
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.ext).toBe("pdf");
+  });
+
+  it("accepts a valid PDF with no extension and an empty browser MIME", async () => {
+    const file = new File([pdfBytes], "Not_For_Sale_Manuscript", { type: "" });
+    const res = await validateManuscriptFile(file);
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.ext).toBe("pdf");
+  });
+});
