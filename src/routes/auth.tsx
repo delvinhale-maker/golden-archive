@@ -467,7 +467,7 @@ function AuthPage() {
   return (
     <div className="min-h-screen bg-[#0F1A33] text-white flex flex-col">
       <div className="px-4 py-5 md:px-8">
-        <Link to="/"><AVLogo /></Link>
+        <AVLogo />
       </div>
       <div className="flex-1 flex items-center justify-center px-4 py-8">
         <motion.div
