@@ -135,6 +135,37 @@ export function validateManuscriptBytes(
 }
 
 export async function validateManuscriptFile(file: File): Promise<ValidateResult> {
+  const ext = extFromName(file.name);
+  if (ext === "unknown") {
+    return { ok: false, ext, reason: "Unsupported file type." };
+  }
+  if (file.size === 0) {
+    return { ok: false, ext, reason: "File is empty." };
+  }
+
+  // PDFs can be hundreds of MB. Loading the whole file into memory just to
+  // sniff the header/EOF crashes mobile Chrome tabs on large uploads (tab
+  // dies mid-validation and the browser navigates back — appearing as if
+  // the upload silently "routes away"). Read only the head + tail slices.
+  if (ext === "pdf") {
+    const headBuf = await file.slice(0, 5).arrayBuffer();
+    const head = new Uint8Array(headBuf);
+    const headerStr = String.fromCharCode(head[0] ?? 0, head[1] ?? 0, head[2] ?? 0, head[3] ?? 0, head[4] ?? 0);
+    if (headerStr !== "%PDF-") {
+      return { ok: false, ext, reason: "Not a valid PDF (missing header)." };
+    }
+    const tailStart = Math.max(0, file.size - 2048);
+    const tailBuf = await file.slice(tailStart).arrayBuffer();
+    const tail = new Uint8Array(tailBuf);
+    let tailStr = "";
+    for (let i = 0; i < tail.length; i++) tailStr += String.fromCharCode(tail[i]);
+    if (!tailStr.includes("%%EOF")) {
+      return { ok: false, ext, reason: "PDF appears truncated (no EOF marker)." };
+    }
+    return { ok: true, ext };
+  }
+
+  // docx/epub are ZIP containers — we need the full bytes to unzip.
   const buf = await file.arrayBuffer();
   return validateManuscriptBytes(new Uint8Array(buf), file.name);
 }
