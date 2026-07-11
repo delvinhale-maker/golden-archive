@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { X, Loader2, BookOpen, FileText, Music2, Video, ImageOff, Lock, Download } from "lucide-react";
 import { toast } from "sonner";
+import { ensurePdfJsRuntimeCompat } from "@/lib/pdfjs-compat";
 
 export type FormatPreview =
   | {
@@ -190,35 +191,13 @@ function PdfBody({ url }: { url: string }) {
     const canvases: HTMLCanvasElement[] = [];
     (async () => {
       try {
-        // Polyfill Stage-3 Map/Set upsert helpers used by pdfjs-dist v6.
-        // Chromium/Safari don't ship these yet, so pdf.js render() throws
-        // "getOrInsertComputed is not a function" without them.
-        const mp: any = Map.prototype;
-        if (typeof mp.getOrInsertComputed !== "function") {
-          mp.getOrInsertComputed = function (key: unknown, fn: (k: unknown) => unknown) {
-            if (!this.has(key)) this.set(key, fn(key));
-            return this.get(key);
-          };
-        }
-        if (typeof mp.getOrInsert !== "function") {
-          mp.getOrInsert = function (key: unknown, value: unknown) {
-            if (!this.has(key)) this.set(key, value);
-            return this.get(key);
-          };
-        }
-        const sp: any = Set.prototype;
-        if (typeof sp.getOrInsertComputed !== "function") {
-          sp.getOrInsertComputed = function (key: unknown, fn: (k: unknown) => unknown) {
-            if (!this.has(key)) this.add(fn(key));
-            return key;
-          };
-        }
-        const pdfjs: any = await import("pdfjs-dist");
+        ensurePdfJsRuntimeCompat();
+        const pdfjs: any = await import("pdfjs-dist/legacy/build/pdf.mjs");
         try {
-          const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+          const workerUrl = (await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url")).default;
           pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
         } catch {
-          pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+          pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`;
         }
         const doc = await pdfjs.getDocument({ url }).promise;
         if (cancelled) return;
