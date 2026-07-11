@@ -103,7 +103,17 @@ function AuthPage() {
     let cancelled = false;
     const go = async (saved?: string | null) => {
       const to = await resolveRedirectForSession(saved ?? explicitRedirect);
-      if (!cancelled) navigate({ to });
+      if (cancelled) return;
+      // If the saved redirect carries a query string or hash (e.g.
+      // "/dashboard/new?type=ai_prompt_pack"), navigate({ to }) would treat
+      // the whole thing as a pathname and fail to match, bouncing the user
+      // to the storefront. Fall back to a full navigation so the draft
+      // params/hash reach the protected route intact.
+      if (to.includes("?") || to.includes("#")) {
+        window.location.assign(to);
+        return;
+      }
+      navigate({ to });
     };
     // Initial check
     supabase.auth.getSession().then(({ data }) => {
