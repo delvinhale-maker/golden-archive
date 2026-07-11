@@ -155,6 +155,7 @@ function AdminPage() {
           <Link to="/admin/auto-release" className="text-sm text-white/70 hover:text-white">Auto-release</Link>
           <Link to="/admin/errors" className="text-sm text-white/70 hover:text-white">Errors</Link>
           <Link to="/admin/import" className="text-sm text-white/70 hover:text-white">Import</Link>
+          <Link to="/admin/verify-pdf" className="text-sm text-white/70 hover:text-white">Verify PDF</Link>
           <Link to="/dashboard/kingdom-picks" className="text-sm text-gold hover:text-white">Curated Products</Link>
           <Link to="/dashboard" className="text-sm text-white/70 hover:text-white inline-flex items-center gap-1">
             <ArrowLeft size={14} /> Dashboard

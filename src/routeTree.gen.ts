@@ -65,6 +65,7 @@ import { Route as AuthenticatedDashboardCreatorReferralsRouteImport } from './ro
 import { Route as AuthenticatedDashboardCommunityRouteImport } from './routes/_authenticated/dashboard.community'
 import { Route as AuthenticatedDashboardAiStudioRouteImport } from './routes/_authenticated/dashboard.ai-studio'
 import { Route as AuthenticatedDashboardAffiliateRouteImport } from './routes/_authenticated/dashboard.affiliate'
+import { Route as AuthenticatedAdminVerifyPdfRouteImport } from './routes/_authenticated/admin.verify-pdf'
 import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authenticated/admin.products'
 import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin.payouts'
 import { Route as AuthenticatedAdminMessagesRouteImport } from './routes/_authenticated/admin.messages'
@@ -380,6 +381,12 @@ const AuthenticatedDashboardAffiliateRoute =
     path: '/dashboard/affiliate',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminVerifyPdfRoute =
+  AuthenticatedAdminVerifyPdfRouteImport.update({
+    id: '/admin/verify-pdf',
+    path: '/admin/verify-pdf',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminProductsRoute =
   AuthenticatedAdminProductsRouteImport.update({
     id: '/admin/products',
@@ -575,6 +582,7 @@ export interface FileRoutesByFullPath {
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
+  '/admin/verify-pdf': typeof AuthenticatedAdminVerifyPdfRoute
   '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
   '/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
@@ -655,6 +663,7 @@ export interface FileRoutesByTo {
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
+  '/admin/verify-pdf': typeof AuthenticatedAdminVerifyPdfRoute
   '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
   '/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
@@ -738,6 +747,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/_authenticated/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
+  '/_authenticated/admin/verify-pdf': typeof AuthenticatedAdminVerifyPdfRoute
   '/_authenticated/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/_authenticated/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
   '/_authenticated/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
@@ -821,6 +831,7 @@ export interface FileRouteTypes {
     | '/admin/messages'
     | '/admin/payouts'
     | '/admin/products'
+    | '/admin/verify-pdf'
     | '/dashboard/affiliate'
     | '/dashboard/ai-studio'
     | '/dashboard/community'
@@ -901,6 +912,7 @@ export interface FileRouteTypes {
     | '/admin/messages'
     | '/admin/payouts'
     | '/admin/products'
+    | '/admin/verify-pdf'
     | '/dashboard/affiliate'
     | '/dashboard/ai-studio'
     | '/dashboard/community'
@@ -983,6 +995,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/messages'
     | '/_authenticated/admin/payouts'
     | '/_authenticated/admin/products'
+    | '/_authenticated/admin/verify-pdf'
     | '/_authenticated/dashboard/affiliate'
     | '/_authenticated/dashboard/ai-studio'
     | '/_authenticated/dashboard/community'
@@ -1462,6 +1475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardAffiliateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/verify-pdf': {
+      id: '/_authenticated/admin/verify-pdf'
+      path: '/admin/verify-pdf'
+      fullPath: '/admin/verify-pdf'
+      preLoaderRoute: typeof AuthenticatedAdminVerifyPdfRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/products': {
       id: '/_authenticated/admin/products'
       path: '/admin/products'
@@ -1658,6 +1678,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
   AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
   AuthenticatedAdminProductsRoute: typeof AuthenticatedAdminProductsRoute
+  AuthenticatedAdminVerifyPdfRoute: typeof AuthenticatedAdminVerifyPdfRoute
   AuthenticatedDashboardAffiliateRoute: typeof AuthenticatedDashboardAffiliateRoute
   AuthenticatedDashboardAiStudioRoute: typeof AuthenticatedDashboardAiStudioRoute
   AuthenticatedDashboardCommunityRoute: typeof AuthenticatedDashboardCommunityRoute
@@ -1687,6 +1708,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
   AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
   AuthenticatedAdminProductsRoute: AuthenticatedAdminProductsRoute,
+  AuthenticatedAdminVerifyPdfRoute: AuthenticatedAdminVerifyPdfRoute,
   AuthenticatedDashboardAffiliateRoute: AuthenticatedDashboardAffiliateRoute,
   AuthenticatedDashboardAiStudioRoute: AuthenticatedDashboardAiStudioRoute,
   AuthenticatedDashboardCommunityRoute: AuthenticatedDashboardCommunityRoute,
@@ -1793,13 +1815,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
