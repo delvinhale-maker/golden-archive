@@ -61,7 +61,6 @@ export function PreviewPagePicker({
   };
   const fileNameExt = extFrom(fileName);
   const filePathExt = extFrom(filePath);
-  const ext = fileNameExt ?? filePathExt;
   const looksLikePdf = fileNameExt === "pdf" || filePathExt === "pdf";
   const isLargePdf = (fileSize ?? 0) > 25 * 1024 * 1024;
   const [pageInput, setPageInput] = useState("");
