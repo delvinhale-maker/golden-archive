@@ -22,6 +22,8 @@ export interface PreviewPagePickerProps {
   filePath: string | null;
   /** Original browser filename. Used when mobile storage paths lose the extension. */
   fileName?: string | null;
+  /** Extension inferred from validated bytes/name during upload. */
+  fileExt?: string | null;
   /** Original browser file size. Large PDFs stay in manual mode until requested. */
   fileSize?: number | null;
   /** Ordered 1-indexed page numbers the creator has selected. */
@@ -41,6 +43,7 @@ export interface PreviewPagePickerProps {
 export function PreviewPagePicker({
   filePath,
   fileName,
+  fileExt,
   fileSize,
   value,
   onChange,
@@ -61,7 +64,8 @@ export function PreviewPagePicker({
   };
   const fileNameExt = extFrom(fileName);
   const filePathExt = extFrom(filePath);
-  const looksLikePdf = fileNameExt === "pdf" || filePathExt === "pdf";
+  const validatedExt = (fileExt ?? "").toLowerCase();
+  const looksLikePdf = validatedExt === "pdf" || fileNameExt === "pdf" || filePathExt === "pdf";
   const isLargePdf = (fileSize ?? 0) > 25 * 1024 * 1024;
   const [pageInput, setPageInput] = useState("");
 
@@ -137,7 +141,7 @@ export function PreviewPagePicker({
     return () => {
       cancelledRef.current = true;
     };
-  }, [filePath, fileName, isLargePdf, isReflowFormat, load, looksLikePdf]);
+  }, [filePath, fileName, fileExt, isLargePdf, isReflowFormat, load, looksLikePdf]);
 
   function toggle(pageNum: number) {
     if (value.includes(pageNum)) {
