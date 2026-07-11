@@ -529,8 +529,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     setFileProgress(0);
     if (!f) { setFile(null); return; }
     if (f.size === 0) {
-      const msg = "File is empty.";
-      toast.error("Upload rejected", { description: msg });
+      const msg = "[EMPTY_FILE] File is empty (0 bytes). Pick the actual document, not a placeholder or shortcut.";
+      toast.error("Upload rejected — empty file", { description: msg });
       return setFileError(msg);
     }
     const ext = await inferAllowedUploadExt(f);
@@ -539,9 +539,9 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       const isPdfType = typeCfg.fileExts.includes("pdf");
       const looksMissingExt = isPdfType && (!nameExt || nameExt === f.name.toLowerCase() || !nameExt.match(/^[a-z0-9]{2,4}$/));
       const msg = looksMissingExt
-        ? `We couldn't detect a valid PDF header in "${f.name}". Make sure you're picking the .pdf file itself (not a .zip, screenshot, or shortcut).`
-        : `Unsupported .${ext || "file"}. Accepted: ${typeCfg.acceptedHint}.`;
-      toast.error("Upload rejected", { description: msg, duration: 6000 });
+        ? `[BAD_PDF_HEADER] We couldn't detect a valid %PDF- header in "${f.name}". The bytes don't look like a PDF — make sure you're picking the .pdf file itself (not a .zip, screenshot, or shortcut).`
+        : `[UNSUPPORTED_TYPE] Detected ".${ext || "unknown"}" but this product accepts: ${typeCfg.acceptedHint}.`;
+      toast.error(looksMissingExt ? "Upload rejected — invalid PDF bytes" : "Upload rejected — unsupported type", { description: msg, duration: 6000 });
       return setFileError(msg);
     }
     // NOTE: We intentionally do NOT enforce f.type against fileMimes here.
@@ -551,8 +551,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     // check above plus the structural validation below (for ebooks) is a
     // safer, more reliable signal than the browser-supplied MIME.
     if (f.size > MAX_FILE_MB * 1024 * 1024) {
-      const msg = `File exceeds ${MAX_FILE_MB} MB limit (yours is ${(f.size / 1024 / 1024).toFixed(1)} MB).`;
-      toast.error("Upload rejected", { description: msg, duration: 6000 });
+      const msg = `[TOO_LARGE] File exceeds the ${MAX_FILE_MB} MB limit (yours is ${(f.size / 1024 / 1024).toFixed(1)} MB). Compress or split the file and try again.`;
+      toast.error("Upload rejected — file too large", { description: msg, duration: 6000 });
       return setFileError(msg);
     }
     // Structural validation is only meaningful for ebook manuscripts (pdf/epub/docx).
@@ -562,17 +562,27 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
         const { validateManuscriptFile } = await import("@/lib/manuscript-validate");
         const res = await validateManuscriptFile(f);
         if (!res.ok) {
-          const title = ext === "pdf" ? "PDF couldn't be validated" : "Manuscript couldn't be validated";
-          toast.error(title, {
-            description: `${res.reason} If the file opens correctly on your device, re-save or re-export it and try again.`,
-            duration: 8000,
-          });
-          return setFileError(res.reason);
+          const isPdf = ext === "pdf";
+          const code = /header/i.test(res.reason)
+            ? "BAD_PDF_HEADER"
+            : /EOF|truncat/i.test(res.reason)
+              ? "PDF_TRUNCATED"
+              : /signature/i.test(res.reason)
+                ? "BAD_ZIP_SIGNATURE"
+                : /corrupt/i.test(res.reason)
+                  ? "ARCHIVE_CORRUPT"
+                  : /missing/i.test(res.reason)
+                    ? "MISSING_INTERNAL_PART"
+                    : "STRUCT_INVALID";
+          const title = isPdf ? "Upload rejected — invalid PDF bytes" : "Upload rejected — invalid manuscript structure";
+          const description = `[${code}] ${res.reason} If the file opens correctly on your device, re-save or re-export it and try again.`;
+          toast.error(title, { description, duration: 8000 });
+          return setFileError(description);
         }
       }
     } catch (e) {
-      const msg = `Couldn't read that file (${(e as Error).message}). Re-save from the original app and try again.`;
-      toast.error("Upload rejected", { description: msg, duration: 8000 });
+      const msg = `[READ_ERROR] Couldn't read the file bytes (${(e as Error).message}). The browser may have released the file — re-select it from the picker.`;
+      toast.error("Upload rejected — couldn't read file", { description: msg, duration: 8000 });
       return setFileError(msg);
     }
     setFile(f);
@@ -586,15 +596,25 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
   const MAX_AUTO_ATTEMPTS = 3;
   function friendlyUploadError(e: unknown, label: string): string {
     const raw = e instanceof Error ? e.message : String(e ?? "");
-    if (/network|fetch|failed to fetch|load failed/i.test(raw))
-      return `${label} couldn't reach the server. Check your connection and tap Retry.`;
+    // Attempt to surface an HTTP-ish status if the error object carries one.
+    const status = (typeof e === "object" && e && "statusCode" in e ? (e as { statusCode?: unknown }).statusCode : undefined)
+      ?? (typeof e === "object" && e && "status" in e ? (e as { status?: unknown }).status : undefined);
+    const statusStr = status !== undefined ? ` (HTTP ${String(status)})` : "";
+    if (/network|fetch|failed to fetch|load failed|networkerror/i.test(raw))
+      return `[NETWORK] ${label} couldn't reach the server${statusStr}. Your connection dropped mid-upload — check signal/Wi-Fi and tap Retry.`;
     if (/timeout|timed out/i.test(raw))
-      return `${label} timed out. Tap Retry to try again.`;
+      return `[TIMEOUT] ${label} timed out${statusStr}. The upload took too long — tap Retry, ideally on a stronger connection.`;
     if (/payload|too large|413/i.test(raw))
-      return `${label} is too large for the server. Try a smaller file.`;
-    if (/unauthor|401|403/i.test(raw))
-      return `${label} was rejected (auth). Please sign out and back in.`;
-    return raw || `${label} failed. Tap Retry to try again.`;
+      return `[SERVER_413] ${label} was rejected by the server as too large${statusStr}. Try a smaller file.`;
+    if (/unauthor|401|403|jwt|expired/i.test(raw))
+      return `[AUTH_LOST] ${label} was rejected — your session expired or was invalidated${statusStr}. Sign out and back in, then retry.`;
+    if (/duplicate|already exists|conflict|409/i.test(raw))
+      return `[STORAGE_CONFLICT] ${label} storage path already exists${statusStr}. Tap Retry to generate a new path.`;
+    if (/bucket|not found|404/i.test(raw))
+      return `[STORAGE_ROUTE] ${label} storage bucket route failed${statusStr}. This usually means the server rejected the path — tap Retry.`;
+    if (/5\d\d|server error/i.test(raw))
+      return `[SERVER_5XX] ${label} server error${statusStr}. Tap Retry; if it keeps failing the storage service may be down.`;
+    return `[UPLOAD_FAILED] ${raw || `${label} failed for an unknown reason`}${statusStr}. Tap Retry to try again.`;
   }
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -636,37 +656,53 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
   }
 
   async function uploadManuscript(f: File, extHint?: string) {
-    if (!user) return;
+    if (!user) {
+      const msg = "[NO_SESSION] You're not signed in — routing failure before upload could start. Sign in and try again.";
+      setFileUploadError(msg);
+      toast.error("Manuscript upload failed — no session", { description: msg, duration: 8000 });
+      return;
+    }
     setFileUploading(true); setFileProgress(8); setFileUploadError(null);
     const tick = setInterval(() => setFileProgress((p) => (p < 88 ? p + 4 : p)), 300);
     let lastErr: unknown = null;
+    let lastPhase: "storage" | "draft" | "unknown" = "unknown";
     try {
       for (let attempt = 1; attempt <= MAX_AUTO_ATTEMPTS; attempt++) {
+        let phase: "storage" | "draft" | "unknown" = "unknown";
         try {
           const ts = Date.now();
           const ext = extHint ?? await inferAllowedUploadExt(f);
           const path = `${user.id}/${ts}-${safeStoredFileName(f, ext)}`;
+          phase = "storage";
           const up = await supabase.storage.from("product-files").upload(path, f, { upsert: false });
           if (up.error) throw up.error;
           setUploadedFilePath(path);
           setUploadedFileMeta({ name: f.name, size: f.size });
           setFileProgress(100);
           setFileUploadError(null);
+          phase = "draft";
           await autosaveDraftToDB({ filePath: path, fileSize: f.size, silent: true });
           toast.success("Manuscript saved to your draft ✓", { duration: 3000 });
           return;
         } catch (e) {
           lastErr = e;
+          lastPhase = phase;
           if (attempt < MAX_AUTO_ATTEMPTS) {
-            setFileUploadError(`${friendlyUploadError(e, "Manuscript")} Auto-retrying (${attempt}/${MAX_AUTO_ATTEMPTS - 1})…`);
+            const phaseTag = phase === "storage" ? "[PHASE:STORAGE_UPLOAD] " : phase === "draft" ? "[PHASE:DRAFT_SAVE] " : "";
+            setFileUploadError(`${phaseTag}${friendlyUploadError(e, "Manuscript")} Auto-retrying (${attempt}/${MAX_AUTO_ATTEMPTS - 1})…`);
             await sleep(800 * Math.pow(2, attempt - 1));
             setFileProgress(8);
           }
         }
       }
-      const finalMsg = friendlyUploadError(lastErr, "Manuscript");
+      const phaseTag = lastPhase === "storage"
+        ? "[PHASE:STORAGE_UPLOAD] Failed while sending bytes to storage. "
+        : lastPhase === "draft"
+          ? "[PHASE:DRAFT_SAVE] Bytes uploaded, but saving the draft record failed. Your file is in storage — tap Retry to re-link it. "
+          : "";
+      const finalMsg = `${phaseTag}${friendlyUploadError(lastErr, "Manuscript")}`;
       setFileUploadError(finalMsg);
-      toast.error("Manuscript upload failed", { description: finalMsg, duration: 8000 });
+      toast.error("Manuscript upload failed", { description: finalMsg, duration: 10000 });
     } finally {
       clearInterval(tick);
       setFileUploading(false);
