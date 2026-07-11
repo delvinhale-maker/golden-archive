@@ -81,7 +81,7 @@ function VerifyPdfPage() {
       // 1. Generate
       update("generate", { state: "running" });
       const bytes = base64ToBytes(SAMPLE_PDF_BASE64);
-      const blob = new Blob([bytes], { type: "application/pdf" });
+      const blob = new Blob([bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer], { type: "application/pdf" });
       update("generate", { state: "ok", detail: `${bytes.length} bytes` });
 
       // 2. Upload
