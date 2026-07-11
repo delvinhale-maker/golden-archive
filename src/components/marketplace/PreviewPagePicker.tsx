@@ -54,7 +54,7 @@ export function PreviewPagePicker({
   const cancelledRef = useRef(false);
 
   const startsWithScheme = (p: string) => /^(https?|blob):/i.test(p);
-  const extSource = filePath || fileName || "";
+  const extSource = fileName || filePath || "";
   const ext = extSource.split("#")[0].split("?")[0].split(".").pop()?.toLowerCase();
   const looksLikePdf = ext === "pdf";
   const isLargePdf = (fileSize ?? 0) > 25 * 1024 * 1024;
