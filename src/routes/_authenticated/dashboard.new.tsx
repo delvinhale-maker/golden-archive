@@ -656,37 +656,53 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
   }
 
   async function uploadManuscript(f: File, extHint?: string) {
-    if (!user) return;
+    if (!user) {
+      const msg = "[NO_SESSION] You're not signed in — routing failure before upload could start. Sign in and try again.";
+      setFileUploadError(msg);
+      toast.error("Manuscript upload failed — no session", { description: msg, duration: 8000 });
+      return;
+    }
     setFileUploading(true); setFileProgress(8); setFileUploadError(null);
     const tick = setInterval(() => setFileProgress((p) => (p < 88 ? p + 4 : p)), 300);
     let lastErr: unknown = null;
+    let lastPhase: "storage" | "draft" | "unknown" = "unknown";
     try {
       for (let attempt = 1; attempt <= MAX_AUTO_ATTEMPTS; attempt++) {
+        let phase: "storage" | "draft" | "unknown" = "unknown";
         try {
           const ts = Date.now();
           const ext = extHint ?? await inferAllowedUploadExt(f);
           const path = `${user.id}/${ts}-${safeStoredFileName(f, ext)}`;
+          phase = "storage";
           const up = await supabase.storage.from("product-files").upload(path, f, { upsert: false });
           if (up.error) throw up.error;
           setUploadedFilePath(path);
           setUploadedFileMeta({ name: f.name, size: f.size });
           setFileProgress(100);
           setFileUploadError(null);
+          phase = "draft";
           await autosaveDraftToDB({ filePath: path, fileSize: f.size, silent: true });
           toast.success("Manuscript saved to your draft ✓", { duration: 3000 });
           return;
         } catch (e) {
           lastErr = e;
+          lastPhase = phase;
           if (attempt < MAX_AUTO_ATTEMPTS) {
-            setFileUploadError(`${friendlyUploadError(e, "Manuscript")} Auto-retrying (${attempt}/${MAX_AUTO_ATTEMPTS - 1})…`);
+            const phaseTag = phase === "storage" ? "[PHASE:STORAGE_UPLOAD] " : phase === "draft" ? "[PHASE:DRAFT_SAVE] " : "";
+            setFileUploadError(`${phaseTag}${friendlyUploadError(e, "Manuscript")} Auto-retrying (${attempt}/${MAX_AUTO_ATTEMPTS - 1})…`);
             await sleep(800 * Math.pow(2, attempt - 1));
             setFileProgress(8);
           }
         }
       }
-      const finalMsg = friendlyUploadError(lastErr, "Manuscript");
+      const phaseTag = lastPhase === "storage"
+        ? "[PHASE:STORAGE_UPLOAD] Failed while sending bytes to storage. "
+        : lastPhase === "draft"
+          ? "[PHASE:DRAFT_SAVE] Bytes uploaded, but saving the draft record failed. Your file is in storage — tap Retry to re-link it. "
+          : "";
+      const finalMsg = `${phaseTag}${friendlyUploadError(lastErr, "Manuscript")}`;
       setFileUploadError(finalMsg);
-      toast.error("Manuscript upload failed", { description: finalMsg, duration: 8000 });
+      toast.error("Manuscript upload failed", { description: finalMsg, duration: 10000 });
     } finally {
       clearInterval(tick);
       setFileUploading(false);
