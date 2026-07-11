@@ -162,6 +162,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
   const [coverChecking, setCoverChecking] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [fileExt, setFileExt] = useState<string | null>(null);
   const [coverLightbox, setCoverLightbox] = useState(false);
   // Step 2 (bonus): preview page selection — 0..5 ordered 1-indexed page numbers
   const [previewPages, setPreviewPages] = useState<number[]>([]);
@@ -555,6 +556,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     setFileUploadError(null);
     setUploadedFilePath(null);
     setUploadedFileMeta(null);
+    setFileExt(null);
     setFileProgress(0);
     if (!f) { setFile(null); return; }
     if (f.size === 0) {
@@ -615,6 +617,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       return setFileError(msg);
     }
     const uploadFile = normalizeUploadFile(f, ext);
+    setFileExt(ext);
     setFile(uploadFile);
     // Kick off the upload immediately so each zone operates independently.
     void uploadManuscript(uploadFile, ext);
@@ -1245,6 +1248,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
               coverError={coverError} coverChecking={coverChecking}
               handleCoverChange={handleCoverChange}
               file={file} fileError={fileError} handleFileChange={handleFileChange}
+              fileExt={fileExt}
               onZoomCover={() => setCoverLightbox(true)}
               existingCoverUrl={existingCoverUrl}
               existingFilePath={existingFilePath}
@@ -1544,6 +1548,7 @@ function StepContent(p: {
   coverError: string | null; coverChecking: boolean;
   handleCoverChange: (f: File | null) => void;
   file: File | null; fileError: string | null; handleFileChange: (f: File | null) => void;
+  fileExt: string | null;
   onZoomCover: () => void;
   existingCoverUrl: string | null;
   existingFilePath: string | null;
@@ -1654,6 +1659,7 @@ function StepContent(p: {
         <PreviewPagePicker
           filePath={p.uploadedFilePath ?? p.existingFilePath}
           fileName={p.uploadedFileMeta?.name ?? p.file?.name ?? null}
+          fileExt={p.fileExt}
           fileSize={p.uploadedFileMeta?.size ?? p.file?.size ?? null}
           value={p.previewPages}
           onChange={p.setPreviewPages}
