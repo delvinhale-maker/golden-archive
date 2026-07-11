@@ -497,7 +497,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     const nameExt = f.name.toLowerCase().split(".").pop() ?? "";
     if (typeCfg.fileExts.includes(nameExt)) return nameExt;
     if (typeCfg.fileExts.includes("pdf")) {
-      if (/^application\/pdf\b/i.test(f.type) || await sniffPdfHeader(f)) return "pdf";
+      if (await sniffPdfHeader(f)) return "pdf";
     }
     return nameExt;
   }
