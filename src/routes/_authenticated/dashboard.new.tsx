@@ -2211,12 +2211,47 @@ function buildChromeIntent(url: string): string | null {
   }
 }
 
+function buildSafariUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    // x-safari-https:// is honoured by several iOS in-app browsers
+    // (Gmail, some SDK webviews) to hand a URL off to Safari.
+    if (u.protocol === "https:") {
+      return `x-safari-https://${u.host}${u.pathname}${u.search}${u.hash}`;
+    }
+    if (u.protocol === "http:") {
+      return `x-safari-http://${u.host}${u.pathname}${u.search}${u.hash}`;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function buildChromeIosUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    // googlechrome:// / googlechromes:// open Chrome for iOS if installed.
+    const scheme = u.protocol === "https:" ? "googlechromes" : "googlechrome";
+    return `${scheme}://${u.host}${u.pathname}${u.search}${u.hash}`;
+  } catch {
+    return null;
+  }
+}
+
 function FileInput({ file, onFile, accept, hint, acceptedHint }: { file: File | null; onFile: (f: File | null) => void; accept: string; hint: string; acceptedHint: string }) {
   const { isOver, handlers } = useDropZone(onFile);
-  const [env, setEnv] = useState<{ inApp: boolean; hostLabel: string; isAndroid: boolean }>({ inApp: false, hostLabel: "", isAndroid: false });
+  const [env, setEnv] = useState<{ inApp: boolean; hostLabel: string; isAndroid: boolean; isIOS: boolean }>({ inApp: false, hostLabel: "", isAndroid: false, isIOS: false });
   useEffect(() => {
     const detected = detectInAppBrowser();
-    setEnv({ ...detected, isAndroid: /Android/i.test(typeof navigator !== "undefined" ? navigator.userAgent : "") });
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const isIOS =
+      /iPad|iPhone|iPod/i.test(ua) ||
+      // iPadOS 13+ reports as Mac; disambiguate via touch support.
+      (/Macintosh/i.test(ua) &&
+        typeof navigator !== "undefined" &&
+        (navigator as Navigator).maxTouchPoints > 1);
+    setEnv({ ...detected, isAndroid: /Android/i.test(ua), isIOS });
   }, []);
   const copyLink = async () => {
     try {
@@ -2234,6 +2269,26 @@ function FileInput({ file, onFile, accept, hint, acceptedHint }: { file: File | 
       copyLink();
     }
   };
+  const jumpWithFallback = (target: string | null) => {
+    if (!target) {
+      copyLink();
+      return;
+    }
+    // Some in-app browsers silently swallow custom-scheme jumps. If we're
+    // still on this page after a moment, copy the link so the user always
+    // has a way out.
+    const timer = window.setTimeout(() => {
+      copyLink();
+    }, 1500);
+    window.addEventListener(
+      "pagehide",
+      () => window.clearTimeout(timer),
+      { once: true },
+    );
+    window.location.href = target;
+  };
+  const openInSafari = () => jumpWithFallback(buildSafariUrl(window.location.href));
+  const openInChromeIos = () => jumpWithFallback(buildChromeIosUrl(window.location.href));
   // Use a native <label> wrapping the <input> so tapping the drop-zone
   // opens the OS file picker from a real user gesture. Programmatic
   // input.click() is unreliable on Android Chrome Custom Tabs (opened from
@@ -2251,9 +2306,21 @@ function FileInput({ file, onFile, accept, hint, acceptedHint }: { file: File | 
           <div className="flex-1">
             <p className="font-semibold">File uploads are blocked in {env.hostLabel}</p>
             <p className="mt-0.5 text-xs">
-              You&apos;re viewing AurumVault inside {env.hostLabel}, which silently blocks the file
-              picker on many Android devices — that&apos;s why tapping the upload zone appears to do
-              nothing. Open this page in Chrome, Samsung Internet, or Safari, then try again.
+              {env.isIOS ? (
+                <>
+                  You&apos;re viewing AurumVault inside {env.hostLabel}, which restricts the iOS
+                  file picker — that&apos;s why tapping the upload zone appears to do nothing. Tap
+                  the button below to hand this page off to Safari, or open the {env.hostLabel}{" "}
+                  menu (••• or the share icon) and choose <b>Open in Safari</b>.
+                </>
+              ) : (
+                <>
+                  You&apos;re viewing AurumVault inside {env.hostLabel}, which silently blocks the
+                  file picker on many Android devices — that&apos;s why tapping the upload zone
+                  appears to do nothing. Open this page in Chrome, Samsung Internet, or Safari,
+                  then try again.
+                </>
+              )}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {env.isAndroid && (
@@ -2264,6 +2331,24 @@ function FileInput({ file, onFile, accept, hint, acceptedHint }: { file: File | 
                 >
                   Open in Chrome
                 </button>
+              )}
+              {env.isIOS && (
+                <>
+                  <button
+                    type="button"
+                    onClick={openInSafari}
+                    className="inline-flex items-center gap-1 rounded-full bg-amber-900 px-3 py-1 text-xs font-semibold text-amber-50 hover:bg-amber-950"
+                  >
+                    Open in Safari
+                  </button>
+                  <button
+                    type="button"
+                    onClick={openInChromeIos}
+                    className="inline-flex items-center gap-1 rounded-full border border-amber-900 px-3 py-1 text-xs font-semibold text-amber-900 hover:bg-amber-100"
+                  >
+                    Open in Chrome
+                  </button>
+                </>
               )}
               <button
                 type="button"
