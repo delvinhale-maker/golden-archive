@@ -2047,6 +2047,45 @@ export type Database = {
         }
         Relationships: []
       }
+      vault_finds_products: {
+        Row: {
+          accent_color: string
+          active: boolean
+          affiliate_link: string
+          created_at: string
+          headline: string
+          id: string
+          image_url: string | null
+          sort_order: number
+          subtext: string
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string
+          active?: boolean
+          affiliate_link: string
+          created_at?: string
+          headline: string
+          id?: string
+          image_url?: string | null
+          sort_order?: number
+          subtext: string
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string
+          active?: boolean
+          affiliate_link?: string
+          created_at?: string
+          headline?: string
+          id?: string
+          image_url?: string | null
+          sort_order?: number
+          subtext?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       wishlists: {
         Row: {
           created_at: string

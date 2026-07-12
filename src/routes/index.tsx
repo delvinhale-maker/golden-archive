@@ -80,6 +80,9 @@ const CategoryGrid13 = lazy(() =>
 const WhyAurumVault = lazy(() =>
   import("@/components/marketplace/WhyAurumVault").then((m) => ({ default: m.WhyAurumVault })),
 );
+const VaultFindsRow = lazy(() =>
+  import("@/components/marketplace/VaultFindsRow").then((m) => ({ default: m.VaultFindsRow })),
+);
 
 const featuredQ = queryOptions({
   queryKey: ["mp", "featured"],
@@ -168,6 +171,11 @@ function Home() {
       <Suspense fallback={null}>
         <FeaturedCreatorsRow />
       </Suspense>
+
+      <Suspense fallback={null}>
+        <VaultFindsRow />
+      </Suspense>
+
 
       <Suspense fallback={null}>
         <CategoryGrid13 />
