@@ -54,6 +54,19 @@ function VaultFindsAdminPage() {
   const [active, setActive] = useState(true);
   const [uploadingNew, setUploadingNew] = useState(false);
   const [rowUploading, setRowUploading] = useState<string | null>(null);
+  const [dragOverNew, setDragOverNew] = useState(false);
+  const [dragOverRow, setDragOverRow] = useState<string | null>(null);
+
+  const pickImageFromDrop = (e: React.DragEvent): File | null => {
+    const items = e.dataTransfer?.files;
+    if (!items || items.length === 0) return null;
+    const file = items[0];
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please drop an image file");
+      return null;
+    }
+    return file;
+  };
 
   const onPickNewImage = async (file: File | null) => {
     if (!file) return;
