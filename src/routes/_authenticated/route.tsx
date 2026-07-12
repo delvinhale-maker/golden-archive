@@ -10,9 +10,15 @@ export const Route = createFileRoute("/_authenticated")({
       const search: { redirect: string; message?: string } = { redirect: redirectTo };
       if (location.pathname.startsWith("/dashboard/new")) {
         const type = new URLSearchParams(location.searchStr).get("type");
-        const isEbook = type === "ebook";
-        search.message = isEbook
-          ? "Sign in to continue uploading your eBook — we'll bring you right back to the upload page."
+        const labelByType: Record<string, string> = {
+          ebook: "eBook",
+          ai_prompt_pack: "AI Prompt Pack",
+          printable_journal: "Digital Journal",
+          financial_planner: "Financial Planner",
+        };
+        const label = type ? labelByType[type] : undefined;
+        search.message = label
+          ? `Sign in to continue uploading your ${label} — we'll bring you right back to the upload page.`
           : "Sign in to continue your upload — we'll bring you right back to where you left off.";
       }
       throw redirect({ to: "/auth", search });
