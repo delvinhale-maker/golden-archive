@@ -2200,16 +2200,38 @@ function detectInAppBrowser(): { inApp: boolean; hostLabel: string } {
   return { inApp: false, hostLabel: "" };
 }
 
+function buildChromeIntent(url: string): string | null {
+  try {
+    const u = new URL(url);
+    const path = `${u.host}${u.pathname}${u.search}${u.hash}`;
+    const fallback = encodeURIComponent(url);
+    return `intent://${path}#Intent;scheme=${u.protocol.replace(":", "")};package=com.android.chrome;S.browser_fallback_url=${fallback};end`;
+  } catch {
+    return null;
+  }
+}
+
 function FileInput({ file, onFile, accept, hint, acceptedHint }: { file: File | null; onFile: (f: File | null) => void; accept: string; hint: string; acceptedHint: string }) {
   const { isOver, handlers } = useDropZone(onFile);
-  const [env, setEnv] = useState<{ inApp: boolean; hostLabel: string }>({ inApp: false, hostLabel: "" });
-  useEffect(() => { setEnv(detectInAppBrowser()); }, []);
+  const [env, setEnv] = useState<{ inApp: boolean; hostLabel: string; isAndroid: boolean }>({ inApp: false, hostLabel: "", isAndroid: false });
+  useEffect(() => {
+    const detected = detectInAppBrowser();
+    setEnv({ ...detected, isAndroid: /Android/i.test(typeof navigator !== "undefined" ? navigator.userAgent : "") });
+  }, []);
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
       toast.success("Link copied — paste it into Chrome or Safari");
     } catch {
       toast.info("Long-press the address bar to copy this page's URL");
+    }
+  };
+  const openInChrome = () => {
+    const intent = buildChromeIntent(window.location.href);
+    if (intent) {
+      window.location.href = intent;
+    } else {
+      copyLink();
     }
   };
   // Use a native <label> wrapping the <input> so tapping the drop-zone
@@ -2233,13 +2255,24 @@ function FileInput({ file, onFile, accept, hint, acceptedHint }: { file: File | 
               picker on many Android devices — that&apos;s why tapping the upload zone appears to do
               nothing. Open this page in Chrome, Samsung Internet, or Safari, then try again.
             </p>
-            <button
-              type="button"
-              onClick={copyLink}
-              className="mt-2 inline-flex items-center gap-1 rounded-full bg-amber-900 px-3 py-1 text-xs font-semibold text-amber-50 hover:bg-amber-950"
-            >
-              Copy page link
-            </button>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {env.isAndroid && (
+                <button
+                  type="button"
+                  onClick={openInChrome}
+                  className="inline-flex items-center gap-1 rounded-full bg-amber-900 px-3 py-1 text-xs font-semibold text-amber-50 hover:bg-amber-950"
+                >
+                  Open in Chrome
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={copyLink}
+                className="inline-flex items-center gap-1 rounded-full border border-amber-900 px-3 py-1 text-xs font-semibold text-amber-900 hover:bg-amber-100"
+              >
+                Copy page link
+              </button>
+            </div>
           </div>
         </div>
       )}
