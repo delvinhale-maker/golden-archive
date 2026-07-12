@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
 type VaultFind = {
   id: string;
@@ -42,6 +42,7 @@ function rotate<T>(pool: T[], week: number, count: number): T[] {
 
 export function VaultFindsRow() {
   const [items, setItems] = useState<VaultFind[] | null>(null);
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -61,6 +62,33 @@ export function VaultFindsRow() {
     };
   }, []);
 
+  const scrollByCard = (dir: 1 | -1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const card = el.querySelector<HTMLElement>('[role="listitem"]');
+    const step = card ? card.getBoundingClientRect().width + 16 : el.clientWidth * 0.8;
+    el.scrollBy({ left: dir * step, behavior: "smooth" });
+  };
+
+  const onScrollerKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      scrollByCard(1);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      scrollByCard(-1);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      el.scrollTo({ left: 0, behavior: "smooth" });
+    } else if (e.key === "End") {
+      e.preventDefault();
+      el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
+    }
+  };
+
+
   if (!items || items.length === 0) return null;
 
   return (
@@ -78,12 +106,38 @@ export function VaultFindsRow() {
               Updated Weekly
             </span>
           </div>
+          <div className="hidden gap-2 md:flex">
+            <button
+              type="button"
+              onClick={() => scrollByCard(-1)}
+              aria-label="Scroll Vault Finds left"
+              aria-controls="vault-finds-scroller"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-navy/15 text-navy transition hover:bg-navy hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-ink"
+            >
+              <ChevronLeft size={18} aria-hidden />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollByCard(1)}
+              aria-label="Scroll Vault Finds right"
+              aria-controls="vault-finds-scroller"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-navy/15 text-navy transition hover:bg-navy hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-ink"
+            >
+              <ChevronRight size={18} aria-hidden />
+            </button>
+          </div>
         </div>
 
         <div
-          className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-6 pb-4 lg:-mx-8 lg:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          id="vault-finds-scroller"
+          ref={scrollerRef}
+          tabIndex={0}
           role="list"
+          aria-label="Vault Finds curated affiliate products. Use left and right arrow keys to browse."
+          onKeyDown={onScrollerKeyDown}
+          className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-6 pb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-ink lg:-mx-8 lg:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
+
           {items.map((it, idx) => {
             const a = ACCENTS[it.accent_color] ?? ACCENTS.emerald;
             return (
@@ -134,12 +188,14 @@ export function VaultFindsRow() {
                   href={it.affiliate_link}
                   target="_blank"
                   rel="noopener noreferrer sponsored"
-                  className="mt-4 inline-flex h-10 items-center justify-center gap-1.5 self-start rounded-full px-5 text-xs font-bold tracking-wide transition-transform hover:scale-[1.02]"
+                  aria-label={`Shop ${it.headline} on partner site (opens in a new tab)`}
+                  className="mt-4 inline-flex h-10 items-center justify-center gap-1.5 self-start rounded-full px-5 text-xs font-bold tracking-wide transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-ink"
                   style={{ backgroundColor: a.btnBg, color: a.btnText }}
                 >
                   Shop Now
                   <ExternalLink size={13} aria-hidden />
                 </a>
+
               </article>
             );
           })}
