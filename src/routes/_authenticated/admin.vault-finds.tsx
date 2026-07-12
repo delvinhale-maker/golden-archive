@@ -3,7 +3,22 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { ArrowLeft, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, Trash2, Loader2, Upload } from "lucide-react";
+
+const BUCKET = "vault-finds";
+
+async function uploadImage(file: File): Promise<string> {
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
+    cacheControl: "3600",
+    upsert: false,
+    contentType: file.type || undefined,
+  });
+  if (error) throw error;
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
 
 export const Route = createFileRoute("/_authenticated/admin/vault-finds")({
   component: VaultFindsAdminPage,
