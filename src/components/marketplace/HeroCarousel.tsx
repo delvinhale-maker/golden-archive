@@ -383,7 +383,7 @@ export function HeroCarousel({
           </motion.div>
         </AnimatePresence>
 
-        <div className="relative flex min-h-[300px] items-center justify-center md:min-h-[440px]">
+        <div className="relative flex min-h-[300px] items-center justify-center sm:min-h-[380px] md:min-h-[460px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={`vis-${i}`}
