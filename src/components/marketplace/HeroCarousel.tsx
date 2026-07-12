@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
@@ -7,7 +7,19 @@ import { useTheme } from "@/lib/theme/ThemeProvider";
 
 type SlideTheme = { accentColor: string; gradientStart: string };
 
+export type HeroProduct = {
+  id: string;
+  title: string;
+  category: string;
+  price: number;
+  coverUrl?: string | null;
+  compareAtPrice?: number | null;
+};
+
+type SlideKind = "hero" | "deals" | "creator";
+
 type Slide = {
+  kind: SlideKind;
   kicker: string;
   title: React.ReactNode;
   body: string;
@@ -15,12 +27,11 @@ type Slide = {
   ctaTo: string;
   secondaryLabel?: string;
   secondaryHref?: string;
-  card: { title: string; cat: string; price: number; coverUrl?: string | null };
-  bgClass?: string;
   theme: SlideTheme;
 };
 
-const DEFAULT_HERO_SLIDE: Slide = {
+const HERO_SLIDE: Slide = {
+  kind: "hero",
   kicker: "",
   title: (
     <>
@@ -32,67 +43,269 @@ const DEFAULT_HERO_SLIDE: Slide = {
   ctaTo: "/products",
   secondaryLabel: "Browse Categories →",
   secondaryHref: "#categories",
-  card: { title: "Kingdom Mind", cat: "eBook", price: 14.99 },
   theme: { accentColor: "#B8860B", gradientStart: "#0F1E35" },
 };
 
-const SECONDARY_SLIDES: Slide[] = [
-  {
-    kicker: "LIMITED TIME",
-    title: (
-      <>
-        Today's <span className="gold-gradient">Best Deals</span>.
-      </>
-    ),
-    body: "Hand-picked titles at exclusive prices — for a limited time only.",
-    ctaLabel: "Shop Deals →",
-    ctaTo: "/products",
-    secondaryLabel: "Browse Categories →",
-    secondaryHref: "#categories",
-    card: { title: "The Stewardship Codex", cat: "eBook", price: 19 },
-    theme: { accentColor: "#C9A84C", gradientStart: "#0F1629" },
-  },
-  {
-    kicker: "SELL ON AURUMVAULT",
-    title: (
-      <>
-        Turn your knowledge into <span className="gold-gradient">income</span>.
-      </>
-    ),
-    body: "Join a verified network of creators shipping premium eBooks, courses, and templates — with instant delivery, built-in affiliates, and monthly payouts.",
-    ctaLabel: "Become a Creator →",
-    ctaTo: "/become-a-creator",
-    secondaryLabel: "Meet the creators →",
-    secondaryHref: "/creators",
-    card: { title: "Your next drop", cat: "Creator", price: 49 },
-    theme: { accentColor: "#C9A227", gradientStart: "#0F1629" },
-  },
-];
-
-export type HeroProduct = {
-  id: string;
-  title: string;
-  category: string;
-  price: number;
-  coverUrl?: string | null;
+const DEALS_SLIDE: Slide = {
+  kind: "deals",
+  kicker: "LIMITED TIME",
+  title: (
+    <>
+      Today's <span className="gold-gradient">Best Deals</span>.
+    </>
+  ),
+  body: "Hand-picked titles at exclusive prices — for a limited time only.",
+  ctaLabel: "Shop Deals →",
+  ctaTo: "/products",
+  secondaryLabel: "Browse Categories →",
+  secondaryHref: "#categories",
+  theme: { accentColor: "#C9A84C", gradientStart: "#0F1629" },
 };
 
-export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null }) {
-  const heroSlide: Slide = heroProduct
-    ? {
-        ...DEFAULT_HERO_SLIDE,
-        card: {
-          title: heroProduct.title,
-          cat: heroProduct.category,
-          price: heroProduct.price,
-          coverUrl: heroProduct.coverUrl ?? null,
-        },
-      }
-    : DEFAULT_HERO_SLIDE;
-  const SLIDES: Slide[] = [heroSlide, ...SECONDARY_SLIDES];
+const CREATOR_SLIDE: Slide = {
+  kind: "creator",
+  kicker: "SELL ON AURUMVAULT",
+  title: (
+    <>
+      Turn your knowledge into <span className="gold-gradient">income</span>.
+    </>
+  ),
+  body: "Join a verified network of creators shipping premium eBooks, courses, and templates — with instant delivery, built-in affiliates, and monthly payouts.",
+  ctaLabel: "Become a Creator →",
+  ctaTo: "/become-a-creator",
+  secondaryLabel: "Meet the creators →",
+  secondaryHref: "/creators",
+  theme: { accentColor: "#C9A227", gradientStart: "#0F1629" },
+};
+
+const FALLBACK_HERO: HeroProduct = {
+  id: "fallback-hero",
+  title: "Kingdom Mind",
+  category: "eBook",
+  price: 14.99,
+};
+const FALLBACK_STACK: HeroProduct[] = [
+  { id: "f1", title: "The Stewardship Codex", category: "eBook", price: 19 },
+  { id: "f2", title: "Not For Sale", category: "eBook", price: 12.99 },
+  { id: "f3", title: "Purpose Blueprint", category: "Course", price: 29 },
+];
+
+function Cover({
+  p,
+  className,
+  imgClassName,
+}: {
+  p: HeroProduct;
+  className?: string;
+  imgClassName?: string;
+}) {
+  return (
+    <div className={`overflow-hidden rounded-xl bg-[#f5f4ef] ${className ?? ""}`}>
+      {p.coverUrl ? (
+        <img
+          src={p.coverUrl}
+          alt={p.title}
+          className={`h-full w-full object-cover ${imgClassName ?? ""}`}
+          loading="eager"
+        />
+      ) : (
+        <ProductCover
+          title={p.title}
+          category={p.category}
+          className={`h-full w-full object-cover ${imgClassName ?? ""}`}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Single angled hero card with gold glow. */
+function HeroVisual({ p }: { p: HeroProduct }) {
+  return (
+    <div className="relative mx-auto h-[280px] w-[220px] sm:h-[340px] sm:w-[260px] md:h-[420px] md:w-[300px]">
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 rounded-[28px] blur-3xl"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgba(201,168,76,0.55), rgba(201,168,76,0) 70%)",
+        }}
+      />
+      <motion.div
+        initial={{ rotate: 0, y: 0 }}
+        animate={{ rotate: 4, y: [0, -6, 0] }}
+        transition={{
+          rotate: { duration: 0.6 },
+          y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+        }}
+        className="relative h-full w-full overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6),0_0_0_1px_rgba(201,168,76,0.35)]"
+      >
+        <div className="h-[70%]">
+          <Cover p={p} className="h-full w-full rounded-none" />
+        </div>
+        <div className="p-4">
+          <div className="text-[10px] font-semibold tracking-[0.18em] text-gold-ink">
+            {p.category.toUpperCase()}
+          </div>
+          <div className="mt-1 line-clamp-2 font-display text-base font-bold text-ink">
+            {p.title}
+          </div>
+          <div className="mt-2 flex items-center justify-between">
+            <span className="font-display text-lg font-bold" style={{ color: "#B8860B" }}>
+              ${p.price.toFixed(2)}
+            </span>
+            <span className="flex items-center gap-1 text-[11px] text-mute">
+              <Star size={11} fill="#B8860B" stroke="#B8860B" /> 4.9
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+/** Fanned arrangement of 2–3 covers for the deals slide. */
+function DealsVisual({ items }: { items: HeroProduct[] }) {
+  const list = items.slice(0, 3);
+  while (list.length < 3) list.push(FALLBACK_STACK[list.length]);
+  const rots = [-10, 0, 10];
+  const offsets = [-60, 0, 60];
+  const z = [1, 3, 2];
+  return (
+    <div className="relative mx-auto h-[280px] w-[300px] sm:h-[340px] sm:w-[380px] md:h-[420px] md:w-[440px]">
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 rounded-[28px] blur-3xl"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgba(201,168,76,0.5), rgba(201,168,76,0) 70%)",
+        }}
+      />
+      {list.map((p, i) => (
+        <motion.div
+          key={p.id + i}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0, rotate: rots[i], x: offsets[i] }}
+          transition={{ duration: 0.5, delay: i * 0.08 }}
+          className="absolute left-1/2 top-1/2 h-[220px] w-[150px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.55),0_0_0_1px_rgba(201,168,76,0.3)] sm:h-[260px] sm:w-[180px] md:h-[320px] md:w-[220px]"
+          style={{ zIndex: z[i] }}
+        >
+          <div className="h-[72%]">
+            <Cover p={p} className="h-full w-full rounded-none" />
+          </div>
+          <div className="p-2.5 md:p-3">
+            <div className="line-clamp-2 font-display text-[12px] font-bold leading-tight text-ink md:text-sm">
+              {p.title}
+            </div>
+            <div className="mt-1 flex items-center gap-2">
+              <span className="font-display text-sm font-bold" style={{ color: "#B8860B" }}>
+                ${p.price.toFixed(2)}
+              </span>
+              {p.compareAtPrice && p.compareAtPrice > p.price ? (
+                <span className="text-[11px] text-mute line-through">
+                  ${p.compareAtPrice.toFixed(2)}
+                </span>
+              ) : null}
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+/** Layered creator-dashboard mockup: top bar + stacked covers. */
+function CreatorVisual({ items }: { items: HeroProduct[] }) {
+  const list = items.slice(0, 3);
+  while (list.length < 3) list.push(FALLBACK_STACK[list.length]);
+  return (
+    <div className="relative mx-auto h-[280px] w-[300px] sm:h-[340px] sm:w-[380px] md:h-[420px] md:w-[440px]">
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 rounded-[28px] blur-3xl"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgba(201,168,76,0.45), rgba(201,168,76,0) 70%)",
+        }}
+      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="absolute inset-0 overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6),0_0_0_1px_rgba(201,168,76,0.3)]"
+      >
+        {/* faux dashboard chrome */}
+        <div className="flex items-center gap-1.5 border-b border-line bg-[#f9fafb] px-3 py-2">
+          <span className="h-2 w-2 rounded-full bg-[#ff5f57]" />
+          <span className="h-2 w-2 rounded-full bg-[#febc2e]" />
+          <span className="h-2 w-2 rounded-full bg-[#28c840]" />
+          <span className="ml-2 text-[10px] font-semibold tracking-[0.18em] text-mute">
+            CREATOR DASHBOARD
+          </span>
+        </div>
+        <div className="p-3 md:p-4">
+          <div className="flex items-baseline justify-between">
+            <div>
+              <div className="text-[9px] font-semibold tracking-[0.18em] text-gold-ink">
+                THIS MONTH
+              </div>
+              <div className="mt-0.5 font-display text-lg font-bold text-ink md:text-xl">
+                $4,820.16
+              </div>
+            </div>
+            <div className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-gold-ink">
+              +18%
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {list.map((p, i) => (
+              <motion.div
+                key={p.id + i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 + i * 0.08 }}
+                className="aspect-[3/4] overflow-hidden rounded-md ring-1 ring-line"
+              >
+                <Cover p={p} className="h-full w-full rounded-none" />
+              </motion.div>
+            ))}
+          </div>
+          <div className="mt-3 h-1.5 w-full rounded-full bg-[#eef0f3]">
+            <div className="h-full w-2/3 rounded-full bg-gradient-to-r from-gold to-[#e6c76a]" />
+          </div>
+          <div className="mt-1.5 flex justify-between text-[10px] text-mute">
+            <span>Sales</span>
+            <span>Payouts monthly</span>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+export function HeroCarousel({
+  heroProduct,
+  dealsProducts,
+  creatorProducts,
+}: {
+  heroProduct?: HeroProduct | null;
+  dealsProducts?: HeroProduct[];
+  creatorProducts?: HeroProduct[];
+}) {
+  const SLIDES: Slide[] = [HERO_SLIDE, DEALS_SLIDE, CREATOR_SLIDE];
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   const { activeTheme, setActiveTheme } = useTheme();
+
+  const heroP: HeroProduct = heroProduct ?? FALLBACK_HERO;
+  const dealsList = useMemo(
+    () => (dealsProducts && dealsProducts.length ? dealsProducts : FALLBACK_STACK),
+    [dealsProducts],
+  );
+  const creatorList = useMemo(
+    () => (creatorProducts && creatorProducts.length ? creatorProducts : FALLBACK_STACK),
+    [creatorProducts],
+  );
 
   useEffect(() => {
     if (paused) return;
@@ -102,7 +315,6 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
 
   const slide = SLIDES[i];
 
-  // Sync the global theme (accent + gradient) to the active slide
   useEffect(() => {
     setActiveTheme({
       ...activeTheme,
@@ -123,7 +335,7 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
       aria-roledescription="carousel"
     >
       <div className="av-hero-reflection" aria-hidden />
-      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-[55%_45%] md:py-28 lg:px-8 lg:py-36">
+      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-[55%_45%] md:gap-12 md:py-28 lg:px-8 lg:py-32">
         <AnimatePresence mode="wait">
           <motion.div
             key={`text-${i}`}
@@ -167,65 +379,27 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
                 </motion.a>
               )}
             </div>
-
-
           </motion.div>
         </AnimatePresence>
 
-        <div className="relative mx-auto hidden h-[420px] w-full max-w-md md:block">
+        <div className="relative flex min-h-[300px] items-center justify-center md:min-h-[440px]">
           <AnimatePresence mode="wait">
             <motion.div
-              key={`card-${i}`}
-              initial={{ opacity: 0, x: 60 }}
+              key={`vis-${i}`}
+              initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -40 }}
+              exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.5 }}
-              className="absolute right-0 top-4 w-80 overflow-hidden rounded-xl bg-white shadow-card-hover"
+              className="w-full"
             >
-              <div className="h-52 bg-[#f5f4ef]">
-                {slide.card.coverUrl ? (
-                  <img
-                    src={slide.card.coverUrl}
-                    alt={slide.card.title}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <ProductCover
-                    title={slide.card.title}
-                    category={slide.card.cat}
-                    className="h-full w-full object-cover"
-                  />
-                )}
-              </div>
-              <div className="p-5">
-                <div
-                  className="text-[10px] font-semibold tracking-caps"
-                  style={{ color: "var(--accent-color)" }}
-                >
-                  {slide.card.cat.toUpperCase()}
-                </div>
-                <div className="mt-1 font-display text-lg font-bold text-ink">
-                  {slide.card.title}
-                </div>
-                <div className="mt-3 flex items-center justify-between">
-                  <span
-                    className="font-display text-xl font-bold"
-                    style={{ color: "var(--accent-color)" }}
-                  >
-                    ${slide.card.price}
-                  </span>
-                  <div className="flex items-center gap-1 text-[12px] text-mute">
-                    <Star size={12} fill="var(--accent-color)" stroke="var(--accent-color)" /> 4.9
-                  </div>
-                </div>
-
-              </div>
+              {slide.kind === "hero" && <HeroVisual p={heroP} />}
+              {slide.kind === "deals" && <DealsVisual items={dealsList} />}
+              {slide.kind === "creator" && <CreatorVisual items={creatorList} />}
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
 
-      {/* Controls */}
       <button
         onClick={prev}
         aria-label="Previous slide"
@@ -241,7 +415,6 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
         <ChevronRight size={20} />
       </button>
 
-      {/* Dots */}
       <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-2">
         {SLIDES.map((_, idx) => (
           <button
@@ -254,7 +427,6 @@ export function HeroCarousel({ heroProduct }: { heroProduct?: HeroProduct | null
             }`}
           />
         ))}
-
       </div>
     </section>
   );
