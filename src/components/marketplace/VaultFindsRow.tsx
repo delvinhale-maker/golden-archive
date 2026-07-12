@@ -106,12 +106,38 @@ export function VaultFindsRow() {
               Updated Weekly
             </span>
           </div>
+          <div className="hidden gap-2 md:flex">
+            <button
+              type="button"
+              onClick={() => scrollByCard(-1)}
+              aria-label="Scroll Vault Finds left"
+              aria-controls="vault-finds-scroller"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-navy/15 text-navy transition hover:bg-navy hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-ink"
+            >
+              <ChevronLeft size={18} aria-hidden />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollByCard(1)}
+              aria-label="Scroll Vault Finds right"
+              aria-controls="vault-finds-scroller"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-navy/15 text-navy transition hover:bg-navy hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-ink"
+            >
+              <ChevronRight size={18} aria-hidden />
+            </button>
+          </div>
         </div>
 
         <div
-          className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-6 pb-4 lg:-mx-8 lg:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          id="vault-finds-scroller"
+          ref={scrollerRef}
+          tabIndex={0}
           role="list"
+          aria-label="Vault Finds curated affiliate products. Use left and right arrow keys to browse."
+          onKeyDown={onScrollerKeyDown}
+          className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-6 pb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-ink lg:-mx-8 lg:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
+
           {items.map((it, idx) => {
             const a = ACCENTS[it.accent_color] ?? ACCENTS.emerald;
             return (
