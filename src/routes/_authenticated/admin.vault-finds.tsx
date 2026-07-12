@@ -242,7 +242,22 @@ function VaultFindsAdminPage() {
             <label className="text-xs font-semibold uppercase tracking-caps text-ink/70">
               Product image
             </label>
-            <div className="mt-1 flex items-center gap-3">
+            <div
+              className={`mt-1 flex items-center gap-3 rounded-lg border-2 border-dashed p-3 transition-colors ${
+                dragOverNew ? "border-navy bg-navy/5" : "border-transparent"
+              }`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOverNew(true);
+              }}
+              onDragLeave={() => setDragOverNew(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOverNew(false);
+                const file = pickImageFromDrop(e);
+                if (file) void onPickNewImage(file);
+              }}
+            >
               {imageUrl ? (
                 <img
                   src={imageUrl}
@@ -254,24 +269,27 @@ function VaultFindsAdminPage() {
                   <Upload size={16} />
                 </div>
               )}
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-line px-4 py-2 text-xs font-semibold hover:border-navy">
-                {uploadingNew ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Upload size={14} />
-                )}
-                {uploadingNew ? "Uploading…" : imageUrl ? "Replace image" : "Upload image"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={uploadingNew}
-                  onChange={(e) => {
-                    void onPickNewImage(e.target.files?.[0] ?? null);
-                    e.target.value = "";
-                  }}
-                />
-              </label>
+              <div className="flex flex-1 flex-col gap-1">
+                <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-line px-4 py-2 text-xs font-semibold hover:border-navy">
+                  {uploadingNew ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Upload size={14} />
+                  )}
+                  {uploadingNew ? "Uploading…" : imageUrl ? "Replace image" : "Upload image"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingNew}
+                    onChange={(e) => {
+                      void onPickNewImage(e.target.files?.[0] ?? null);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                <span className="text-[11px] text-ink/50">or drag & drop an image here</span>
+              </div>
               {imageUrl && (
                 <button
                   type="button"
