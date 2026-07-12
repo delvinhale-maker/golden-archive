@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { ChevronLeft, ChevronRight, ExternalLink, Settings } from "lucide-react";
 
 type VaultFind = {
   id: string;
@@ -41,6 +43,7 @@ function rotate<T>(pool: T[], week: number, count: number): T[] {
 }
 
 export function VaultFindsRow() {
+  const { isAdmin } = useAuth();
   const [items, setItems] = useState<VaultFind[] | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
@@ -95,7 +98,7 @@ export function VaultFindsRow() {
     <section className="bg-white py-14 md:py-20" aria-labelledby="vault-finds-title">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-6 flex items-end justify-between gap-4">
-          <div className="flex items-baseline gap-3">
+          <div className="flex flex-wrap items-baseline gap-3">
             <h2
               id="vault-finds-title"
               className="font-display text-3xl leading-tight text-navy md:text-4xl"
@@ -105,6 +108,14 @@ export function VaultFindsRow() {
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold-ink/70">
               Updated Weekly
             </span>
+            {isAdmin && (
+              <Link
+                to="/admin/vault-finds"
+                className="inline-flex items-center gap-1 rounded-full border border-navy/15 px-2.5 py-1 text-[11px] font-semibold text-navy transition hover:bg-navy hover:text-white"
+              >
+                <Settings size={11} /> Manage
+              </Link>
+            )}
           </div>
           <div className="hidden gap-2 md:flex">
             <button
