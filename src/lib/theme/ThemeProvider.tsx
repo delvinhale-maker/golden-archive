@@ -130,11 +130,22 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <ThemeContext.Provider value={value}>
-      <style data-theme-vars={activeTheme.tabName}>{css}</style>
+      {/*
+        Route-driven CSS vars. The router may transition (e.g. the
+        `_authenticated` gate redirecting /dashboard/new → /auth) before
+        React's first client commit, so this <style>'s content can legitimately
+        differ from what SSR emitted. Suppress React's hydration text-mismatch
+        error on this node — the ThemeProvider re-renders on the next tick and
+        applyThemeToRoot() also mirrors the vars onto documentElement.
+      */}
+      <style data-theme-vars={activeTheme.tabName} suppressHydrationWarning>
+        {css}
+      </style>
       {children}
     </ThemeContext.Provider>
   );
 }
+
 
 export function useTheme() {
   return useContext(ThemeContext);
