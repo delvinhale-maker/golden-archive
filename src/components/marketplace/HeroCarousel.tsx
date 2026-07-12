@@ -421,6 +421,7 @@ export function HeroCarousel({
           <button
             key={idx}
             type="button"
+            tabIndex={-1}
             aria-label={`Go to slide ${idx + 1}`}
             onClick={() => setI(idx)}
             onMouseDown={(e) => e.preventDefault()}
