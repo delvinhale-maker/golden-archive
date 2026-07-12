@@ -110,8 +110,9 @@ function VaultFindsAdminPage() {
     const items = e.dataTransfer?.files;
     if (!items || items.length === 0) return null;
     const file = items[0];
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please drop an image file");
+    const err = validateImageFile(file);
+    if (err) {
+      toast.error(err);
       return null;
     }
     return file;
