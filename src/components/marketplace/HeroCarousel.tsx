@@ -171,6 +171,12 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
   const rots = [-10, 0, 10];
   const offsets = [-60, 0, 60];
   const z = [1, 3, 2];
+
+  const discountPct = (p: HeroProduct) => {
+    if (!p.compareAtPrice || p.compareAtPrice <= p.price) return 0;
+    return Math.round(((p.compareAtPrice - p.price) / p.compareAtPrice) * 100);
+  };
+
   return (
     <div className="relative mx-auto h-[280px] w-[300px] sm:h-[340px] sm:w-[380px] md:h-[420px] md:w-[440px]">
       <div
@@ -181,35 +187,47 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
             "radial-gradient(closest-side, rgba(201,168,76,0.5), rgba(201,168,76,0) 70%)",
         }}
       />
-      {list.map((p, i) => (
-        <motion.div
-          key={p.id + i}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0, rotate: rots[i], x: offsets[i] }}
-          transition={{ duration: 0.5, delay: i * 0.08 }}
-          className="absolute left-1/2 top-1/2 h-[220px] w-[150px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.55),0_0_0_1px_rgba(201,168,76,0.3)] sm:h-[260px] sm:w-[180px] md:h-[320px] md:w-[220px]"
-          style={{ zIndex: z[i] }}
-        >
-          <div className="h-[72%]">
-            <Cover p={p} className="h-full w-full rounded-none" />
-          </div>
-          <div className="p-2.5 md:p-3">
-            <div className="line-clamp-2 font-display text-[12px] font-bold leading-tight text-ink md:text-sm">
-              {p.title}
+      {list.map((p, i) => {
+        const pct = discountPct(p);
+        const hasDiscount = pct > 0;
+        return (
+          <motion.div
+            key={p.id + i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0, rotate: rots[i], x: offsets[i] }}
+            transition={{ duration: 0.5, delay: i * 0.08 }}
+            className="absolute left-1/2 top-1/2 h-[220px] w-[150px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.55),0_0_0_1px_rgba(201,168,76,0.3)] sm:h-[260px] sm:w-[180px] md:h-[320px] md:w-[220px]"
+            style={{ zIndex: z[i] }}
+          >
+            <div className="h-[72%]">
+              <Cover p={p} className="h-full w-full rounded-none" />
             </div>
-            <div className="mt-1 flex items-center gap-2">
-              <span className="font-display text-sm font-bold" style={{ color: "#B8860B" }}>
-                ${p.price.toFixed(2)}
-              </span>
-              {p.compareAtPrice && p.compareAtPrice > p.price ? (
-                <span className="text-[11px] text-mute line-through">
-                  ${p.compareAtPrice.toFixed(2)}
+            <div className="p-2.5 md:p-3">
+              <div className="line-clamp-2 font-display text-[12px] font-bold leading-tight text-ink md:text-sm">
+                {p.title}
+              </div>
+              <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span
+                  className="font-display text-base font-bold sm:text-lg md:text-xl"
+                  style={{ color: "#B8860B" }}
+                >
+                  ${p.price.toFixed(2)}
                 </span>
-              ) : null}
+                {hasDiscount && (
+                  <>
+                    <span className="text-[11px] text-mute line-through sm:text-xs">
+                      ${p.compareAtPrice!.toFixed(2)}
+                    </span>
+                    <span className="rounded-full bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-600 sm:text-[10px]">
+                      -{pct}%
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        </motion.div>
-      ))}
+          </motion.div>
+        );
+      })}
     </div>
   );
 }
