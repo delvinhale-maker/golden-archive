@@ -6,8 +6,57 @@ import { toast } from "sonner";
 import { ArrowLeft, Trash2, Loader2, Upload } from "lucide-react";
 
 const BUCKET = "vault-finds";
+const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
+const ALLOWED_EXT = ["jpg", "jpeg", "png", "webp", "gif"] as const;
+const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+const MIN_DIMENSION = 200; // px
+const MAX_DIMENSION = 4000; // px
+
+function formatBytes(n: number) {
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function validateImageFile(file: File): string | null {
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  const mimeOk = ALLOWED_MIME.includes(file.type as (typeof ALLOWED_MIME)[number]);
+  const extOk = ALLOWED_EXT.includes(ext as (typeof ALLOWED_EXT)[number]);
+  if (!mimeOk && !extOk) {
+    return "Unsupported file type. Use JPG, PNG, WEBP, or GIF.";
+  }
+  if (file.size === 0) return "File is empty.";
+  if (file.size > MAX_BYTES) {
+    return `Image is too large (${formatBytes(file.size)}). Max ${formatBytes(MAX_BYTES)}.`;
+  }
+  return null;
+}
+
+function checkImageDimensions(file: File): Promise<string | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      if (img.width < MIN_DIMENSION || img.height < MIN_DIMENSION) {
+        resolve(`Image is too small (${img.width}×${img.height}). Minimum ${MIN_DIMENSION}px per side.`);
+      } else if (img.width > MAX_DIMENSION || img.height > MAX_DIMENSION) {
+        resolve(`Image dimensions too large (${img.width}×${img.height}). Maximum ${MAX_DIMENSION}px per side.`);
+      } else {
+        resolve(null);
+      }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve("Could not read the image. It may be corrupted.");
+    };
+    img.src = url;
+  });
+}
 
 async function uploadImage(file: File): Promise<string> {
+  const typeError = validateImageFile(file);
+  if (typeError) throw new Error(typeError);
+  const dimError = await checkImageDimensions(file);
+  if (dimError) throw new Error(dimError);
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const path = `${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
@@ -61,8 +110,9 @@ function VaultFindsAdminPage() {
     const items = e.dataTransfer?.files;
     if (!items || items.length === 0) return null;
     const file = items[0];
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please drop an image file");
+    const err = validateImageFile(file);
+    if (err) {
+      toast.error(err);
       return null;
     }
     return file;
@@ -288,7 +338,9 @@ function VaultFindsAdminPage() {
                     }}
                   />
                 </label>
-                <span className="text-[11px] text-ink/50">or drag & drop an image here</span>
+                <span className="text-[11px] text-ink/50">
+                  or drag & drop an image here · JPG, PNG, WEBP, GIF · up to 5 MB · {MIN_DIMENSION}–{MAX_DIMENSION}px
+                </span>
               </div>
               {imageUrl && (
                 <button
