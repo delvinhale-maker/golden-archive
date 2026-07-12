@@ -173,6 +173,11 @@ function Home() {
       </Suspense>
 
       <Suspense fallback={null}>
+        <VaultFindsRow />
+      </Suspense>
+
+
+      <Suspense fallback={null}>
         <CategoryGrid13 />
       </Suspense>
 
