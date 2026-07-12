@@ -3,7 +3,22 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { ArrowLeft, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, Trash2, Loader2, Upload } from "lucide-react";
+
+const BUCKET = "vault-finds";
+
+async function uploadImage(file: File): Promise<string> {
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
+    cacheControl: "3600",
+    upsert: false,
+    contentType: file.type || undefined,
+  });
+  if (error) throw error;
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
 
 export const Route = createFileRoute("/_authenticated/admin/vault-finds")({
   component: VaultFindsAdminPage,
@@ -37,6 +52,41 @@ function VaultFindsAdminPage() {
   const [affiliateLink, setAffiliateLink] = useState("");
   const [accent, setAccent] = useState<(typeof ACCENTS)[number]>("emerald");
   const [active, setActive] = useState(true);
+  const [uploadingNew, setUploadingNew] = useState(false);
+  const [rowUploading, setRowUploading] = useState<string | null>(null);
+
+  const onPickNewImage = async (file: File | null) => {
+    if (!file) return;
+    setUploadingNew(true);
+    try {
+      const url = await uploadImage(file);
+      setImageUrl(url);
+      toast.success("Image uploaded");
+    } catch (e: any) {
+      toast.error(e.message ?? "Upload failed");
+    } finally {
+      setUploadingNew(false);
+    }
+  };
+
+  const onReplaceRowImage = async (row: Row, file: File | null) => {
+    if (!file) return;
+    setRowUploading(row.id);
+    try {
+      const url = await uploadImage(file);
+      const { error } = await supabase
+        .from("vault_finds_products")
+        .update({ image_url: url })
+        .eq("id", row.id);
+      if (error) throw error;
+      toast.success("Image updated");
+      void load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Upload failed");
+    } finally {
+      setRowUploading(null);
+    }
+  };
 
   useEffect(() => {
     if (loading) return;
@@ -177,14 +227,54 @@ function VaultFindsAdminPage() {
           </div>
           <div>
             <label className="text-xs font-semibold uppercase tracking-caps text-ink/70">
-              Image URL (optional)
+              Product image
             </label>
+            <div className="mt-1 flex items-center gap-3">
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt=""
+                  className="h-16 w-16 rounded-lg border border-line object-cover"
+                />
+              ) : (
+                <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-line text-ink/40">
+                  <Upload size={16} />
+                </div>
+              )}
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-line px-4 py-2 text-xs font-semibold hover:border-navy">
+                {uploadingNew ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Upload size={14} />
+                )}
+                {uploadingNew ? "Uploading…" : imageUrl ? "Replace image" : "Upload image"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploadingNew}
+                  onChange={(e) => {
+                    void onPickNewImage(e.target.files?.[0] ?? null);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              {imageUrl && (
+                <button
+                  type="button"
+                  onClick={() => setImageUrl("")}
+                  className="text-xs text-ink/60 hover:text-red-600"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
             <input
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               type="url"
-              className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm"
-              placeholder="https://…"
+              className="mt-2 w-full rounded-lg border border-line px-3 py-2 text-xs text-ink/60"
+              placeholder="Or paste an image URL"
             />
           </div>
           <div>
@@ -246,6 +336,17 @@ function VaultFindsAdminPage() {
                 key={r.id}
                 className="flex items-start justify-between gap-4 rounded-xl border border-line bg-white p-4"
               >
+                {r.image_url ? (
+                  <img
+                    src={r.image_url}
+                    alt=""
+                    className="h-16 w-16 shrink-0 rounded-lg border border-line object-cover"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-dashed border-line text-ink/40">
+                    <Upload size={16} />
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span
@@ -277,20 +378,40 @@ function VaultFindsAdminPage() {
                     {r.affiliate_link}
                   </a>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <button
-                    onClick={() => toggle(r)}
-                    className="rounded-full border border-line px-3 py-1 text-xs font-semibold hover:border-navy"
-                  >
-                    {r.active ? "Disable" : "Enable"}
-                  </button>
-                  <button
-                    onClick={() => remove(r.id)}
-                    className="rounded-full border border-line p-2 text-ink/60 hover:border-red-500 hover:text-red-600"
-                    aria-label="Delete"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-line px-3 py-1 text-xs font-semibold hover:border-navy">
+                    {rowUploading === r.id ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Upload size={12} />
+                    )}
+                    {rowUploading === r.id ? "…" : r.image_url ? "Replace" : "Upload"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={rowUploading === r.id}
+                      onChange={(e) => {
+                        void onReplaceRowImage(r, e.target.files?.[0] ?? null);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => toggle(r)}
+                      className="rounded-full border border-line px-3 py-1 text-xs font-semibold hover:border-navy"
+                    >
+                      {r.active ? "Disable" : "Enable"}
+                    </button>
+                    <button
+                      onClick={() => remove(r.id)}
+                      className="rounded-full border border-line p-2 text-ink/60 hover:border-red-500 hover:text-red-600"
+                      aria-label="Delete"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               </li>
             ))}
