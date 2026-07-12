@@ -546,3 +546,148 @@ function VaultFindsAdminPage() {
     </div>
   );
 }
+
+const ACCENT_SWATCH: Record<string, string> = {
+  emerald: "#1B7A5C",
+  burgundy: "#7A2E3E",
+  amber: "#C9832E",
+  dusty: "#3E5C76",
+  cream: "#F4F1E8",
+};
+
+function RotationPreview({ rows }: { rows: Row[] }) {
+  const currentWeek = isoWeek();
+  const [week, setWeek] = useState<number>(currentWeek);
+
+  // Match VaultFindsRow ordering: active only, sort_order asc, created_at asc.
+  const pool = rows
+    .filter((r) => r.active)
+    .slice()
+    .sort((a, b) => {
+      if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+      return a.created_at.localeCompare(b.created_at);
+    });
+
+  const cardsShown = Math.min(6, Math.max(pool.length, 1));
+  const selected = rotateIds(pool, week, cardsShown);
+  const selectedIds = new Set(selected.map((r) => r.id));
+  const startIndex = pool.length ? ((week % pool.length) + pool.length) % pool.length : 0;
+
+  const bump = (delta: number) => setWeek((w) => w + delta);
+
+  return (
+    <section className="mt-10 rounded-2xl border border-line bg-white p-6 shadow-sm">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 className="font-display text-lg text-navy">Weekly rotation preview</h2>
+          <p className="mt-1 text-xs text-ink/60">
+            Pool: {pool.length} active · Cards per week: {cardsShown} · Current ISO week: {currentWeek}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => bump(-1)}
+            className="rounded-full border border-line px-3 py-1 text-xs font-semibold hover:border-navy"
+          >
+            ← Prev
+          </button>
+          <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-caps text-ink/70">
+            Week
+            <input
+              type="number"
+              value={week}
+              onChange={(e) => setWeek(Number(e.target.value) || 0)}
+              className="w-20 rounded-lg border border-line px-2 py-1 text-sm text-ink"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => bump(1)}
+            className="rounded-full border border-line px-3 py-1 text-xs font-semibold hover:border-navy"
+          >
+            Next →
+          </button>
+          <button
+            type="button"
+            onClick={() => setWeek(currentWeek)}
+            className="rounded-full border border-line px-3 py-1 text-xs font-semibold hover:border-navy"
+          >
+            Today (W{currentWeek})
+          </button>
+        </div>
+      </div>
+
+      {pool.length === 0 ? (
+        <div className="mt-4 rounded-xl border border-dashed border-line p-6 text-center text-sm text-ink/60">
+          No active products in the rotation pool.
+        </div>
+      ) : (
+        <>
+          <p className="mt-4 text-xs text-ink/60">
+            Starts at pool index <span className="font-semibold text-navy">{startIndex}</span> ({" "}
+            <span className="font-mono">{week} mod {pool.length} = {startIndex}</span> ), wraps around.
+          </p>
+
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {selected.map((r, i) => (
+              <div
+                key={`${r.id}-${i}`}
+                className="flex items-start gap-3 rounded-xl border-2 border-emerald-500/60 bg-emerald-50/40 p-3"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy text-xs font-bold text-white">
+                  {i + 1}
+                </div>
+                {r.image_url ? (
+                  <img
+                    src={r.image_url}
+                    alt=""
+                    className="h-12 w-12 shrink-0 rounded-lg border border-line object-cover"
+                  />
+                ) : (
+                  <div
+                    className="h-12 w-12 shrink-0 rounded-lg border border-line"
+                    style={{ backgroundColor: ACCENT_SWATCH[r.accent_color] ?? "#eee" }}
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold text-navy">{r.headline}</div>
+                  <div className="mt-0.5 truncate text-xs text-ink/60">{r.subtext}</div>
+                  <div className="mt-0.5 text-[10px] uppercase tracking-caps text-ink/50">
+                    {r.accent_color} · idx {(startIndex + i) % pool.length}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <details className="mt-6 rounded-xl border border-line bg-ivory/40 p-4">
+            <summary className="cursor-pointer text-xs font-semibold uppercase tracking-caps text-ink/70">
+              Full pool order ({pool.length}) — highlighted = selected this week
+            </summary>
+            <ol className="mt-3 space-y-1 text-xs">
+              {pool.map((r, i) => {
+                const isSelected = selectedIds.has(r.id);
+                return (
+                  <li
+                    key={r.id}
+                    className={`flex items-center gap-2 rounded px-2 py-1 ${
+                      isSelected ? "bg-emerald-100/80 font-semibold text-navy" : "text-ink/70"
+                    }`}
+                  >
+                    <span className="w-8 shrink-0 font-mono text-ink/50">#{i}</span>
+                    <span
+                      className="inline-block h-2 w-2 rounded-full"
+                      style={{ backgroundColor: ACCENT_SWATCH[r.accent_color] ?? "#999" }}
+                    />
+                    <span className="truncate">{r.headline}</span>
+                  </li>
+                );
+              })}
+            </ol>
+          </details>
+        </>
+      )}
+    </section>
+  );
+}
