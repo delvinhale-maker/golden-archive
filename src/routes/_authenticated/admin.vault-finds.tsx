@@ -336,6 +336,17 @@ function VaultFindsAdminPage() {
                 key={r.id}
                 className="flex items-start justify-between gap-4 rounded-xl border border-line bg-white p-4"
               >
+                {r.image_url ? (
+                  <img
+                    src={r.image_url}
+                    alt=""
+                    className="h-16 w-16 shrink-0 rounded-lg border border-line object-cover"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-dashed border-line text-ink/40">
+                    <Upload size={16} />
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span
@@ -367,20 +378,40 @@ function VaultFindsAdminPage() {
                     {r.affiliate_link}
                   </a>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <button
-                    onClick={() => toggle(r)}
-                    className="rounded-full border border-line px-3 py-1 text-xs font-semibold hover:border-navy"
-                  >
-                    {r.active ? "Disable" : "Enable"}
-                  </button>
-                  <button
-                    onClick={() => remove(r.id)}
-                    className="rounded-full border border-line p-2 text-ink/60 hover:border-red-500 hover:text-red-600"
-                    aria-label="Delete"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-line px-3 py-1 text-xs font-semibold hover:border-navy">
+                    {rowUploading === r.id ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Upload size={12} />
+                    )}
+                    {rowUploading === r.id ? "…" : r.image_url ? "Replace" : "Upload"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={rowUploading === r.id}
+                      onChange={(e) => {
+                        void onReplaceRowImage(r, e.target.files?.[0] ?? null);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => toggle(r)}
+                      className="rounded-full border border-line px-3 py-1 text-xs font-semibold hover:border-navy"
+                    >
+                      {r.active ? "Disable" : "Enable"}
+                    </button>
+                    <button
+                      onClick={() => remove(r.id)}
+                      className="rounded-full border border-line p-2 text-ink/60 hover:border-red-500 hover:text-red-600"
+                      aria-label="Delete"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               </li>
             ))}
