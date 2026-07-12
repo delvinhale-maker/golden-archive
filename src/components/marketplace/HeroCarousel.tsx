@@ -118,7 +118,7 @@ function Cover({
 /** Single angled hero card with gold glow. */
 function HeroVisual({ p }: { p: HeroProduct }) {
   return (
-    <div className="relative mx-auto h-[360px] w-[220px] sm:h-[400px] sm:w-[260px] md:h-[460px] md:w-[300px]">
+    <div className="relative mx-auto h-[300px] w-[183px] sm:h-[360px] sm:w-[220px] md:h-[420px] md:w-[260px]">
       <div
         aria-hidden
         className="absolute inset-0 -z-10 rounded-[28px] blur-3xl"
