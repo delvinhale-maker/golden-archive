@@ -305,9 +305,28 @@ function CreatorSkeleton() {
   );
 }
 
+function toHeroProduct(p: Product) {
+  return {
+    id: p.id,
+    title: p.title,
+    category: p.category,
+    price: p.price,
+    coverUrl: p.image && p.image.startsWith("http") ? p.image : null,
+    compareAtPrice: p.compareAtPrice ?? null,
+  };
+}
+
 function FeaturedHero() {
   const { data, isFetching } = useSuspenseQuery(highlightsQ);
+  const { data: featured } = useSuspenseQuery(featuredQ);
   const hp = data.heroProduct;
+
+  const dealsProducts = (featured ?? [])
+    .filter((p) => p.compareAtPrice && p.compareAtPrice > p.price)
+    .slice(0, 3)
+    .map(toHeroProduct);
+  const creatorProducts = (featured ?? []).slice(0, 3).map(toHeroProduct);
+
   return (
     <div className="relative">
       {isFetching && (
@@ -320,18 +339,9 @@ function FeaturedHero() {
         </div>
       )}
       <HeroCarousel
-        heroProduct={
-          hp
-            ? {
-                id: hp.id,
-                title: hp.title,
-                category: hp.category,
-                price: hp.price,
-                coverUrl:
-                  hp.image && hp.image.startsWith("http") ? hp.image : null,
-              }
-            : null
-        }
+        heroProduct={hp ? toHeroProduct(hp) : null}
+        dealsProducts={dealsProducts.length ? dealsProducts : creatorProducts}
+        creatorProducts={creatorProducts}
       />
     </div>
   );
