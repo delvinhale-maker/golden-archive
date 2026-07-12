@@ -174,7 +174,7 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
   };
 
   return (
-    <div className="relative mx-auto h-[320px] w-[300px] sm:h-[360px] sm:w-[380px] md:h-[440px] md:w-[440px]">
+    <div className="relative mx-auto h-[300px] w-[300px] sm:h-[360px] sm:w-[380px] md:h-[420px] md:w-[440px]">
       <div
         aria-hidden
         className="absolute inset-0 -z-10 rounded-[28px] blur-3xl"
