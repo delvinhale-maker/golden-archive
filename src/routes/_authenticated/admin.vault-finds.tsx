@@ -365,7 +365,24 @@ function VaultFindsAdminPage() {
             {rows.map((r) => (
               <li
                 key={r.id}
-                className="flex items-start justify-between gap-4 rounded-xl border border-line bg-white p-4"
+                className={`flex items-start justify-between gap-4 rounded-xl border bg-white p-4 transition-colors ${
+                  dragOverRow === r.id ? "border-navy bg-navy/5" : "border-line"
+                }`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (rowUploading) return;
+                  setDragOverRow(r.id);
+                }}
+                onDragLeave={(e) => {
+                  if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                  setDragOverRow((cur) => (cur === r.id ? null : cur));
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOverRow(null);
+                  const file = pickImageFromDrop(e);
+                  if (file) void onReplaceRowImage(r, file);
+                }}
               >
                 {r.image_url ? (
                   <img
