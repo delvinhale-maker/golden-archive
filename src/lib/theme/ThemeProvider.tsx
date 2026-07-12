@@ -61,6 +61,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     [location.pathname, location.search],
   );
 
+
+
   const [override, setOverride] = useState<ThemeOverride>(null);
   // Manual setter path (legacy). When callers use setActiveTheme directly we
   // treat it as a full override so route changes don't immediately overwrite it.
@@ -108,6 +110,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     </ThemeContext.Provider>
   );
 }
+
+
 
 export function useTheme() {
   return useContext(ThemeContext);
