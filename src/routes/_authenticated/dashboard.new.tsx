@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS, type PublisherAccent } from "@/components/marketplace/PublisherShell";
+import { VerifyPdfUploadButton } from "@/components/marketplace/VerifyPdfUploadButton";
 import {
   ArrowLeft, ArrowRight, Check, Image as ImageIcon, FileText, X,
   CheckCircle2, AlertCircle, Maximize2, Plus, Sparkles, ShieldCheck, Globe,
@@ -1117,6 +1118,9 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           <span className="text-mute text-xs hidden sm:inline">· {typeCfg.tagline}</span>
         </div>
       )}
+
+      <VerifyPdfUploadButton />
+
 
       {loadingEdit && (
         <p className="mt-2 text-xs text-mute">Loading title…</p>
