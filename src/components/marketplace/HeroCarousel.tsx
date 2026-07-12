@@ -118,7 +118,7 @@ function Cover({
 /** Single angled hero card with gold glow. */
 function HeroVisual({ p }: { p: HeroProduct }) {
   return (
-    <div className="relative mx-auto h-[360px] w-[220px] sm:h-[400px] sm:w-[260px] md:h-[460px] md:w-[300px]">
+    <div className="relative mx-auto h-[300px] w-[183px] sm:h-[360px] sm:w-[220px] md:h-[420px] md:w-[260px]">
       <div
         aria-hidden
         className="absolute inset-0 -z-10 rounded-[28px] blur-3xl"
@@ -137,7 +137,7 @@ function HeroVisual({ p }: { p: HeroProduct }) {
         className="relative h-full w-full overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6),0_0_0_1px_rgba(201,168,76,0.35)]"
       >
         <div className="h-[62%]">
-          <Cover p={p} className="h-full w-full rounded-none" />
+          <Cover p={p} className="h-full w-full rounded-none" imgClassName="object-top" />
         </div>
         <div className="flex h-[38%] flex-col justify-center p-4">
           <div className="text-[10px] font-semibold tracking-[0.18em] text-gold-ink">
@@ -174,7 +174,7 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
   };
 
   return (
-    <div className="relative mx-auto h-[320px] w-[300px] sm:h-[360px] sm:w-[380px] md:h-[440px] md:w-[440px]">
+    <div className="relative mx-auto h-[300px] w-[300px] sm:h-[360px] sm:w-[380px] md:h-[420px] md:w-[440px]">
       <div
         aria-hidden
         className="absolute inset-0 -z-10 rounded-[28px] blur-3xl"
@@ -196,7 +196,7 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
             style={{ zIndex: z[i] }}
           >
             <div className="h-[62%]">
-              <Cover p={p} className="h-full w-full rounded-none" />
+              <Cover p={p} className="h-full w-full rounded-none" imgClassName="object-top" />
             </div>
             <div className="flex h-[38%] flex-col justify-center p-2.5 md:p-3">
               <div className="line-clamp-2 font-display text-[12px] font-bold leading-tight text-ink md:text-sm">
@@ -383,7 +383,7 @@ export function HeroCarousel({
           </motion.div>
         </AnimatePresence>
 
-        <div className="relative flex min-h-[300px] items-center justify-center md:min-h-[440px]">
+        <div className="relative flex min-h-[300px] items-center justify-center sm:min-h-[380px] md:min-h-[460px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={`vis-${i}`}
