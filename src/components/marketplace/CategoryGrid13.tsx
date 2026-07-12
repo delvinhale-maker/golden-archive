@@ -197,9 +197,8 @@ export function CategoryGrid13() {
                 "digital_toolkits",
                 "budget_spreadsheets",
                 "business_templates",
-                "ai_prompt_packs",
                 "prompt_packs",
-              ].includes(c.slug) && (counts[c.slug] ?? 0) > 0,
+              ].includes(c.slug),
           ).map((c) => {
             const count = counts[c.slug] ?? 0;
             const blurb = CATEGORY_BLURBS[c.slug] ?? "";

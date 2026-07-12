@@ -28,6 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const CATEGORIES = [
   "All",
+  "AI Prompt Packs",
   "eBooks",
   "Journals",
   "Financial Planners",
