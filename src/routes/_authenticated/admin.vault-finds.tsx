@@ -177,7 +177,7 @@ function VaultFindsAdminPage() {
       toast.success("Image updated");
       void load();
     } catch (e: any) {
-      toast.error(e.message ?? "Upload failed");
+      showValidationToast(e);
     } finally {
       setRowUploading(null);
     }
