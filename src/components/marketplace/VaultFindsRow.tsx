@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { ChevronLeft, ChevronRight, ExternalLink, Settings } from "lucide-react";
 
 type VaultFind = {
   id: string;
