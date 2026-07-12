@@ -227,14 +227,54 @@ function VaultFindsAdminPage() {
           </div>
           <div>
             <label className="text-xs font-semibold uppercase tracking-caps text-ink/70">
-              Image URL (optional)
+              Product image
             </label>
+            <div className="mt-1 flex items-center gap-3">
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt=""
+                  className="h-16 w-16 rounded-lg border border-line object-cover"
+                />
+              ) : (
+                <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-line text-ink/40">
+                  <Upload size={16} />
+                </div>
+              )}
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-line px-4 py-2 text-xs font-semibold hover:border-navy">
+                {uploadingNew ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Upload size={14} />
+                )}
+                {uploadingNew ? "Uploading…" : imageUrl ? "Replace image" : "Upload image"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploadingNew}
+                  onChange={(e) => {
+                    void onPickNewImage(e.target.files?.[0] ?? null);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              {imageUrl && (
+                <button
+                  type="button"
+                  onClick={() => setImageUrl("")}
+                  className="text-xs text-ink/60 hover:text-red-600"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
             <input
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               type="url"
-              className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm"
-              placeholder="https://…"
+              className="mt-2 w-full rounded-lg border border-line px-3 py-2 text-xs text-ink/60"
+              placeholder="Or paste an image URL"
             />
           </div>
           <div>
