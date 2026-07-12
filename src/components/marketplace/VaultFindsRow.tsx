@@ -43,6 +43,7 @@ function rotate<T>(pool: T[], week: number, count: number): T[] {
 }
 
 export function VaultFindsRow() {
+  const { isAdmin } = useAuth();
   const [items, setItems] = useState<VaultFind[] | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
