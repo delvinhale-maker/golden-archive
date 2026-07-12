@@ -144,7 +144,7 @@ function VaultFindsAdminPage() {
     const file = items[0];
     const err = validateImageFile(file);
     if (err) {
-      toast.error(err);
+      showValidationToast(err);
       return null;
     }
     return file;
@@ -158,7 +158,7 @@ function VaultFindsAdminPage() {
       setImageUrl(url);
       toast.success("Image uploaded");
     } catch (e: any) {
-      toast.error(e.message ?? "Upload failed");
+      showValidationToast(e);
     } finally {
       setUploadingNew(false);
     }
