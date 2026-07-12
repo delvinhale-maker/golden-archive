@@ -1,13 +1,13 @@
 """
-Mobile regression (iPhone viewport): uploading a PDF from the AI Prompt Pack
+Mobile regression (iPhone viewport): uploading a PDF from the Digital Journal
 section must keep the user on the live edit flow (dashboard/new Step 2) and
 render the uploaded success state with the filename.
 
-This is the same scenario as upload-pdf-promptpack-stays-in-edit.spec.py but
+This is the same scenario as upload-pdf-journal-stays-in-edit.spec.py but
 exercises a different mobile viewport (iPhone 12 Pro / iOS Safari).
 
 Run:
-    python3 tests/mobile/upload-pdf-promptpack-stays-in-edit-iphone.spec.py
+    python3 tests/mobile/upload-pdf-journal-stays-in-edit-iphone.spec.py
 """
 
 import asyncio
@@ -105,12 +105,12 @@ async def restore_supabase_session(page) -> None:
 async def advance_to_step_two(page) -> None:
     title_input = page.locator("input.inp").first
     await title_input.tap()
-    await title_input.fill("Prompt Pack Stays-In-Edit PDF iPhone")
+    await title_input.fill("Journal Stays-In-Edit PDF iPhone")
 
     desc = page.locator("textarea.inp").first
     await desc.tap()
     await desc.fill(
-        "Deliberately verbose prompt-pack description used to satisfy the "
+        "Deliberately verbose journal description used to satisfy the "
         "Step 1 minimum-length validation so this iPhone mobile regression "
         "test can advance to the manuscript upload step."
     )
@@ -142,7 +142,7 @@ async def main() -> None:
 
         await restore_supabase_session(page)
         await page.goto(
-            f"{BASE}/dashboard/new?type=ai_prompt_pack",
+            f"{BASE}/dashboard/new?type=printable_journal",
             wait_until="domcontentloaded",
         )
         await page.wait_for_load_state("networkidle")
@@ -155,14 +155,14 @@ async def main() -> None:
 
         edit_url_before = page.url
         await advance_to_step_two(page)
-        await page.screenshot(path=str(SCREENSHOTS / "promptpack_pdf_iphone_step2.png"))
+        await page.screenshot(path=str(SCREENSHOTS / "journal_pdf_iphone_step2.png"))
 
         manuscript_input = 'input[type="file"][accept*="pdf"]'
         if await page.locator(manuscript_input).count() == 0:
             fail("Manuscript file input (accept*='pdf') not found on Step 2.")
 
         pdf_bytes = build_minimal_pdf()
-        filename = "promptpack-stays-in-edit-iphone.pdf"
+        filename = "journal-stays-in-edit-iphone.pdf"
 
         await page.locator(manuscript_input).first.set_input_files(
             {
@@ -193,10 +193,10 @@ async def main() -> None:
         try:
             await expect(success.first).to_be_visible(timeout=8000)
         except Exception:
-            await page.screenshot(path=str(SCREENSHOTS / "promptpack_pdf_iphone_fail.png"))
+            await page.screenshot(path=str(SCREENSHOTS / "journal_pdf_iphone_fail.png"))
             fail(
                 "UploadSuccess did not render with the PDF filename on iPhone viewport — "
-                "the file was not accepted into the prompt pack flow."
+                "the file was not accepted into the journal flow."
             )
         ok("UploadSuccess renders with the PDF filename on iPhone viewport")
 
@@ -210,9 +210,9 @@ async def main() -> None:
             )
         ok("Manuscript dropzone swapped to success state on iPhone viewport")
 
-        await page.screenshot(path=str(SCREENSHOTS / "promptpack_pdf_iphone_success.png"))
+        await page.screenshot(path=str(SCREENSHOTS / "journal_pdf_iphone_success.png"))
         await browser.close()
-        print("\nPrompt Pack PDF stays-in-edit iPhone regression: all checks passed.")
+        print("\nJournal PDF stays-in-edit iPhone regression: all checks passed.")
 
 
 if __name__ == "__main__":
