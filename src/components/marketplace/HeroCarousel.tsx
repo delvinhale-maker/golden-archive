@@ -195,26 +195,26 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
             className="absolute left-1/2 top-1/2 h-[260px] w-[150px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.55),0_0_0_1px_rgba(201,168,76,0.3)] sm:h-[290px] sm:w-[180px] md:h-[340px] md:w-[220px]"
             style={{ zIndex: z[i] }}
           >
-            <div className="h-[62%]">
+            <div className="h-[58%] sm:h-[60%] md:h-[62%]">
               <Cover p={p} className="h-full w-full rounded-none" imgClassName="object-top" />
             </div>
-            <div className="flex h-[38%] flex-col justify-center p-2.5 md:p-3">
-              <div className="line-clamp-2 font-display text-[12px] font-bold leading-tight text-ink md:text-sm">
+            <div className="flex h-[42%] flex-col justify-start gap-1.5 p-2.5 sm:h-[40%] md:h-[38%] md:p-3">
+              <div className="line-clamp-2 min-w-0 font-display text-[12px] font-bold leading-tight text-ink md:text-sm">
                 {p.title}
               </div>
-              <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <div className="flex min-w-0 flex-nowrap items-baseline gap-1.5 sm:gap-2">
                 <span
-                  className="font-display text-base font-bold sm:text-lg md:text-xl"
+                  className="shrink-0 font-display text-sm font-bold sm:text-lg md:text-xl"
                   style={{ color: "#B8860B" }}
                 >
                   ${p.price.toFixed(2)}
                 </span>
                 {hasDiscount && (
                   <>
-                    <span className="text-[11px] text-mute line-through sm:text-xs">
+                    <span className="hidden truncate text-[11px] text-mute line-through sm:inline">
                       ${p.compareAtPrice!.toFixed(2)}
                     </span>
-                    <span className="rounded-full bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-600 sm:text-[10px]">
+                    <span className="shrink-0 rounded-full bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-600 sm:text-[10px]">
                       -{pct}%
                     </span>
                   </>
