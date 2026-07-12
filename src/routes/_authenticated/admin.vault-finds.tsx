@@ -136,7 +136,7 @@ function VaultFindsAdminPage() {
     <div className="min-h-screen bg-ivory">
       <div className="mx-auto max-w-4xl px-6 py-10 lg:px-8">
         <Link
-          to="/_authenticated/admin"
+          to="/admin"
           className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-navy hover:text-gold-ink"
         >
           <ArrowLeft size={14} /> Back to Admin
