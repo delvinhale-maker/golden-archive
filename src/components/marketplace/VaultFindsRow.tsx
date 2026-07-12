@@ -42,6 +42,7 @@ function rotate<T>(pool: T[], week: number, count: number): T[] {
 
 export function VaultFindsRow() {
   const [items, setItems] = useState<VaultFind[] | null>(null);
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -60,6 +61,33 @@ export function VaultFindsRow() {
       active = false;
     };
   }, []);
+
+  const scrollByCard = (dir: 1 | -1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const card = el.querySelector<HTMLElement>('[role="listitem"]');
+    const step = card ? card.getBoundingClientRect().width + 16 : el.clientWidth * 0.8;
+    el.scrollBy({ left: dir * step, behavior: "smooth" });
+  };
+
+  const onScrollerKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      scrollByCard(1);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      scrollByCard(-1);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      el.scrollTo({ left: 0, behavior: "smooth" });
+    } else if (e.key === "End") {
+      e.preventDefault();
+      el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
+    }
+  };
+
 
   if (!items || items.length === 0) return null;
 
