@@ -182,9 +182,45 @@ export function VerifyPdfUploadButton() {
         canvas.width = viewport.width;
         canvas.height = viewport.height;
         const c2d = canvas.getContext("2d")!;
-        await page.render({ canvasContext: c2d, viewport }).promise;
-        return `${doc.numPages} page(s), ${Math.round(viewport.width)}×${Math.round(viewport.height)}`;
+
+        // Kick off render and poll until pdf.js resolves (or times out).
+        const renderTask = page.render({ canvasContext: c2d, viewport });
+        const renderStart = Date.now();
+        const TIMEOUT_MS = 15000;
+        const POLL_MS = 100;
+
+        let done = false;
+        let renderErr: unknown = null;
+        renderTask.promise.then(
+          () => { done = true; },
+          (e: unknown) => { renderErr = e; done = true; },
+        );
+
+        let polls = 0;
+        while (!done) {
+          if (Date.now() - renderStart > TIMEOUT_MS) {
+            try { renderTask.cancel(); } catch { /* ignore */ }
+            throw new Error(`Render timed out after ${TIMEOUT_MS} ms (polled ${polls}×)`);
+          }
+          await new Promise((r) => setTimeout(r, POLL_MS));
+          polls++;
+        }
+        if (renderErr) {
+          throw new Error(`Render failed: ${renderErr instanceof Error ? renderErr.message : String(renderErr)}`);
+        }
+
+        // Confirm the canvas actually has non-blank pixels.
+        const w = canvas.width;
+        const h = canvas.height;
+        const sample = c2d.getImageData(0, 0, Math.min(w, 64), Math.min(h, 64)).data;
+        let nonWhite = 0;
+        for (let i = 0; i < sample.length; i += 4) {
+          if (sample[i] < 250 || sample[i + 1] < 250 || sample[i + 2] < 250) nonWhite++;
+        }
+        const dur = Date.now() - renderStart;
+        return `${doc.numPages} page(s), ${Math.round(viewport.width)}×${Math.round(viewport.height)} · polled ${polls}× in ${dur} ms · ${nonWhite} non-white px sampled`;
       },
+
       cleanup: async () => {
         const del = await supabase.storage.from("product-files").remove([ctx.path]);
         if (del.error) throw new Error(`Cleanup failed: ${del.error.message}`);
