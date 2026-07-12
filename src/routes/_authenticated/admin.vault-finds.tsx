@@ -89,6 +89,22 @@ type Row = {
 
 const ACCENTS = ["emerald", "burgundy", "amber", "dusty", "cream"] as const;
 
+// Must match VaultFindsRow.tsx
+function isoWeek(d = new Date()): number {
+  const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil(((t.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+}
+function rotateIds<T>(pool: T[], week: number, count: number): T[] {
+  if (pool.length === 0) return [];
+  const start = ((week % pool.length) + pool.length) % pool.length;
+  const out: T[] = [];
+  for (let i = 0; i < count; i++) out.push(pool[(start + i) % pool.length]);
+  return out;
+}
+
 function VaultFindsAdminPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
