@@ -338,7 +338,9 @@ function VaultFindsAdminPage() {
                     }}
                   />
                 </label>
-                <span className="text-[11px] text-ink/50">or drag & drop an image here</span>
+                <span className="text-[11px] text-ink/50">
+                  or drag & drop an image here · JPG, PNG, WEBP, GIF · up to 5 MB · {MIN_DIMENSION}–{MAX_DIMENSION}px
+                </span>
               </div>
               {imageUrl && (
                 <button
