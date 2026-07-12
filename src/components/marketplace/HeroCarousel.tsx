@@ -122,7 +122,7 @@ function Cover({
 /** Single angled hero card with gold glow. */
 function HeroVisual({ p }: { p: HeroProduct }) {
   return (
-    <div className="relative mx-auto h-[280px] w-[220px] sm:h-[340px] sm:w-[260px] md:h-[420px] md:w-[300px]">
+    <div className="relative mx-auto h-[360px] w-[220px] sm:h-[400px] sm:w-[260px] md:h-[460px] md:w-[300px]">
       <div
         aria-hidden
         className="absolute inset-0 -z-10 rounded-[28px] blur-3xl"
@@ -140,10 +140,10 @@ function HeroVisual({ p }: { p: HeroProduct }) {
         }}
         className="relative h-full w-full overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6),0_0_0_1px_rgba(201,168,76,0.35)]"
       >
-        <div className="h-[70%]">
+        <div className="h-[62%]">
           <Cover p={p} className="h-full w-full rounded-none" />
         </div>
-        <div className="p-4">
+        <div className="flex h-[38%] flex-col justify-center p-4">
           <div className="text-[10px] font-semibold tracking-[0.18em] text-gold-ink">
             {p.category.toUpperCase()}
           </div>
@@ -169,7 +169,7 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
   const list = items.slice(0, 3);
   while (list.length < 3) list.push(FALLBACK_STACK[list.length]);
   const rots = [-10, 0, 10];
-  const offsets = [-60, 0, 60];
+  const offsets = [-52, 0, 52];
   const z = [1, 3, 2];
 
   const discountPct = (p: HeroProduct) => {
@@ -178,7 +178,7 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
   };
 
   return (
-    <div className="relative mx-auto h-[280px] w-[300px] sm:h-[340px] sm:w-[380px] md:h-[420px] md:w-[440px]">
+    <div className="relative mx-auto h-[320px] w-[300px] sm:h-[360px] sm:w-[380px] md:h-[440px] md:w-[440px]">
       <div
         aria-hidden
         className="absolute inset-0 -z-10 rounded-[28px] blur-3xl"
@@ -196,13 +196,13 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0, rotate: rots[i], x: offsets[i] }}
             transition={{ duration: 0.5, delay: i * 0.08 }}
-            className="absolute left-1/2 top-1/2 h-[220px] w-[150px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.55),0_0_0_1px_rgba(201,168,76,0.3)] sm:h-[260px] sm:w-[180px] md:h-[320px] md:w-[220px]"
+            className="absolute left-1/2 top-1/2 h-[260px] w-[150px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.55),0_0_0_1px_rgba(201,168,76,0.3)] sm:h-[290px] sm:w-[180px] md:h-[340px] md:w-[220px]"
             style={{ zIndex: z[i] }}
           >
-            <div className="h-[72%]">
+            <div className="h-[62%]">
               <Cover p={p} className="h-full w-full rounded-none" />
             </div>
-            <div className="p-2.5 md:p-3">
+            <div className="flex h-[38%] flex-col justify-center p-2.5 md:p-3">
               <div className="line-clamp-2 font-display text-[12px] font-bold leading-tight text-ink md:text-sm">
                 {p.title}
               </div>
