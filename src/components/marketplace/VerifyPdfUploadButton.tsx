@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { ensurePdfJsRuntimeCompat } from "@/lib/pdfjs-compat";
-import { CheckCircle2, Loader2, PlayCircle, XCircle, Clock } from "lucide-react";
+import { CheckCircle2, Loader2, PlayCircle, RotateCw, XCircle, Clock } from "lucide-react";
 
 // Tiny valid 1-page PDF (~1.3 KB, ReportLab-generated).
 const SAMPLE_PDF_BASE64 =
@@ -16,13 +16,15 @@ function base64ToBytes(b64: string): Uint8Array {
 }
 
 type StepState = "pending" | "running" | "ok" | "fail";
+type StepId = "generate" | "upload" | "sign" | "refetch" | "validate" | "render" | "cleanup";
 type Step = {
-  id: string;
+  id: StepId;
   label: string;
   state: StepState;
   detail?: string;
   startedAt?: number;
   endedAt?: number;
+  attempts?: number;
 };
 
 const INITIAL_STEPS: Step[] = [
@@ -52,6 +54,15 @@ function fmtDur(a?: number, b?: number) {
   return `${(ms / 1000).toFixed(2)} s`;
 }
 
+type RunCtx = {
+  path: string;
+  uploaded: boolean;
+  blob?: Blob;
+  bytes?: Uint8Array;
+  signedUrl?: string;
+  fetched?: Uint8Array;
+};
+
 export function VerifyPdfUploadButton() {
   const { user, loading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -61,6 +72,7 @@ export function VerifyPdfUploadButton() {
   const [runStartedAt, setRunStartedAt] = useState<number | undefined>();
   const [runEndedAt, setRunEndedAt] = useState<number | undefined>();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const ctxRef = useRef<RunCtx | null>(null);
 
   useEffect(() => {
     if (loading || !user) return;
@@ -79,103 +91,124 @@ export function VerifyPdfUploadButton() {
     };
   }, [loading, user]);
 
-  function update(id: string, patch: Partial<Step>) {
-    setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  function patch(id: StepId, p: Partial<Step>) {
+    setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...p } : s)));
   }
 
-  function begin(id: string) {
-    update(id, { state: "running", startedAt: Date.now() });
-  }
-  function pass(id: string, detail?: string) {
-    update(id, { state: "ok", endedAt: Date.now(), detail });
-  }
-
-  async function runVerify() {
-    if (!user) return;
-    setExpanded(true);
-    setRunning(true);
-    setSteps(INITIAL_STEPS.map((s) => ({ ...s, state: "pending", detail: undefined, startedAt: undefined, endedAt: undefined })));
-    const started = Date.now();
-    setRunStartedAt(started);
-    setRunEndedAt(undefined);
-    const path = `verify/${user.id}/${Date.now()}-verify.pdf`;
-    let uploaded = false;
-
+  async function runStep(id: StepId, fn: () => Promise<string | void>): Promise<boolean> {
+    patch(id, { state: "running", startedAt: Date.now(), endedAt: undefined, detail: undefined });
+    // bump attempts
+    setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, attempts: (s.attempts ?? 0) + 1 } : s)));
     try {
-      begin("generate");
-      const bytes = base64ToBytes(SAMPLE_PDF_BASE64);
-      const blob = new Blob(
-        [bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer],
-        { type: "application/pdf" },
-      );
-      pass("generate", `${bytes.length} bytes`);
-
-      begin("upload");
-      const up = await supabase.storage.from("product-files").upload(path, blob, {
-        contentType: "application/pdf",
-        upsert: false,
-      });
-      if (up.error) throw new Error(`Upload failed: ${up.error.message}`);
-      uploaded = true;
-      pass("upload", path);
-
-      begin("sign");
-      const signed = await supabase.storage.from("product-files").createSignedUrl(path, 120);
-      if (signed.error || !signed.data?.signedUrl)
-        throw new Error(`Sign failed: ${signed.error?.message ?? "no url"}`);
-      pass("sign");
-
-      begin("refetch");
-      const res = await fetch(signed.data.signedUrl + "&_r=" + Date.now(), { cache: "no-store" });
-      if (!res.ok) throw new Error(`Fetch failed: HTTP ${res.status}`);
-      const fetched = new Uint8Array(await res.arrayBuffer());
-      pass("refetch", `${fetched.length} bytes`);
-
-      begin("validate");
-      const header = new TextDecoder().decode(fetched.slice(0, 5));
-      const tail = new TextDecoder().decode(fetched.slice(Math.max(0, fetched.length - 32)));
-      if (!header.startsWith("%PDF-")) throw new Error(`Bad header: ${JSON.stringify(header)}`);
-      if (!tail.includes("%%EOF")) throw new Error("Missing %%EOF trailer");
-      pass("validate", `${header.trim()} / %%EOF present`);
-
-      begin("render");
-      ensurePdfJsRuntimeCompat();
-      const pdfjs: any = await import("pdfjs-dist/legacy/build/pdf.mjs");
-      try {
-        const workerUrl = (await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url")).default;
-        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
-      } catch {
-        pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`;
-      }
-      const doc = await pdfjs.getDocument({ data: fetched }).promise;
-      const page = await doc.getPage(1);
-      const viewport = page.getViewport({ scale: 1 });
-      const canvas = canvasRef.current!;
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      const ctx = canvas.getContext("2d")!;
-      await page.render({ canvasContext: ctx, viewport }).promise;
-      pass("render", `${doc.numPages} page(s), ${Math.round(viewport.width)}×${Math.round(viewport.height)}`);
-
-      begin("cleanup");
-      const del = await supabase.storage.from("product-files").remove([path]);
-      if (del.error) throw new Error(`Cleanup failed: ${del.error.message}`);
-      uploaded = false;
-      pass("cleanup");
+      const detail = await fn();
+      patch(id, { state: "ok", endedAt: Date.now(), detail: typeof detail === "string" ? detail : undefined });
+      return true;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      setSteps((prev) => {
-        const idx = prev.findIndex((s) => s.state === "running");
-        if (idx === -1) return prev;
-        const next = [...prev];
-        next[idx] = { ...next[idx], state: "fail", endedAt: Date.now(), detail: msg };
-        return next;
-      });
-      if (uploaded) {
+      patch(id, { state: "fail", endedAt: Date.now(), detail: msg });
+      return false;
+    }
+  }
+
+  async function executeFrom(startId: StepId) {
+    if (!user) return;
+    const ctx = ctxRef.current!;
+    // Reset states for this step and everything after it.
+    const order: StepId[] = INITIAL_STEPS.map((s) => s.id);
+    const startIdx = order.indexOf(startId);
+    setSteps((prev) =>
+      prev.map((s) => {
+        const i = order.indexOf(s.id);
+        if (i >= startIdx) return { ...s, state: "pending", detail: undefined, startedAt: undefined, endedAt: undefined };
+        return s;
+      }),
+    );
+
+    const runners: Record<StepId, () => Promise<string | void>> = {
+      generate: async () => {
+        const bytes = base64ToBytes(SAMPLE_PDF_BASE64);
+        ctx.bytes = bytes;
+        ctx.blob = new Blob(
+          [bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer],
+          { type: "application/pdf" },
+        );
+        return `${bytes.length} bytes`;
+      },
+      upload: async () => {
+        if (!ctx.blob) throw new Error("No PDF blob — retry earlier step");
+        const up = await supabase.storage.from("product-files").upload(ctx.path, ctx.blob, {
+          contentType: "application/pdf",
+          upsert: true,
+        });
+        if (up.error) throw new Error(`Upload failed: ${up.error.message}`);
+        ctx.uploaded = true;
+        return ctx.path;
+      },
+      sign: async () => {
+        const signed = await supabase.storage.from("product-files").createSignedUrl(ctx.path, 120);
+        if (signed.error || !signed.data?.signedUrl)
+          throw new Error(`Sign failed: ${signed.error?.message ?? "no url"}`);
+        ctx.signedUrl = signed.data.signedUrl;
+      },
+      refetch: async () => {
+        if (!ctx.signedUrl) throw new Error("No signed URL — retry earlier step");
+        const res = await fetch(ctx.signedUrl + "&_r=" + Date.now(), { cache: "no-store" });
+        if (!res.ok) throw new Error(`Fetch failed: HTTP ${res.status}`);
+        ctx.fetched = new Uint8Array(await res.arrayBuffer());
+        return `${ctx.fetched.length} bytes`;
+      },
+      validate: async () => {
+        if (!ctx.fetched) throw new Error("No fetched bytes — retry earlier step");
+        const header = new TextDecoder().decode(ctx.fetched.slice(0, 5));
+        const tail = new TextDecoder().decode(ctx.fetched.slice(Math.max(0, ctx.fetched.length - 32)));
+        if (!header.startsWith("%PDF-")) throw new Error(`Bad header: ${JSON.stringify(header)}`);
+        if (!tail.includes("%%EOF")) throw new Error("Missing %%EOF trailer");
+        return `${header.trim()} / %%EOF present`;
+      },
+      render: async () => {
+        if (!ctx.fetched) throw new Error("No fetched bytes — retry earlier step");
+        ensurePdfJsRuntimeCompat();
+        const pdfjs: any = await import("pdfjs-dist/legacy/build/pdf.mjs");
         try {
-          await supabase.storage.from("product-files").remove([path]);
+          const workerUrl = (await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url")).default;
+          pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
         } catch {
-          /* ignore */
+          pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`;
+        }
+        const doc = await pdfjs.getDocument({ data: ctx.fetched }).promise;
+        const page = await doc.getPage(1);
+        const viewport = page.getViewport({ scale: 1 });
+        const canvas = canvasRef.current!;
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const c2d = canvas.getContext("2d")!;
+        await page.render({ canvasContext: c2d, viewport }).promise;
+        return `${doc.numPages} page(s), ${Math.round(viewport.width)}×${Math.round(viewport.height)}`;
+      },
+      cleanup: async () => {
+        const del = await supabase.storage.from("product-files").remove([ctx.path]);
+        if (del.error) throw new Error(`Cleanup failed: ${del.error.message}`);
+        ctx.uploaded = false;
+      },
+    };
+
+    setRunning(true);
+    setRunEndedAt(undefined);
+    try {
+      for (let i = startIdx; i < order.length; i++) {
+        const id = order[i];
+        const ok = await runStep(id, runners[id]);
+        if (!ok) {
+          // best-effort cleanup on failure if we uploaded
+          if (ctx.uploaded && id !== "cleanup") {
+            try {
+              await supabase.storage.from("product-files").remove([ctx.path]);
+              ctx.uploaded = false;
+            } catch {
+              /* ignore */
+            }
+          }
+          break;
         }
       }
     } finally {
@@ -184,13 +217,33 @@ export function VerifyPdfUploadButton() {
     }
   }
 
+  async function runVerify() {
+    if (!user) return;
+    setExpanded(true);
+    setSteps(INITIAL_STEPS.map((s) => ({ ...s, state: "pending", detail: undefined, startedAt: undefined, endedAt: undefined, attempts: 0 })));
+    setRunStartedAt(Date.now());
+    ctxRef.current = {
+      path: `verify/${user.id}/${Date.now()}-verify.pdf`,
+      uploaded: false,
+    };
+    await executeFrom("generate");
+  }
+
+  async function retryFromFailure() {
+    if (!user || !ctxRef.current) {
+      await runVerify();
+      return;
+    }
+    const failed = steps.find((s) => s.state === "fail");
+    if (!failed) return;
+    await executeFrom(failed.id);
+  }
+
   const summary = useMemo(() => {
     const total = steps.length;
     const okCount = steps.filter((s) => s.state === "ok").length;
     const failCount = steps.filter((s) => s.state === "fail").length;
-    const anyFail = failCount > 0;
-    const allOk = okCount === total;
-    return { total, okCount, failCount, anyFail, allOk };
+    return { total, okCount, failCount, anyFail: failCount > 0, allOk: okCount === total };
   }, [steps]);
 
   if (!isAdmin) return null;
@@ -213,6 +266,8 @@ export function VerifyPdfUploadButton() {
           ? { cls: "bg-amber-100 text-amber-800 border-amber-200", label: "RUNNING" }
           : { cls: "bg-ink/5 text-mute border-ink/10", label: "IDLE" };
 
+  const canRetry = !running && summary.anyFail;
+
   return (
     <div className="mt-4 rounded-xl border border-dashed border-ink/20 bg-paper/60 p-3 text-sm">
       <div className="flex items-center justify-between gap-3">
@@ -227,15 +282,27 @@ export function VerifyPdfUploadButton() {
             Uploads a sample PDF, refetches via signed URL, renders page 1, then deletes it.
           </div>
         </div>
-        <button
-          type="button"
-          onClick={runVerify}
-          disabled={running}
-          className="inline-flex items-center gap-2 rounded-lg bg-navy text-white px-3 py-1.5 text-xs font-medium disabled:opacity-60 whitespace-nowrap"
-        >
-          {running ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PlayCircle className="h-3.5 w-3.5" />}
-          {running ? "Running…" : hasRun ? "Run again" : "Run verify"}
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {canRetry && (
+            <button
+              type="button"
+              onClick={retryFromFailure}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 text-white px-3 py-1.5 text-xs font-medium whitespace-nowrap"
+            >
+              <RotateCw className="h-3.5 w-3.5" />
+              Retry failed
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={runVerify}
+            disabled={running}
+            className="inline-flex items-center gap-2 rounded-lg bg-navy text-white px-3 py-1.5 text-xs font-medium disabled:opacity-60 whitespace-nowrap"
+          >
+            {running ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PlayCircle className="h-3.5 w-3.5" />}
+            {running ? "Running…" : hasRun ? "Run again" : "Run verify"}
+          </button>
+        </div>
       </div>
 
       {expanded && (
@@ -261,8 +328,10 @@ export function VerifyPdfUploadButton() {
             </div>
           )}
           {status === "fail" && (
-            <div className="mt-3 rounded-md bg-red-50 border border-red-200 text-red-800 text-xs px-2 py-1.5">
-              ❌ {summary.failCount} check{summary.failCount === 1 ? "" : "s"} failed — see the failing step below.
+            <div className="mt-3 rounded-md bg-red-50 border border-red-200 text-red-800 text-xs px-2 py-1.5 flex items-center justify-between gap-2">
+              <span>
+                ❌ {summary.failCount} check{summary.failCount === 1 ? "" : "s"} failed — tap “Retry failed” to resume from the failing step.
+              </span>
             </div>
           )}
 
@@ -280,6 +349,11 @@ export function VerifyPdfUploadButton() {
                     <div className="text-xs font-medium text-navy">
                       <span className="text-mute mr-1">{i + 1}.</span>
                       {s.label}
+                      {s.attempts && s.attempts > 1 && (
+                        <span className="ml-1 text-[10px] text-amber-700 font-semibold">
+                          (attempt {s.attempts})
+                        </span>
+                      )}
                     </div>
                     <div className="text-[10px] text-mute whitespace-nowrap tabular-nums">
                       {s.startedAt && fmtClock(s.startedAt)}
@@ -292,6 +366,16 @@ export function VerifyPdfUploadButton() {
                     <div className={`mt-0.5 text-[11px] break-words ${s.state === "fail" ? "text-red-700" : "text-mute"}`}>
                       {s.detail}
                     </div>
+                  )}
+                  {s.state === "fail" && !running && (
+                    <button
+                      type="button"
+                      onClick={() => executeFrom(s.id)}
+                      className="mt-1 inline-flex items-center gap-1 rounded bg-amber-100 text-amber-800 border border-amber-200 px-1.5 py-0.5 text-[10px] font-medium"
+                    >
+                      <RotateCw className="h-3 w-3" />
+                      Retry this step
+                    </button>
                   )}
                 </div>
               </li>
