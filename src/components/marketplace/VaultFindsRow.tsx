@@ -188,12 +188,14 @@ export function VaultFindsRow() {
                   href={it.affiliate_link}
                   target="_blank"
                   rel="noopener noreferrer sponsored"
-                  className="mt-4 inline-flex h-10 items-center justify-center gap-1.5 self-start rounded-full px-5 text-xs font-bold tracking-wide transition-transform hover:scale-[1.02]"
+                  aria-label={`Shop ${it.headline} on partner site (opens in a new tab)`}
+                  className="mt-4 inline-flex h-10 items-center justify-center gap-1.5 self-start rounded-full px-5 text-xs font-bold tracking-wide transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-ink"
                   style={{ backgroundColor: a.btnBg, color: a.btnText }}
                 >
                   Shop Now
                   <ExternalLink size={13} aria-hidden />
                 </a>
+
               </article>
             );
           })}
