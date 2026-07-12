@@ -16,47 +16,79 @@ function formatBytes(n: number) {
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function validateImageFile(file: File): string | null {
+type ValidationError = { title: string; description: string };
+
+function validateImageFile(file: File): ValidationError | null {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
   const mimeOk = ALLOWED_MIME.includes(file.type as (typeof ALLOWED_MIME)[number]);
   const extOk = ALLOWED_EXT.includes(ext as (typeof ALLOWED_EXT)[number]);
   if (!mimeOk && !extOk) {
-    return "Unsupported file type. Use JPG, PNG, WEBP, or GIF.";
+    return {
+      title: "Unsupported file type",
+      description: `Please upload a JPG, PNG, WEBP, or GIF image. The selected file does not match any of these formats.`,
+    };
   }
-  if (file.size === 0) return "File is empty.";
+  if (file.size === 0) {
+    return {
+      title: "File is empty",
+      description: "The selected image has no content. Please choose a different file.",
+    };
+  }
   if (file.size > MAX_BYTES) {
-    return `Image is too large (${formatBytes(file.size)}). Max ${formatBytes(MAX_BYTES)}.`;
+    return {
+      title: "File too large",
+      description: `This image is ${formatBytes(file.size)}. Please compress or resize it to ${formatBytes(MAX_BYTES)} or smaller before uploading.`,
+    };
   }
   return null;
 }
 
-function checkImageDimensions(file: File): Promise<string | null> {
+function checkImageDimensions(file: File): Promise<ValidationError | null> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
       URL.revokeObjectURL(url);
       if (img.width < MIN_DIMENSION || img.height < MIN_DIMENSION) {
-        resolve(`Image is too small (${img.width}×${img.height}). Minimum ${MIN_DIMENSION}px per side.`);
+        resolve({
+          title: "Image dimensions too small",
+          description: `This image is ${img.width}×${img.height} px. Please use an image that is at least ${MIN_DIMENSION}×${MIN_DIMENSION} px on each side.`,
+        });
       } else if (img.width > MAX_DIMENSION || img.height > MAX_DIMENSION) {
-        resolve(`Image dimensions too large (${img.width}×${img.height}). Maximum ${MAX_DIMENSION}px per side.`);
+        resolve({
+          title: "Image dimensions too large",
+          description: `This image is ${img.width}×${img.height} px. Please use an image that is no larger than ${MAX_DIMENSION}×${MAX_DIMENSION} px on each side.`,
+        });
       } else {
         resolve(null);
       }
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      resolve("Could not read the image. It may be corrupted.");
+      resolve({
+        title: "Could not read image",
+        description: "The file may be corrupted or not a valid image. Please try a different file.",
+      });
     };
     img.src = url;
   });
 }
 
+function showValidationToast(error: unknown) {
+  if (error && typeof error === "object" && "title" in error && "description" in error) {
+    toast.error(String(error.title), { description: String(error.description) });
+  } else if (error instanceof Error) {
+    toast.error(error.message);
+  } else {
+    toast.error("Upload failed");
+  }
+}
+
 async function uploadImage(file: File): Promise<string> {
   const typeError = validateImageFile(file);
-  if (typeError) throw new Error(typeError);
+  if (typeError) throw typeError;
   const dimError = await checkImageDimensions(file);
-  if (dimError) throw new Error(dimError);
+  if (dimError) throw dimError;
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const path = `${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
@@ -112,7 +144,7 @@ function VaultFindsAdminPage() {
     const file = items[0];
     const err = validateImageFile(file);
     if (err) {
-      toast.error(err);
+      showValidationToast(err);
       return null;
     }
     return file;
@@ -126,7 +158,7 @@ function VaultFindsAdminPage() {
       setImageUrl(url);
       toast.success("Image uploaded");
     } catch (e: any) {
-      toast.error(e.message ?? "Upload failed");
+      showValidationToast(e);
     } finally {
       setUploadingNew(false);
     }
@@ -145,7 +177,7 @@ function VaultFindsAdminPage() {
       toast.success("Image updated");
       void load();
     } catch (e: any) {
-      toast.error(e.message ?? "Upload failed");
+      showValidationToast(e);
     } finally {
       setRowUploading(null);
     }
@@ -339,7 +371,7 @@ function VaultFindsAdminPage() {
                   />
                 </label>
                 <span className="text-[11px] text-ink/50">
-                  or drag & drop an image here · JPG, PNG, WEBP, GIF · up to 5 MB · {MIN_DIMENSION}–{MAX_DIMENSION}px
+                  Drag & drop or click to upload · must be JPG, PNG, WEBP, or GIF · under 5 MB · 200–4000 px per side
                 </span>
               </div>
               {imageUrl && (
