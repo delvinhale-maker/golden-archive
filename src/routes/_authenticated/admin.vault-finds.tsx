@@ -427,9 +427,12 @@ function VaultFindsAdminPage() {
           </button>
         </form>
 
+        <RotationPreview rows={rows} />
+
         <div className="mt-10">
           <h2 className="font-display text-lg text-navy">
             All products <span className="text-sm text-ink/60">({rows.length})</span>
+          </h2>
           </h2>
           <ul className="mt-4 space-y-3">
             {rows.map((r) => (
