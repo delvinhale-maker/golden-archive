@@ -52,6 +52,41 @@ function VaultFindsAdminPage() {
   const [affiliateLink, setAffiliateLink] = useState("");
   const [accent, setAccent] = useState<(typeof ACCENTS)[number]>("emerald");
   const [active, setActive] = useState(true);
+  const [uploadingNew, setUploadingNew] = useState(false);
+  const [rowUploading, setRowUploading] = useState<string | null>(null);
+
+  const onPickNewImage = async (file: File | null) => {
+    if (!file) return;
+    setUploadingNew(true);
+    try {
+      const url = await uploadImage(file);
+      setImageUrl(url);
+      toast.success("Image uploaded");
+    } catch (e: any) {
+      toast.error(e.message ?? "Upload failed");
+    } finally {
+      setUploadingNew(false);
+    }
+  };
+
+  const onReplaceRowImage = async (row: Row, file: File | null) => {
+    if (!file) return;
+    setRowUploading(row.id);
+    try {
+      const url = await uploadImage(file);
+      const { error } = await supabase
+        .from("vault_finds_products")
+        .update({ image_url: url })
+        .eq("id", row.id);
+      if (error) throw error;
+      toast.success("Image updated");
+      void load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Upload failed");
+    } finally {
+      setRowUploading(null);
+    }
+  };
 
   useEffect(() => {
     if (loading) return;
