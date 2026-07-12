@@ -258,19 +258,6 @@ function CreatorVisual({ items }: { items: HeroProduct[] }) {
           </span>
         </div>
         <div className="p-3 md:p-4">
-          <div className="flex items-baseline justify-between">
-            <div>
-              <div className="text-[9px] font-semibold tracking-[0.18em] text-gold-ink">
-                THIS MONTH
-              </div>
-              <div className="mt-0.5 font-display text-lg font-bold text-ink md:text-xl">
-                $4,820.16
-              </div>
-            </div>
-            <div className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-gold-ink">
-              +18%
-            </div>
-          </div>
           <div className="mt-3 grid grid-cols-3 gap-2">
             {list.map((p, i) => (
               <motion.div
