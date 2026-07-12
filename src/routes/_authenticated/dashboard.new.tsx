@@ -1119,6 +1119,9 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
         </div>
       )}
 
+      <VerifyPdfUploadButton />
+
+
       {loadingEdit && (
         <p className="mt-2 text-xs text-mute">Loading title…</p>
       )}
