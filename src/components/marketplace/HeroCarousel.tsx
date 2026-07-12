@@ -122,7 +122,7 @@ function Cover({
 /** Single angled hero card with gold glow. */
 function HeroVisual({ p }: { p: HeroProduct }) {
   return (
-    <div className="relative mx-auto h-[280px] w-[220px] sm:h-[340px] sm:w-[260px] md:h-[420px] md:w-[300px]">
+    <div className="relative mx-auto h-[360px] w-[220px] sm:h-[400px] sm:w-[260px] md:h-[460px] md:w-[300px]">
       <div
         aria-hidden
         className="absolute inset-0 -z-10 rounded-[28px] blur-3xl"
@@ -140,10 +140,10 @@ function HeroVisual({ p }: { p: HeroProduct }) {
         }}
         className="relative h-full w-full overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6),0_0_0_1px_rgba(201,168,76,0.35)]"
       >
-        <div className="h-[70%]">
+        <div className="h-[62%]">
           <Cover p={p} className="h-full w-full rounded-none" />
         </div>
-        <div className="p-4">
+        <div className="flex h-[38%] flex-col justify-center p-4">
           <div className="text-[10px] font-semibold tracking-[0.18em] text-gold-ink">
             {p.category.toUpperCase()}
           </div>
