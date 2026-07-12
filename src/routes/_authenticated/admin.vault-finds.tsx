@@ -54,6 +54,19 @@ function VaultFindsAdminPage() {
   const [active, setActive] = useState(true);
   const [uploadingNew, setUploadingNew] = useState(false);
   const [rowUploading, setRowUploading] = useState<string | null>(null);
+  const [dragOverNew, setDragOverNew] = useState(false);
+  const [dragOverRow, setDragOverRow] = useState<string | null>(null);
+
+  const pickImageFromDrop = (e: React.DragEvent): File | null => {
+    const items = e.dataTransfer?.files;
+    if (!items || items.length === 0) return null;
+    const file = items[0];
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please drop an image file");
+      return null;
+    }
+    return file;
+  };
 
   const onPickNewImage = async (file: File | null) => {
     if (!file) return;
@@ -229,7 +242,22 @@ function VaultFindsAdminPage() {
             <label className="text-xs font-semibold uppercase tracking-caps text-ink/70">
               Product image
             </label>
-            <div className="mt-1 flex items-center gap-3">
+            <div
+              className={`mt-1 flex items-center gap-3 rounded-lg border-2 border-dashed p-3 transition-colors ${
+                dragOverNew ? "border-navy bg-navy/5" : "border-transparent"
+              }`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOverNew(true);
+              }}
+              onDragLeave={() => setDragOverNew(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOverNew(false);
+                const file = pickImageFromDrop(e);
+                if (file) void onPickNewImage(file);
+              }}
+            >
               {imageUrl ? (
                 <img
                   src={imageUrl}
@@ -241,24 +269,27 @@ function VaultFindsAdminPage() {
                   <Upload size={16} />
                 </div>
               )}
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-line px-4 py-2 text-xs font-semibold hover:border-navy">
-                {uploadingNew ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Upload size={14} />
-                )}
-                {uploadingNew ? "Uploading…" : imageUrl ? "Replace image" : "Upload image"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={uploadingNew}
-                  onChange={(e) => {
-                    void onPickNewImage(e.target.files?.[0] ?? null);
-                    e.target.value = "";
-                  }}
-                />
-              </label>
+              <div className="flex flex-1 flex-col gap-1">
+                <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-line px-4 py-2 text-xs font-semibold hover:border-navy">
+                  {uploadingNew ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Upload size={14} />
+                  )}
+                  {uploadingNew ? "Uploading…" : imageUrl ? "Replace image" : "Upload image"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingNew}
+                    onChange={(e) => {
+                      void onPickNewImage(e.target.files?.[0] ?? null);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                <span className="text-[11px] text-ink/50">or drag & drop an image here</span>
+              </div>
               {imageUrl && (
                 <button
                   type="button"
@@ -334,7 +365,24 @@ function VaultFindsAdminPage() {
             {rows.map((r) => (
               <li
                 key={r.id}
-                className="flex items-start justify-between gap-4 rounded-xl border border-line bg-white p-4"
+                className={`flex items-start justify-between gap-4 rounded-xl border bg-white p-4 transition-colors ${
+                  dragOverRow === r.id ? "border-navy bg-navy/5" : "border-line"
+                }`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (rowUploading) return;
+                  setDragOverRow(r.id);
+                }}
+                onDragLeave={(e) => {
+                  if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                  setDragOverRow((cur) => (cur === r.id ? null : cur));
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOverRow(null);
+                  const file = pickImageFromDrop(e);
+                  if (file) void onReplaceRowImage(r, file);
+                }}
               >
                 {r.image_url ? (
                   <img
