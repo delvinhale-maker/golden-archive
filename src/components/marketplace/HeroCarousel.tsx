@@ -41,8 +41,6 @@ const HERO_SLIDE: Slide = {
   body: "Premium digital resources for builders, leaders, and visionaries. Curated. Verified. Instant.",
   ctaLabel: "Shop Now →",
   ctaTo: "/products",
-  secondaryLabel: "Browse Categories →",
-  secondaryHref: "#categories",
   theme: { accentColor: "#B8860B", gradientStart: "#0F1E35" },
 };
 
@@ -57,8 +55,6 @@ const DEALS_SLIDE: Slide = {
   body: "Hand-picked titles at exclusive prices — for a limited time only.",
   ctaLabel: "Shop Deals →",
   ctaTo: "/products",
-  secondaryLabel: "Browse Categories →",
-  secondaryHref: "#categories",
   theme: { accentColor: "#C9A84C", gradientStart: "#0F1629" },
 };
 
