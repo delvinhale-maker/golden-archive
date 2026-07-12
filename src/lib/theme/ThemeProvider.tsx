@@ -56,10 +56,37 @@ function applyThemeToRoot(theme: ThemeTokens) {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const location = useRouterState({ select: (s) => s.location });
-  const routeTheme = useMemo(
-    () => resolveThemeForPath(location.pathname, location.search as Record<string, unknown>),
-    [location.pathname, location.search],
-  );
+  // During client hydration the router may have already redirected (for
+  // example the `_authenticated` gate bouncing an unauthenticated visitor
+  // from /dashboard/new to /auth) before React commits the first client
+  // render. If `useRouterState` drives the theme on that first render, we
+  // emit a different <style data-theme-vars> than SSR did → React #418
+  // hydration mismatch. Pin the first client render to the URL the SSR
+  // HTML was built for (window.location, which still reflects the original
+  // request path before history is updated) and switch to the live router
+  // state only after hydration.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+  const [initialPath] = useState<{ pathname: string; search: string }>(() => {
+    if (typeof window !== "undefined") {
+      return { pathname: window.location.pathname, search: window.location.search };
+    }
+    const s = location.search;
+    return {
+      pathname: location.pathname,
+      search: typeof s === "string" ? s : "",
+    };
+  });
+  const routeTheme = useMemo(() => {
+    const pathname = hydrated ? location.pathname : initialPath.pathname;
+    const search = hydrated
+      ? (location.search as Record<string, unknown> | string)
+      : initialPath.search;
+    return resolveThemeForPath(pathname, search);
+  }, [hydrated, location.pathname, location.search, initialPath]);
+
 
   const [override, setOverride] = useState<ThemeOverride>(null);
   // Manual setter path (legacy). When callers use setActiveTheme directly we
