@@ -90,25 +90,28 @@ function Cover({
   p,
   className,
   imgClassName,
+  fit = "cover",
 }: {
   p: HeroProduct;
   className?: string;
   imgClassName?: string;
+  fit?: "cover" | "contain";
 }) {
+  const fitClass = fit === "contain" ? "object-contain" : "object-cover";
   return (
     <div className={`overflow-hidden rounded-xl bg-[#f5f4ef] ${className ?? ""}`}>
       {p.coverUrl ? (
         <img
           src={p.coverUrl}
           alt={p.title}
-          className={`h-full w-full object-cover ${imgClassName ?? ""}`}
+          className={`h-full w-full ${fitClass} ${imgClassName ?? ""}`}
           loading="eager"
         />
       ) : (
         <ProductCover
           title={p.title}
           category={p.category}
-          className={`h-full w-full object-cover ${imgClassName ?? ""}`}
+          className={`h-full w-full ${fitClass} ${imgClassName ?? ""}`}
         />
       )}
     </div>
