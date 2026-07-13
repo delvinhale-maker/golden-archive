@@ -591,7 +591,7 @@ function CreateNewTitleMenu() {
           aria-labelledby={`${menuId}-label`}
           aria-activedescendant={`${menuId}-item-${CREATE_TYPE_ORDER[activeIndex]}`}
           onKeyDown={onMenuKeyDown}
-          className="absolute right-0 sm:right-auto sm:left-0 z-40 mt-2 w-72 max-h-[70vh] overflow-auto rounded-2xl border border-ink/10 bg-white shadow-xl p-1.5"
+          className="absolute left-0 z-40 mt-2 w-[min(18rem,calc(100vw-2rem))] max-h-[70vh] overflow-auto rounded-2xl border border-ink/10 bg-white shadow-xl p-1.5"
         >
           <p id={`${menuId}-label`} className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-mute">
             Choose product type
@@ -618,7 +618,7 @@ function CreateNewTitleMenu() {
                 <span className="text-xl leading-none mt-0.5" aria-hidden="true">{t.emoji}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-navy">{t.label}</span>
-                  <span id={descId} className="block text-xs text-mute truncate">{t.tagline}</span>
+                  <span id={descId} className="block text-xs text-mute break-words">{t.tagline}</span>
                 </span>
               </button>
             );
