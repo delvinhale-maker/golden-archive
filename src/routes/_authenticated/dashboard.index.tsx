@@ -618,7 +618,7 @@ function CreateNewTitleMenu() {
                 <span className="text-xl leading-none mt-0.5" aria-hidden="true">{t.emoji}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-navy">{t.label}</span>
-                  <span id={descId} className="block text-xs text-mute truncate">{t.tagline}</span>
+                  <span id={descId} className="block text-xs text-mute break-words">{t.tagline}</span>
                 </span>
               </button>
             );
