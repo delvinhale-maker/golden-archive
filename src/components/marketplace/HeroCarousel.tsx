@@ -139,8 +139,8 @@ function HeroVisual({ p }: { p: HeroProduct }) {
         }}
         className="relative h-full w-full overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6),0_0_0_1px_rgba(201,168,76,0.35)]"
       >
-        <div className="h-[62%]">
-          <Cover p={p} className="h-full w-full rounded-none" imgClassName="object-top" />
+        <div className="h-[62%] bg-[#0F1E35]">
+          <Cover p={p} fit="contain" className="h-full w-full rounded-none bg-transparent" />
         </div>
         <div className="flex h-[38%] flex-col justify-center p-4">
           <div className="text-[10px] font-semibold tracking-[0.18em] text-gold-ink">
