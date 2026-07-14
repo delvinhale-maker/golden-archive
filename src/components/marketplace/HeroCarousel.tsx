@@ -142,7 +142,7 @@ function HeroVisual({ p }: { p: HeroProduct }) {
         <div className="h-[62%] bg-white">
           <Cover p={p} fit="contain" className="h-full w-full rounded-none bg-transparent" />
         </div>
-        <div className="flex h-[38%] flex-col justify-center p-3 md:p-4">
+        <div className="flex h-[38%] flex-col justify-center p-3">
           <div className="text-[10px] font-semibold tracking-[0.18em] text-gold-ink">
             {p.category.toUpperCase()}
           </div>
