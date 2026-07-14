@@ -591,9 +591,9 @@ function CreateNewTitleMenu() {
           aria-labelledby={`${menuId}-label`}
           aria-activedescendant={`${menuId}-item-${CREATE_TYPE_ORDER[activeIndex]}`}
           onKeyDown={onMenuKeyDown}
-          className="absolute left-0 z-40 mt-2 w-[min(18rem,calc(100vw-2rem))] max-h-[70vh] overflow-auto rounded-2xl border border-ink/10 bg-white shadow-xl p-1.5"
+          className="absolute left-0 z-40 mt-2 w-[min(22rem,calc(100vw-1.5rem))] max-h-[70vh] overflow-auto rounded-2xl border border-ink/10 bg-white shadow-xl p-1.5"
         >
-          <p id={`${menuId}-label`} className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-mute">
+          <p id={`${menuId}-label`} className="px-3 pt-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-mute">
             Choose product type
           </p>
           {CREATE_TYPE_ORDER.map((key, i) => {
@@ -615,10 +615,10 @@ function CreateNewTitleMenu() {
                 onFocus={() => setActiveIndex(i)}
                 className="w-full flex items-start gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-ink/5 focus:bg-ink/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-navy"
               >
-                <span className="text-xl leading-none mt-0.5" aria-hidden="true">{t.emoji}</span>
+                <span className="text-xl leading-none mt-1 shrink-0" aria-hidden="true">{t.emoji}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold text-navy">{t.label}</span>
-                  <span id={descId} className="block text-xs text-mute break-words">{t.tagline}</span>
+                  <span className="block text-sm font-semibold leading-snug text-navy text-balance break-words">{t.label}</span>
+                  <span id={descId} className="mt-0.5 block text-xs leading-relaxed text-mute break-words">{t.tagline}</span>
                 </span>
               </button>
             );
