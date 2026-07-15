@@ -86,6 +86,9 @@ const VaultFindsRow = lazy(() =>
 const VaultFindsGrid = lazy(() =>
   import("@/components/marketplace/VaultFindsGrid").then((m) => ({ default: m.VaultFindsGrid })),
 );
+const VaultFindsCategorySections = lazy(() =>
+  import("@/components/marketplace/VaultFindsCategorySections").then((m) => ({ default: m.VaultFindsCategorySections })),
+);
 
 const featuredQ = queryOptions({
   queryKey: ["mp", "featured"],
@@ -181,6 +184,10 @@ function Home() {
 
       <Suspense fallback={null}>
         <VaultFindsGrid />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <VaultFindsCategorySections />
       </Suspense>
 
 
