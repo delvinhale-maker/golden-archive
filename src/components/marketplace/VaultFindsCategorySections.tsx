@@ -101,7 +101,7 @@ export function VaultFindsCategorySections() {
                           src={it.image_url}
                           alt={it.headline}
                           loading="lazy"
-                          className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.05]"
+                          className="h-full w-full object-contain transition-transform duration-300 ease-out will-change-transform group-hover:scale-[1.08] group-focus-visible:scale-[1.08] group-active:scale-[1.05]"
                           style={{ objectPosition: "center" }}
                         />
                       ) : (
