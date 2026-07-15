@@ -49,6 +49,37 @@ function rotate<T>(pool: T[], week: number, count: number): T[] {
 export function VaultFindsRow() {
   const { isAdmin } = useAuth();
   const [items, setItems] = useState<VaultFind[] | null>(null);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  async function handleUpload(id: string, file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    setUploadingId(id);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type || undefined });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
+      const url = pub.publicUrl;
+      const { error: updErr } = await supabase
+        .from("vault_finds_products")
+        .update({ image_url: url })
+        .eq("id", id);
+      if (updErr) throw updErr;
+      setItems((prev) => (prev ? prev.map((it) => (it.id === id ? { ...it, image_url: url } : it)) : prev));
+      toast.success("Image updated");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Upload failed");
+    } finally {
+      setUploadingId(null);
+    }
+  }
+
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
