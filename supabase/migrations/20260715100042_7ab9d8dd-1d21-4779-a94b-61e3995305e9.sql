@@ -1,0 +1,1 @@
+update public.vault_finds_products set image_url='/__l5e/assets-v1/f49253b3-a6d7-44fa-8e2d-a5f19cf19ee6/vf-6-robot-shark.jpg', updated_at=now() where headline='Let the Robot Handle It';

@@ -2,7 +2,11 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { ChevronLeft, ChevronRight, ExternalLink, Settings } from "lucide-react";
+import { toast } from "sonner";
+import { ChevronLeft, ChevronRight, ExternalLink, Settings, ImagePlus, Loader2 } from "lucide-react";
+
+const BUCKET = "vault-finds";
+
 
 type VaultFind = {
   id: string;
@@ -45,6 +49,37 @@ function rotate<T>(pool: T[], week: number, count: number): T[] {
 export function VaultFindsRow() {
   const { isAdmin } = useAuth();
   const [items, setItems] = useState<VaultFind[] | null>(null);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  async function handleUpload(id: string, file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    setUploadingId(id);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type || undefined });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
+      const url = pub.publicUrl;
+      const { error: updErr } = await supabase
+        .from("vault_finds_products")
+        .update({ image_url: url })
+        .eq("id", id);
+      if (updErr) throw updErr;
+      setItems((prev) => (prev ? prev.map((it) => (it.id === id ? { ...it, image_url: url } : it)) : prev));
+      toast.success("Image updated");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Upload failed");
+    } finally {
+      setUploadingId(null);
+    }
+  }
+
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -166,7 +201,7 @@ export function VaultFindsRow() {
                 </span>
 
                 <div
-                  className="mb-4 flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl"
+                  className="relative mb-4 flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl"
                   style={{ backgroundColor: "rgba(255,255,255,0.14)" }}
                 >
                   {it.image_url ? (
@@ -185,7 +220,35 @@ export function VaultFindsRow() {
                       ✦
                     </span>
                   )}
+                  {isAdmin && (
+                    <label
+                      className="absolute bottom-2 right-2 inline-flex cursor-pointer items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm backdrop-blur transition hover:bg-black/85"
+                      title="Upload image for this affiliate card"
+                    >
+                      {uploadingId === it.id ? (
+                        <>
+                          <Loader2 size={11} className="animate-spin" /> Uploading…
+                        </>
+                      ) : (
+                        <>
+                          <ImagePlus size={11} /> {it.image_url ? "Replace" : "Upload"}
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingId === it.id}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          e.currentTarget.value = "";
+                          if (f) handleUpload(it.id, f);
+                        }}
+                      />
+                    </label>
+                  )}
                 </div>
+
 
                 <h3 className="font-display text-lg leading-tight">{it.headline}</h3>
                 <p
