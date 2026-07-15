@@ -21,6 +21,9 @@ export function VaultFindsGrid() {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [reorderDragId, setReorderDragId] = useState<string | null>(null);
+  const [reorderOverId, setReorderOverId] = useState<string | null>(null);
+  const [savingOrder, setSavingOrder] = useState(false);
 
   useEffect(() => {
     let active = true;
