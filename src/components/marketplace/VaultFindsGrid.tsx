@@ -153,6 +153,7 @@ export function VaultFindsGrid() {
           {items.map((it) => (
             <article
               key={it.id}
+              data-vf-id={it.id}
               onDragOver={
                 isAdmin && reorderDragId
                   ? (e) => {
@@ -195,12 +196,44 @@ export function VaultFindsGrid() {
                     setReorderDragId(null);
                     setReorderOverId(null);
                   }}
+                  onPointerDown={(e) => {
+                    if (e.pointerType === "mouse") return;
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    setReorderDragId(it.id);
+                  }}
+                  onPointerMove={(e) => {
+                    if (e.pointerType === "mouse" || !reorderDragId) return;
+                    e.preventDefault();
+                    const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+                    const card = el?.closest<HTMLElement>("[data-vf-id]");
+                    const overId = card?.getAttribute("data-vf-id") ?? null;
+                    setReorderOverId(overId && overId !== reorderDragId ? overId : null);
+                  }}
+                  onPointerUp={(e) => {
+                    if (e.pointerType === "mouse") return;
+                    try {
+                      e.currentTarget.releasePointerCapture(e.pointerId);
+                    } catch {
+                      /* noop */
+                    }
+                    const target = reorderOverId;
+                    if (target) onReorderDrop(target);
+                    else {
+                      setReorderDragId(null);
+                      setReorderOverId(null);
+                    }
+                  }}
+                  onPointerCancel={() => {
+                    setReorderDragId(null);
+                    setReorderOverId(null);
+                  }}
                   disabled={savingOrder}
                   title="Drag to reorder"
                   aria-label="Drag to reorder"
-                  className="absolute left-2 top-2 z-10 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-navy/70 shadow ring-1 ring-navy/10 backdrop-blur cursor-grab active:cursor-grabbing disabled:opacity-40"
+                  style={{ touchAction: "none" }}
+                  className="absolute left-2 top-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-navy/70 shadow ring-1 ring-navy/10 backdrop-blur cursor-grab active:cursor-grabbing disabled:opacity-40"
                 >
-                  <GripVertical size={12} />
+                  <GripVertical size={14} />
                 </button>
               )}
               <div className="relative">
