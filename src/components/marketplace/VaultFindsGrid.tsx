@@ -89,6 +89,41 @@ export function VaultFindsGrid() {
     }
   }
 
+  async function persistOrder(next: VaultFind[]) {
+    const prev = items;
+    setItems(next);
+    setSavingOrder(true);
+    try {
+      for (let i = 0; i < next.length; i++) {
+        const { error } = await supabase
+          .from("vault_finds_products")
+          .update({ sort_order: (i + 1) * 10 })
+          .eq("id", next[i].id);
+        if (error) throw error;
+      }
+      toast.success("Order saved");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Reorder failed");
+      setItems(prev);
+    } finally {
+      setSavingOrder(false);
+    }
+  }
+
+  function onReorderDrop(targetId: string) {
+    const sourceId = reorderDragId;
+    setReorderDragId(null);
+    setReorderOverId(null);
+    if (!sourceId || !items || sourceId === targetId) return;
+    const from = items.findIndex((x) => x.id === sourceId);
+    const to = items.findIndex((x) => x.id === targetId);
+    if (from < 0 || to < 0) return;
+    const next = items.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    void persistOrder(next);
+  }
+
   if (!items || items.length === 0) return null;
 
   return (
