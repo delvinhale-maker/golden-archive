@@ -83,6 +83,9 @@ const WhyAurumVault = lazy(() =>
 const VaultFindsRow = lazy(() =>
   import("@/components/marketplace/VaultFindsRow").then((m) => ({ default: m.VaultFindsRow })),
 );
+const VaultFindsGrid = lazy(() =>
+  import("@/components/marketplace/VaultFindsGrid").then((m) => ({ default: m.VaultFindsGrid })),
+);
 
 const featuredQ = queryOptions({
   queryKey: ["mp", "featured"],
@@ -175,6 +178,12 @@ function Home() {
       <Suspense fallback={null}>
         <VaultFindsRow />
       </Suspense>
+
+      <Suspense fallback={null}>
+        <VaultFindsGrid />
+      </Suspense>
+
+
 
 
       <Suspense fallback={null}>
