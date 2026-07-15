@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { ExternalLink, Settings, ImagePlus, Loader2 } from "lucide-react";
+import { ExternalLink, Settings, ImagePlus, Loader2, GripVertical } from "lucide-react";
 
 const BUCKET = "vault-finds";
 
