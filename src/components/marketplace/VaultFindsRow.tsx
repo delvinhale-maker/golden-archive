@@ -201,7 +201,7 @@ export function VaultFindsRow() {
                 </span>
 
                 <div
-                  className="mb-4 flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl"
+                  className="relative mb-4 flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl"
                   style={{ backgroundColor: "rgba(255,255,255,0.14)" }}
                 >
                   {it.image_url ? (
@@ -220,7 +220,35 @@ export function VaultFindsRow() {
                       ✦
                     </span>
                   )}
+                  {isAdmin && (
+                    <label
+                      className="absolute bottom-2 right-2 inline-flex cursor-pointer items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm backdrop-blur transition hover:bg-black/85"
+                      title="Upload image for this affiliate card"
+                    >
+                      {uploadingId === it.id ? (
+                        <>
+                          <Loader2 size={11} className="animate-spin" /> Uploading…
+                        </>
+                      ) : (
+                        <>
+                          <ImagePlus size={11} /> {it.image_url ? "Replace" : "Upload"}
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingId === it.id}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          e.currentTarget.value = "";
+                          if (f) handleUpload(it.id, f);
+                        }}
+                      />
+                    </label>
+                  )}
                 </div>
+
 
                 <h3 className="font-display text-lg leading-tight">{it.headline}</h3>
                 <p
