@@ -178,7 +178,7 @@ export function VaultFindsGrid() {
                     }
                   : undefined
               }
-              className={`flex flex-col rounded-2xl bg-white p-3 ring-1 ring-navy/10 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.25)] transition ${
+              className={`relative flex flex-col rounded-2xl bg-white p-3 ring-1 ring-navy/10 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.25)] transition ${
                 reorderDragId === it.id ? "opacity-40" : ""
               } ${reorderOverId === it.id && reorderDragId !== it.id ? "ring-2 ring-gold" : ""}`}
             >
