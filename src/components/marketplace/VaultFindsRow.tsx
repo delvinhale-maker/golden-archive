@@ -50,12 +50,20 @@ export function VaultFindsRow() {
   const { isAdmin } = useAuth();
   const [items, setItems] = useState<VaultFind[] | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [previews, setPreviews] = useState<Record<string, string>>({});
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
 
   async function handleUpload(id: string, file: File) {
     if (!file.type.startsWith("image/")) {
       toast.error("Please choose an image file");
       return;
     }
+    const localUrl = URL.createObjectURL(file);
+    setPreviews((p) => {
+      const prev = p[id];
+      if (prev) URL.revokeObjectURL(prev);
+      return { ...p, [id]: localUrl };
+    });
     setUploadingId(id);
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
@@ -75,10 +83,27 @@ export function VaultFindsRow() {
       toast.success("Image updated");
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed");
+      setPreviews((p) => {
+        if (p[id]) URL.revokeObjectURL(p[id]);
+        const { [id]: _drop, ...rest } = p;
+        return rest;
+      });
     } finally {
       setUploadingId(null);
     }
   }
+
+  useEffect(() => {
+    return () => {
+      // revoke any lingering blob URLs on unmount
+      setPreviews((p) => {
+        Object.values(p).forEach((u) => URL.revokeObjectURL(u));
+        return {};
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
@@ -201,12 +226,41 @@ export function VaultFindsRow() {
                 </span>
 
                 <div
-                  className="relative mb-4 flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl"
+                  className={`relative mb-4 flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl transition ${
+                    isAdmin && dragOverId === it.id ? "ring-4 ring-gold ring-offset-2 ring-offset-transparent" : ""
+                  }`}
                   style={{ backgroundColor: "rgba(255,255,255,0.14)" }}
+                  onDragOver={
+                    isAdmin
+                      ? (e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = "copy";
+                          if (dragOverId !== it.id) setDragOverId(it.id);
+                        }
+                      : undefined
+                  }
+                  onDragLeave={
+                    isAdmin
+                      ? (e) => {
+                          if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                          setDragOverId((d) => (d === it.id ? null : d));
+                        }
+                      : undefined
+                  }
+                  onDrop={
+                    isAdmin
+                      ? (e) => {
+                          e.preventDefault();
+                          setDragOverId(null);
+                          const f = e.dataTransfer.files?.[0];
+                          if (f) handleUpload(it.id, f);
+                        }
+                      : undefined
+                  }
                 >
-                  {it.image_url ? (
+                  {previews[it.id] || it.image_url ? (
                     <img
-                      src={it.image_url}
+                      src={previews[it.id] ?? (it.image_url as string)}
                       alt={it.headline}
                       loading="lazy"
                       className="h-full w-full object-cover"
@@ -220,20 +274,27 @@ export function VaultFindsRow() {
                       ✦
                     </span>
                   )}
+                  {isAdmin && uploadingId === it.id && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-navy shadow">
+                        <Loader2 size={12} className="animate-spin" /> Uploading…
+                      </div>
+                    </div>
+                  )}
+                  {isAdmin && dragOverId === it.id && uploadingId !== it.id && (
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-navy/50">
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-navy shadow">
+                        <ImagePlus size={12} /> Drop to replace
+                      </div>
+                    </div>
+                  )}
                   {isAdmin && (
                     <label
                       className="absolute bottom-2 right-2 inline-flex cursor-pointer items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm backdrop-blur transition hover:bg-black/85"
-                      title="Upload image for this affiliate card"
+                      title="Upload or drop an image onto this card"
                     >
-                      {uploadingId === it.id ? (
-                        <>
-                          <Loader2 size={11} className="animate-spin" /> Uploading…
-                        </>
-                      ) : (
-                        <>
-                          <ImagePlus size={11} /> {it.image_url ? "Replace" : "Upload"}
-                        </>
-                      )}
+                      <ImagePlus size={11} />
+                      {it.image_url || previews[it.id] ? "Replace" : "Upload"}
                       <input
                         type="file"
                         accept="image/*"
@@ -248,6 +309,7 @@ export function VaultFindsRow() {
                     </label>
                   )}
                 </div>
+
 
 
                 <h3 className="font-display text-lg leading-tight">{it.headline}</h3>
