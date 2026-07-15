@@ -49,6 +49,34 @@ export function VaultFindsGrid() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Lock page scroll + prevent native touch gestures while a touch reorder is active.
+  // Also blocks pull-to-refresh / rubber-band which otherwise fires elementFromPoint at stale coords.
+  useEffect(() => {
+    if (!reorderDragId) return;
+    const { body, documentElement: html } = document;
+    const prev = {
+      bodyOverflow: body.style.overflow,
+      bodyTouchAction: body.style.touchAction,
+      bodyOverscroll: body.style.overscrollBehavior,
+      htmlOverscroll: html.style.overscrollBehavior,
+    };
+    body.style.overflow = "hidden";
+    body.style.touchAction = "none";
+    body.style.overscrollBehavior = "none";
+    html.style.overscrollBehavior = "none";
+    const blockTouchMove = (e: TouchEvent) => {
+      if (e.cancelable) e.preventDefault();
+    };
+    window.addEventListener("touchmove", blockTouchMove, { passive: false });
+    return () => {
+      body.style.overflow = prev.bodyOverflow;
+      body.style.touchAction = prev.bodyTouchAction;
+      body.style.overscrollBehavior = prev.bodyOverscroll;
+      html.style.overscrollBehavior = prev.htmlOverscroll;
+      window.removeEventListener("touchmove", blockTouchMove);
+    };
+  }, [reorderDragId]);
+
   async function handleUpload(id: string, file: File) {
     if (!file.type.startsWith("image/")) {
       toast.error("Please choose an image file");
