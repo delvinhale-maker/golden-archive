@@ -88,7 +88,7 @@ export function VaultFindsCategorySections() {
                       target="_blank"
                       rel="noopener noreferrer sponsored"
                       aria-label={`Shop ${it.headline}`}
-                      className="group relative block aspect-square w-full overflow-hidden rounded-xl p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-navy"
+                      className="group relative block aspect-square w-full overflow-hidden rounded-xl p-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-navy"
                       style={{ backgroundColor: cat.tile }}
                     >
                       <span
@@ -101,7 +101,8 @@ export function VaultFindsCategorySections() {
                           src={it.image_url}
                           alt={it.headline}
                           loading="lazy"
-                          className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+                          className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.05]"
+                          style={{ objectPosition: "center" }}
                         />
                       ) : (
                         <span
