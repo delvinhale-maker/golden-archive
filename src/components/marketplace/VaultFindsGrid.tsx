@@ -49,6 +49,34 @@ export function VaultFindsGrid() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Lock page scroll + prevent native touch gestures while a touch reorder is active.
+  // Also blocks pull-to-refresh / rubber-band which otherwise fires elementFromPoint at stale coords.
+  useEffect(() => {
+    if (!reorderDragId) return;
+    const { body, documentElement: html } = document;
+    const prev = {
+      bodyOverflow: body.style.overflow,
+      bodyTouchAction: body.style.touchAction,
+      bodyOverscroll: body.style.overscrollBehavior,
+      htmlOverscroll: html.style.overscrollBehavior,
+    };
+    body.style.overflow = "hidden";
+    body.style.touchAction = "none";
+    body.style.overscrollBehavior = "none";
+    html.style.overscrollBehavior = "none";
+    const blockTouchMove = (e: TouchEvent) => {
+      if (e.cancelable) e.preventDefault();
+    };
+    window.addEventListener("touchmove", blockTouchMove, { passive: false });
+    return () => {
+      body.style.overflow = prev.bodyOverflow;
+      body.style.touchAction = prev.bodyTouchAction;
+      body.style.overscrollBehavior = prev.bodyOverscroll;
+      html.style.overscrollBehavior = prev.htmlOverscroll;
+      window.removeEventListener("touchmove", blockTouchMove);
+    };
+  }, [reorderDragId]);
+
   async function handleUpload(id: string, file: File) {
     if (!file.type.startsWith("image/")) {
       toast.error("Please choose an image file");
@@ -200,14 +228,36 @@ export function VaultFindsGrid() {
                     if (e.pointerType === "mouse") return;
                     e.currentTarget.setPointerCapture(e.pointerId);
                     setReorderDragId(it.id);
+                    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+                      try {
+                        navigator.vibrate?.(15);
+                      } catch {
+                        /* noop */
+                      }
+                    }
                   }}
                   onPointerMove={(e) => {
                     if (e.pointerType === "mouse" || !reorderDragId) return;
                     e.preventDefault();
-                    const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
-                    const card = el?.closest<HTMLElement>("[data-vf-id]");
-                    const overId = card?.getAttribute("data-vf-id") ?? null;
-                    setReorderOverId(overId && overId !== reorderDragId ? overId : null);
+                    // Auto-scroll near viewport edges so long lists remain reachable.
+                    const vh = window.innerHeight;
+                    const edge = 72;
+                    if (e.clientY < edge) window.scrollBy(0, -Math.ceil((edge - e.clientY) / 4));
+                    else if (e.clientY > vh - edge)
+                      window.scrollBy(0, Math.ceil((e.clientY - (vh - edge)) / 4));
+                    // Accurate hit-test: elementsFromPoint walks the stack so a
+                    // sibling overlay (upload label, badge) can't shadow the card.
+                    const stack = document.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[];
+                    let overId: string | null = null;
+                    for (const node of stack) {
+                      const card = node.closest?.<HTMLElement>("[data-vf-id]");
+                      const id = card?.getAttribute("data-vf-id");
+                      if (id && id !== reorderDragId) {
+                        overId = id;
+                        break;
+                      }
+                    }
+                    setReorderOverId(overId);
                   }}
                   onPointerUp={(e) => {
                     if (e.pointerType === "mouse") return;
