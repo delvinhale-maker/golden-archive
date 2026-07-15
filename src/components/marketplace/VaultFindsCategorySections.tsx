@@ -88,7 +88,7 @@ export function VaultFindsCategorySections() {
                       target="_blank"
                       rel="noopener noreferrer sponsored"
                       aria-label={`Shop ${it.headline}`}
-                      className="group relative block aspect-square w-full overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-ink"
+                      className="group relative block aspect-square w-full overflow-hidden rounded-xl p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-ink"
                       style={{ backgroundColor: cat.tile }}
                     >
                       <span
@@ -101,7 +101,7 @@ export function VaultFindsCategorySections() {
                           src={it.image_url}
                           alt={it.headline}
                           loading="lazy"
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                          className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
                         />
                       ) : (
                         <span
