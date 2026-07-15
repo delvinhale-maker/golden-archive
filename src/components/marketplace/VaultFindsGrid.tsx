@@ -153,8 +153,56 @@ export function VaultFindsGrid() {
           {items.map((it) => (
             <article
               key={it.id}
-              className="flex flex-col rounded-2xl bg-white p-3 ring-1 ring-navy/10 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.25)]"
+              onDragOver={
+                isAdmin && reorderDragId
+                  ? (e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      if (reorderOverId !== it.id) setReorderOverId(it.id);
+                    }
+                  : undefined
+              }
+              onDragLeave={
+                isAdmin && reorderDragId
+                  ? (e) => {
+                      if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                      setReorderOverId((d) => (d === it.id ? null : d));
+                    }
+                  : undefined
+              }
+              onDrop={
+                isAdmin && reorderDragId
+                  ? (e) => {
+                      e.preventDefault();
+                      onReorderDrop(it.id);
+                    }
+                  : undefined
+              }
+              className={`flex flex-col rounded-2xl bg-white p-3 ring-1 ring-navy/10 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.25)] transition ${
+                reorderDragId === it.id ? "opacity-40" : ""
+              } ${reorderOverId === it.id && reorderDragId !== it.id ? "ring-2 ring-gold" : ""}`}
             >
+              {isAdmin && (
+                <button
+                  type="button"
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("text/plain", it.id);
+                    setReorderDragId(it.id);
+                  }}
+                  onDragEnd={() => {
+                    setReorderDragId(null);
+                    setReorderOverId(null);
+                  }}
+                  disabled={savingOrder}
+                  title="Drag to reorder"
+                  aria-label="Drag to reorder"
+                  className="absolute left-2 top-2 z-10 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-navy/70 shadow ring-1 ring-navy/10 backdrop-blur cursor-grab active:cursor-grabbing disabled:opacity-40"
+                >
+                  <GripVertical size={12} />
+                </button>
+              )}
               <div className="relative">
                 <span className="absolute right-2 top-2 z-10 rounded-full bg-white/85 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-navy/70 backdrop-blur">
                   Affiliate
