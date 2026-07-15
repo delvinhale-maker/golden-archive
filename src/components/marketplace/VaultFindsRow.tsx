@@ -2,7 +2,11 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { ChevronLeft, ChevronRight, ExternalLink, Settings } from "lucide-react";
+import { toast } from "sonner";
+import { ChevronLeft, ChevronRight, ExternalLink, Settings, ImagePlus, Loader2 } from "lucide-react";
+
+const BUCKET = "vault-finds";
+
 
 type VaultFind = {
   id: string;
