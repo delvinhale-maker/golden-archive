@@ -50,12 +50,20 @@ export function VaultFindsRow() {
   const { isAdmin } = useAuth();
   const [items, setItems] = useState<VaultFind[] | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [previews, setPreviews] = useState<Record<string, string>>({});
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
 
   async function handleUpload(id: string, file: File) {
     if (!file.type.startsWith("image/")) {
       toast.error("Please choose an image file");
       return;
     }
+    const localUrl = URL.createObjectURL(file);
+    setPreviews((p) => {
+      const prev = p[id];
+      if (prev) URL.revokeObjectURL(prev);
+      return { ...p, [id]: localUrl };
+    });
     setUploadingId(id);
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
@@ -75,10 +83,27 @@ export function VaultFindsRow() {
       toast.success("Image updated");
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed");
+      setPreviews((p) => {
+        if (p[id]) URL.revokeObjectURL(p[id]);
+        const { [id]: _drop, ...rest } = p;
+        return rest;
+      });
     } finally {
       setUploadingId(null);
     }
   }
+
+  useEffect(() => {
+    return () => {
+      // revoke any lingering blob URLs on unmount
+      setPreviews((p) => {
+        Object.values(p).forEach((u) => URL.revokeObjectURL(u));
+        return {};
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
