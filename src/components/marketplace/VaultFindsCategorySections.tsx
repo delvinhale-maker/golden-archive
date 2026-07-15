@@ -120,7 +120,7 @@ export function VaultFindsCategorySections() {
                       href={it.affiliate_link}
                       target="_blank"
                       rel="noopener noreferrer sponsored"
-                      className="mt-1 inline-flex items-center gap-1 self-start text-xs font-semibold text-[#1a6fbf] hover:underline"
+                      className="mt-1 inline-flex items-center gap-1 self-start rounded-sm text-xs font-semibold text-[#1a6fbf] transition-colors duration-200 hover:text-navy hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a6fbf] focus-visible:ring-offset-2"
                     >
                       Shop now
                       <ExternalLink size={11} aria-hidden />
