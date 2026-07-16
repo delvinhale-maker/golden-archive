@@ -100,6 +100,14 @@ export function MarketHeader() {
           </div>
 
           <div className="ml-auto flex items-center gap-1 md:ml-0 md:gap-2">
+            <Link
+              to="/academy"
+              data-nav-tab
+              data-active={pathname.startsWith("/academy") ? "true" : "false"}
+              className="hidden md:inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/10"
+            >
+              Academy
+            </Link>
             <CreatorsMenu />
             {canUpload ? (
               <Link
