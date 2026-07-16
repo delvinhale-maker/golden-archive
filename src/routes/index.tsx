@@ -117,24 +117,24 @@ export const Route = createFileRoute("/")({
 
   head: () => ({
     meta: [
-      { title: "AurumVault — Premium Digital Resources. Delivered Instantly." },
+      { title: "AurumVault — Sell Digital Products, eBooks, AI Prompt Packs, Journals & Financial Planners" },
       {
         name: "description",
         content:
-          "Premium digital resources for builders, leaders, and visionaries. Curated eBooks, courses, templates, and tools — verified and instant.",
+          "AurumVault is a premium digital marketplace where creators sell ebooks, AI prompt packs, journals, planners, templates, and digital business resources with instant delivery.",
       },
-      { property: "og:title", content: "AurumVault — Premium Digital Resources. Delivered Instantly." },
+      { property: "og:title", content: "AurumVault — Sell Digital Products, eBooks, AI Prompt Packs, Journals & Financial Planners" },
       {
         property: "og:description",
         content:
-          "Premium digital marketplace for eBooks, courses, templates, and audio. Curated. Verified. Instant.",
+          "AurumVault is a premium digital marketplace where creators sell ebooks, AI prompt packs, journals, planners, templates, and digital business resources with instant delivery.",
       },
       { property: "og:url", content: "https://www.aurumvault.store/" },
-      { name: "twitter:title", content: "AurumVault — Premium Digital Resources. Delivered Instantly." },
+      { name: "twitter:title", content: "AurumVault — Sell Digital Products, eBooks, AI Prompt Packs, Journals & Financial Planners" },
       {
         name: "twitter:description",
         content:
-          "Premium digital marketplace for eBooks, courses, templates, and audio. Curated. Verified. Instant.",
+          "AurumVault is a premium digital marketplace where creators sell ebooks, AI prompt packs, journals, planners, templates, and digital business resources with instant delivery.",
       },
     ],
   links: [{ rel: "canonical", href: "https://www.aurumvault.store/" }],
@@ -482,8 +482,8 @@ function Hero() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mt-6 font-display text-4xl leading-[1.05] text-white sm:text-5xl md:text-6xl lg:text-[64px]"
           >
-            Discover <span className="gold-gradient">premium</span> digital
-            resources.
+            Sell Digital Products, eBooks, AI Prompt Packs,{" "}
+            <span className="gold-gradient">Journals &amp; Financial Planners</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 16 }}
@@ -491,8 +491,9 @@ function Hero() {
             transition={{ duration: 0.5, delay: 0.25 }}
             className="mt-6 max-w-xl text-base leading-relaxed text-white/70 md:text-lg"
           >
-            Curated eBooks, courses, templates, and tools from verified
-            purpose-driven creators.
+            AurumVault is a premium digital marketplace where creators sell ebooks,
+            AI prompt packs, journals, planners, templates, and digital business
+            resources with instant delivery.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
