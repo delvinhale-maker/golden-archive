@@ -1,12 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { BookOpen, Grid3x3, Heart, Home, Search, User } from "lucide-react";
+import { BookOpen, GraduationCap, Grid3x3, Home, User } from "lucide-react";
 
 const TABS = [
   { to: "/", label: "Home", icon: Home, match: (p: string) => p === "/" },
   { to: "/products", label: "Browse", icon: Grid3x3, match: (p: string) => p.startsWith("/products") },
-  { to: "/search", label: "Search", icon: Search, match: (p: string) => p.startsWith("/search") },
-  { to: "/wishlist", label: "Wishlist", icon: Heart, match: (p: string) => p.startsWith("/wishlist") },
+  { to: "/academy", label: "Academy", icon: GraduationCap, match: (p: string) => p.startsWith("/academy") },
   { to: "/library", label: "Library", icon: BookOpen, match: (p: string) => p.startsWith("/library") },
   { to: "/account", label: "Account", icon: User, match: (p: string) => p.startsWith("/account") },
 ] as const;
