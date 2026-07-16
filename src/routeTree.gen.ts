@@ -37,10 +37,12 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AffiliatesRouteImport } from './routes/affiliates'
 import { Route as AffiliateDisclosureRouteImport } from './routes/affiliate-disclosure'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
+import { Route as AcademyIndexRouteImport } from './routes/academy.index'
 import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm'
 import { Route as StoreSlugRouteImport } from './routes/store.$slug'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
@@ -49,12 +51,14 @@ import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ApiAiStudioStreamRouteImport } from './routes/api/ai-studio-stream'
 import { Route as AccountSettingsRouteImport } from './routes/account.settings'
+import { Route as AcademyCategoryRouteImport } from './routes/academy.$category'
 import { Route as ABrandSlugRouteImport } from './routes/a.$brandSlug'
 import { Route as AuthenticatedReferRouteImport } from './routes/_authenticated/refer'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
+import { Route as AcademyArticleSlugRouteImport } from './routes/academy.article.$slug'
 import { Route as AuthenticatedDashboardStorefrontRouteImport } from './routes/_authenticated/dashboard.storefront'
 import { Route as AuthenticatedDashboardPayoutsRouteImport } from './routes/_authenticated/dashboard.payouts'
 import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authenticated/dashboard.new'
@@ -75,6 +79,7 @@ import { Route as AuthenticatedAdminErrorsRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminEarningsRouteImport } from './routes/_authenticated/admin.earnings'
 import { Route as AuthenticatedAdminCommunityRouteImport } from './routes/_authenticated/admin.community'
 import { Route as AuthenticatedAdminAutoReleaseRouteImport } from './routes/_authenticated/admin.auto-release'
+import { Route as AuthenticatedAdminAcademyIndexRouteImport } from './routes/_authenticated/admin.academy.index'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -90,6 +95,7 @@ import { Route as AuthenticatedDashboardPreorderIdRouteImport } from './routes/_
 import { Route as AuthenticatedDashboardEditIdRouteImport } from './routes/_authenticated/dashboard.edit.$id'
 import { Route as AuthenticatedDashboardBumpsIdRouteImport } from './routes/_authenticated/dashboard.bumps.$id'
 import { Route as AuthenticatedAdminHealthCoversRouteImport } from './routes/_authenticated/admin.health.covers'
+import { Route as AuthenticatedAdminAcademyIdRouteImport } from './routes/_authenticated/admin.academy.$id'
 import { Route as AuthenticatedAdminHealthCoversAlertsRouteImport } from './routes/_authenticated/admin.health.covers.alerts'
 
 const WishlistRoute = WishlistRouteImport.update({
@@ -232,6 +238,11 @@ const AccountRoute = AccountRouteImport.update({
   path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AcademyRoute = AcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -250,6 +261,11 @@ const ProductsIndexRoute = ProductsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ProductsRoute,
+} as any)
+const AcademyIndexRoute = AcademyIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AcademyRoute,
 } as any)
 const SubscribeConfirmRoute = SubscribeConfirmRouteImport.update({
   id: '/subscribe/confirm',
@@ -291,6 +307,11 @@ const AccountSettingsRoute = AccountSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AccountRoute,
 } as any)
+const AcademyCategoryRoute = AcademyCategoryRouteImport.update({
+  id: '/$category',
+  path: '/$category',
+  getParentRoute: () => AcademyRoute,
+} as any)
 const ABrandSlugRoute = ABrandSlugRouteImport.update({
   id: '/a/$brandSlug',
   path: '/a/$brandSlug',
@@ -321,6 +342,11 @@ const ApiPublicContactRoute = ApiPublicContactRouteImport.update({
   id: '/api/public/contact',
   path: '/api/public/contact',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AcademyArticleSlugRoute = AcademyArticleSlugRouteImport.update({
+  id: '/article/$slug',
+  path: '/article/$slug',
+  getParentRoute: () => AcademyRoute,
 } as any)
 const AuthenticatedDashboardStorefrontRoute =
   AuthenticatedDashboardStorefrontRouteImport.update({
@@ -442,6 +468,12 @@ const AuthenticatedAdminAutoReleaseRoute =
     path: '/admin/auto-release',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminAcademyIndexRoute =
+  AuthenticatedAdminAcademyIndexRouteImport.update({
+    id: '/admin/academy/',
+    path: '/admin/academy/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -532,6 +564,12 @@ const AuthenticatedAdminHealthCoversRoute =
     path: '/admin/health/covers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminAcademyIdRoute =
+  AuthenticatedAdminAcademyIdRouteImport.update({
+    id: '/admin/academy/$id',
+    path: '/admin/academy/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminHealthCoversAlertsRoute =
   AuthenticatedAdminHealthCoversAlertsRouteImport.update({
     id: '/alerts',
@@ -542,6 +580,7 @@ const AuthenticatedAdminHealthCoversAlertsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/academy': typeof AcademyRouteWithChildren
   '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
@@ -572,6 +611,7 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
+  '/academy/$category': typeof AcademyCategoryRoute
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -580,6 +620,7 @@ export interface FileRoutesByFullPath {
   '/products/$id': typeof ProductsIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
+  '/academy/': typeof AcademyIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
@@ -601,10 +642,12 @@ export interface FileRoutesByFullPath {
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
+  '/academy/article/$slug': typeof AcademyArticleSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/admin/academy/$id': typeof AuthenticatedAdminAcademyIdRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
@@ -620,6 +663,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/admin/academy/': typeof AuthenticatedAdminAcademyIndexRoute
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
 }
 export interface FileRoutesByTo {
@@ -654,6 +698,7 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
+  '/academy/$category': typeof AcademyCategoryRoute
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -662,6 +707,7 @@ export interface FileRoutesByTo {
   '/products/$id': typeof ProductsIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
+  '/academy': typeof AcademyIndexRoute
   '/products': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
@@ -683,10 +729,12 @@ export interface FileRoutesByTo {
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
+  '/academy/article/$slug': typeof AcademyArticleSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/admin/academy/$id': typeof AuthenticatedAdminAcademyIdRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
@@ -702,6 +750,7 @@ export interface FileRoutesByTo {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/admin/academy': typeof AuthenticatedAdminAcademyIndexRoute
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
 }
 export interface FileRoutesById {
@@ -709,6 +758,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/academy': typeof AcademyRouteWithChildren
   '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
@@ -739,6 +789,7 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/_authenticated/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
+  '/academy/$category': typeof AcademyCategoryRoute
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -747,6 +798,7 @@ export interface FileRoutesById {
   '/products/$id': typeof ProductsIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
+  '/academy/': typeof AcademyIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/_authenticated/admin/community': typeof AuthenticatedAdminCommunityRoute
@@ -768,10 +820,12 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/_authenticated/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/_authenticated/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
+  '/academy/article/$slug': typeof AcademyArticleSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/_authenticated/admin/academy/$id': typeof AuthenticatedAdminAcademyIdRoute
   '/_authenticated/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/_authenticated/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/_authenticated/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
@@ -787,6 +841,7 @@ export interface FileRoutesById {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/_authenticated/admin/academy/': typeof AuthenticatedAdminAcademyIndexRoute
   '/_authenticated/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
 }
 export interface FileRouteTypes {
@@ -794,6 +849,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/academy'
     | '/account'
     | '/affiliate-disclosure'
     | '/affiliates'
@@ -824,6 +880,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/refer'
     | '/a/$brandSlug'
+    | '/academy/$category'
     | '/account/settings'
     | '/api/ai-studio-stream'
     | '/checkout/return'
@@ -832,6 +889,7 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/store/$slug'
     | '/subscribe/confirm'
+    | '/academy/'
     | '/products/'
     | '/admin/auto-release'
     | '/admin/community'
@@ -853,10 +911,12 @@ export interface FileRouteTypes {
     | '/dashboard/new'
     | '/dashboard/payouts'
     | '/dashboard/storefront'
+    | '/academy/article/$slug'
     | '/api/public/contact'
     | '/lovable/email/suppression'
     | '/admin/'
     | '/dashboard/'
+    | '/admin/academy/$id'
     | '/admin/health/covers'
     | '/dashboard/bumps/$id'
     | '/dashboard/edit/$id'
@@ -872,6 +932,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/admin/academy/'
     | '/admin/health/covers/alerts'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -906,6 +967,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/refer'
     | '/a/$brandSlug'
+    | '/academy/$category'
     | '/account/settings'
     | '/api/ai-studio-stream'
     | '/checkout/return'
@@ -914,6 +976,7 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/store/$slug'
     | '/subscribe/confirm'
+    | '/academy'
     | '/products'
     | '/admin/auto-release'
     | '/admin/community'
@@ -935,10 +998,12 @@ export interface FileRouteTypes {
     | '/dashboard/new'
     | '/dashboard/payouts'
     | '/dashboard/storefront'
+    | '/academy/article/$slug'
     | '/api/public/contact'
     | '/lovable/email/suppression'
     | '/admin'
     | '/dashboard'
+    | '/admin/academy/$id'
     | '/admin/health/covers'
     | '/dashboard/bumps/$id'
     | '/dashboard/edit/$id'
@@ -954,12 +1019,14 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/admin/academy'
     | '/admin/health/covers/alerts'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/about'
+    | '/academy'
     | '/account'
     | '/affiliate-disclosure'
     | '/affiliates'
@@ -990,6 +1057,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/_authenticated/refer'
     | '/a/$brandSlug'
+    | '/academy/$category'
     | '/account/settings'
     | '/api/ai-studio-stream'
     | '/checkout/return'
@@ -998,6 +1066,7 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/store/$slug'
     | '/subscribe/confirm'
+    | '/academy/'
     | '/products/'
     | '/_authenticated/admin/auto-release'
     | '/_authenticated/admin/community'
@@ -1019,10 +1088,12 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/new'
     | '/_authenticated/dashboard/payouts'
     | '/_authenticated/dashboard/storefront'
+    | '/academy/article/$slug'
     | '/api/public/contact'
     | '/lovable/email/suppression'
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
+    | '/_authenticated/admin/academy/$id'
     | '/_authenticated/admin/health/covers'
     | '/_authenticated/dashboard/bumps/$id'
     | '/_authenticated/dashboard/edit/$id'
@@ -1038,6 +1109,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/_authenticated/admin/academy/'
     | '/_authenticated/admin/health/covers/alerts'
   fileRoutesById: FileRoutesById
 }
@@ -1045,6 +1117,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
+  AcademyRoute: typeof AcademyRouteWithChildren
   AccountRoute: typeof AccountRouteWithChildren
   AffiliateDisclosureRoute: typeof AffiliateDisclosureRoute
   AffiliatesRoute: typeof AffiliatesRoute
@@ -1292,6 +1365,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/academy': {
+      id: '/academy'
+      path: '/academy'
+      fullPath: '/academy'
+      preLoaderRoute: typeof AcademyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -1319,6 +1399,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/products/'
       preLoaderRoute: typeof ProductsIndexRouteImport
       parentRoute: typeof ProductsRoute
+    }
+    '/academy/': {
+      id: '/academy/'
+      path: '/'
+      fullPath: '/academy/'
+      preLoaderRoute: typeof AcademyIndexRouteImport
+      parentRoute: typeof AcademyRoute
     }
     '/subscribe/confirm': {
       id: '/subscribe/confirm'
@@ -1376,6 +1463,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountSettingsRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/academy/$category': {
+      id: '/academy/$category'
+      path: '/$category'
+      fullPath: '/academy/$category'
+      preLoaderRoute: typeof AcademyCategoryRouteImport
+      parentRoute: typeof AcademyRoute
+    }
     '/a/$brandSlug': {
       id: '/a/$brandSlug'
       path: '/a/$brandSlug'
@@ -1417,6 +1511,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/contact'
       preLoaderRoute: typeof ApiPublicContactRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/academy/article/$slug': {
+      id: '/academy/article/$slug'
+      path: '/article/$slug'
+      fullPath: '/academy/article/$slug'
+      preLoaderRoute: typeof AcademyArticleSlugRouteImport
+      parentRoute: typeof AcademyRoute
     }
     '/_authenticated/dashboard/storefront': {
       id: '/_authenticated/dashboard/storefront'
@@ -1558,6 +1659,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAutoReleaseRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/academy/': {
+      id: '/_authenticated/admin/academy/'
+      path: '/admin/academy'
+      fullPath: '/admin/academy/'
+      preLoaderRoute: typeof AuthenticatedAdminAcademyIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
       path: '/lovable/email/transactional/send'
@@ -1663,6 +1771,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminHealthCoversRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/academy/$id': {
+      id: '/_authenticated/admin/academy/$id'
+      path: '/admin/academy/$id'
+      fullPath: '/admin/academy/$id'
+      preLoaderRoute: typeof AuthenticatedAdminAcademyIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/health/covers/alerts': {
       id: '/_authenticated/admin/health/covers/alerts'
       path: '/alerts'
@@ -1712,11 +1827,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardStorefrontRoute: typeof AuthenticatedDashboardStorefrontRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+  AuthenticatedAdminAcademyIdRoute: typeof AuthenticatedAdminAcademyIdRoute
   AuthenticatedAdminHealthCoversRoute: typeof AuthenticatedAdminHealthCoversRouteWithChildren
   AuthenticatedDashboardBumpsIdRoute: typeof AuthenticatedDashboardBumpsIdRoute
   AuthenticatedDashboardEditIdRoute: typeof AuthenticatedDashboardEditIdRoute
   AuthenticatedDashboardPreorderIdRoute: typeof AuthenticatedDashboardPreorderIdRoute
   AuthenticatedDashboardVariantsIdRoute: typeof AuthenticatedDashboardVariantsIdRoute
+  AuthenticatedAdminAcademyIndexRoute: typeof AuthenticatedAdminAcademyIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1745,16 +1862,33 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardStorefrontRoute: AuthenticatedDashboardStorefrontRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+  AuthenticatedAdminAcademyIdRoute: AuthenticatedAdminAcademyIdRoute,
   AuthenticatedAdminHealthCoversRoute:
     AuthenticatedAdminHealthCoversRouteWithChildren,
   AuthenticatedDashboardBumpsIdRoute: AuthenticatedDashboardBumpsIdRoute,
   AuthenticatedDashboardEditIdRoute: AuthenticatedDashboardEditIdRoute,
   AuthenticatedDashboardPreorderIdRoute: AuthenticatedDashboardPreorderIdRoute,
   AuthenticatedDashboardVariantsIdRoute: AuthenticatedDashboardVariantsIdRoute,
+  AuthenticatedAdminAcademyIndexRoute: AuthenticatedAdminAcademyIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface AcademyRouteChildren {
+  AcademyCategoryRoute: typeof AcademyCategoryRoute
+  AcademyIndexRoute: typeof AcademyIndexRoute
+  AcademyArticleSlugRoute: typeof AcademyArticleSlugRoute
+}
+
+const AcademyRouteChildren: AcademyRouteChildren = {
+  AcademyCategoryRoute: AcademyCategoryRoute,
+  AcademyIndexRoute: AcademyIndexRoute,
+  AcademyArticleSlugRoute: AcademyArticleSlugRoute,
+}
+
+const AcademyRouteWithChildren =
+  AcademyRoute._addFileChildren(AcademyRouteChildren)
 
 interface AccountRouteChildren {
   AccountSettingsRoute: typeof AccountSettingsRoute
@@ -1785,6 +1919,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
+  AcademyRoute: AcademyRouteWithChildren,
   AccountRoute: AccountRouteWithChildren,
   AffiliateDisclosureRoute: AffiliateDisclosureRoute,
   AffiliatesRoute: AffiliatesRoute,
@@ -1837,13 +1972,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

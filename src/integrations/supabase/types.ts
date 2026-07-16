@@ -59,6 +59,172 @@ export type Database = {
         }
         Relationships: []
       }
+      academy_article_products: {
+        Row: {
+          article_id: string
+          created_at: string
+          product_id: string
+          sort_order: number
+        }
+        Insert: {
+          article_id: string
+          created_at?: string
+          product_id: string
+          sort_order?: number
+        }
+        Update: {
+          article_id?: string
+          created_at?: string
+          product_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_article_products_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "academy_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_article_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_articles: {
+        Row: {
+          author_id: string | null
+          author_name: string | null
+          body: string
+          category: string
+          created_at: string
+          excerpt: string | null
+          featured: boolean
+          featured_image: string | null
+          id: string
+          meta_description: string | null
+          meta_title: string | null
+          pinned: boolean
+          published_at: string | null
+          reading_time_min: number
+          scheduled_for: string | null
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          author_id?: string | null
+          author_name?: string | null
+          body?: string
+          category: string
+          created_at?: string
+          excerpt?: string | null
+          featured?: boolean
+          featured_image?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          pinned?: boolean
+          published_at?: string | null
+          reading_time_min?: number
+          scheduled_for?: string | null
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          author_id?: string | null
+          author_name?: string | null
+          body?: string
+          category?: string
+          created_at?: string
+          excerpt?: string | null
+          featured?: boolean
+          featured_image?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          pinned?: boolean
+          published_at?: string | null
+          reading_time_min?: number
+          scheduled_for?: string | null
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_articles_category_fkey"
+            columns: ["category"]
+            isOneToOne: false
+            referencedRelation: "academy_categories"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
+      academy_bookmarks: {
+        Row: {
+          article_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_bookmarks_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "academy_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          emoji: string | null
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          emoji?: string | null
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          emoji?: string | null
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       affiliate_clicks: {
         Row: {
           affiliate_url: string

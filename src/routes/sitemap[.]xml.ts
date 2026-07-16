@@ -24,6 +24,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "daily", priority: "1.0" },
           { path: "/products", changefreq: "daily", priority: "0.9" },
+          { path: "/academy", changefreq: "daily", priority: "0.9" },
           { path: "/search", changefreq: "weekly", priority: "0.6" },
           { path: "/sell", changefreq: "monthly", priority: "0.7" },
           { path: "/support", changefreq: "monthly", priority: "0.5" },
@@ -45,13 +46,18 @@ export const Route = createFileRoute("/sitemap.xml")({
               Authorization: `Bearer ${key}`,
               Accept: "application/json",
             };
-            const [prodRes, storeRes] = await Promise.all([
+            const [prodRes, storeRes, catRes, articleRes] = await Promise.all([
               fetch(
                 `${url}/rest/v1/marketplace_products?select=id,updated_at&status=eq.approved&published=eq.true`,
                 { headers },
               ),
               fetch(
                 `${url}/rest/v1/seller_applications?select=brand_slug,updated_at&status=eq.approved`,
+                { headers },
+              ),
+              fetch(`${url}/rest/v1/academy_categories?select=slug`, { headers }),
+              fetch(
+                `${url}/rest/v1/academy_articles?select=slug,updated_at&status=eq.published`,
                 { headers },
               ),
             ]);
@@ -85,6 +91,32 @@ export const Route = createFileRoute("/sitemap.xml")({
                     : undefined,
                   changefreq: "weekly",
                   priority: "0.7",
+                });
+              }
+            }
+            if (catRes.ok) {
+              const cats = (await catRes.json()) as Array<{ slug: string }>;
+              for (const c of cats) {
+                entries.push({
+                  path: `/academy/${c.slug}`,
+                  changefreq: "weekly",
+                  priority: "0.7",
+                });
+              }
+            }
+            if (articleRes.ok) {
+              const arts = (await articleRes.json()) as Array<{
+                slug: string;
+                updated_at?: string | null;
+              }>;
+              for (const a of arts) {
+                entries.push({
+                  path: `/academy/article/${a.slug}`,
+                  lastmod: a.updated_at
+                    ? new Date(a.updated_at).toISOString().slice(0, 10)
+                    : undefined,
+                  changefreq: "weekly",
+                  priority: "0.8",
                 });
               }
             }
