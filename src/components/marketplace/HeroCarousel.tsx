@@ -38,7 +38,7 @@ const HERO_SLIDE: Slide = {
       Sell Digital Products, eBooks, AI Prompt Packs, <span className="gold-gradient">Journals &amp; Financial Planners</span>
     </>
   ),
-  body: "Premium digital resources for builders, leaders, and visionaries. Curated. Verified. Instant.",
+  body: "AurumVault is a premium digital marketplace where creators sell ebooks, AI prompt packs, journals, planners, templates, and digital business resources with instant delivery.",
   ctaLabel: "Shop Now →",
   ctaTo: "/products",
   theme: { accentColor: "#B8860B", gradientStart: "#0F1E35" },
