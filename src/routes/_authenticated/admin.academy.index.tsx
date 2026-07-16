@@ -108,10 +108,8 @@ function AdminAcademyList() {
   };
 
   const toggle = async (id: string, field: "featured" | "pinned", value: boolean) => {
-    const { error } = await supabase
-      .from("academy_articles")
-      .update({ [field]: value })
-      .eq("id", id);
+    const patch = field === "featured" ? { featured: value } : { pinned: value };
+    const { error } = await supabase.from("academy_articles").update(patch).eq("id", id);
     if (error) toast.error(error.message);
     else void load();
   };
