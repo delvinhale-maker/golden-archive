@@ -94,6 +94,32 @@ export const Route = createFileRoute("/sitemap.xml")({
                 });
               }
             }
+            if (catRes.ok) {
+              const cats = (await catRes.json()) as Array<{ slug: string }>;
+              for (const c of cats) {
+                entries.push({
+                  path: `/academy/${c.slug}`,
+                  changefreq: "weekly",
+                  priority: "0.7",
+                });
+              }
+            }
+            if (articleRes.ok) {
+              const arts = (await articleRes.json()) as Array<{
+                slug: string;
+                updated_at?: string | null;
+              }>;
+              for (const a of arts) {
+                entries.push({
+                  path: `/academy/article/${a.slug}`,
+                  lastmod: a.updated_at
+                    ? new Date(a.updated_at).toISOString().slice(0, 10)
+                    : undefined,
+                  changefreq: "weekly",
+                  priority: "0.8",
+                });
+              }
+            }
           }
         } catch {
           // Sitemap should still render with static routes if the DB read fails
