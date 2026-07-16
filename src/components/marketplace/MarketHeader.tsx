@@ -319,6 +319,13 @@ export function MarketHeader() {
 
                 </button>
               ))}
+              <Link
+                to="/academy"
+                onClick={() => setMenuOpen(false)}
+                className="flex w-full items-center justify-between border-b border-white/10 py-3 text-base"
+              >
+                <span>Academy</span>
+              </Link>
               <div className="mt-2 pt-4 text-[11px] font-semibold tracking-caps text-gold/80">
                 CREATORS
               </div>
