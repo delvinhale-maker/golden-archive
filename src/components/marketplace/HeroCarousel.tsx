@@ -63,10 +63,10 @@ const CREATOR_SLIDE: Slide = {
   kicker: "SELL ON AURUMVAULT",
   title: (
     <>
-      Turn your knowledge into <span className="gold-gradient">income</span>.
+      AurumVault is a premium digital <span className="gold-gradient">marketplace</span>.
     </>
   ),
-  body: "Join a verified network of creators shipping premium eBooks, courses, and templates — with instant delivery, built-in affiliates, and monthly payouts.",
+  body: "AurumVault is a premium digital marketplace where creators sell ebooks, AI prompt packs, journals, planners, templates, and digital business resources with instant delivery.",
   ctaLabel: "Become a Creator →",
   ctaTo: "/become-a-creator",
   secondaryLabel: "Meet the creators →",
