@@ -35,7 +35,7 @@ const HERO_SLIDE: Slide = {
   kicker: "",
   title: (
     <>
-      Knowledge That <span className="gold-gradient">Moves You</span> Forward.
+      Sell Digital Products, eBooks, AI Prompt Packs, <span className="gold-gradient">Journals &amp; Financial Planners</span>
     </>
   ),
   body: "Premium digital resources for builders, leaders, and visionaries. Curated. Verified. Instant.",
