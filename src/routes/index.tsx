@@ -7,6 +7,7 @@ import {
   BadgeCheck,
   BookOpen,
   Briefcase,
+  CalendarDays,
   Crown,
   Download,
   GraduationCap,
@@ -15,6 +16,7 @@ import {
   Lock,
   RefreshCw,
   ShieldCheck,
+  Sparkles,
   Star,
   Swords,
   Twitter,
@@ -359,12 +361,47 @@ function FeaturedHero() {
         dealsProducts={dealsProducts.length ? dealsProducts : creatorProducts}
         creatorProducts={creatorProducts}
       />
+      <CategoryCTABar />
     </div>
   );
 }
 
+const CATEGORY_CTAS = [
+  { label: "eBooks", slug: "ebooks", icon: BookOpen },
+  { label: "AI Prompt Packs", slug: "ai_prompt_packs", icon: Sparkles },
+  { label: "Financial Planners", slug: "financial_planners", icon: CalendarDays },
+];
 
-
+function CategoryCTABar() {
+  return (
+    <section className="relative border-t border-white/10 bg-navy">
+      <div className="mx-auto max-w-7xl px-6 py-6 lg:px-8">
+        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
+          {CATEGORY_CTAS.map((cat) => {
+            const Icon = cat.icon;
+            return (
+              <Link
+                key={cat.slug}
+                to="/products"
+                search={{ category: cat.label }}
+                aria-label={`Browse ${cat.label}`}
+              >
+                <motion.span
+                  whileHover={{ scale: 1.03, y: -1 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:border-gold/60 hover:bg-white/10 hover:text-gold"
+                >
+                  <Icon size={16} className="text-gold" />
+                  {cat.label}
+                </motion.span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function HeroStatsBar() {
   const { data } = useSuspenseQuery(highlightsQ);
