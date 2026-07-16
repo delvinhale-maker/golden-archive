@@ -85,6 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#0F1E35" },
       { name: "robots", content: "index, follow" },
       { name: "google-site-verification", content: "TZD7DBctq42sAIhH5gDz3cusg5R4yPL7fAaARnOxEG8" },
+      { name: "google-adsense-account", content: "ca-pub-2104226805246245" },
       { name: "author", content: "AurumVault" },
       {
         name: "keywords",
