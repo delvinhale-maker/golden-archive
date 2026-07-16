@@ -361,6 +361,7 @@ function FeaturedHero() {
         dealsProducts={dealsProducts.length ? dealsProducts : creatorProducts}
         creatorProducts={creatorProducts}
       />
+      <CategoryCTABar />
     </div>
   );
 }
