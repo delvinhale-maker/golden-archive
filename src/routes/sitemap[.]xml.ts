@@ -46,13 +46,18 @@ export const Route = createFileRoute("/sitemap.xml")({
               Authorization: `Bearer ${key}`,
               Accept: "application/json",
             };
-            const [prodRes, storeRes] = await Promise.all([
+            const [prodRes, storeRes, catRes, articleRes] = await Promise.all([
               fetch(
                 `${url}/rest/v1/marketplace_products?select=id,updated_at&status=eq.approved&published=eq.true`,
                 { headers },
               ),
               fetch(
                 `${url}/rest/v1/seller_applications?select=brand_slug,updated_at&status=eq.approved`,
+                { headers },
+              ),
+              fetch(`${url}/rest/v1/academy_categories?select=slug`, { headers }),
+              fetch(
+                `${url}/rest/v1/academy_articles?select=slug,updated_at&status=eq.published`,
                 { headers },
               ),
             ]);
