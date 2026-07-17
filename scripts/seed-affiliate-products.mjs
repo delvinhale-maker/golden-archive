@@ -9,14 +9,21 @@
 //   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/seed-affiliate-products.mjs products.txt
 //   node scripts/seed-affiliate-products.mjs B08N5WRWNW https://www.amazon.com/dp/B0CRDCVQK1
 //
-// Input file format (one entry per line, '#' starts a comment):
-//   ASIN_or_URL [| category] [| badge]
-//   B08N5WRWNW | Finance | Bestseller
+// Input file format (one entry per line, '#' starts a comment). The first
+// field is the ASIN or Amazon URL; remaining fields are optional key=value
+// pairs (in any order):
+//   ASIN_or_URL [| title=...] [| price=...] [| image=...] [| category=...] [| badge=...]
+//   B08N5WRWNW | title=Atomic Habits | price=11.98 | image=https://example.com/cover.jpg | category=Leadership
+//
+// If title, price, AND image are all given inline, the product page is not
+// scraped at all — useful when Amazon blocks automated fetches, or when you
+// already have your own cover art. Any subset of fields can be supplied;
+// missing ones fall back to scraping the Amazon page.
 //
 // Flags:
 //   --category <name>   Default category for lines that don't specify one (default: eBooks)
 //   --featured           Mark every seeded product as featured
-//   --dry-run             Scrape and print, but don't write to the database
+//   --dry-run             Scrape/print, but don't write to the database or upload images
 //
 // Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the environment
 // (same variables the app's server-side admin client uses). Re-running is
@@ -53,9 +60,29 @@ function loadEntries(positional) {
 }
 
 function parseEntry(line, defaultCategory) {
-  const [rawInput, rawCategory, rawBadge] = line.split("|").map((s) => s?.trim());
-  const category = rawCategory && AFFILIATE_CATEGORIES.includes(rawCategory) ? rawCategory : defaultCategory;
-  return { input: rawInput, category, badge: rawBadge || null };
+  const [input, ...rest] = line.split("|").map((s) => s.trim());
+  const fields = {};
+  for (const part of rest) {
+    const eq = part.indexOf("=");
+    if (eq === -1) continue;
+    const key = part.slice(0, eq).trim().toLowerCase();
+    const value = part.slice(eq + 1).trim();
+    if (["title", "price", "image", "category", "badge"].includes(key) && value) {
+      fields[key] = value;
+    }
+  }
+  const category = fields.category && AFFILIATE_CATEGORIES.includes(fields.category)
+    ? fields.category
+    : defaultCategory;
+  const price = fields.price !== undefined ? Number(fields.price) : undefined;
+  return {
+    input,
+    category,
+    badge: fields.badge || null,
+    title: fields.title,
+    price: Number.isFinite(price) ? price : undefined,
+    image: fields.image,
+  };
 }
 
 const ASIN_RE = /^[A-Z0-9]{10}$/;
@@ -237,7 +264,8 @@ async function main() {
   let seeded = 0, skipped = 0, failed = 0;
 
   for (const rawLine of entries) {
-    const { input, category, badge } = parseEntry(rawLine, flags.category);
+    const manual = parseEntry(rawLine, flags.category);
+    const { input, category, badge } = manual;
     const asin = extractAsin(input);
     if (!asin) {
       console.warn(`[skip] Could not detect ASIN in "${input}"`);
@@ -246,6 +274,7 @@ async function main() {
     }
 
     const affiliateUrl = buildAffiliateUrl(asin);
+    const fullyManual = manual.title !== undefined && manual.price !== undefined && manual.image !== undefined;
 
     if (!flags.dryRun) {
       const { data: existing } = await supabaseAdmin
@@ -261,19 +290,27 @@ async function main() {
     }
 
     try {
-      const html = await fetchAmazonHtml(asin);
-      const title = parseTitle(html) ?? `Amazon Product ${asin}`;
-      const price = parsePrice(html) ?? 0;
-      const sourceImageUrl = parseImage(html, asin);
+      let title = manual.title;
+      let price = manual.price;
+      let sourceImageUrl = manual.image;
 
+      if (!fullyManual) {
+        const html = await fetchAmazonHtml(asin);
+        title = title ?? parseTitle(html) ?? `Amazon Product ${asin}`;
+        price = price ?? parsePrice(html) ?? 0;
+        sourceImageUrl = sourceImageUrl ?? parseImage(html, asin);
+      }
+
+      // Manually supplied image URLs are used as-is (e.g. already-hosted
+      // art); only Amazon-sourced images get re-uploaded to our bucket.
       let imageUrl = sourceImageUrl ?? "";
-      if (!flags.dryRun && sourceImageUrl) {
+      if (!flags.dryRun && manual.image === undefined && sourceImageUrl) {
         const uploaded = await uploadCover(supabaseAdmin, asin, sourceImageUrl);
         if (uploaded) imageUrl = uploaded;
       }
 
       if (flags.dryRun) {
-        console.log(`[dry-run] ${asin} — "${title}" — $${price} — ${category} — ${affiliateUrl}`);
+        console.log(`[dry-run] ${asin} — "${title}" — $${price} — ${category} — image=${imageUrl} — ${affiliateUrl}`);
         seeded++;
         continue;
       }
