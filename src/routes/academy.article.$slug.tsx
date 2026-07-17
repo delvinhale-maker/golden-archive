@@ -1,10 +1,13 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useSuspenseQuery, useQuery, useMutation, useQueryClient, queryOptions } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getArticleBySlug } from "@/lib/academy.functions";
 import { ArticleCard, difficultyFor } from "./academy.index";
-import { ChevronRight, Clock, ArrowRight, Share2, BookmarkPlus, Check } from "lucide-react";
+import { ChevronRight, Clock, ArrowRight, Share2, BookmarkPlus, BookmarkCheck, Check } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 
 function articleQuery(slug: string) {
@@ -225,7 +228,7 @@ function ArticleDetail() {
               {difficultyFor(article.reading_time_min)}
             </span>
           </div>
-          <ArticleActions title={article.title} excerpt={article.excerpt} />
+          <ArticleActions articleId={article.id} title={article.title} excerpt={article.excerpt} />
         </header>
 
 
@@ -355,11 +358,68 @@ function ReadingProgressBar() {
   );
 }
 
-function ArticleActions({ title, excerpt }: { title: string; excerpt: string | null }) {
+function ArticleActions({
+  articleId,
+  title,
+  excerpt,
+}: {
+  articleId: string;
+  title: string;
+  excerpt: string | null;
+}) {
   const [copied, setCopied] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  const bookmarkQuery = useQuery({
+    queryKey: ["academy", "bookmark", articleId, user?.id ?? null],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("academy_bookmarks")
+        .select("article_id")
+        .eq("article_id", articleId)
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return !!data;
+    },
+  });
+  const isSaved = bookmarkQuery.data === true;
+
+  const toggle = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("not-authenticated");
+      if (isSaved) {
+        const { error } = await supabase
+          .from("academy_bookmarks")
+          .delete()
+          .eq("article_id", articleId)
+          .eq("user_id", user.id);
+        if (error) throw error;
+        return false;
+      }
+      const { error } = await supabase
+        .from("academy_bookmarks")
+        .insert({ article_id: articleId, user_id: user.id });
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: (saved) => {
+      qc.setQueryData(["academy", "bookmark", articleId, user?.id ?? null], saved);
+      qc.invalidateQueries({ queryKey: ["academy", "bookmarks"] });
+      toast.success(saved ? "Saved to your library" : "Removed from saved");
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(msg === "not-authenticated" ? "Sign in to save articles" : "Couldn't update save");
+    },
+  });
+
   const share = async () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
-    if (navigator.share) {
+    if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({ title, text: excerpt ?? undefined, url });
         return;
@@ -375,6 +435,17 @@ function ArticleActions({ title, excerpt }: { title: string; excerpt: string | n
       /* ignore */
     }
   };
+
+  const onSave = () => {
+    if (!user) {
+      const redirect = typeof window !== "undefined" ? window.location.pathname : "/academy";
+      toast.message("Sign in to save articles");
+      navigate({ to: "/auth", search: { redirect } as never });
+      return;
+    }
+    toggle.mutate();
+  };
+
   return (
     <div className="mt-5 flex flex-wrap items-center gap-2">
       <button
@@ -387,11 +458,20 @@ function ArticleActions({ title, excerpt }: { title: string; excerpt: string | n
       </button>
       <button
         type="button"
-        aria-label="Save for later"
-        title="Save for later"
-        className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white px-3.5 py-1.5 text-sm font-medium text-ink transition hover:border-[#B8860B] hover:text-[#B8860B]"
+        onClick={onSave}
+        disabled={authLoading || toggle.isPending}
+        aria-pressed={isSaved}
+        aria-label={isSaved ? "Remove from saved" : "Save for later"}
+        title={isSaved ? "Remove from saved" : "Save for later"}
+        className={
+          "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition disabled:opacity-60 " +
+          (isSaved
+            ? "border-[#B8860B] bg-[#FDF9F0] text-[#B8860B]"
+            : "border-ink/15 bg-white text-ink hover:border-[#B8860B] hover:text-[#B8860B]")
+        }
       >
-        <BookmarkPlus size={14} /> Save
+        {isSaved ? <BookmarkCheck size={14} /> : <BookmarkPlus size={14} />}
+        {isSaved ? "Saved" : "Save"}
       </button>
     </div>
   );
