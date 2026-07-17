@@ -1,9 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getArticleBySlug } from "@/lib/academy.functions";
-import { ArticleCard } from "./academy.index";
-import { ChevronRight, Clock, ArrowRight } from "lucide-react";
+import { ArticleCard, difficultyFor } from "./academy.index";
+import { ChevronRight, Clock, ArrowRight, Share2, BookmarkPlus, Check } from "lucide-react";
+
 
 function articleQuery(slug: string) {
   return queryOptions({
