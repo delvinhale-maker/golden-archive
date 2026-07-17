@@ -417,6 +417,23 @@ function ArticleActions({
     },
   });
 
+  // After returning from sign-in with a pending save intent for THIS article,
+  // apply the bookmark automatically once the auth + bookmark queries settle.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (authLoading || !user) return;
+    if (bookmarkQuery.isLoading || bookmarkQuery.data === undefined) return;
+    const pending = sessionStorage.getItem("av_pending_bookmark");
+    if (pending !== articleId) return;
+    sessionStorage.removeItem("av_pending_bookmark");
+    if (bookmarkQuery.data === true) {
+      toast.success("Already in your library");
+      return;
+    }
+    if (!toggle.isPending) toggle.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user, bookmarkQuery.isLoading, bookmarkQuery.data, articleId]);
+
   const share = async () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
     if (typeof navigator !== "undefined" && navigator.share) {
@@ -439,7 +456,10 @@ function ArticleActions({
   const onSave = () => {
     if (!user) {
       const redirect = typeof window !== "undefined" ? window.location.pathname : "/academy";
-      toast.message("Sign in to save articles");
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("av_pending_bookmark", articleId);
+      }
+      toast.message("Sign in to save this article");
       navigate({ to: "/auth", search: { redirect } as never });
       return;
     }
