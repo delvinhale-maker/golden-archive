@@ -1,9 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getArticleBySlug } from "@/lib/academy.functions";
-import { ArticleCard } from "./academy.index";
-import { ChevronRight, Clock, ArrowRight } from "lucide-react";
+import { ArticleCard, difficultyFor } from "./academy.index";
+import { ChevronRight, Clock, ArrowRight, Share2, BookmarkPlus, Check } from "lucide-react";
+
 
 function articleQuery(slug: string) {
   return queryOptions({
@@ -166,7 +168,9 @@ function ArticleDetail() {
 
   return (
     <MarketShell>
+      <ReadingProgressBar />
       <article className="mx-auto max-w-3xl px-4 pb-24 md:px-6">
+
         {/* Breadcrumbs */}
         <nav aria-label="Breadcrumb" className="mt-6 flex items-center gap-2 text-sm text-ink/60">
           <Link to="/academy" className="hover:text-[#B8860B]">
@@ -216,8 +220,14 @@ function ArticleDetail() {
             <span className="inline-flex items-center gap-1">
               <Clock size={13} /> {article.reading_time_min} min read
             </span>
+            <span>•</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#0F1E35]/5 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-[#0F1E35]">
+              {difficultyFor(article.reading_time_min)}
+            </span>
           </div>
+          <ArticleActions title={article.title} excerpt={article.excerpt} />
         </header>
+
 
         {article.featured_image && (
           <img
@@ -319,5 +329,70 @@ function ArticleDetail() {
         />
       </article>
     </MarketShell>
+  );
+}
+
+function ReadingProgressBar() {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const scrollTop = doc.scrollTop || document.body.scrollTop;
+      const height = doc.scrollHeight - doc.clientHeight;
+      setProgress(height > 0 ? Math.min(100, Math.max(0, (scrollTop / height) * 100)) : 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-40 h-0.5 bg-transparent">
+      <div
+        className="h-full bg-gradient-to-r from-[#B8860B] via-[#E9C46A] to-[#B8860B] transition-[width] duration-150"
+        style={{ width: `${progress}%` }}
+      />
+    </div>
+  );
+}
+
+function ArticleActions({ title, excerpt }: { title: string; excerpt: string | null }) {
+  const [copied, setCopied] = useState(false);
+  const share = async () => {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text: excerpt ?? undefined, url });
+        return;
+      } catch {
+        /* user cancelled */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* ignore */
+    }
+  };
+  return (
+    <div className="mt-5 flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        onClick={() => void share()}
+        className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white px-3.5 py-1.5 text-sm font-medium text-ink transition hover:border-[#B8860B] hover:text-[#B8860B]"
+      >
+        {copied ? <Check size={14} /> : <Share2 size={14} />}
+        {copied ? "Link copied" : "Share"}
+      </button>
+      <button
+        type="button"
+        aria-label="Save for later"
+        title="Save for later"
+        className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white px-3.5 py-1.5 text-sm font-medium text-ink transition hover:border-[#B8860B] hover:text-[#B8860B]"
+      >
+        <BookmarkPlus size={14} /> Save
+      </button>
+    </div>
   );
 }

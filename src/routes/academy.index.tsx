@@ -175,16 +175,23 @@ export function ArticleGrid({ articles }: { articles: AcademyArticle[] }) {
   );
 }
 
+export function difficultyFor(readingMin: number): "Beginner" | "Intermediate" | "Advanced" {
+  if (readingMin <= 5) return "Beginner";
+  if (readingMin <= 12) return "Intermediate";
+  return "Advanced";
+}
+
 export function ArticleCard({ article }: { article: AcademyArticle }) {
   const date = article.published_at ? new Date(article.published_at) : null;
+  const difficulty = difficultyFor(article.reading_time_min);
   return (
     <Link
       to="/academy/article/$slug"
       params={{ slug: article.slug }}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white transition hover:-translate-y-0.5 hover:border-[#B8860B]/50 hover:shadow-lg"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white transition duration-300 hover:-translate-y-1 hover:border-[#B8860B]/60 hover:shadow-[0_20px_50px_-20px_rgba(15,30,53,0.35)]"
     >
       <div
-        className="aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-[#0F1E35] to-[#172A48]"
+        className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-[#0F1E35] via-[#152743] to-[#0F1E35]"
         style={
           article.featured_image
             ? { backgroundImage: `url(${article.featured_image})`, backgroundSize: "cover", backgroundPosition: "center" }
@@ -192,10 +199,23 @@ export function ArticleCard({ article }: { article: AcademyArticle }) {
         }
       >
         {!article.featured_image && (
-          <div className="flex h-full w-full items-center justify-center text-4xl">
-            📖
-          </div>
+          <>
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-30"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 30% 30%, rgba(184,134,11,0.35), transparent 55%), radial-gradient(circle at 75% 70%, rgba(184,134,11,0.18), transparent 60%)",
+              }}
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="font-serif text-5xl italic tracking-tight text-[#B8860B]/80">AV</span>
+            </div>
+          </>
         )}
+        <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-[#0F1E35]/85 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-[#E9C46A] backdrop-blur">
+          {difficulty}
+        </div>
       </div>
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[#B8860B]">
