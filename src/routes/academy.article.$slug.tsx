@@ -1,10 +1,13 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useSuspenseQuery, useQuery, useMutation, useQueryClient, queryOptions } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getArticleBySlug } from "@/lib/academy.functions";
 import { ArticleCard, difficultyFor } from "./academy.index";
-import { ChevronRight, Clock, ArrowRight, Share2, BookmarkPlus, Check } from "lucide-react";
+import { ChevronRight, Clock, ArrowRight, Share2, BookmarkPlus, BookmarkCheck, Check } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 
 function articleQuery(slug: string) {
