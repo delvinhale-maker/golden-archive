@@ -168,7 +168,9 @@ function ArticleDetail() {
 
   return (
     <MarketShell>
+      <ReadingProgressBar />
       <article className="mx-auto max-w-3xl px-4 pb-24 md:px-6">
+
         {/* Breadcrumbs */}
         <nav aria-label="Breadcrumb" className="mt-6 flex items-center gap-2 text-sm text-ink/60">
           <Link to="/academy" className="hover:text-[#B8860B]">
