@@ -1,0 +1,3 @@
+UPDATE public.academy_articles SET featured_image = 'https://www.aurumvault.store/__l5e/assets-v1/ca12fc49-95a8-4f9c-95f7-7ea211b10c6f/av-academy-financial.jpg' WHERE slug = 'how-to-build-a-financial-freedom-plan';
+UPDATE public.academy_articles SET featured_image = 'https://www.aurumvault.store/__l5e/assets-v1/9cced892-db17-4390-a1a2-81b9a6b8d36b/av-academy-ai.jpg' WHERE slug = 'prompt-engineering-for-real-work';
+UPDATE public.academy_articles SET featured_image = 'https://www.aurumvault.store/__l5e/assets-v1/e2c7e9fd-9638-4dda-b916-e4c421c8ae73/av-academy-kingdom.jpg' WHERE slug = 'the-heir-mindset';
