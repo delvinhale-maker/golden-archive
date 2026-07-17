@@ -331,3 +331,68 @@ function ArticleDetail() {
     </MarketShell>
   );
 }
+
+function ReadingProgressBar() {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const scrollTop = doc.scrollTop || document.body.scrollTop;
+      const height = doc.scrollHeight - doc.clientHeight;
+      setProgress(height > 0 ? Math.min(100, Math.max(0, (scrollTop / height) * 100)) : 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-40 h-0.5 bg-transparent">
+      <div
+        className="h-full bg-gradient-to-r from-[#B8860B] via-[#E9C46A] to-[#B8860B] transition-[width] duration-150"
+        style={{ width: `${progress}%` }}
+      />
+    </div>
+  );
+}
+
+function ArticleActions({ title, excerpt }: { title: string; excerpt: string | null }) {
+  const [copied, setCopied] = useState(false);
+  const share = async () => {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text: excerpt ?? undefined, url });
+        return;
+      } catch {
+        /* user cancelled */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* ignore */
+    }
+  };
+  return (
+    <div className="mt-5 flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        onClick={() => void share()}
+        className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white px-3.5 py-1.5 text-sm font-medium text-ink transition hover:border-[#B8860B] hover:text-[#B8860B]"
+      >
+        {copied ? <Check size={14} /> : <Share2 size={14} />}
+        {copied ? "Link copied" : "Share"}
+      </button>
+      <button
+        type="button"
+        aria-label="Save for later"
+        title="Save for later"
+        className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white px-3.5 py-1.5 text-sm font-medium text-ink transition hover:border-[#B8860B] hover:text-[#B8860B]"
+      >
+        <BookmarkPlus size={14} /> Save
+      </button>
+    </div>
+  );
+}
