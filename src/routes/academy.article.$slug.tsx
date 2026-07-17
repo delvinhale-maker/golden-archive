@@ -228,7 +228,7 @@ function ArticleDetail() {
               {difficultyFor(article.reading_time_min)}
             </span>
           </div>
-          <ArticleActions title={article.title} excerpt={article.excerpt} />
+          <ArticleActions articleId={article.id} title={article.title} excerpt={article.excerpt} />
         </header>
 
 
