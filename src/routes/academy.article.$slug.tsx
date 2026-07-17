@@ -218,8 +218,14 @@ function ArticleDetail() {
             <span className="inline-flex items-center gap-1">
               <Clock size={13} /> {article.reading_time_min} min read
             </span>
+            <span>•</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#0F1E35]/5 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-[#0F1E35]">
+              {difficultyFor(article.reading_time_min)}
+            </span>
           </div>
+          <ArticleActions title={article.title} excerpt={article.excerpt} />
         </header>
+
 
         {article.featured_image && (
           <img
