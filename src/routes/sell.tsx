@@ -167,8 +167,8 @@ function SellPage() {
           <h1 className="mt-3 font-display text-3xl md:text-5xl leading-tight">Apply to sell on AurumVault</h1>
           <p className="mt-4 text-white/80">Kingdom resources, royal quality. Four short steps.</p>
           <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-3 text-sm">
-            <Pill>You keep 70%</Pill>
-            <Pill>30% platform fee</Pill>
+            <Pill>You keep 85%</Pill>
+            <Pill>15% platform fee</Pill>
             <Pill>48-hour review</Pill>
           </div>
         </div>
@@ -262,7 +262,7 @@ function SellPage() {
               {step === 4 && (
                 <StepBox title="Agreement" subtitle="One last check before you submit.">
                   <div className="rounded-xl border border-ink/10 bg-paper p-4 text-sm text-ink/80 leading-relaxed">
-                    <p><strong className="text-navy">Royalty split:</strong> You keep 70% of every sale. AurumVault retains a 30% platform fee.</p>
+                    <p><strong className="text-navy">Royalty split:</strong> You keep 85% of every sale. AurumVault retains a 15% platform fee.</p>
                     <p className="mt-2"><strong className="text-navy">Content:</strong> All work must be original or properly licensed. You retain full rights.</p>
                     <p className="mt-2"><strong className="text-navy">Payouts:</strong> Processed on the schedule shown in your dashboard, once past our clearance window.</p>
                   </div>

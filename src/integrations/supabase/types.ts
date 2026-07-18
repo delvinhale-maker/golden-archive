@@ -1137,7 +1137,9 @@ export type Database = {
           featured: boolean
           file_path: string | null
           file_size_bytes: number | null
+          has_interactive_edition: boolean
           id: string
+          interactive_edition_file_url: string | null
           is_preorder: boolean
           language: string
           platform_fee_pct: number
@@ -1174,7 +1176,9 @@ export type Database = {
           featured?: boolean
           file_path?: string | null
           file_size_bytes?: number | null
+          has_interactive_edition?: boolean
           id?: string
+          interactive_edition_file_url?: string | null
           is_preorder?: boolean
           language?: string
           platform_fee_pct?: number
@@ -1211,7 +1215,9 @@ export type Database = {
           featured?: boolean
           file_path?: string | null
           file_size_bytes?: number | null
+          has_interactive_edition?: boolean
           id?: string
+          interactive_edition_file_url?: string | null
           is_preorder?: boolean
           language?: string
           platform_fee_pct?: number

@@ -32,17 +32,17 @@ const GOLD = "#C9A84C";
 export const Route = createFileRoute("/become-a-creator")({
   head: () => ({
     meta: [
-      { title: "Become a Creator on AurumVault | Sell Digital Products & Keep 70%" },
+      { title: "Become a Creator on AurumVault | Sell Digital Products & Keep 85%" },
       {
         name: "description",
         content:
-          "Join the most curated digital marketplace for purpose-driven creators. Keep 70% of every sale. AI-powered tools, built-in Kingdom-minded audience, 48-hour review.",
+          "Join the most curated digital marketplace for purpose-driven creators. Keep 85% of every sale. AI-powered tools, built-in Kingdom-minded audience, 48-hour review.",
       },
       { property: "og:title", content: "Your Knowledge. Your Empire. Your Vault." },
       {
         property: "og:description",
         content:
-          "Join the most curated digital marketplace for purpose-driven creators. Keep 70% of every sale.",
+          "Join the most curated digital marketplace for purpose-driven creators. Keep 85% of every sale.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://www.aurumvault.store/become-a-creator" },
@@ -51,7 +51,7 @@ export const Route = createFileRoute("/become-a-creator")({
       {
         name: "twitter:description",
         content:
-          "Keep 70% of every sale. AI-powered tools. Kingdom-minded audience.",
+          "Keep 85% of every sale. AI-powered tools. Kingdom-minded audience.",
       },
     ],
     links: [
@@ -117,7 +117,7 @@ function Hero() {
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-base md:text-lg text-white/75">
           Join the most curated digital marketplace for purpose-driven creators.
-          Keep <strong className="text-white">70%</strong> of every sale. Reach a
+          Keep <strong className="text-white">85%</strong> of every sale. Reach a
           Kingdom-minded audience ready to buy.
         </p>
         <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -172,8 +172,8 @@ function ValueProps() {
   const items = [
     {
       icon: DollarSign,
-      title: "70% Royalties",
-      body: "Industry-leading split. Keep 70% of every sale, forever. No hidden fees, no subscription tiers, no gotchas.",
+      title: "85% Royalties",
+      body: "Industry-leading split. Keep 85% of every sale, forever. No hidden fees, no subscription tiers, no gotchas.",
     },
     {
       icon: Wand2,
@@ -367,7 +367,7 @@ function CreatorTools() {
 
 function FAQ() {
   const items = [
-    { q: "How much does it cost to sell?", a: "Nothing upfront. AurumVault takes a 30% platform fee on each sale; you keep 70%. No monthly fees, no listing fees." },
+    { q: "How much does it cost to sell?", a: "Nothing upfront. AurumVault takes a 15% platform fee on each sale; you keep 85%. No monthly fees, no listing fees." },
     { q: "How fast is the review process?", a: "We review every application within 48 hours. Once approved, you can upload products immediately." },
     { q: "How do I get paid?", a: "Earnings accumulate in your seller balance and are paid out on the schedule shown in your dashboard, once past our clearance window." },
     { q: "What can I sell?", a: "eBooks, courses, templates, design assets, audio, coaching guides — any digital product that fits our curated, purpose-driven standard." },

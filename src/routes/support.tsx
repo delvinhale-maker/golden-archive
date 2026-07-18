@@ -33,7 +33,7 @@ const TOPICS = [
   {
     icon: MessageSquare,
     title: "Publishing & Royalties",
-    body: "Sellers keep 70% of every sale. Upload your ebook, cover, and manuscript in the publisher dashboard. Payouts are processed on the schedule shown in your dashboard.",
+    body: "Sellers keep 85% of every sale. Upload your ebook, cover, and manuscript in the publisher dashboard. Payouts are processed on the schedule shown in your dashboard.",
   },
   {
     icon: Mail,
