@@ -120,7 +120,7 @@ function AdminEarningsPage() {
           <>
             <section className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard icon={<TrendingUp size={16} />} label="Gross revenue" value={fmt(summary.gross_revenue_cents)} />
-              <StatCard icon={<DollarSign size={16} />} label="Platform fees (30%)" value={fmt(summary.platform_fees_cents)} accent="text-emerald-700" />
+              <StatCard icon={<DollarSign size={16} />} label="Platform fees (15%)" value={fmt(summary.platform_fees_cents)} accent="text-emerald-700" />
               <StatCard icon={<Wallet size={16} />} label="Creator earnings" value={fmt(summary.creator_earnings_cents)} />
               <StatCard icon={<CheckCircle2 size={16} />} label="Paid out" value={fmt(summary.paid_out_cents)} />
             </section>

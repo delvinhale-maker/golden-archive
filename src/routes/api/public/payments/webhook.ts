@@ -8,7 +8,7 @@ const PUBLIC_BASE_URL = "https://www.aurumvault.store";
 const SITE_NAME = "AurumVault";
 const SENDER_DOMAIN = "notify.www.aurumvault.store";
 const FROM_DOMAIN = "www.aurumvault.store";
-const PLATFORM_FEE_PCT = 30;
+const PLATFORM_FEE_PCT = 15;
 
 function generateToken(): string {
   const bytes = new Uint8Array(32);

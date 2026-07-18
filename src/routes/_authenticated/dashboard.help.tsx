@@ -17,7 +17,7 @@ const FAQ = [
   },
   {
     q: "How much does AurumVault take?",
-    a: "AurumVault keeps a 30% platform fee. You keep 70% of every sale.",
+    a: "AurumVault keeps a 15% platform fee. You keep 85% of every sale.",
   },
   {
     q: "When do I get paid?",
@@ -44,7 +44,7 @@ function HelpPage() {
         <HelpCard
           icon={<DollarSign size={18} />}
           title="Royalties"
-          body="You earn 70% per sale. Track it in Earn."
+          body="You earn 85% per sale. Track it in Earn."
         />
         <HelpCard
           icon={<Mail size={18} />}

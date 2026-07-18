@@ -248,7 +248,7 @@ function EarnPage() {
       {/* Summary cards */}
       <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={<ShoppingBag size={18} />} label="Lifetime Sales" value={fmt(lifetimeGross)} sub={`${unitsSold} unit${unitsSold === 1 ? "" : "s"}`} />
-        <StatCard icon={<DollarSign size={18} />} label="Total Earned" value={fmt(lifetimeEarned)} sub="After 30% fee" />
+        <StatCard icon={<DollarSign size={18} />} label="Total Earned" value={fmt(lifetimeEarned)} sub="After 15% fee" />
         <StatCard icon={<Clock size={18} />} label="Pending Balance" value={fmt(pending)} sub={readyCents > 0 ? `${fmt(readyCents)} ready` : undefined} />
         <StatCard icon={<CheckCircle2 size={18} />} label="Paid Out" value={fmt(paidOut)} />
       </div>
@@ -402,7 +402,7 @@ function EarnPage() {
       <section className="mt-6 rounded-2xl bg-white border border-ink/10 p-6">
         <h3 className="font-display text-lg text-navy">How payouts work</h3>
         <p className="mt-2 text-sm text-mute">
-          AurumVault takes <strong className="text-navy">30%</strong> per sale. You keep <strong className="text-navy">70%</strong>.
+          AurumVault takes <strong className="text-navy">15%</strong> per sale. You keep <strong className="text-navy">85%</strong>.
           Payouts are processed every Friday after each sale clears our standard holding period.
         </p>
         <p className="mt-3 text-xs text-mute">

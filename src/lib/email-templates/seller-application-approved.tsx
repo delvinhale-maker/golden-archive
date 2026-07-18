@@ -22,7 +22,7 @@ const Email = ({ brandName = "Creator", storefrontUrl, siteUrl = "https://aurumv
         <Section style={styles.card}>
           <Heading style={styles.heading}>Welcome, {brandName}.</Heading>
           <Text style={styles.text}>
-            Your creator account has been approved. You keep <strong>70%</strong> of every
+            Your creator account has been approved. You keep <strong>85%</strong> of every
             sale, and your storefront is already live.
           </Text>
 
