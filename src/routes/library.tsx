@@ -146,7 +146,7 @@ function LibraryPage() {
         <header className="flex items-center gap-3">
           <Crown className="text-gold-ink" size={28} />
           <div>
-            <h1 className="font-display text-3xl font-bold text-ink md:text-4xl">
+            <h1 className="font-display text-2xl font-bold leading-tight tracking-tight text-ink sm:text-3xl md:text-4xl">
               My Kingdom Library
             </h1>
             <p className="mt-1 text-sm text-mute">Your purchased resources</p>
