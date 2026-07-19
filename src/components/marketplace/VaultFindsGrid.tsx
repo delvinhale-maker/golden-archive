@@ -21,6 +21,7 @@ export function VaultFindsGrid() {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number>(0);
   const [reorderDragId, setReorderDragId] = useState<string | null>(null);
   const [reorderOverId, setReorderOverId] = useState<string | null>(null);
   const [savingOrder, setSavingOrder] = useState(false);
@@ -89,6 +90,10 @@ export function VaultFindsGrid() {
       return { ...p, [id]: localUrl };
     });
     setUploadingId(id);
+    setProgress(5);
+    const ramp = window.setInterval(() => {
+      setProgress((p) => (p < 90 ? p + Math.max(1, Math.round((92 - p) / 8)) : p));
+    }, 180);
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
       const path = `${crypto.randomUUID()}.${ext}`;
@@ -103,6 +108,7 @@ export function VaultFindsGrid() {
         .update({ image_url: url })
         .eq("id", id);
       if (updErr) throw updErr;
+      setProgress(100);
       setItems((prev) => (prev ? prev.map((it) => (it.id === id ? { ...it, image_url: url } : it)) : prev));
       toast.success("Image updated");
     } catch (e: any) {
@@ -113,7 +119,9 @@ export function VaultFindsGrid() {
         return rest;
       });
     } finally {
+      window.clearInterval(ramp);
       setUploadingId(null);
+      window.setTimeout(() => setProgress(0), 400);
     }
   }
 
@@ -292,7 +300,11 @@ export function VaultFindsGrid() {
                 </span>
                 <div
                   className={`relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-[#F4F1E8] transition ${
-                    isAdmin && dragOverId === it.id ? "ring-4 ring-gold ring-offset-2 ring-offset-white" : ""
+                    isAdmin
+                      ? dragOverId === it.id
+                        ? "outline-dashed outline-[3px] outline-offset-[-4px] outline-gold ring-4 ring-gold/40"
+                        : "outline-dashed outline-2 outline-offset-[-4px] outline-navy/25"
+                      : ""
                   }`}
                   onDragOver={
                     isAdmin
@@ -334,15 +346,32 @@ export function VaultFindsGrid() {
                       ✦
                     </span>
                   )}
+                  {isAdmin && !previews[it.id] && !it.image_url && uploadingId !== it.id && dragOverId !== it.id && (
+                    <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-md bg-navy/80 px-2 py-1 text-center text-[10px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+                      Drag &amp; drop image here
+                    </div>
+                  )}
                   {isAdmin && uploadingId === it.id && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/50 backdrop-blur-[2px]">
                       <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-navy shadow">
-                        <Loader2 size={12} className="animate-spin" /> Uploading image…
+                        <Loader2 size={12} className="animate-spin" /> Uploading… {progress}%
+                      </div>
+                      <div
+                        role="progressbar"
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={progress}
+                        className="h-1.5 w-3/4 overflow-hidden rounded-full bg-white/25"
+                      >
+                        <div
+                          className="h-full rounded-full bg-gold transition-[width] duration-200 ease-out"
+                          style={{ width: `${progress}%` }}
+                        />
                       </div>
                     </div>
                   )}
                   {isAdmin && dragOverId === it.id && uploadingId !== it.id && (
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-navy/50">
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-navy/55">
                       <div className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-navy shadow">
                         <ImageUp size={12} /> Drop to replace image
                       </div>
