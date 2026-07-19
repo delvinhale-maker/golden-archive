@@ -52,6 +52,7 @@ export function VaultFindsRow() {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number>(0);
 
   async function handleUpload(id: string, file: File) {
     if (!file.type.startsWith("image/")) {
