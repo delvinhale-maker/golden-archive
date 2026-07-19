@@ -118,10 +118,16 @@ function Cover({
   );
 }
 
-/** Single angled hero card with gold glow. */
-function HeroVisual({ p }: { p: HeroProduct }) {
+/** Trio of angled hero cards with gold glow, each on a white background. */
+function HeroVisual({ items }: { items: HeroProduct[] }) {
+  const list = items.slice(0, 3);
+  while (list.length < 3) list.push(FALLBACK_STACK[list.length]);
+  const rots = [-10, 0, 10];
+  const offsets = [-58, 0, 58];
+  const z = [1, 3, 2];
+
   return (
-    <div className="relative mx-auto h-[300px] w-[183px] sm:h-[360px] sm:w-[220px] md:h-[420px] md:w-[260px]">
+    <div className="relative mx-auto h-[320px] w-[300px] sm:h-[380px] sm:w-[380px] md:h-[440px] md:w-[440px]">
       <div
         aria-hidden
         className="absolute inset-0 -z-10 rounded-[28px] blur-3xl"
@@ -130,35 +136,36 @@ function HeroVisual({ p }: { p: HeroProduct }) {
             "radial-gradient(closest-side, rgba(201,168,76,0.55), rgba(201,168,76,0) 70%)",
         }}
       />
-      <motion.div
-        initial={{ rotate: 0, y: 0 }}
-        animate={{ rotate: 4, y: [0, -6, 0] }}
-        transition={{
-          rotate: { duration: 0.6 },
-          y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
-        }}
-        className="relative h-full w-full overflow-hidden rounded-xl bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6),0_0_0_1px_rgba(201,168,76,0.35)]"
-      >
-        <div className="h-[62%] bg-white">
-          <Cover p={p} fit="contain" className="h-full w-full rounded-none bg-transparent" />
-        </div>
-        <div className="flex h-[38%] flex-col justify-center p-3">
-          <div className="text-[10px] font-semibold tracking-[0.18em] text-gold-ink">
-            {p.category.toUpperCase()}
+      {list.map((p, i) => (
+        <motion.div
+          key={p.id + i}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0, rotate: rots[i], x: offsets[i] }}
+          transition={{ duration: 0.5, delay: i * 0.08 }}
+          className="absolute left-1/2 top-1/2 h-[280px] w-[160px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.55),0_0_0_1px_rgba(201,168,76,0.35)] sm:h-[320px] sm:w-[190px] md:h-[380px] md:w-[230px]"
+          style={{ zIndex: z[i] }}
+        >
+          <div className="h-[62%] bg-white">
+            <Cover p={p} fit="contain" className="h-full w-full rounded-none bg-white" />
           </div>
-          <div className="mt-1 line-clamp-2 font-display text-base font-bold text-ink">
-            {p.title}
+          <div className="flex h-[38%] flex-col justify-center bg-white p-2.5 md:p-3">
+            <div className="text-[10px] font-semibold tracking-[0.18em] text-gold-ink">
+              {p.category.toUpperCase()}
+            </div>
+            <div className="mt-1 line-clamp-2 font-display text-[13px] font-bold leading-tight text-ink md:text-base">
+              {p.title}
+            </div>
+            <div className="mt-1.5 flex items-center justify-between">
+              <span className="font-display text-base font-bold md:text-lg" style={{ color: "#B8860B" }}>
+                ${p.price.toFixed(2)}
+              </span>
+              <span className="flex items-center gap-1 text-[11px] text-mute">
+                <Star size={11} fill="#B8860B" stroke="#B8860B" /> 4.9
+              </span>
+            </div>
           </div>
-          <div className="mt-2 flex items-center justify-between">
-            <span className="font-display text-lg font-bold" style={{ color: "#B8860B" }}>
-              ${p.price.toFixed(2)}
-            </span>
-            <span className="flex items-center gap-1 text-[11px] text-mute">
-              <Star size={11} fill="#B8860B" stroke="#B8860B" /> 4.9
-            </span>
-          </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      ))}
     </div>
   );
 }
@@ -396,7 +403,7 @@ export function HeroCarousel({
               transition={{ duration: 0.5 }}
               className="w-full"
             >
-              {slide.kind === "hero" && <HeroVisual p={heroP} />}
+              {slide.kind === "hero" && <HeroVisual items={[heroP, ...dealsList].slice(0, 3)} />}
               {slide.kind === "deals" && <DealsVisual items={dealsList} />}
               {slide.kind === "creator" && <CreatorVisual items={creatorList} />}
             </motion.div>
