@@ -344,17 +344,17 @@ export function VaultFindsGrid() {
                   {isAdmin && dragOverId === it.id && uploadingId !== it.id && (
                     <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-navy/50">
                       <div className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-navy shadow">
-                        <ImagePlus size={12} /> Drop to replace
+                        <ImageUp size={12} /> Drop to replace image
                       </div>
                     </div>
                   )}
                   {isAdmin && (
                     <label
-                      className="absolute bottom-2 right-2 inline-flex cursor-pointer items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm backdrop-blur transition hover:bg-black/85"
+                      className="absolute bottom-2 right-2 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm backdrop-blur transition hover:bg-black/85"
                       title="Upload or drop an image onto this card"
                     >
-                      <ImagePlus size={11} />
-                      {it.image_url || previews[it.id] ? "Replace" : "Upload"}
+                      <ImageUp size={12} />
+                      {it.image_url || previews[it.id] ? "Replace image" : "Upload image"}
                       <input
                         type="file"
                         accept="image/*"
