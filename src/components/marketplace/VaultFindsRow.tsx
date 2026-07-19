@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, ExternalLink, Settings, ImageUp, Loader2 } from "lucide-react";
+import { AffiliateImagePreview } from "./AffiliateImagePreview";
 
 const BUCKET = "vault-finds";
 
