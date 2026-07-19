@@ -236,6 +236,12 @@ export function VaultFindsRow() {
                 </span>
 
                 <div
+                  role={isAdmin ? "group" : undefined}
+                  aria-label={
+                    isAdmin
+                      ? `${it.headline} affiliate image drop zone. Drop an image, or press Tab to reach the upload button.`
+                      : undefined
+                  }
                   className={`relative mb-4 flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl transition ${
                     isAdmin
                       ? dragOverId === it.id
@@ -272,6 +278,7 @@ export function VaultFindsRow() {
                       : undefined
                   }
                 >
+
                   {previews[it.id] || it.image_url ? (
                     <img
                       src={previews[it.id] ?? (it.image_url as string)}
