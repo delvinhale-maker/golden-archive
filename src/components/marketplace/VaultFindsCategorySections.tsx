@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { ExternalLink, ImageUp, Loader2 } from "lucide-react";
+import { AffiliateImagePreview } from "./AffiliateImagePreview";
 
 const BUCKET = "vault-finds";
 
@@ -165,23 +166,12 @@ export function VaultFindsCategorySections() {
                           >
                             Affiliate
                           </span>
-                          {displayUrl ? (
-                            <img
-                              src={displayUrl}
-                              alt={it.headline}
-                              loading="lazy"
-                              className="h-full w-full object-contain transition-transform duration-300 ease-out will-change-transform group-hover:scale-[1.08] group-focus-visible:scale-[1.08] group-active:scale-[1.05]"
-                              style={{ objectPosition: "center" }}
-                            />
-                          ) : (
-                            <span
-                              className="absolute inset-0 flex items-center justify-center font-display text-5xl"
-                              style={{ color: cat.ink, opacity: 0.35 }}
-                              aria-hidden
-                            >
-                              ✦
-                            </span>
-                          )}
+                          <AffiliateImagePreview
+                            src={displayUrl}
+                            alt={it.headline}
+                            imgClassName="object-contain transition-transform duration-300 ease-out will-change-transform group-hover:scale-[1.08] group-focus-visible:scale-[1.08] group-active:scale-[1.05]"
+                            placeholderClassName="absolute inset-0"
+                          />
                         </a>
 
                         {isAdmin && (
