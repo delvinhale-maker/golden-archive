@@ -299,6 +299,12 @@ export function VaultFindsGrid() {
                   Affiliate
                 </span>
                 <div
+                  role={isAdmin ? "group" : undefined}
+                  aria-label={
+                    isAdmin
+                      ? `${it.headline} affiliate image drop zone. Drop an image, or press Tab to reach the upload button.`
+                      : undefined
+                  }
                   className={`relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-[#F4F1E8] transition ${
                     isAdmin
                       ? dragOverId === it.id
@@ -334,6 +340,7 @@ export function VaultFindsGrid() {
                       : undefined
                   }
                 >
+
                   {previews[it.id] || it.image_url ? (
                     <img
                       src={previews[it.id] ?? (it.image_url as string)}
