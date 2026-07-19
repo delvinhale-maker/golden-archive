@@ -395,15 +395,32 @@ export function VaultFindsGrid() {
                   )}
                   {isAdmin && (
                     <label
-                      className="absolute bottom-2 right-2 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm backdrop-blur transition hover:bg-black/85"
+                      tabIndex={0}
+                      role="button"
+                      aria-label={
+                        it.image_url || previews[it.id]
+                          ? `Replace image for ${it.headline}. Press Enter to open file picker.`
+                          : `Upload image for ${it.headline}. Press Enter to open file picker.`
+                      }
+                      aria-disabled={uploadingId === it.id}
+                      onKeyDown={(e) => {
+                        if (uploadingId === it.id) return;
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.currentTarget.querySelector<HTMLInputElement>('input[type="file"]')?.click();
+                        }
+                      }}
+                      className="absolute bottom-2 right-2 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm backdrop-blur transition hover:bg-black/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       title="Upload or drop an image onto this card"
                     >
-                      <ImageUp size={12} />
+                      <ImageUp size={12} aria-hidden />
                       {it.image_url || previews[it.id] ? "Replace image" : "Upload image"}
                       <input
                         type="file"
                         accept="image/*"
-                        className="hidden"
+                        className="sr-only"
+                        aria-hidden="true"
+                        tabIndex={-1}
                         disabled={uploadingId === it.id}
                         onChange={(e) => {
                           const f = e.target.files?.[0];
@@ -413,6 +430,7 @@ export function VaultFindsGrid() {
                       />
                     </label>
                   )}
+
                 </div>
               </div>
 
