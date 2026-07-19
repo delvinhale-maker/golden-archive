@@ -90,6 +90,10 @@ export function VaultFindsGrid() {
       return { ...p, [id]: localUrl };
     });
     setUploadingId(id);
+    setProgress(5);
+    const ramp = window.setInterval(() => {
+      setProgress((p) => (p < 90 ? p + Math.max(1, Math.round((92 - p) / 8)) : p));
+    }, 180);
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
       const path = `${crypto.randomUUID()}.${ext}`;
@@ -104,6 +108,7 @@ export function VaultFindsGrid() {
         .update({ image_url: url })
         .eq("id", id);
       if (updErr) throw updErr;
+      setProgress(100);
       setItems((prev) => (prev ? prev.map((it) => (it.id === id ? { ...it, image_url: url } : it)) : prev));
       toast.success("Image updated");
     } catch (e: any) {
@@ -114,7 +119,9 @@ export function VaultFindsGrid() {
         return rest;
       });
     } finally {
+      window.clearInterval(ramp);
       setUploadingId(null);
+      window.setTimeout(() => setProgress(0), 400);
     }
   }
 
