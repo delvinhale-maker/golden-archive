@@ -288,6 +288,15 @@ export function VaultFindsRow() {
                       ✦
                     </span>
                   )}
+                  {isAdmin && (previews[it.id] || it.image_url) && uploadingId !== it.id && (
+                    <div className="pointer-events-none absolute left-2 top-2 z-10 overflow-hidden rounded-lg border border-white/60 bg-white/90 shadow-md backdrop-blur-sm">
+                      <img
+                        src={previews[it.id] ?? (it.image_url as string)}
+                        alt={`Current image for ${it.headline}`}
+                        className="h-10 w-10 object-cover"
+                      />
+                    </div>
+                  )}
                   {isAdmin && !previews[it.id] && !it.image_url && uploadingId !== it.id && dragOverId !== it.id && (
                     <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-md bg-black/45 px-2 py-1 text-center text-[10px] font-semibold uppercase tracking-wider text-white/90 backdrop-blur-sm">
                       Drag &amp; drop image here
