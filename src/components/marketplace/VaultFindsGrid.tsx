@@ -337,7 +337,7 @@ export function VaultFindsGrid() {
                   {isAdmin && uploadingId === it.id && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
                       <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-navy shadow">
-                        <Loader2 size={12} className="animate-spin" /> Uploading…
+                        <Loader2 size={12} className="animate-spin" /> Uploading image…
                       </div>
                     </div>
                   )}
