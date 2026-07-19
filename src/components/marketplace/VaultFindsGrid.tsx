@@ -300,7 +300,11 @@ export function VaultFindsGrid() {
                 </span>
                 <div
                   className={`relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-[#F4F1E8] transition ${
-                    isAdmin && dragOverId === it.id ? "ring-4 ring-gold ring-offset-2 ring-offset-white" : ""
+                    isAdmin
+                      ? dragOverId === it.id
+                        ? "outline-dashed outline-[3px] outline-offset-[-4px] outline-gold ring-4 ring-gold/40"
+                        : "outline-dashed outline-2 outline-offset-[-4px] outline-navy/25"
+                      : ""
                   }`}
                   onDragOver={
                     isAdmin
@@ -342,15 +346,32 @@ export function VaultFindsGrid() {
                       ✦
                     </span>
                   )}
+                  {isAdmin && !previews[it.id] && !it.image_url && uploadingId !== it.id && dragOverId !== it.id && (
+                    <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-md bg-navy/80 px-2 py-1 text-center text-[10px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+                      Drag &amp; drop image here
+                    </div>
+                  )}
                   {isAdmin && uploadingId === it.id && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/50 backdrop-blur-[2px]">
                       <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-navy shadow">
-                        <Loader2 size={12} className="animate-spin" /> Uploading image…
+                        <Loader2 size={12} className="animate-spin" /> Uploading… {progress}%
+                      </div>
+                      <div
+                        role="progressbar"
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={progress}
+                        className="h-1.5 w-3/4 overflow-hidden rounded-full bg-white/25"
+                      >
+                        <div
+                          className="h-full rounded-full bg-gold transition-[width] duration-200 ease-out"
+                          style={{ width: `${progress}%` }}
+                        />
                       </div>
                     </div>
                   )}
                   {isAdmin && dragOverId === it.id && uploadingId !== it.id && (
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-navy/50">
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-navy/55">
                       <div className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-navy shadow">
                         <ImageUp size={12} /> Drop to replace image
                       </div>
