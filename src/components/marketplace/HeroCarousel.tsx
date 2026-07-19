@@ -403,7 +403,7 @@ export function HeroCarousel({
               transition={{ duration: 0.5 }}
               className="w-full"
             >
-              {slide.kind === "hero" && <HeroVisual p={heroP} />}
+              {slide.kind === "hero" && <HeroVisual items={[heroP, ...dealsList].slice(0, 3)} />}
               {slide.kind === "deals" && <DealsVisual items={dealsList} />}
               {slide.kind === "creator" && <CreatorVisual items={creatorList} />}
             </motion.div>
