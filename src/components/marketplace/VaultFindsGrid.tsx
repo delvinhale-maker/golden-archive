@@ -342,18 +342,11 @@ export function VaultFindsGrid() {
                   }
                 >
 
-                  {previews[it.id] || it.image_url ? (
-                    <img
-                      src={previews[it.id] ?? (it.image_url as string)}
-                      alt={it.headline}
-                      loading="lazy"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="font-display text-4xl text-navy/25" aria-hidden>
-                      ✦
-                    </span>
-                  )}
+                  <AffiliateImagePreview
+                    src={previews[it.id] ?? it.image_url}
+                    alt={it.headline}
+                    imgClassName="object-cover"
+                  />
                   {isAdmin && (previews[it.id] || it.image_url) && uploadingId !== it.id && (
                     <div className="pointer-events-none absolute left-2 top-2 z-10 overflow-hidden rounded-lg border border-white/60 bg-white/90 shadow-md backdrop-blur-sm">
                       <img
