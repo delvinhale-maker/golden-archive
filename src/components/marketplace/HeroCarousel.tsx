@@ -403,9 +403,11 @@ export function HeroCarousel({
               transition={{ duration: 0.5 }}
               className="w-full"
             >
-              {slide.kind === "hero" && <HeroVisual items={[heroP, ...dealsList].slice(0, 3)} />}
-              {slide.kind === "deals" && <DealsVisual items={dealsList} />}
-              {slide.kind === "creator" && <CreatorVisual items={creatorList} />}
+              {slide.kind === "hero" && (
+                <HeroVisual items={pickThree([heroP, ...dealsList, ...creatorList])} />
+              )}
+              {slide.kind === "deals" && <DealsVisual items={pickThree(dealsList)} />}
+              {slide.kind === "creator" && <CreatorVisual items={pickThree(creatorList)} />}
             </motion.div>
           </AnimatePresence>
         </div>
