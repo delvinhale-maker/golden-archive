@@ -42,6 +42,7 @@ const FILTERS: Filter[] = [
   "Leadership",
   "Purpose",
   "Children",
+  "Vault Finds",
 ];
 
 function KingdomPicksPage() {
