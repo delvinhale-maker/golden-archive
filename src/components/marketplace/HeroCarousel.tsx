@@ -446,21 +446,27 @@ export function HeroCarousel({
           </motion.div>
         </AnimatePresence>
 
-        <div className="relative flex min-h-[300px] items-center justify-center sm:min-h-[380px] md:min-h-[460px]">
+        <div className="relative flex min-h-[320px] items-center justify-center sm:min-h-[380px] md:min-h-[440px]">
           <AnimatePresence mode="wait">
             <motion.div
-              key={`vis-${i}`}
+              key={`vis-${i}-${loading ? "sk" : "rd"}`}
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.5 }}
               className="w-full"
             >
-              {slide.kind === "hero" && (
-                <HeroVisual items={pickThree([heroP, ...dealsList, ...creatorList])} />
+              {loading ? (
+                <VisualSkeleton />
+              ) : (
+                <>
+                  {slide.kind === "hero" && (
+                    <HeroVisual items={pickThree([heroP, ...dealsList, ...creatorList])} />
+                  )}
+                  {slide.kind === "deals" && <DealsVisual items={pickThree(dealsList)} />}
+                  {slide.kind === "creator" && <CreatorVisual items={pickThree(creatorList)} />}
+                </>
               )}
-              {slide.kind === "deals" && <DealsVisual items={pickThree(dealsList)} />}
-              {slide.kind === "creator" && <CreatorVisual items={pickThree(creatorList)} />}
             </motion.div>
           </AnimatePresence>
         </div>
