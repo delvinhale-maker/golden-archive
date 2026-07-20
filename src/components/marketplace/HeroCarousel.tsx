@@ -18,6 +18,18 @@ export type HeroProduct = {
 
 type SlideKind = "hero" | "deals" | "creator";
 
+function pickThree(items: HeroProduct[]): HeroProduct[] {
+  const seen = new Set<string>();
+  const out: HeroProduct[] = [];
+  for (const it of items) {
+    if (!it || seen.has(it.id)) continue;
+    seen.add(it.id);
+    out.push(it);
+    if (out.length === 3) break;
+  }
+  return out;
+}
+
 type Slide = {
   kind: SlideKind;
   kicker: string;
