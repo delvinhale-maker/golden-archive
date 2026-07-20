@@ -18,6 +18,18 @@ export type HeroProduct = {
 
 type SlideKind = "hero" | "deals" | "creator";
 
+function pickThree(items: HeroProduct[]): HeroProduct[] {
+  const seen = new Set<string>();
+  const out: HeroProduct[] = [];
+  for (const it of items) {
+    if (!it || seen.has(it.id)) continue;
+    seen.add(it.id);
+    out.push(it);
+    if (out.length === 3) break;
+  }
+  return out;
+}
+
 type Slide = {
   kind: SlideKind;
   kicker: string;
@@ -403,9 +415,11 @@ export function HeroCarousel({
               transition={{ duration: 0.5 }}
               className="w-full"
             >
-              {slide.kind === "hero" && <HeroVisual items={[heroP, ...dealsList].slice(0, 3)} />}
-              {slide.kind === "deals" && <DealsVisual items={dealsList} />}
-              {slide.kind === "creator" && <CreatorVisual items={creatorList} />}
+              {slide.kind === "hero" && (
+                <HeroVisual items={pickThree([heroP, ...dealsList, ...creatorList])} />
+              )}
+              {slide.kind === "deals" && <DealsVisual items={pickThree(dealsList)} />}
+              {slide.kind === "creator" && <CreatorVisual items={pickThree(creatorList)} />}
             </motion.div>
           </AnimatePresence>
         </div>
