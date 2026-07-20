@@ -18,6 +18,18 @@ export type HeroProduct = {
 
 type SlideKind = "hero" | "deals" | "creator";
 
+function pickThree(items: HeroProduct[]): HeroProduct[] {
+  const seen = new Set<string>();
+  const out: HeroProduct[] = [];
+  for (const it of items) {
+    if (!it || seen.has(it.id)) continue;
+    seen.add(it.id);
+    out.push(it);
+    if (out.length === 3) break;
+  }
+  return out;
+}
+
 type Slide = {
   kind: SlideKind;
   kicker: string;
@@ -294,14 +306,55 @@ function CreatorVisual({ items }: { items: HeroProduct[] }) {
   );
 }
 
+function SkeletonCard({ className }: { className?: string }) {
+  return (
+    <div
+      className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.45),0_0_0_1px_rgba(201,168,76,0.25)] ${className ?? ""}`}
+    >
+      <div className="h-[62%] animate-pulse bg-[#ece9e0]" />
+      <div className="flex h-[38%] flex-col justify-center gap-2 p-3">
+        <div className="h-2 w-1/3 animate-pulse rounded bg-[#e6e2d6]" />
+        <div className="h-3 w-4/5 animate-pulse rounded bg-[#ede9dd]" />
+        <div className="h-3 w-1/2 animate-pulse rounded bg-[#ede9dd]" />
+      </div>
+    </div>
+  );
+}
+
+function VisualSkeleton() {
+  const rots = [-10, 0, 10];
+  const offsets = [-58, 0, 58];
+  const sizes = [
+    "h-[280px] w-[160px] sm:h-[320px] sm:w-[190px] md:h-[380px] md:w-[230px]",
+    "h-[280px] w-[160px] sm:h-[320px] sm:w-[190px] md:h-[380px] md:w-[230px]",
+    "h-[280px] w-[160px] sm:h-[320px] sm:w-[190px] md:h-[380px] md:w-[230px]",
+  ];
+  const z = [1, 3, 2];
+  return (
+    <div className="relative mx-auto h-[320px] w-[300px] sm:h-[380px] sm:w-[380px] md:h-[440px] md:w-[440px]">
+      {sizes.map((s, i) => (
+        <div
+          key={i}
+          style={{ zIndex: z[i], transform: `translate(calc(-50% + ${offsets[i]}px), -50%) rotate(${rots[i]}deg)` }}
+          className="absolute left-1/2 top-1/2"
+        >
+          <SkeletonCard className={s.replace(/^/, "relative ")} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function HeroCarousel({
   heroProduct,
   dealsProducts,
   creatorProducts,
+  loading = false,
 }: {
   heroProduct?: HeroProduct | null;
   dealsProducts?: HeroProduct[];
   creatorProducts?: HeroProduct[];
+  loading?: boolean;
 }) {
   const SLIDES: Slide[] = [HERO_SLIDE, DEALS_SLIDE, CREATOR_SLIDE];
   const [i, setI] = useState(0);
@@ -393,19 +446,27 @@ export function HeroCarousel({
           </motion.div>
         </AnimatePresence>
 
-        <div className="relative flex min-h-[300px] items-center justify-center sm:min-h-[380px] md:min-h-[460px]">
+        <div className="relative flex min-h-[320px] items-center justify-center sm:min-h-[380px] md:min-h-[440px]">
           <AnimatePresence mode="wait">
             <motion.div
-              key={`vis-${i}`}
+              key={`vis-${i}-${loading ? "sk" : "rd"}`}
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.5 }}
               className="w-full"
             >
-              {slide.kind === "hero" && <HeroVisual items={[heroP, ...dealsList].slice(0, 3)} />}
-              {slide.kind === "deals" && <DealsVisual items={dealsList} />}
-              {slide.kind === "creator" && <CreatorVisual items={creatorList} />}
+              {loading ? (
+                <VisualSkeleton />
+              ) : (
+                <>
+                  {slide.kind === "hero" && (
+                    <HeroVisual items={pickThree([heroP, ...dealsList, ...creatorList])} />
+                  )}
+                  {slide.kind === "deals" && <DealsVisual items={pickThree(dealsList)} />}
+                  {slide.kind === "creator" && <CreatorVisual items={pickThree(creatorList)} />}
+                </>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>

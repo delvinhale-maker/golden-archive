@@ -159,7 +159,7 @@ const CATS = [
 function Home() {
   return (
     <MarketShell>
-      <HighlightsBoundary fallback={<HeroCarousel />} errorLabel="hero product">
+      <HighlightsBoundary fallback={<HeroCarousel loading />} errorLabel="hero product">
         <FeaturedHero />
       </HighlightsBoundary>
       <Suspense fallback={null}>
