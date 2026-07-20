@@ -42,6 +42,7 @@ export const AFFILIATE_CATEGORIES = [
   "Business",
   "Children",
   "Audio",
+  "Vault Finds",
 ] as const;
 
 export const SOURCE_LABEL: Record<AffiliateSource, string> = {
