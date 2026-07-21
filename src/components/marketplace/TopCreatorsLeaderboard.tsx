@@ -47,15 +47,7 @@ export function TopCreatorsLeaderboard() {
                   <div className="truncate font-display text-base font-bold text-white">
                     {r.name}
                   </div>
-                  <div className="text-[11px] text-white/60">
-                    {r.salesCount} sale{r.salesCount === 1 ? "" : "s"} ·{" "}
-                    ${(r.grossCents / 100).toFixed(0)} gross
-                  </div>
-                </div>
-                <div className="hidden text-right sm:block">
-                  <div className="font-display text-lg font-bold text-gold-ink">
-                    ${(r.grossCents / 100).toFixed(0)}
-                  </div>
+                  <div className="text-[11px] text-white/60">Verified creator</div>
                 </div>
               </div>
             );
