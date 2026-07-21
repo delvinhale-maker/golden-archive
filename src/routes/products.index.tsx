@@ -31,6 +31,9 @@ const HIDDEN_CATEGORY_SLUGS = new Set([
   "budget_spreadsheets",
   "business_templates",
   "prompt_packs",
+  // Temporarily hidden — keep data & URLs valid, hide from filter UI.
+  "childrens_educational",
+  "templates",
 ]);
 const CATEGORIES = CATEGORY_DEFS.filter((c) => !HIDDEN_CATEGORY_SLUGS.has(c.slug)).map((c) => c.label);
 
