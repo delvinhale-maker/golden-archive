@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { BadgeCheck, MapPin, Search } from "lucide-react";
+import { MapPin, Search } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getApprovedCreators, type CreatorSummary } from "@/lib/creators.functions";
 import { CATEGORIES } from "@/lib/categories";
@@ -22,13 +22,13 @@ export const Route = createFileRoute("/creators")({
       {
         name: "description",
         content:
-          "Discover verified creators shipping premium digital resources on AurumVault — filter by category and country.",
+          "Discover creators shipping premium digital resources on AurumVault — filter by category and country.",
       },
       { property: "og:title", content: "Browse Creators — AurumVault" },
       {
         property: "og:description",
         content:
-          "Discover verified creators shipping premium digital resources on AurumVault.",
+          "Discover creators shipping premium digital resources on AurumVault.",
       },
     ],
   }),
@@ -68,7 +68,7 @@ function CreatorsPage() {
             Meet the vault
           </h1>
           <p className="mt-3 max-w-2xl text-white/70">
-            Verified creators shipping eBooks, courses, templates, and audio to the AurumVault community.
+            Creators shipping eBooks, courses, templates, and audio to the AurumVault community.
           </p>
         </div>
       </section>
@@ -151,7 +151,7 @@ function CreatorsPage() {
                       <div className="truncate font-display text-lg font-bold text-white">
                         {c.brandName}
                       </div>
-                      <BadgeCheck size={14} className="shrink-0 text-emerald" />
+                      
                     </div>
                     {c.pitch && (
                       <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-white/70">

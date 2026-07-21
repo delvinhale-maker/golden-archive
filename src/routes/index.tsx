@@ -430,10 +430,10 @@ function HeroStatsBar() {
     },
     {
       image: statCreatorsImg,
-      label: "Verified Creators",
-      caption: "Vetted, trusted, human",
+      label: "Independent Creators",
+      caption: "Curated, trusted, human",
       to: "/about",
-      ariaLabel: "Learn about our verified creators",
+      ariaLabel: "Learn about our creators",
     },
     {
       image: statDownloadsImg,
@@ -737,7 +737,7 @@ function IllustriousCreator() {
                 <div className="font-display text-lg font-bold text-navy">
                   Delvin Hale
                 </div>
-                <BadgeCheck size={16} className="text-emerald" />
+                
               </div>
               <div className="text-[13px] text-mute">
                 Author · Entrepreneur · Digital Creator
@@ -761,7 +761,7 @@ function TrustBar() {
   const items = [
     { icon: Lock, label: "Secure Checkout" },
     { icon: Download, label: "Instant Download" },
-    { icon: BadgeCheck, label: "Verified Creators" },
+    { icon: BadgeCheck, label: "Curated Creators" },
     { icon: ShieldCheck, label: "Curated Quality" },
     { icon: Star, label: "5-Star Rated" },
   ];

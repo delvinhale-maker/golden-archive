@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-rout
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  BadgeCheck,
+  
   Check,
   EyeOff,
   Heart,
@@ -441,15 +441,6 @@ function ProductPage() {
               )}
               <div className="flex items-center gap-2 text-sm font-semibold text-ink">
                 {product.creator.name}
-                {product.creator.verified && (
-                  <span
-                    className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold-ink"
-                    title="Verified creator"
-                    aria-label="Verified creator"
-                  >
-                    <BadgeCheck size={12} className="text-gold-ink" /> Verified
-                  </span>
-                )}
               </div>
               <button className="text-sm font-semibold text-gold-ink hover:underline">
                 View Store →
@@ -641,18 +632,9 @@ function ProductPage() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 text-sm font-bold text-ink">
                   {product.creator.name}
-                  {product.creator.verified && (
-                    <span
-                      className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-caps text-gold-ink"
-                      title="Verified creator"
-                      aria-label="Verified creator"
-                    >
-                      <BadgeCheck size={12} className="text-gold-ink" /> Verified
-                    </span>
-                  )}
                 </div>
                 <p className="mt-1 text-xs text-mute">
-                  Verified creator on AurumVault. Building purpose-driven
+                  Creator on AurumVault. Building purpose-driven
                   resources for operators and leaders.
                 </p>
                 <button className="mt-2 text-xs font-semibold text-gold-ink hover:underline">

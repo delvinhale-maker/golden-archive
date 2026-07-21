@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import whySecure from "@/assets/why-secure.jpg";
 import whyInstant from "@/assets/why-instant.jpg";
-import whyVerified from "@/assets/why-verified.jpg";
+
 import whyCurated from "@/assets/why-curated.jpg";
 import whyExperience from "@/assets/why-experience.jpg";
 
@@ -15,11 +15,6 @@ const CARDS = [
     image: whyInstant,
     title: "Instant Download",
     copy: "Your files land in your vault the second payment clears.",
-  },
-  {
-    image: whyVerified,
-    title: "Verified Creators",
-    copy: "Every creator is vetted by hand — no anonymous uploads.",
   },
   {
     image: whyCurated,

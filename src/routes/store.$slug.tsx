@@ -440,9 +440,6 @@ function StorefrontPage() {
               <h1 className="font-display text-3xl md:text-4xl text-navy leading-tight">
                 {data.brandName}
               </h1>
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider px-2 py-1 rounded-full bg-gold/15 text-gold-ink border border-gold/30">
-                <BadgeCheck size={13} /> Verified Creator
-              </span>
             </div>
             {data.displayName && (
               <p className="text-mute text-sm mt-0.5">by {data.displayName}</p>
@@ -614,7 +611,7 @@ function StorefrontPage() {
           <Link to="/" className="inline-flex items-center gap-1.5 hover:text-navy">
             Powered by <span className="font-display text-navy">AurumVault</span>
           </Link>
-          <span>© {new Date().getFullYear()} {data.brandName} · Verified creator on AurumVault</span>
+          <span>© {new Date().getFullYear()} {data.brandName} · Creator on AurumVault</span>
         </div>
       </footer>
     </div>

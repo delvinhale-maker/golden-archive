@@ -47,7 +47,7 @@ export function TopCreatorsLeaderboard() {
                   <div className="truncate font-display text-base font-bold text-white">
                     {r.name}
                   </div>
-                  <div className="text-[11px] text-white/60">Verified creator</div>
+                  <div className="text-[11px] text-white/60">Creator</div>
                 </div>
               </div>
             );

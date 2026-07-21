@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { BadgeCheck, BookOpen, Heart, Star } from "lucide-react";
+import { BookOpen, Heart, Star } from "lucide-react";
 
 import { useState } from "react";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
@@ -104,13 +104,6 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         </Link>
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[12px] text-mute">
           <span>{product.creator.name}</span>
-          {product.creator.verified && (
-            <BadgeCheck
-              size={14}
-              className="text-gold-ink shrink-0"
-              aria-label="Verified creator"
-            />
-          )}
         </div>
 
         {product.reviewCount > 0 && (

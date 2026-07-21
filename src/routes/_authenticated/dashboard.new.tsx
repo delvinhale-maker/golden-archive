@@ -2748,11 +2748,6 @@ function PrePublishPreview(props: {
                   <span className="truncate text-[12px] text-[#6b7280]">
                     {props.author || "Unknown creator"}
                   </span>
-                  <ShieldCheck
-                    size={14}
-                    className="shrink-0 text-emerald-600"
-                    aria-label="Verified creator"
-                  />
                 </div>
 
                 {/* Price — gold, tabular */}

@@ -33,7 +33,7 @@ function GiftCardsPage() {
             AurumVault <span className="gold-gradient">Gift Cards</span>
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-white/70">
-            Give the gift of premium digital resources — eBooks, courses, templates, and audio from verified creators. Redeemable across the entire vault.
+            Give the gift of premium digital resources — eBooks, courses, templates, and audio from independent creators. Redeemable across the entire vault.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
