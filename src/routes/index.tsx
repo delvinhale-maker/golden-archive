@@ -148,7 +148,7 @@ export const Route = createFileRoute("/")({
 const CATS = [
   { label: "eBooks", icon: BookOpen, slug: "eBooks" },
   { label: "Journals", icon: GraduationCap, slug: "Journals" },
-  { label: "Templates", icon: LayoutTemplate, slug: "Templates" },
+  // "Templates" temporarily hidden — keep out of the homepage tile row.
   { label: "Audio", icon: Headphones, slug: "Audio" },
   { label: "Financial Planners", icon: Wallet, slug: "Financial Planners" },
   { label: "Leadership", icon: Crown, slug: "Leadership" },
