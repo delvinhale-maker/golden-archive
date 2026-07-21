@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Crown, Filter, SlidersHorizontal, Star, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import {
@@ -31,6 +31,9 @@ const HIDDEN_CATEGORY_SLUGS = new Set([
   "budget_spreadsheets",
   "business_templates",
   "prompt_packs",
+  // Temporarily hidden — keep data & URLs valid, hide from filter UI.
+  "childrens_educational",
+  "templates",
 ]);
 const CATEGORIES = CATEGORY_DEFS.filter((c) => !HIDDEN_CATEGORY_SLUGS.has(c.slug)).map((c) => c.label);
 
@@ -82,6 +85,33 @@ function ProductsPage() {
   const search = { ...rawSearch, category: normalizedCategory };
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Hide temporarily-disabled category URLs from search engines while
+  // keeping the pages themselves reachable via any shared links.
+  const activeSlug = rawSearch.category
+    ? getCategoryDef(rawSearch.category)?.slug ?? rawSearch.category
+    : undefined;
+  const shouldNoindex = !!activeSlug && HIDDEN_CATEGORY_SLUGS.has(activeSlug);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const id = "av-products-robots-meta";
+    let tag = document.getElementById(id) as HTMLMetaElement | null;
+    if (shouldNoindex) {
+      if (!tag) {
+        tag = document.createElement("meta");
+        tag.id = id;
+        tag.name = "robots";
+        document.head.appendChild(tag);
+      }
+      tag.content = "noindex, follow";
+    } else if (tag) {
+      tag.remove();
+    }
+    return () => {
+      const existing = document.getElementById(id);
+      if (existing) existing.remove();
+    };
+  }, [shouldNoindex]);
 
   const query = useQuery({
     queryKey: ["mp", "products", search],

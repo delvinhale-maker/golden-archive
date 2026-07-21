@@ -198,9 +198,12 @@ export function CategoryGrid13() {
                 "budget_spreadsheets",
                 "business_templates",
                 "prompt_packs",
+                // Temporarily hidden — keep data, hide the tiles.
+                "childrens_educational",
+                "templates",
               ].includes(c.slug),
           ).map((c) => {
-            const count = counts[c.slug] ?? 0;
+            void counts;
             const blurb = CATEGORY_BLURBS[c.slug] ?? "";
             const accent = accentFor(c.slug);
             return (
@@ -250,11 +253,10 @@ export function CategoryGrid13() {
                     <div className="font-display text-lg leading-tight text-white">
                       {c.label}
                     </div>
-                    <div className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold/80">
-                      {count} product{count === 1 ? "" : "s"}
-                    </div>
                   </div>
                 </div>
+
+
 
                 {blurb && (
                   <p className="mt-4 text-sm leading-relaxed text-white/65">

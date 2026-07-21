@@ -614,9 +614,8 @@ function CreatorCard({
                 <BadgeCheck size={18} style={{ color: GOLD }} />
               )}
             </div>
-            <p className="mt-1 text-[13px] font-medium text-[#6b7280]">
-              {creator.productCount} products
-            </p>
+            {/* Product count intentionally hidden on public creator card. */}
+
             <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-[#4b5563]">
               {creator.bio}
             </p>

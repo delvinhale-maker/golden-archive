@@ -103,9 +103,8 @@ function CreatorsPage() {
             </select>
           </div>
 
-          <div className="mt-6 text-[12px] text-white/60">
-            {filtered.length} creator{filtered.length === 1 ? "" : "s"}
-          </div>
+          {/* Creator count intentionally hidden — restore when catalog grows. */}
+
 
           {filtered.length === 0 ? (
             <div className="mt-12 rounded-xl border border-white/10 bg-white/5 p-10 text-center">

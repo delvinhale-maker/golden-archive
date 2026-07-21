@@ -12,7 +12,6 @@ import {
   Download,
   GraduationCap,
   Headphones,
-  LayoutTemplate,
   Lock,
   RefreshCw,
   ShieldCheck,
@@ -42,7 +41,6 @@ import { featuredCreatorsQ } from "@/components/marketplace/FeaturedCreatorsRow"
 import { topCreatorsQ } from "@/components/marketplace/TopCreatorsLeaderboard";
 import { categoryCountsQ } from "@/components/marketplace/CategoryGrid13";
 import { SectionDivider } from "@/components/marketplace/SectionDivider";
-import { CountUp } from "@/components/marketplace/CountUp";
 import {
   getFeaturedProducts,
   getHomeHighlights,
@@ -148,7 +146,7 @@ export const Route = createFileRoute("/")({
 const CATS = [
   { label: "eBooks", icon: BookOpen, slug: "eBooks" },
   { label: "Journals", icon: GraduationCap, slug: "Journals" },
-  { label: "Templates", icon: LayoutTemplate, slug: "Templates" },
+  // "Templates" temporarily hidden — keep out of the homepage tile row.
   { label: "Audio", icon: Headphones, slug: "Audio" },
   { label: "Financial Planners", icon: Wallet, slug: "Financial Planners" },
   { label: "Leadership", icon: Crown, slug: "Leadership" },
@@ -405,7 +403,8 @@ function CategoryCTABar() {
 
 function HeroStatsBar() {
   const { data } = useSuspenseQuery(highlightsQ);
-  const productCount = data.illustriousProductCount;
+  // Numeric counters intentionally hidden — keep only the labels + captions.
+  void data;
   const stats: {
     image: string;
     label: React.ReactNode;
@@ -416,23 +415,15 @@ function HeroStatsBar() {
   }[] = [
     {
       image: statProductsImg,
-      label: (
-        <>
-          <CountUp end={productCount} /> Product{productCount === 1 ? "" : "s"}
-        </>
-      ),
-      caption: "Curated library",
+      label: "Curated Library",
+      caption: "Handpicked digital goods",
       to: "/products",
       ariaLabel: "Browse all products",
     },
     {
       image: statCategoriesImg,
-      label: (
-        <>
-          <CountUp end={18} /> Categories
-        </>
-      ),
-      caption: "Across every discipline",
+      label: "Every Discipline",
+      caption: "Wealth, wisdom, and craft",
       to: "/",
       hash: "categories",
       ariaLabel: "Browse categories",
@@ -707,8 +698,7 @@ function FeaturedSkeleton() {
 }
 
 function IllustriousCreator() {
-  const { data, isFetching } = useSuspenseQuery(highlightsQ);
-  const count = data.illustriousProductCount;
+  const { isFetching } = useSuspenseQuery(highlightsQ);
   return (
     <section className="bg-bg-page py-16 md:py-24" aria-busy={isFetching}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -751,13 +741,6 @@ function IllustriousCreator() {
               </div>
               <div className="text-[13px] text-mute">
                 Author · Entrepreneur · Digital Creator
-              </div>
-              <div className="mt-4 flex items-center gap-6 text-[13px]">
-                <div>
-                  <div className="font-bold text-navy">{count}</div>
-                  <div className="text-[11px] text-mute">Products</div>
-
-                </div>
               </div>
               <Link
                 to="/products"
