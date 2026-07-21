@@ -256,7 +256,7 @@ export function CategoryGrid13() {
                   </div>
                 </div>
 
-                </div>
+
 
                 {blurb && (
                   <p className="mt-4 text-sm leading-relaxed text-white/65">
