@@ -198,9 +198,12 @@ export function CategoryGrid13() {
                 "budget_spreadsheets",
                 "business_templates",
                 "prompt_packs",
+                // Temporarily hidden — keep data, hide the tiles.
+                "childrens_educational",
+                "templates",
               ].includes(c.slug),
           ).map((c) => {
-            const count = counts[c.slug] ?? 0;
+            void counts;
             const blurb = CATEGORY_BLURBS[c.slug] ?? "";
             const accent = accentFor(c.slug);
             return (
