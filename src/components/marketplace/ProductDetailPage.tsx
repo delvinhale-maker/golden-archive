@@ -610,9 +610,6 @@ function CreatorCard({
               <h3 className="truncate text-xl font-bold" style={{ color: NAVY }}>
                 {creator.name}
               </h3>
-              {creator.verified && (
-                <BadgeCheck size={18} style={{ color: GOLD }} />
-              )}
             </div>
             {/* Product count intentionally hidden on public creator card. */}
 

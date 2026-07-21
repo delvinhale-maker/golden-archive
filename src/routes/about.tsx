@@ -8,7 +8,7 @@ export const Route = createFileRoute("/about")({
       {
         name: "description",
         content:
-          "AurumVault is the curated marketplace for purpose-driven digital products from verified creators.",
+          "AurumVault is the curated marketplace for purpose-driven digital products from independent creators.",
       },
       { property: "og:title", content: "About AurumVault" },
       {
@@ -52,7 +52,7 @@ function AboutPage() {
         <section className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
           <Stat label="Creator royalty" value="85%" />
           <Stat label="AI-reviewed titles" value="100%" />
-          <Stat label="Verified creators" value="Curated" />
+          <Stat label="Creators" value="Curated" />
         </section>
       </main>
     </MarketShell>

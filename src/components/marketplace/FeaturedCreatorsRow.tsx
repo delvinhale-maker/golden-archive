@@ -22,7 +22,7 @@ export function FeaturedCreatorsRow() {
               FEATURED CREATORS
             </div>
             <h2 className="mt-1 font-display text-2xl font-bold text-white md:text-3xl">
-              Verified voices shipping premium resources
+              Creators shipping premium resources
             </h2>
           </div>
           <Link
@@ -62,7 +62,7 @@ export function FeaturedCreatorsRow() {
                   <div className="truncate font-display text-base font-bold text-white">
                     {c.brandName}
                   </div>
-                  <BadgeCheck size={14} className="shrink-0 text-emerald" />
+                  
                 </div>
                 {c.pitch && (
                   <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-white/70">

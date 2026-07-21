@@ -17,11 +17,6 @@ const CARDS = [
     copy: "Your files land in your vault the second payment clears.",
   },
   {
-    image: whyVerified,
-    title: "Verified Creators",
-    copy: "Every creator is vetted by hand — no anonymous uploads.",
-  },
-  {
     image: whyCurated,
     title: "Curated Quality",
     copy: "Editorially reviewed. If it's on AurumVault, it earned its place.",
