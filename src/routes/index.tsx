@@ -12,7 +12,6 @@ import {
   Download,
   GraduationCap,
   Headphones,
-  LayoutTemplate,
   Lock,
   RefreshCw,
   ShieldCheck,
