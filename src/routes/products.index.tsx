@@ -53,20 +53,20 @@ export const Route = createFileRoute("/products/")({
       {
         name: "description",
         content:
-          "Filter and discover purpose-driven eBooks, courses, templates, and tools from verified creators.",
+          "Filter and discover purpose-driven eBooks, courses, templates, and tools from independent creators.",
       },
       { property: "og:title", content: "Browse the Vault | AurumVault" },
       {
         property: "og:description",
         content:
-          "Filter and discover purpose-driven digital products from verified creators.",
+          "Filter and discover purpose-driven digital products from independent creators.",
       },
       { property: "og:url", content: "https://www.aurumvault.store/products" },
       { name: "twitter:title", content: "Browse the Vault | AurumVault" },
       {
         name: "twitter:description",
         content:
-          "Filter and discover purpose-driven digital products from verified creators.",
+          "Filter and discover purpose-driven digital products from independent creators.",
       },
     ],
     links: [{ rel: "canonical", href: "https://www.aurumvault.store/products" }],

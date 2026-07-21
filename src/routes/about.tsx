@@ -14,7 +14,7 @@ export const Route = createFileRoute("/about")({
       {
         property: "og:description",
         content:
-          "Curated digital products from verified creators.",
+          "Curated digital products from independent creators.",
       },
       { property: "og:type", content: "website" },
       { rel: "canonical", href: "https://www.aurumvault.store/about" } as never,
