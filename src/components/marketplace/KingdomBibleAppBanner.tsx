@@ -16,9 +16,13 @@ export function KingdomBibleAppBanner() {
             alt="Kingdom Bible App — Daily Verses, Prayer Streaks, Devotionals"
             width={1024}
             height={500}
+            sizes="(min-width: 1024px) 1024px, (min-width: 640px) 90vw, 100vw"
             className="block h-auto w-full"
             loading="lazy"
+            decoding="async"
+            fetchPriority="low"
           />
+
         </a>
       </div>
     </section>
