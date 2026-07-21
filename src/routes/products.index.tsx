@@ -86,6 +86,33 @@ function ProductsPage() {
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // Hide temporarily-disabled category URLs from search engines while
+  // keeping the pages themselves reachable via any shared links.
+  const activeSlug = rawSearch.category
+    ? getCategoryDef(rawSearch.category)?.slug ?? rawSearch.category
+    : undefined;
+  const shouldNoindex = !!activeSlug && HIDDEN_CATEGORY_SLUGS.has(activeSlug);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const id = "av-products-robots-meta";
+    let tag = document.getElementById(id) as HTMLMetaElement | null;
+    if (shouldNoindex) {
+      if (!tag) {
+        tag = document.createElement("meta");
+        tag.id = id;
+        tag.name = "robots";
+        document.head.appendChild(tag);
+      }
+      tag.content = "noindex, follow";
+    } else if (tag) {
+      tag.remove();
+    }
+    return () => {
+      const existing = document.getElementById(id);
+      if (existing) existing.remove();
+    };
+  }, [shouldNoindex]);
+
   const query = useQuery({
     queryKey: ["mp", "products", search],
     queryFn: () =>
