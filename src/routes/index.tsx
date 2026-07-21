@@ -405,7 +405,8 @@ function CategoryCTABar() {
 
 function HeroStatsBar() {
   const { data } = useSuspenseQuery(highlightsQ);
-  const productCount = data.illustriousProductCount;
+  // Numeric counters intentionally hidden — keep only the labels + captions.
+  void data;
   const stats: {
     image: string;
     label: React.ReactNode;
@@ -416,23 +417,15 @@ function HeroStatsBar() {
   }[] = [
     {
       image: statProductsImg,
-      label: (
-        <>
-          <CountUp end={productCount} /> Product{productCount === 1 ? "" : "s"}
-        </>
-      ),
-      caption: "Curated library",
+      label: "Curated Library",
+      caption: "Handpicked digital goods",
       to: "/products",
       ariaLabel: "Browse all products",
     },
     {
       image: statCategoriesImg,
-      label: (
-        <>
-          <CountUp end={18} /> Categories
-        </>
-      ),
-      caption: "Across every discipline",
+      label: "Every Discipline",
+      caption: "Wealth, wisdom, and craft",
       to: "/",
       hash: "categories",
       ariaLabel: "Browse categories",
