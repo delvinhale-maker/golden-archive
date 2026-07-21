@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-rout
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  BadgeCheck,
+  
   Check,
   EyeOff,
   Heart,
