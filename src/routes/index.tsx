@@ -41,7 +41,6 @@ import { featuredCreatorsQ } from "@/components/marketplace/FeaturedCreatorsRow"
 import { topCreatorsQ } from "@/components/marketplace/TopCreatorsLeaderboard";
 import { categoryCountsQ } from "@/components/marketplace/CategoryGrid13";
 import { SectionDivider } from "@/components/marketplace/SectionDivider";
-import { CountUp } from "@/components/marketplace/CountUp";
 import {
   getFeaturedProducts,
   getHomeHighlights,
