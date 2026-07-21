@@ -253,10 +253,9 @@ export function CategoryGrid13() {
                     <div className="font-display text-lg leading-tight text-white">
                       {c.label}
                     </div>
-                    <div className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold/80">
-                      {count} product{count === 1 ? "" : "s"}
-                    </div>
                   </div>
+                </div>
+
                 </div>
 
                 {blurb && (
