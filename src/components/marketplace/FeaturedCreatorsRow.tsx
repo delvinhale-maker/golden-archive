@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { BadgeCheck, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { getApprovedCreators, type CreatorSummary } from "@/lib/creators.functions";
 
 export const featuredCreatorsQ = queryOptions({

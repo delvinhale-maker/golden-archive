@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { BadgeCheck, MapPin, Search } from "lucide-react";
+import { MapPin, Search } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getApprovedCreators, type CreatorSummary } from "@/lib/creators.functions";
 import { CATEGORIES } from "@/lib/categories";

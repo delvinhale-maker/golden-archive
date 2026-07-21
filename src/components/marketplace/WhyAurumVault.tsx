@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import whySecure from "@/assets/why-secure.jpg";
 import whyInstant from "@/assets/why-instant.jpg";
-import whyVerified from "@/assets/why-verified.jpg";
+
 import whyCurated from "@/assets/why-curated.jpg";
 import whyExperience from "@/assets/why-experience.jpg";
 

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { BadgeCheck, BookOpen, Heart, Star } from "lucide-react";
+import { BookOpen, Heart, Star } from "lucide-react";
 
 import { useState } from "react";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
