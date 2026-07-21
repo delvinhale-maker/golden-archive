@@ -700,8 +700,7 @@ function FeaturedSkeleton() {
 }
 
 function IllustriousCreator() {
-  const { data, isFetching } = useSuspenseQuery(highlightsQ);
-  const count = data.illustriousProductCount;
+  const { isFetching } = useSuspenseQuery(highlightsQ);
   return (
     <section className="bg-bg-page py-16 md:py-24" aria-busy={isFetching}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -744,13 +743,6 @@ function IllustriousCreator() {
               </div>
               <div className="text-[13px] text-mute">
                 Author · Entrepreneur · Digital Creator
-              </div>
-              <div className="mt-4 flex items-center gap-6 text-[13px]">
-                <div>
-                  <div className="font-bold text-navy">{count}</div>
-                  <div className="text-[11px] text-mute">Products</div>
-
-                </div>
               </div>
               <Link
                 to="/products"
