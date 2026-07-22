@@ -1,70 +1,64 @@
 
-# AurumVault Academy — Build Plan
+# AurumVault Academy Editorial Studio
 
-Academy is a full content hub, not a blog. This is a large build; below is the phased delivery so we can ship incrementally and you can review after each phase.
+This spec is large enough that shipping it in one pass would be reckless — a single "publish" bug could break the live Academy. I'll build it in three phases so each one is reviewable and publishable on its own. Every phase is admin-only (gated by the existing `has_role(auth.uid(), 'admin')` check plus the `_authenticated/admin.*` route layout).
 
-## Phase 1 — Foundation (ship first)
+## Phase 1 — Editorial Studio shell + core publishing (this turn)
 
-**Database (new tables via migration)**
-- `academy_articles` — id, slug (unique), title, excerpt, body (markdown/MDX), featured_image, category, author_id, reading_time_min, status (draft/scheduled/published), published_at, scheduled_for, featured, pinned, view_count, created_at, updated_at
-- `academy_categories` — slug, name, emoji, description, sort_order (seeded: financial-freedom, ai-productivity, digital-publishing, kingdom-living, entrepreneurship)
-- `academy_article_products` — join table, article_id ↔ marketplace_products.id (manual product tagging)
-- `academy_bookmarks` — user_id, article_id
-- RLS: public SELECT on published articles + categories; admin-only writes via `has_role`
+The floating gold "+" on `/academy` becomes the Editorial Studio launcher. Non-admins never see the button; the component returns `null` unless `useAuth().isAdmin` is true.
 
-**Routes**
-```
-src/routes/academy.tsx                    layout with <Outlet />
-src/routes/academy.index.tsx              hub homepage (hero + categories + featured/latest)
-src/routes/academy.$category.tsx          category listing with filters
-src/routes/academy.article.$slug.tsx      article detail page
-src/routes/_authenticated/admin.academy.tsx           admin list
-src/routes/_authenticated/admin.academy.$id.tsx       admin editor
-```
+Menu (expanding radial/stack, navy → cream → gold, blur backdrop, Framer Motion):
+- New Article → creates a draft row via existing `academy_articles` insert, routes to editor
+- Edit Article → `/admin/academy` (already exists — polish list: search, category filter, status filter, sort, duplicate, archive, delete)
+- Preview → opens current article in a new tab at `/academy/article/$slug?preview=1`
+- Publish / Save Draft / Schedule / SEO / Upload Featured Image → all deep-link into the editor with the correct panel open
 
-**Nav updates**
-- Desktop header + mobile drawer/tabbar: add "Academy" between Browse and Library
+Editor upgrades to `/admin/academy/$id` (extends existing file, no rewrite):
+- Title + Subtitle + Excerpt + Author + Category + Difficulty (new column) + Reading time (auto from body word count, editable)
+- Featured image: drag-and-drop upload to a new `academy-covers` public bucket with instant preview, alt text, caption
+- Rich body editor (Tiptap: H1–H4, bold/italic/underline, lists, quotes, code, tables, image, video embed, link, divider, callout)
+- Toggles: Featured, Editor's Pick, Latest, Pinned
+- Status: Draft / Scheduled / Published with a scheduler (date + time + timezone)
+- Autosave every 30s with "Last saved …" indicator
+- Related products (already exists) + Related articles picker + Tags
+- Sticky publish bar: Preview · Save draft · Schedule · Publish
 
-**SEO**
-- Per-route `head()` with title/description/OG/Twitter/canonical
-- JSON-LD: Article schema on detail, BreadcrumbList, Organization
-- `sitemap.xml.ts` extended to include published articles
-- SEO-friendly slugs: `/academy/article/how-to-build-a-financial-freedom-plan`
+Publish confirmation modal shows word count, reading time, missing alt/meta warnings, then success animation + copy URL + share links.
 
-**Article page includes**
-- Semantic H1/H2/H3, reading time, author, publish date
-- Featured image with lazy loading
-- Recommended Resources rail (from `academy_article_products`, fallback to category match)
-- Related Articles (same category, newest 3)
+DB migration (single):
+- `academy-covers` public storage bucket + admin-write RLS
+- `academy_articles`: add `subtitle`, `difficulty` (enum), `tags text[]`, `editors_pick bool`, `is_latest bool`, `cover_alt`, `cover_caption`, `focus_keyword`, `secondary_keywords text[]`, `canonical_url`, `og_title`, `og_description`, `twitter_card`, `schema_type`, `robots_index bool`, `robots_follow bool`
+- `academy_article_versions` (id, article_id, snapshot jsonb, saved_at, saved_by) for version history
+- `academy_article_related` (article_id, related_id, sort_order)
+- All with proper GRANTs + admin-only write policies; public read stays as-is
 
-## Phase 2 — Discovery
+## Phase 2 — SEO dashboard + internal-linking assistant
 
-- Search bar with autocomplete (server fn against title/excerpt)
-- Category filter chips + sort (Newest / Most Popular / Featured)
-- Trending articles (by view_count over 7 days)
-- Author profile pages
+- Dedicated SEO panel in the editor with score/100, live recommendations (keyword density, H2 presence, internal/external links, alt text, title/meta length)
+- Schema JSON-LD emitted from article route `head()` based on `schema_type`
+- Sitemap route (`sitemap.xml`) already includes articles; extend to include `lastmod` from new fields
+- Internal linking suggestions: query `academy_articles` + `marketplace_products` by shared category/keyword while editing
 
-## Phase 3 — Engagement
+## Phase 3 — Preview modes + media manager + auto footer
 
-- Bookmarks (authed users)
-- Reading history (localStorage → optional DB sync)
-- Newsletter capture at article foot (uses existing `subscribers`)
-- Comments (toggleable per-article)
-- PDF download attachments
-- Video embed support in article body
+- Preview route with Desktop / Tablet / Mobile / Dark / Light frames
+- Standalone Media Manager (upload, crop, resize, WebP conversion via `sharp`-free browser canvas, alt/caption library)
+- Automatic article footer component (About AurumVault Editorial, related articles, recommended products, newsletter signup, share buttons, last updated, reading time) rendered on `/academy/article/$slug`
 
-## Phase 4 — Admin polish
+## Technical notes (for me)
 
-- Rich editor (MDX or Tiptap), draft/schedule, product tagging UI, feature/pin toggles, featured image upload to new `academy-images` public bucket
+- Tiptap (`@tiptap/react`, StarterKit, table, link, image, youtube) — add via `bun add`
+- Autosave debounced with `useEffect` + `setInterval`; version snapshot on each successful save
+- Storage bucket created via `supabase--storage_create_bucket`
+- All migrations follow the CREATE → GRANT → RLS ENABLE → POLICY order
+- Difficulty enum: `create type public.academy_difficulty as enum ('beginner','intermediate','advanced')`
+- Publish is a normal Supabase update; the existing site auto-serves updated rows — no separate "publish pipeline" needed
+- Non-admin visitors: the FAB, editor routes, and admin API paths all return `null` / redirect
 
-## Design system
+## Out of scope until you confirm
 
-Uses existing tokens (Deep Navy, Metallic Gold, Cream). Category cards: gold border, cream surface, emoji icon, hover elevation. Article cards: cover image (16:9), category chip, meta row, gold "Continue Reading →". Matches marketplace card spacing/typography exactly.
+- Substack-style newsletter delivery (needs a sender identity + list)
+- AI writing assistant (would use Lovable AI Gateway — say the word and I'll add it in Phase 2)
+- Multi-author permissions beyond "admin" (spec says admin-only, so I'm keeping it that way)
 
-## What I'll ship in this first pass (please confirm)
-
-**Phase 1 only**: DB schema, 4 public routes, nav integration, article/category/hub pages, product recommendations, full SEO + sitemap, admin list + basic editor (markdown textarea, not rich editor). Seeded with the 5 categories and 2–3 sample articles so you can see it live.
-
-Phases 2–4 land in follow-up turns so we don't ship one giant untested change.
-
-**Confirm to proceed with Phase 1**, or tell me to reorder / drop pieces.
+Approve and I'll ship Phase 1 in the next turn.

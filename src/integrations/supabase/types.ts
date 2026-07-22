@@ -95,72 +95,194 @@ export type Database = {
           },
         ]
       }
+      academy_article_related: {
+        Row: {
+          article_id: string
+          related_id: string
+          sort_order: number
+        }
+        Insert: {
+          article_id: string
+          related_id: string
+          sort_order?: number
+        }
+        Update: {
+          article_id?: string
+          related_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_article_related_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "academy_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_article_related_related_id_fkey"
+            columns: ["related_id"]
+            isOneToOne: false
+            referencedRelation: "academy_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_article_versions: {
+        Row: {
+          article_id: string
+          id: string
+          saved_at: string
+          saved_by: string | null
+          snapshot: Json
+        }
+        Insert: {
+          article_id: string
+          id?: string
+          saved_at?: string
+          saved_by?: string | null
+          snapshot: Json
+        }
+        Update: {
+          article_id?: string
+          id?: string
+          saved_at?: string
+          saved_by?: string | null
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_article_versions_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "academy_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       academy_articles: {
         Row: {
+          archived: boolean
           author_id: string | null
           author_name: string | null
           body: string
+          canonical_url: string | null
           category: string
+          cover_alt: string | null
+          cover_caption: string | null
           created_at: string
+          difficulty: Database["public"]["Enums"]["academy_difficulty"]
+          editors_pick: boolean
           excerpt: string | null
           featured: boolean
           featured_image: string | null
+          focus_keyword: string | null
           id: string
+          is_latest: boolean
+          last_autosaved_at: string | null
           meta_description: string | null
           meta_title: string | null
+          og_description: string | null
+          og_title: string | null
           pinned: boolean
           published_at: string | null
           reading_time_min: number
+          robots_follow: boolean
+          robots_index: boolean
           scheduled_for: string | null
+          schema_type: string
+          secondary_keywords: string[]
           slug: string
           status: string
+          subtitle: string | null
+          tags: string[]
           title: string
+          twitter_card: string
           updated_at: string
           view_count: number
+          word_count: number
         }
         Insert: {
+          archived?: boolean
           author_id?: string | null
           author_name?: string | null
           body?: string
+          canonical_url?: string | null
           category: string
+          cover_alt?: string | null
+          cover_caption?: string | null
           created_at?: string
+          difficulty?: Database["public"]["Enums"]["academy_difficulty"]
+          editors_pick?: boolean
           excerpt?: string | null
           featured?: boolean
           featured_image?: string | null
+          focus_keyword?: string | null
           id?: string
+          is_latest?: boolean
+          last_autosaved_at?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          og_description?: string | null
+          og_title?: string | null
           pinned?: boolean
           published_at?: string | null
           reading_time_min?: number
+          robots_follow?: boolean
+          robots_index?: boolean
           scheduled_for?: string | null
+          schema_type?: string
+          secondary_keywords?: string[]
           slug: string
           status?: string
+          subtitle?: string | null
+          tags?: string[]
           title: string
+          twitter_card?: string
           updated_at?: string
           view_count?: number
+          word_count?: number
         }
         Update: {
+          archived?: boolean
           author_id?: string | null
           author_name?: string | null
           body?: string
+          canonical_url?: string | null
           category?: string
+          cover_alt?: string | null
+          cover_caption?: string | null
           created_at?: string
+          difficulty?: Database["public"]["Enums"]["academy_difficulty"]
+          editors_pick?: boolean
           excerpt?: string | null
           featured?: boolean
           featured_image?: string | null
+          focus_keyword?: string | null
           id?: string
+          is_latest?: boolean
+          last_autosaved_at?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          og_description?: string | null
+          og_title?: string | null
           pinned?: boolean
           published_at?: string | null
           reading_time_min?: number
+          robots_follow?: boolean
+          robots_index?: boolean
           scheduled_for?: string | null
+          schema_type?: string
+          secondary_keywords?: string[]
           slug?: string
           status?: string
+          subtitle?: string | null
+          tags?: string[]
           title?: string
+          twitter_card?: string
           updated_at?: string
           view_count?: number
+          word_count?: number
         }
         Relationships: [
           {
@@ -2408,6 +2530,7 @@ export type Database = {
       }
     }
     Enums: {
+      academy_difficulty: "beginner" | "intermediate" | "advanced"
       app_role: "admin" | "seller" | "buyer"
       application_status:
         | "pending"
@@ -2564,6 +2687,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      academy_difficulty: ["beginner", "intermediate", "advanced"],
       app_role: ["admin", "seller", "buyer"],
       application_status: [
         "pending",

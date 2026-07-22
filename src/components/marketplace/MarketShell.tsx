@@ -6,6 +6,7 @@ import { MarketFooter } from "./MarketFooter";
 import { MobileTabBar } from "./MobileTabBar";
 import { CartDrawer } from "./CartDrawer";
 import { UploadFab } from "./UploadFab";
+import { EditorialStudioFab } from "./EditorialStudioFab";
 import { AbandonedCartTracker } from "./AbandonedCartTracker";
 
 export function MarketShell({ children }: { children: ReactNode }) {
@@ -29,6 +30,7 @@ export function MarketShell({ children }: { children: ReactNode }) {
       <MobileTabBar />
       <CartDrawer />
       <UploadFab />
+      <EditorialStudioFab />
       <AbandonedCartTracker />
     </div>
   );
