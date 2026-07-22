@@ -178,7 +178,8 @@ function AdminAcademyList() {
     copy.archived = false;
     const { data: created, error: insErr } = await supabase
       .from("academy_articles")
-      .insert(copy)
+      // Cast: we're forwarding all required fields (title/slug/category) from the source row.
+      .insert(copy as never)
       .select("id")
       .maybeSingle();
     if (insErr || !created?.id) {
