@@ -32,6 +32,8 @@ export function UploadFab() {
 
   if (loading || (!isAdmin && !isSeller)) return null;
   if (pathname.startsWith("/dashboard") || pathname.startsWith("/publish")) return null;
+  // The Academy has its own admin-only Editorial Studio FAB; hide the product uploader there.
+  if (pathname.startsWith("/academy") || pathname.startsWith("/admin/academy")) return null;
 
   return (
     <>
