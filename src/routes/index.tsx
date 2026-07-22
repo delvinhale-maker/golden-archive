@@ -174,9 +174,7 @@ function Home() {
         <KingdomPicksRow />
       </Suspense>
 
-      <Suspense fallback={null}>
-        <FeaturedCreatorsRow />
-      </Suspense>
+      {/* FeaturedCreatorsRow removed per request */}
 
       <Suspense fallback={null}>
         <VaultFindsRow />
@@ -203,9 +201,7 @@ function Home() {
       <HighlightsBoundary fallback={<CreatorSkeleton />} errorLabel="featured creator">
         <IllustriousCreator />
       </HighlightsBoundary>
-      <Suspense fallback={null}>
-        <CreatorSpotlight />
-      </Suspense>
+      {/* CreatorSpotlight removed per request */}
       <SectionDivider variant="ivory-to-navy" />
       <HeroStatsBar />
       <Suspense fallback={null}>
