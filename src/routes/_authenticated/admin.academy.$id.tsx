@@ -27,6 +27,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import { pingSearchEngines } from "@/lib/sitemap-ping.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/academy/$id")({
   component: AdminAcademyEditor,
@@ -278,6 +279,12 @@ function AdminAcademyEditor() {
       toast.success("Published");
     } else {
       toast.success(nextStatus === "scheduled" ? "Scheduled" : "Saved");
+    }
+    if (nextStatus === "published" || nextStatus === "scheduled") {
+      // Fire-and-forget: refresh sitemap + notify search engines
+      void pingSearchEngines().then((r) => {
+        console.info("[sitemap-ping]", r);
+      });
     }
     return true;
   };
