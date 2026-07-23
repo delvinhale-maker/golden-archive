@@ -280,6 +280,12 @@ function AdminAcademyEditor() {
     } else {
       toast.success(nextStatus === "scheduled" ? "Scheduled" : "Saved");
     }
+    if (nextStatus === "published" || nextStatus === "scheduled") {
+      // Fire-and-forget: refresh sitemap + notify search engines
+      void pingSearchEngines().then((r) => {
+        console.info("[sitemap-ping]", r);
+      });
+    }
     return true;
   };
 
