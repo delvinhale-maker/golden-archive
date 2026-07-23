@@ -33,28 +33,46 @@ export const Route = createFileRoute("/academy/article/$slug")({
       };
     }
     const a = loaderData.article;
-    const url = `https://www.aurumvault.store/academy/article/${params.slug}`;
+    const defaultUrl = `https://www.aurumvault.store/academy/article/${params.slug}`;
+    const url = a.canonical_url ?? defaultUrl;
     const title = a.meta_title ?? `${a.title} — AurumVault Academy`;
     const desc = a.meta_description ?? a.excerpt ?? "Read on AurumVault Academy.";
+    const ogTitle = a.og_title ?? title;
+    const ogDesc = a.og_description ?? desc;
     const image = a.featured_image;
+    const robots = `${a.robots_index ? "index" : "noindex"}, ${a.robots_follow ? "follow" : "nofollow"}`;
+    const schema: Record<string, unknown> = {
+      "@context": "https://schema.org",
+      "@type": a.schema_type || "Article",
+      headline: a.title,
+      description: desc,
+      ...(image ? { image } : {}),
+      ...(a.author_name ? { author: { "@type": "Person", name: a.author_name } } : {}),
+      ...(a.published_at ? { datePublished: a.published_at } : {}),
+      mainEntityOfPage: { "@type": "WebPage", "@id": defaultUrl },
+    };
     return {
       meta: [
         { title },
         { name: "description", content: desc },
-        { property: "og:title", content: title },
-        { property: "og:description", content: desc },
+        { name: "robots", content: robots },
+        { property: "og:title", content: ogTitle },
+        { property: "og:description", content: ogDesc },
         { property: "og:type", content: "article" },
-        { property: "og:url", content: url },
+        { property: "og:url", content: defaultUrl },
         ...(image ? [{ property: "og:image", content: image }] : []),
-        { name: "twitter:card", content: image ? "summary_large_image" : "summary" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: desc },
+        { name: "twitter:card", content: a.twitter_card || (image ? "summary_large_image" : "summary") },
+        { name: "twitter:title", content: ogTitle },
+        { name: "twitter:description", content: ogDesc },
         ...(image ? [{ name: "twitter:image", content: image }] : []),
         ...(a.published_at
           ? [{ property: "article:published_time", content: a.published_at }]
           : []),
       ],
       links: [{ rel: "canonical", href: url }],
+      scripts: [
+        { type: "application/ld+json", children: JSON.stringify(schema) },
+      ],
     };
   },
   notFoundComponent: () => (

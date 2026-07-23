@@ -949,11 +949,47 @@ function AdminAcademyEditor() {
               />
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <Field label="URL slug">
+                <div className="flex gap-2">
+                  <input
+                    value={a.slug}
+                    onChange={(e) =>
+                      setA({
+                        ...a,
+                        slug: e.target.value
+                          .toLowerCase()
+                          .replace(/[^a-z0-9-]+/g, "-")
+                          .replace(/^-+|-+$/g, ""),
+                      })
+                    }
+                    className="w-full rounded-lg border border-ink/15 px-3 py-2 font-mono text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setA({
+                        ...a,
+                        slug: a.title
+                          .toLowerCase()
+                          .trim()
+                          .replace(/[^a-z0-9]+/g, "-")
+                          .replace(/^-+|-+$/g, ""),
+                      })
+                    }
+                    className="shrink-0 rounded-lg border border-ink/15 px-3 py-2 text-xs hover:bg-navy/5"
+                  >
+                    From title
+                  </button>
+                </div>
+                <div className="mt-1 truncate text-[11px] text-ink/50">
+                  aurumvault.store/academy/article/{a.slug || "your-slug"}
+                </div>
+              </Field>
               <Field label="Canonical URL">
                 <input
                   value={a.canonical_url ?? ""}
                   onChange={(e) => setA({ ...a, canonical_url: e.target.value || null })}
-                  placeholder="https://…"
+                  placeholder={`https://www.aurumvault.store/academy/article/${a.slug || "your-slug"}`}
                   className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm"
                 />
               </Field>
