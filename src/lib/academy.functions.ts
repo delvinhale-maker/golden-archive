@@ -34,10 +34,17 @@ export type AcademyArticle = {
   view_count: number;
   meta_title: string | null;
   meta_description: string | null;
+  canonical_url: string | null;
+  og_title: string | null;
+  og_description: string | null;
+  twitter_card: string;
+  schema_type: string;
+  robots_index: boolean;
+  robots_follow: boolean;
 };
 
 const ARTICLE_COLS =
-  "id,slug,title,excerpt,body,featured_image,category,author_name,reading_time_min,published_at,featured,pinned,view_count,meta_title,meta_description";
+  "id,slug,title,excerpt,body,featured_image,category,author_name,reading_time_min,published_at,featured,pinned,view_count,meta_title,meta_description,canonical_url,og_title,og_description,twitter_card,schema_type,robots_index,robots_follow";
 
 export const listAcademyCategories = createServerFn({ method: "GET" }).handler(
   async (): Promise<AcademyCategory[]> => {
