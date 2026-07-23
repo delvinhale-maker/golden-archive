@@ -507,11 +507,12 @@ function AdminAcademyEditor() {
             )}
             <button
               type="button"
-              onClick={() => void save()}
+              onClick={() => void save(a.status === "published" ? undefined : "draft")}
               disabled={saving}
-              className="inline-flex items-center gap-1 rounded-lg border border-ink/15 px-3 py-1.5 text-sm"
+              className="inline-flex items-center gap-1 rounded-lg border border-ink/15 px-3 py-1.5 text-sm disabled:opacity-50"
             >
-              <Save size={14} /> Save draft
+              {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              {a.status === "published" ? "Save changes" : "Save draft"}
             </button>
             <button
               type="button"
