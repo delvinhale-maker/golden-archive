@@ -175,21 +175,12 @@ function Home() {
 
       {/* FeaturedCreatorsRow removed per request */}
 
-      <Suspense fallback={null}>
-        <VaultFindsRow />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <VaultFindsGrid />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <VaultFindsCategorySections />
-      </Suspense>
-
-
-
-
+      {/*
+        AurumVault-owned product rows come FIRST and are never replaced by
+        affiliate content. Affiliate (Amazon) rows live in their own labeled
+        band below, after FeaturedProducts, so they can never hide or push
+        out real AurumVault tiles.
+      */}
       <Suspense fallback={null}>
         <CategoryGrid13 />
       </Suspense>
@@ -197,6 +188,20 @@ function Home() {
       <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProducts />
       </Suspense>
+
+      {/* --- Affiliate band (Vault Finds) --------------------------------- */}
+      <AffiliateBandHeader />
+      <Suspense fallback={null}>
+        <VaultFindsRow />
+      </Suspense>
+      <Suspense fallback={null}>
+        <VaultFindsGrid />
+      </Suspense>
+      <Suspense fallback={null}>
+        <VaultFindsCategorySections />
+      </Suspense>
+      {/* --- End affiliate band ------------------------------------------ */}
+
       <HighlightsBoundary fallback={<CreatorSkeleton />} errorLabel="featured creator">
         <IllustriousCreator />
       </HighlightsBoundary>
