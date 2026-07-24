@@ -226,6 +226,30 @@ function Home() {
   );
 }
 
+function AffiliateBandHeader() {
+  return (
+    <section
+      aria-label="Affiliate picks divider"
+      className="border-y border-white/10 bg-[#1C1A20]"
+    >
+      <div className="mx-auto max-w-7xl px-6 py-6 lg:px-8">
+        <div className="flex flex-col items-center text-center">
+          <div className="text-[11px] font-semibold tracking-[0.22em] text-gold">
+            AFFILIATE PICKS · AMAZON
+          </div>
+          <h2 className="mt-2 font-display text-2xl text-white md:text-3xl">
+            Vault Finds
+          </h2>
+          <p className="mt-2 max-w-xl text-xs text-white/60">
+            Handpicked tools from around the web. Separate from AurumVault
+            creator products — we may earn a commission on qualifying purchases.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+
+
 
 
 
