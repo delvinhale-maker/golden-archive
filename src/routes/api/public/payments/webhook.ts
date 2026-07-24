@@ -262,8 +262,30 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     }
   }
 
-  // Enqueue delivery email (unless the main item is a pre-order — buyer will
-  // get a release email later).
+  // Build a full summary line-item list (primary + bumps) for the receipt.
+  const confirmationItems = [
+    {
+      title: variantName ? `${product.title} — ${variantName}` : product.title,
+      amountFormatted: `$${(unitAmount / 100).toFixed(2)}`,
+    },
+    ...bumpDeliveries.map((b, i) => ({
+      title: b.title,
+      amountFormatted: `$${((bumpPrices[i] ?? 0) / 100).toFixed(2)}`,
+    })),
+  ];
+  const totalFormatted = `$${((session.amount_total ?? unitAmount) / 100).toFixed(2)}`;
+
+  // 1) Order confirmation / receipt — always sent immediately.
+  await enqueueOrderConfirmationEmail({
+    to: buyerEmail,
+    items: confirmationItems,
+    totalFormatted,
+    orderId: order.id,
+    isPreorder: isPreorderAtPurchase,
+  });
+
+  // 2) Delivery email with download links — suppressed for pre-orders on the
+  // primary item; release flow will send it later.
   if (!isPreorderAtPurchase) {
     await enqueueDeliveryEmail({
       to: buyerEmail,
@@ -271,7 +293,7 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
         { title: product.title, downloadUrl: `${PUBLIC_BASE_URL}/download/${token}` },
         ...bumpDeliveries,
       ],
-      totalFormatted: `$${((session.amount_total ?? unitAmount) / 100).toFixed(2)}`,
+      totalFormatted,
       orderId: order.id,
     });
   } else if (bumpDeliveries.length) {
@@ -279,10 +301,90 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     await enqueueDeliveryEmail({
       to: buyerEmail,
       items: bumpDeliveries,
-      totalFormatted: `$${((session.amount_total ?? unitAmount) / 100).toFixed(2)}`,
+      totalFormatted,
       orderId: order.id,
     });
   }
+}
+
+async function enqueueOrderConfirmationEmail(args: {
+  to: string;
+  items: { title: string; amountFormatted: string }[];
+  totalFormatted: string;
+  orderId: string;
+  isPreorder: boolean;
+}) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const template = TEMPLATES["order-confirmation"];
+  if (!template) {
+    console.error("order-confirmation template missing");
+    return;
+  }
+  const normalized = args.to.toLowerCase();
+
+  const { data: suppressed } = await supabaseAdmin
+    .from("suppressed_emails")
+    .select("id")
+    .eq("email", normalized)
+    .maybeSingle();
+  if (suppressed) return;
+
+  let unsubscribeToken: string;
+  const { data: existing } = await supabaseAdmin
+    .from("email_unsubscribe_tokens")
+    .select("token,used_at")
+    .eq("email", normalized)
+    .maybeSingle();
+  if (existing && !existing.used_at) {
+    unsubscribeToken = existing.token;
+  } else {
+    unsubscribeToken = generateToken();
+    await supabaseAdmin
+      .from("email_unsubscribe_tokens")
+      .upsert(
+        { token: unsubscribeToken, email: normalized },
+        { onConflict: "email", ignoreDuplicates: true },
+      );
+    const { data: stored } = await supabaseAdmin
+      .from("email_unsubscribe_tokens")
+      .select("token")
+      .eq("email", normalized)
+      .maybeSingle();
+    if (stored) unsubscribeToken = stored.token;
+  }
+
+  const payload = { ...args, buyerEmail: args.to };
+  const element = React.createElement(template.component, payload);
+  const html = await render(element);
+  const text = await render(element, { plainText: true });
+  const subject =
+    typeof template.subject === "function" ? template.subject(payload) : template.subject;
+  const messageId = crypto.randomUUID();
+
+  await supabaseAdmin.from("email_send_log").insert({
+    message_id: messageId,
+    template_name: "order-confirmation",
+    recipient_email: args.to,
+    status: "pending",
+  });
+
+  await supabaseAdmin.rpc("enqueue_email", {
+    queue_name: "transactional_emails",
+    payload: {
+      message_id: messageId,
+      to: args.to,
+      from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+      sender_domain: SENDER_DOMAIN,
+      subject,
+      html,
+      text,
+      purpose: "transactional",
+      label: "order-confirmation",
+      idempotency_key: `order-confirm-${args.orderId}`,
+      unsubscribe_token: unsubscribeToken,
+      queued_at: new Date().toISOString(),
+    },
+  });
 }
 
 async function enqueueDeliveryEmail(args: {

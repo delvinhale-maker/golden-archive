@@ -4,6 +4,7 @@ import { template as sellerApplicationApproved } from './seller-application-appr
 import { template as sellerApplicationRejected } from './seller-application-rejected'
 import { template as sellerApplicationInfoRequested } from './seller-application-info-requested'
 import { template as orderDelivery } from './order-delivery'
+import { template as orderConfirmation } from './order-confirmation'
 import { template as coverAuditAlert } from './cover-audit-alert'
 import { template as productReviewUpdate } from './product-review-update'
 import { template as subscriberConfirmation } from './subscriber-confirmation'
@@ -25,6 +26,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'seller-application-rejected': sellerApplicationRejected,
   'seller-application-info-requested': sellerApplicationInfoRequested,
   'order-delivery': orderDelivery,
+  'order-confirmation': orderConfirmation,
   'cover-audit-alert': coverAuditAlert,
   'product-review-update': productReviewUpdate,
   'subscriber-confirmation': subscriberConfirmation,
