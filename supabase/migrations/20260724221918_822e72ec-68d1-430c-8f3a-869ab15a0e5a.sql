@@ -1,0 +1,2 @@
+REVOKE SELECT (admin_notes, rejected_reason, ai_review_status, ai_review_score, ai_review_issues, ai_review_blurb, ai_review_seo_title, ai_review_tags, ai_reviewed_at, platform_fee_pct, file_path, file_size_bytes) ON public.marketplace_products FROM anon;
+REVOKE SELECT (admin_notes, rejected_reason, ai_review_issues, platform_fee_pct) ON public.marketplace_products FROM authenticated;
