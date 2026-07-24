@@ -678,7 +678,7 @@ function FeaturedProducts() {
 
 function FeaturedSkeleton() {
   return (
-    <section className="bg-bg-page pb-16 pt-4">
+    <section className="pb-16 pt-4" style={{ backgroundColor: "#1C1A20" }}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader title="Featured Products" />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">

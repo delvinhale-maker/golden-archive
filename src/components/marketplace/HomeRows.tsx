@@ -151,13 +151,15 @@ export function ContinueBrowsingRow() {
   });
   if (ids.length === 0) return null;
   return (
-    <Row
-      icon={Clock}
-      kicker="PICK UP WHERE YOU LEFT OFF"
-      title="Continue Browsing"
-      products={data ?? []}
-      loading={isLoading}
-    />
+    <div style={{ backgroundColor: "#1C1A20" }}>
+      <Row
+        icon={Clock}
+        kicker="PICK UP WHERE YOU LEFT OFF"
+        title="From Your Library"
+        products={data ?? []}
+        loading={isLoading}
+      />
+    </div>
   );
 }
 
