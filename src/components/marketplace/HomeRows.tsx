@@ -151,7 +151,7 @@ export function ContinueBrowsingRow() {
   });
   if (ids.length === 0) return null;
   return (
-    <div style={{ backgroundColor: "#1C1A20" }}>
+    <div style={{ backgroundColor: "#1C1A20", ["--scheme-bg" as any]: "#1C1A20", ["--scheme-fg" as any]: "#ffffff", ["--scheme-muted" as any]: "rgba(255,255,255,0.72)", ["--scheme-border" as any]: "rgba(255,255,255,0.12)" }}>
       <Row
         icon={Clock}
         kicker="PICK UP WHERE YOU LEFT OFF"
