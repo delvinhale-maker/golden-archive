@@ -12,7 +12,7 @@ export function NewReleasesRow() {
   const products = data as Product[];
   if (products.length === 0) return null;
   return (
-    <section className="bg-bg-page py-12 md:py-16">
+    <section className="py-12 md:py-16" style={{ backgroundColor: "#1C1A20" }}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-8 flex flex-col items-center text-center">
           <span
