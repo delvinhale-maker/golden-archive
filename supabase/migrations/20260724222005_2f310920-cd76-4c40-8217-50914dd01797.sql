@@ -1,0 +1,1 @@
+GRANT SELECT (admin_notes, rejected_reason, ai_review_issues, platform_fee_pct) ON public.marketplace_products TO authenticated;
