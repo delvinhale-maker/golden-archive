@@ -248,6 +248,8 @@ function AffiliateBandHeader() {
       </div>
     </section>
   );
+}
+
 
 
 
