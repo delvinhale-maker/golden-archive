@@ -175,21 +175,12 @@ function Home() {
 
       {/* FeaturedCreatorsRow removed per request */}
 
-      <Suspense fallback={null}>
-        <VaultFindsRow />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <VaultFindsGrid />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <VaultFindsCategorySections />
-      </Suspense>
-
-
-
-
+      {/*
+        AurumVault-owned product rows come FIRST and are never replaced by
+        affiliate content. Affiliate (Amazon) rows live in their own labeled
+        band below, after FeaturedProducts, so they can never hide or push
+        out real AurumVault tiles.
+      */}
       <Suspense fallback={null}>
         <CategoryGrid13 />
       </Suspense>
@@ -197,6 +188,20 @@ function Home() {
       <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProducts />
       </Suspense>
+
+      {/* --- Affiliate band (Vault Finds) --------------------------------- */}
+      <AffiliateBandHeader />
+      <Suspense fallback={null}>
+        <VaultFindsRow />
+      </Suspense>
+      <Suspense fallback={null}>
+        <VaultFindsGrid />
+      </Suspense>
+      <Suspense fallback={null}>
+        <VaultFindsCategorySections />
+      </Suspense>
+      {/* --- End affiliate band ------------------------------------------ */}
+
       <HighlightsBoundary fallback={<CreatorSkeleton />} errorLabel="featured creator">
         <IllustriousCreator />
       </HighlightsBoundary>
@@ -220,6 +225,32 @@ function Home() {
     </MarketShell>
   );
 }
+
+function AffiliateBandHeader() {
+  return (
+    <section
+      aria-label="Affiliate picks divider"
+      className="border-y border-white/10 bg-[#1C1A20]"
+    >
+      <div className="mx-auto max-w-7xl px-6 py-6 lg:px-8">
+        <div className="flex flex-col items-center text-center">
+          <div className="text-[11px] font-semibold tracking-[0.22em] text-gold">
+            AFFILIATE PICKS · AMAZON
+          </div>
+          <h2 className="mt-2 font-display text-2xl text-white md:text-3xl">
+            Vault Finds
+          </h2>
+          <p className="mt-2 max-w-xl text-xs text-white/60">
+            Handpicked tools from around the web. Separate from AurumVault
+            creator products — we may earn a commission on qualifying purchases.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
 
 
 
