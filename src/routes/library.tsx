@@ -182,7 +182,7 @@ function LibraryPage() {
         </div>
 
         {/* Content */}
-        <section className="mt-6">
+        <section className="mt-6 rounded-2xl p-4 md:p-6" style={{ backgroundColor: "#1C1A20" }}>
           {ordersQ.isLoading ? (
             <ul className="grid grid-cols-1 gap-4 md:grid-cols-2" aria-busy="true" aria-label="Loading library">
               {Array.from({ length: 4 }).map((_, i) => (
