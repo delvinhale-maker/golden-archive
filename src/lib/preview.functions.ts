@@ -419,7 +419,7 @@ async function extractEpubFirstChapter(bytes: Uint8Array): Promise<{ chapterTitl
   const bodyMatch = chapterXhtml.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i);
   const inner = bodyMatch ? bodyMatch[1] : chapterXhtml;
   const titleMatch = chapterXhtml.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i);
-  const chapterTitle = titleMatch ? stripTags(titleMatch[1]).trim() || null : null;
+  const chapterTitle = titleMatch ? decodeXmlEntities(stripTags(titleMatch[1])).trim() || null : null;
   return { chapterTitle, html: sanitizeChapterHtml(inner) };
 }
 
