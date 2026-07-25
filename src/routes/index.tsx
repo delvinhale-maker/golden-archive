@@ -100,6 +100,11 @@ const highlightsQ = queryOptions({
   staleTime: 0,
   refetchOnMount: "always",
 });
+const homepageLayoutQ = queryOptions({
+  queryKey: ["homepage-layout"],
+  queryFn: () => getHomepageLayout(),
+  staleTime: 30_000,
+});
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => {
@@ -111,6 +116,7 @@ export const Route = createFileRoute("/")({
     context.queryClient.ensureQueryData(featuredCreatorsQ);
     context.queryClient.ensureQueryData(topCreatorsQ);
     context.queryClient.ensureQueryData(categoryCountsQ);
+    context.queryClient.ensureQueryData(homepageLayoutQ);
   },
 
 
