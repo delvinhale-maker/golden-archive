@@ -349,7 +349,13 @@ function AdminAcademyList() {
                     className={`border-t border-ink/5 ${r.archived ? "opacity-60" : ""}`}
                   >
                     <td className="p-3">
-                      <div className="font-medium text-ink">{r.title}</div>
+                      <Link
+                        to="/admin/academy/$id"
+                        params={{ id: r.id }}
+                        className="font-medium text-ink hover:text-[#B8860B] hover:underline"
+                      >
+                        {r.title}
+                      </Link>
                       <div className="text-xs text-ink/50">/{r.slug}</div>
                     </td>
                     <td className="p-3 text-ink/70">{r.category}</td>
