@@ -323,7 +323,7 @@ function AdminAcademyList() {
           </label>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-2xl border border-ink/10 bg-white">
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
           {busy ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="animate-spin" />
@@ -331,7 +331,7 @@ function AdminAcademyList() {
           ) : filtered.length === 0 ? (
             <div className="py-16 text-center text-sm text-ink/60">No articles match.</div>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[720px] text-sm">
               <thead className="bg-ink/[0.03] text-left text-xs uppercase tracking-wider text-ink/60">
                 <tr>
                   <th className="p-3">Title</th>
