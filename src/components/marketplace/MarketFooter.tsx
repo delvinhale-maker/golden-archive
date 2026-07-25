@@ -14,8 +14,6 @@ const COMPANY_LINKS: FooterLink[] = [
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
   { label: "Support", to: "/dashboard/help" },
-  { label: "Gift Cards", to: "/gift-cards" },
-  { label: "Vault Points", to: "/loyalty" },
 ];
 
 const CREATOR_LINKS: FooterLink[] = [
