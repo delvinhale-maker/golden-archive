@@ -16,4 +16,4 @@ export const MARKETPLACE_PAGE_SIZE = 12;
  * Number of featured products shown on the home page rail.
  * Kept separate from PAGE_SIZE so the home rail can be tuned independently.
  */
-export const FEATURED_PRODUCTS_LIMIT = 12;
+export const FEATURED_PRODUCTS_LIMIT = 24;
