@@ -1239,6 +1239,39 @@ export type Database = {
         }
         Relationships: []
       }
+      homepage_layout: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          key: string
+          kind: string
+          label: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          key: string
+          kind: string
+          label: string
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          key?: string
+          kind?: string
+          label?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       marketplace_products: {
         Row: {
           admin_notes: string | null
