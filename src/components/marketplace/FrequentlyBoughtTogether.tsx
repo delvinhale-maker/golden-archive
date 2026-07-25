@@ -80,8 +80,7 @@ export function FrequentlyBoughtTogether({ product }: { product: Product }) {
                     onChange={(e) =>
                       setPicked((prev) => ({ ...prev, [p.id]: e.target.checked }))
                     }
-                    className="mt-0.5 accent-[var(--gold)]"
-                    disabled={i === 0}
+                    className="mt-0.5 h-4 w-4 accent-[var(--gold)]"
                   />
                   <div className="min-w-0">
                     <div className="line-clamp-2 text-xs font-semibold text-ink">
