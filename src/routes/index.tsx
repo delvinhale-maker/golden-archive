@@ -45,6 +45,7 @@ import {
   getHomeHighlights,
   type Product,
 } from "@/lib/marketplace.functions";
+import { getHomepageLayout } from "@/lib/homepage-layout.functions";
 
 import { useAuth } from "@/hooks/use-auth";
 
