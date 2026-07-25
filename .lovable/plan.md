@@ -1,64 +1,57 @@
+## Goal
+Admin-editable ordering of homepage sections and Vault Finds affiliate bands, persisted in the database and reflected on the live site without redeploying.
 
-# AurumVault Academy Editorial Studio
+## What ships
 
-This spec is large enough that shipping it in one pass would be reckless — a single "publish" bug could break the live Academy. I'll build it in three phases so each one is reviewable and publishable on its own. Every phase is admin-only (gated by the existing `has_role(auth.uid(), 'admin')` check plus the `_authenticated/admin.*` route layout).
+### 1. Database
+New table `homepage_layout`:
+- `key` (text, unique) — stable ID per section (e.g. `featured_products`, `vault_finds_grid`)
+- `kind` (`'section' | 'affiliate'`) — which list it belongs to
+- `position` (int) — sort order within its list
+- `enabled` (bool) — reserved for future use, defaults true (out of scope for this pass; not exposed in UI)
+- `label` (text) — human-readable name shown in the admin UI
+- Seeded with every current homepage row and every Vault Finds band, in their existing order.
+- RLS: public read (anon + authenticated); admin-only write via `has_role`.
 
-## Phase 1 — Editorial Studio shell + core publishing (this turn)
+### 2. Server functions (`src/lib/homepage-layout.functions.ts`)
+- `getHomepageLayout()` — public read; returns two ordered arrays (sections, affiliates).
+- `saveHomepageLayout({ kind, orderedKeys })` — admin-only; updates `position` per key atomically.
 
-The floating gold "+" on `/academy` becomes the Editorial Studio launcher. Non-admins never see the button; the component returns `null` unless `useAuth().isAdmin` is true.
+### 3. Admin page — `/admin/homepage`
+- Route: `src/routes/_authenticated/admin.homepage.tsx`
+- Two side-by-side drag-and-drop lists (Homepage Sections / Affiliate Bands).
+- Pointer-event based drag (same pattern already used in `VaultFindsGrid`) so it works on mobile.
+- Save persists via `saveHomepageLayout`; success toast; invalidates the layout query.
+- Non-admins are redirected home.
+- Linked from the existing admin index page.
 
-Menu (expanding radial/stack, navy → cream → gold, blur backdrop, Framer Motion):
-- New Article → creates a draft row via existing `academy_articles` insert, routes to editor
-- Edit Article → `/admin/academy` (already exists — polish list: search, category filter, status filter, sort, duplicate, archive, delete)
-- Preview → opens current article in a new tab at `/academy/article/$slug?preview=1`
-- Publish / Save Draft / Schedule / SEO / Upload Featured Image → all deep-link into the editor with the correct panel open
+### 4. Homepage renderer
+- Introduce a keyed registry in `src/routes/index.tsx`:
+  ```ts
+  const SECTION_REGISTRY: Record<string, () => JSX.Element> = { ... }
+  const AFFILIATE_REGISTRY: Record<string, () => JSX.Element> = { ... }
+  ```
+- `Home()` fetches the layout (`useSuspenseQuery`) and renders sections in the configured order, then the affiliate band header, then affiliate rows in the configured order.
+- Fixed anchors preserved as-is (Hero, CategoryCTABar, TrustBar, RefreshBar, ContinueBrowsing, AffiliateBandHeader, closing sections such as HeroStatsBar/TopCreators/WhyAurumVault/KingdomBibleApp/EmailCapture). Only the middle content rows and the affiliate rows are reorderable in this pass — matches "reorder sections" + "reorder affiliate bands independently" and avoids breaking the hero/footer chrome.
 
-Editor upgrades to `/admin/academy/$id` (extends existing file, no rewrite):
-- Title + Subtitle + Excerpt + Author + Category + Difficulty (new column) + Reading time (auto from body word count, editable)
-- Featured image: drag-and-drop upload to a new `academy-covers` public bucket with instant preview, alt text, caption
-- Rich body editor (Tiptap: H1–H4, bold/italic/underline, lists, quotes, code, tables, image, video embed, link, divider, callout)
-- Toggles: Featured, Editor's Pick, Latest, Pinned
-- Status: Draft / Scheduled / Published with a scheduler (date + time + timezone)
-- Autosave every 30s with "Last saved …" indicator
-- Related products (already exists) + Related articles picker + Tags
-- Sticky publish bar: Preview · Save draft · Schedule · Publish
+### Section keys exposed to admin
+Sections: `new_releases`, `kingdom_picks`, `category_grid`, `featured_products`, `illustrious_creator`.
+Affiliates: `vault_finds_row`, `vault_finds_grid`, `vault_finds_category_sections`.
 
-Publish confirmation modal shows word count, reading time, missing alt/meta warnings, then success animation + copy URL + share links.
+## Out of scope (can add later)
+- Toggling sections on/off (schema supports it; UI not built this pass).
+- Renaming titles/kickers.
+- Reordering hero/footer chrome.
 
-DB migration (single):
-- `academy-covers` public storage bucket + admin-write RLS
-- `academy_articles`: add `subtitle`, `difficulty` (enum), `tags text[]`, `editors_pick bool`, `is_latest bool`, `cover_alt`, `cover_caption`, `focus_keyword`, `secondary_keywords text[]`, `canonical_url`, `og_title`, `og_description`, `twitter_card`, `schema_type`, `robots_index bool`, `robots_follow bool`
-- `academy_article_versions` (id, article_id, snapshot jsonb, saved_at, saved_by) for version history
-- `academy_article_related` (article_id, related_id, sort_order)
-- All with proper GRANTs + admin-only write policies; public read stays as-is
+## Verification
+- Migration runs and seeds all keys.
+- `/admin/homepage` renders for admin, redirects otherwise; drag reorders persist after reload.
+- Homepage reflects the saved order on next navigation (query invalidated on save).
+- Non-admin visits to the homepage load layout via the anon-readable server fn.
 
-## Phase 2 — SEO dashboard + internal-linking assistant
-
-- Dedicated SEO panel in the editor with score/100, live recommendations (keyword density, H2 presence, internal/external links, alt text, title/meta length)
-- Schema JSON-LD emitted from article route `head()` based on `schema_type`
-- Sitemap route (`sitemap.xml`) already includes articles; extend to include `lastmod` from new fields
-- Internal linking suggestions: query `academy_articles` + `marketplace_products` by shared category/keyword while editing
-
-## Phase 3 — Preview modes + media manager + auto footer
-
-- Preview route with Desktop / Tablet / Mobile / Dark / Light frames
-- Standalone Media Manager (upload, crop, resize, WebP conversion via `sharp`-free browser canvas, alt/caption library)
-- Automatic article footer component (About AurumVault Editorial, related articles, recommended products, newsletter signup, share buttons, last updated, reading time) rendered on `/academy/article/$slug`
-
-## Technical notes (for me)
-
-- Tiptap (`@tiptap/react`, StarterKit, table, link, image, youtube) — add via `bun add`
-- Autosave debounced with `useEffect` + `setInterval`; version snapshot on each successful save
-- Storage bucket created via `supabase--storage_create_bucket`
-- All migrations follow the CREATE → GRANT → RLS ENABLE → POLICY order
-- Difficulty enum: `create type public.academy_difficulty as enum ('beginner','intermediate','advanced')`
-- Publish is a normal Supabase update; the existing site auto-serves updated rows — no separate "publish pipeline" needed
-- Non-admin visitors: the FAB, editor routes, and admin API paths all return `null` / redirect
-
-## Out of scope until you confirm
-
-- Substack-style newsletter delivery (needs a sender identity + list)
-- AI writing assistant (would use Lovable AI Gateway — say the word and I'll add it in Phase 2)
-- Multi-author permissions beyond "admin" (spec says admin-only, so I'm keeping it that way)
-
-Approve and I'll ship Phase 1 in the next turn.
+## Files
+- `supabase migration` — new table + seed + RLS.
+- `src/lib/homepage-layout.functions.ts` — new.
+- `src/routes/_authenticated/admin.homepage.tsx` — new.
+- `src/routes/index.tsx` — refactor middle section render + affiliate rows to use layout.
+- `src/routes/_authenticated/admin.index.tsx` — add link tile (small edit).
