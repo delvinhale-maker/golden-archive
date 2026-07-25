@@ -160,7 +160,84 @@ const CATS = [
   { label: "Business", icon: Briefcase, slug: "Business" },
 ];
 
+const SECTION_REGISTRY: Record<string, () => JSX.Element> = {
+  new_releases: () => (
+    <Suspense fallback={null}>
+      <NewReleasesRow />
+    </Suspense>
+  ),
+  kingdom_picks: () => (
+    <Suspense fallback={null}>
+      <KingdomPicksRow />
+    </Suspense>
+  ),
+  category_grid: () => (
+    <Suspense fallback={null}>
+      <CategoryGrid13 />
+    </Suspense>
+  ),
+  featured_products: () => (
+    <Suspense fallback={<FeaturedSkeleton />}>
+      <FeaturedProducts />
+    </Suspense>
+  ),
+  illustrious_creator: () => (
+    <HighlightsBoundary fallback={<CreatorSkeleton />} errorLabel="featured creator">
+      <IllustriousCreator />
+    </HighlightsBoundary>
+  ),
+};
+
+const AFFILIATE_REGISTRY: Record<string, () => JSX.Element> = {
+  vault_finds_row: () => (
+    <Suspense fallback={null}>
+      <VaultFindsRow />
+    </Suspense>
+  ),
+  vault_finds_grid: () => (
+    <Suspense fallback={null}>
+      <VaultFindsGrid />
+    </Suspense>
+  ),
+  vault_finds_category_sections: () => (
+    <Suspense fallback={null}>
+      <VaultFindsCategorySections />
+    </Suspense>
+  ),
+};
+
+const DEFAULT_SECTION_ORDER = [
+  "new_releases",
+  "kingdom_picks",
+  "category_grid",
+  "featured_products",
+  "illustrious_creator",
+];
+const DEFAULT_AFFILIATE_ORDER = [
+  "vault_finds_row",
+  "vault_finds_grid",
+  "vault_finds_category_sections",
+];
+
 function Home() {
+  const { data: layout } = useSuspenseQuery(homepageLayoutQ);
+  const sectionKeys = layout.sections.length
+    ? layout.sections.map((s) => s.key)
+    : DEFAULT_SECTION_ORDER;
+  const affiliateKeys = layout.affiliates.length
+    ? layout.affiliates.map((s) => s.key)
+    : DEFAULT_AFFILIATE_ORDER;
+
+  // Split configurable sections: the affiliate band lives right after
+  // FeaturedProducts historically, but we keep the "IllustriousCreator"
+  // section (and anything else configured after featured_products) below
+  // the affiliate band to preserve the visual chrome.
+  const featuredIdx = sectionKeys.indexOf("featured_products");
+  const beforeAffiliate =
+    featuredIdx >= 0 ? sectionKeys.slice(0, featuredIdx + 1) : sectionKeys;
+  const afterAffiliate =
+    featuredIdx >= 0 ? sectionKeys.slice(featuredIdx + 1) : [];
+
   return (
     <MarketShell>
       <HighlightsBoundary fallback={<HeroCarousel loading />} errorLabel="hero product">
@@ -173,46 +250,24 @@ function Home() {
       <RefreshHighlightsBar />
       <ContinueBrowsingRow />
 
-      <Suspense fallback={null}>
-        <NewReleasesRow />
-      </Suspense>
-      <Suspense fallback={null}>
-        <KingdomPicksRow />
-      </Suspense>
-
-      {/* FeaturedCreatorsRow removed per request */}
-
-      {/*
-        AurumVault-owned product rows come FIRST and are never replaced by
-        affiliate content. Affiliate (Amazon) rows live in their own labeled
-        band below, after FeaturedProducts, so they can never hide or push
-        out real AurumVault tiles.
-      */}
-      <Suspense fallback={null}>
-        <CategoryGrid13 />
-      </Suspense>
-
-      <Suspense fallback={<FeaturedSkeleton />}>
-        <FeaturedProducts />
-      </Suspense>
+      {beforeAffiliate.map((key) => {
+        const R = SECTION_REGISTRY[key];
+        return R ? <div key={key}>{R()}</div> : null;
+      })}
 
       {/* --- Affiliate band (Vault Finds) --------------------------------- */}
       <AffiliateBandHeader />
-      <Suspense fallback={null}>
-        <VaultFindsRow />
-      </Suspense>
-      <Suspense fallback={null}>
-        <VaultFindsGrid />
-      </Suspense>
-      <Suspense fallback={null}>
-        <VaultFindsCategorySections />
-      </Suspense>
+      {affiliateKeys.map((key) => {
+        const R = AFFILIATE_REGISTRY[key];
+        return R ? <div key={key}>{R()}</div> : null;
+      })}
       {/* --- End affiliate band ------------------------------------------ */}
 
-      <HighlightsBoundary fallback={<CreatorSkeleton />} errorLabel="featured creator">
-        <IllustriousCreator />
-      </HighlightsBoundary>
-      {/* CreatorSpotlight removed per request */}
+      {afterAffiliate.map((key) => {
+        const R = SECTION_REGISTRY[key];
+        return R ? <div key={key}>{R()}</div> : null;
+      })}
+
       <SectionDivider variant="ivory-to-navy" />
       <HeroStatsBar />
       <Suspense fallback={null}>
@@ -228,10 +283,10 @@ function Home() {
       <Suspense fallback={null}>
         <EmailCaptureBanner />
       </Suspense>
-
     </MarketShell>
   );
 }
+
 
 function AffiliateBandHeader() {
   return (
