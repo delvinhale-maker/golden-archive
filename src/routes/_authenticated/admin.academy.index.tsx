@@ -323,7 +323,7 @@ function AdminAcademyList() {
           </label>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-2xl border border-ink/10 bg-white">
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
           {busy ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="animate-spin" />
@@ -331,7 +331,7 @@ function AdminAcademyList() {
           ) : filtered.length === 0 ? (
             <div className="py-16 text-center text-sm text-ink/60">No articles match.</div>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[720px] text-sm">
               <thead className="bg-ink/[0.03] text-left text-xs uppercase tracking-wider text-ink/60">
                 <tr>
                   <th className="p-3">Title</th>
@@ -339,7 +339,7 @@ function AdminAcademyList() {
                   <th className="p-3">Status</th>
                   <th className="p-3">Views</th>
                   <th className="p-3">Flags</th>
-                  <th className="p-3"></th>
+                  <th className="p-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -349,7 +349,13 @@ function AdminAcademyList() {
                     className={`border-t border-ink/5 ${r.archived ? "opacity-60" : ""}`}
                   >
                     <td className="p-3">
-                      <div className="font-medium text-ink">{r.title}</div>
+                      <Link
+                        to="/admin/academy/$id"
+                        params={{ id: r.id }}
+                        className="font-medium text-ink hover:text-[#B8860B] hover:underline"
+                      >
+                        {r.title}
+                      </Link>
                       <div className="text-xs text-ink/50">/{r.slug}</div>
                     </td>
                     <td className="p-3 text-ink/70">{r.category}</td>
