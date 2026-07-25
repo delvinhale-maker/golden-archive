@@ -29,7 +29,7 @@ import {
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { StripeEmbeddedProductCheckout } from "@/components/StripeEmbeddedCheckout";
-import { CustomersAlsoBought } from "@/components/marketplace/CustomersAlsoBought";
+
 import { ImageZoom } from "@/components/marketplace/ImageZoom";
 import { TrustBadges, KingdomGuarantee, FormatSelector } from "@/components/marketplace/TrustBadges";
 import { ReviewsSection } from "@/components/marketplace/ReviewsSection";
@@ -666,7 +666,7 @@ function ProductPage() {
 
         <QASection productId={product.id} />
 
-        <CustomersAlsoBought category={product.category} excludeId={product.id} />
+        
 
         <ReportIssueLink title={product.title} />
       </div>
