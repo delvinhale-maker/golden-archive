@@ -339,7 +339,7 @@ function AdminAcademyList() {
                   <th className="p-3">Status</th>
                   <th className="p-3">Views</th>
                   <th className="p-3">Flags</th>
-                  <th className="p-3"></th>
+                  <th className="p-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
