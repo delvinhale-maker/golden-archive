@@ -171,11 +171,6 @@ const SECTION_REGISTRY: Record<string, () => React.ReactElement> = {
       <KingdomPicksRow />
     </Suspense>
   ),
-  category_grid: () => (
-    <Suspense fallback={null}>
-      <CategoryGrid13 />
-    </Suspense>
-  ),
   featured_products: () => (
     <Suspense fallback={<FeaturedSkeleton />}>
       <FeaturedProducts />
