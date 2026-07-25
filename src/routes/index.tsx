@@ -160,7 +160,7 @@ const CATS = [
   { label: "Business", icon: Briefcase, slug: "Business" },
 ];
 
-const SECTION_REGISTRY: Record<string, () => JSX.Element> = {
+const SECTION_REGISTRY: Record<string, () => React.ReactElement> = {
   new_releases: () => (
     <Suspense fallback={null}>
       <NewReleasesRow />
@@ -188,7 +188,7 @@ const SECTION_REGISTRY: Record<string, () => JSX.Element> = {
   ),
 };
 
-const AFFILIATE_REGISTRY: Record<string, () => JSX.Element> = {
+const AFFILIATE_REGISTRY: Record<string, () => React.ReactElement> = {
   vault_finds_row: () => (
     <Suspense fallback={null}>
       <VaultFindsRow />
