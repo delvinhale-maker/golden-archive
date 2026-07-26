@@ -538,8 +538,22 @@ function AdminAcademyEditor() {
             <Link to="/admin/academy" className="text-sm text-[#B8860B]">
               ← All articles
             </Link>
-            <span className="hidden text-xs text-ink/50 md:inline">
-              {autoStatus || `Last saved: ${lastSaved}`} · {wordCount} words · ~{a.reading_time_min} min
+            <span
+              className={`hidden items-center gap-1.5 text-xs md:inline-flex ${
+                isDirty ? "text-amber-600" : "text-ink/50"
+              }`}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  isDirty ? "bg-amber-500 animate-pulse" : "bg-emerald-500"
+                }`}
+                aria-hidden
+              />
+              {isDirty
+                ? "Unsaved changes…"
+                : autoStatus || `Last saved: ${lastSaved}`}
+              {" · "}
+              {wordCount} words · ~{a.reading_time_min} min
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
