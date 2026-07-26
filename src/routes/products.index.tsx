@@ -224,9 +224,29 @@ function ProductsPage() {
           </aside>
 
           <div>
-            <p className="mb-4 text-sm text-mute">
-              {query.isFetching && !query.data ? "Loading..." : `${products.length} results`}
-            </p>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-sm text-mute">
+              <p>
+                {query.isFetching && !query.data
+                  ? "Loading..."
+                  : filtered.length === 0
+                    ? "0 results"
+                    : `Showing ${pageStart + 1}–${pageStart + products.length} of ${filtered.length} results`}
+              </p>
+              <label className="flex items-center gap-2">
+                <span className="text-xs uppercase tracking-caps">Per page</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => updateSearch({ pageSize: Number(e.target.value) })}
+                  className="h-9 rounded-full border border-line bg-white px-3 text-sm font-semibold text-ink focus:outline-none"
+                >
+                  {PAGE_SIZE_OPTIONS.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5">
               {query.isLoading
                 ? Array.from({ length: 6 }).map((_, i) => (
@@ -237,7 +257,15 @@ function ProductsPage() {
                   ))}
             </div>
 
-            {!query.isLoading && products.length === 0 && (() => {
+            {!query.isLoading && filtered.length > pageSize && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onChange={goToPage}
+              />
+            )}
+
+            {!query.isLoading && filtered.length === 0 && (() => {
               const onlyCategoryFilter =
                 !!search.category &&
                 !search.q &&
@@ -267,6 +295,7 @@ function ProductsPage() {
                 </div>
               );
             })()}
+
 
           </div>
         </div>
