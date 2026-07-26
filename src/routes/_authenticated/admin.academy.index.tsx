@@ -119,19 +119,21 @@ function AdminAcademyList() {
     return sorted;
   }, [rows, q, catFilter, statusFilter, showArchived, sort]);
 
-  const create = async () => {
-    if (!newTitle.trim()) return;
+  const create = async (title?: string, category?: string) => {
+    const t = (title ?? newTitle).trim();
+    const cat = category ?? newCategory;
+    if (!t) return;
     setCreating(true);
-    const slug = `${slugify(newTitle)}-${Date.now().toString(36).slice(-4)}`;
+    const slug = `${slugify(t)}-${Date.now().toString(36).slice(-4)}`;
     const { data, error } = await supabase
       .from("academy_articles")
       .insert({
         slug,
-        title: newTitle.trim(),
-        category: newCategory,
+        title: t,
+        category: cat,
         author_id: user?.id ?? null,
         author_name: "AurumVault Editorial",
-        body: `# ${newTitle.trim()}\n\nStart writing...`,
+        body: `# ${t}\n\nStart writing...`,
         status: "draft",
       })
       .select("id")
@@ -321,6 +323,18 @@ function AdminAcademyList() {
             />
             Show archived
           </label>
+          <button
+            type="button"
+            onClick={() => {
+              const title = window.prompt("New article title");
+              if (!title || !title.trim()) return;
+              void create(title.trim(), newCategory);
+            }}
+            disabled={creating}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-[#B8860B] px-4 py-2 text-sm font-semibold text-[#0F1E35] disabled:opacity-50"
+          >
+            <Plus size={16} /> Add new article
+          </button>
         </div>
 
         <div className="mt-6 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
