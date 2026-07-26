@@ -328,8 +328,7 @@ function AdminAcademyList() {
             onClick={() => {
               const title = window.prompt("New article title");
               if (!title || !title.trim()) return;
-              setNewTitle(title.trim());
-              void create();
+              void create(title.trim(), newCategory);
             }}
             disabled={creating}
             className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-[#B8860B] px-4 py-2 text-sm font-semibold text-[#0F1E35] disabled:opacity-50"
