@@ -22,7 +22,12 @@ const searchSchema = z.object({
   maxPrice: z.number().optional(),
   rating: z.number().optional(),
   sub: z.string().optional(),
+  page: z.number().int().optional(),
+  pageSize: z.number().int().optional(),
 });
+
+const PAGE_SIZE_OPTIONS = [24, 48, 96] as const;
+const DEFAULT_PAGE_SIZE = 24;
 
 const HIDDEN_CATEGORY_SLUGS = new Set([
   "business_operating_systems",
