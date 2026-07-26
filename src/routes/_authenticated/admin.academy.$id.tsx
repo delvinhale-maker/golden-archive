@@ -147,7 +147,9 @@ function AdminAcademyEditor() {
         .select("*")
         .eq("id", id)
         .maybeSingle();
-      setA((data as Article) ?? null);
+      const loaded = (data as Article) ?? null;
+      setA(loaded);
+      if (loaded) lastSavedSnapshotRef.current = JSON.stringify(loaded);
       const [{ data: tags }, { data: rels }] = await Promise.all([
         supabase.from("academy_article_products").select("product_id").eq("article_id", id),
         supabase
