@@ -321,6 +321,19 @@ function AdminAcademyList() {
             />
             Show archived
           </label>
+          <button
+            type="button"
+            onClick={() => {
+              const title = window.prompt("New article title");
+              if (!title || !title.trim()) return;
+              setNewTitle(title.trim());
+              void create();
+            }}
+            disabled={creating}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-[#B8860B] px-4 py-2 text-sm font-semibold text-[#0F1E35] disabled:opacity-50"
+          >
+            <Plus size={16} /> Add new article
+          </button>
         </div>
 
         <div className="mt-6 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
