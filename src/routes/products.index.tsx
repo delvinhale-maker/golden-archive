@@ -122,6 +122,7 @@ function ProductsPage() {
           sort: search.sort,
           q: search.q,
           page: 1,
+          pageSize: 60,
         },
       }),
     placeholderData: keepPreviousData,
