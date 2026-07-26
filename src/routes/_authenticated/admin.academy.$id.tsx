@@ -106,6 +106,9 @@ function AdminAcademyEditor() {
   const [dragOver, setDragOver] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [published, setPublished] = useState<{ url: string } | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const lastSavedSnapshotRef = useRef<string>("");
+  const autosaveInFlightRef = useRef(false);
 
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [prodSearch, setProdSearch] = useState("");
@@ -144,7 +147,9 @@ function AdminAcademyEditor() {
         .select("*")
         .eq("id", id)
         .maybeSingle();
-      setA((data as Article) ?? null);
+      const loaded = (data as Article) ?? null;
+      setA(loaded);
+      if (loaded) lastSavedSnapshotRef.current = JSON.stringify(loaded);
       const [{ data: tags }, { data: rels }] = await Promise.all([
         supabase.from("academy_article_products").select("product_id").eq("article_id", id),
         supabase
@@ -272,8 +277,20 @@ function AdminAcademyEditor() {
       toast.error(error.message);
       return false;
     }
+    const nextA: Article = {
+      ...a,
+      ...(patch as Partial<Article>),
+      status: nextStatus ?? a.status,
+      published_at:
+        nextStatus === "published" && !a.published_at
+          ? (patch.published_at as string | null) ?? a.published_at
+          : a.published_at,
+    };
+    lastSavedSnapshotRef.current = JSON.stringify(nextA);
+    setIsDirty(false);
+    setAutoStatus(`Saved ${new Date().toLocaleTimeString()}`);
     if (nextStatus === "published") {
-      setA({ ...a, status: "published", published_at: patch.published_at ?? a.published_at });
+      setA(nextA);
       const origin = typeof window !== "undefined" ? window.location.origin : "";
       setPublished({ url: `${origin}/academy/article/${a.slug}` });
       toast.success("Published");
@@ -289,16 +306,46 @@ function AdminAcademyEditor() {
     return true;
   };
 
-  // Autosave every 30s if there are unsaved changes (best-effort)
+  // Track unsaved changes vs. the last persisted snapshot
   useEffect(() => {
     if (!a) return;
-    const t = setInterval(async () => {
+    const current = JSON.stringify(a);
+    setIsDirty(current !== lastSavedSnapshotRef.current);
+  }, [a]);
+
+  // Autosave 8s after the last edit, only when there are unsaved changes
+  useEffect(() => {
+    if (!a || !isDirty) return;
+    const t = setTimeout(async () => {
+      if (autosaveInFlightRef.current) return;
+      autosaveInFlightRef.current = true;
+      const snapshotBefore = JSON.stringify(a);
       const patch = buildPatch();
       const { error } = await supabase.from("academy_articles").update(patch).eq("id", a.id);
-      if (!error) setAutoStatus(`Autosaved ${new Date().toLocaleTimeString()}`);
-    }, 30000);
-    return () => clearInterval(t);
-  }, [a, buildPatch]);
+      autosaveInFlightRef.current = false;
+      if (error) {
+        setAutoStatus(`Autosave failed — ${error.message}`);
+        return;
+      }
+      // Only clear dirty flag if the article hasn't changed while saving
+      lastSavedSnapshotRef.current = snapshotBefore;
+      setIsDirty((prev) => (JSON.stringify(a) === snapshotBefore ? false : prev));
+      setAutoStatus(`Autosaved ${new Date().toLocaleTimeString()}`);
+    }, 8000);
+    return () => clearTimeout(t);
+  }, [a, isDirty, buildPatch]);
+
+  // Warn on tab close / navigation away with unsaved changes
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
 
   // Reading time auto-calc (200 wpm)
   useEffect(() => {
@@ -491,8 +538,22 @@ function AdminAcademyEditor() {
             <Link to="/admin/academy" className="text-sm text-[#B8860B]">
               ← All articles
             </Link>
-            <span className="hidden text-xs text-ink/50 md:inline">
-              {autoStatus || `Last saved: ${lastSaved}`} · {wordCount} words · ~{a.reading_time_min} min
+            <span
+              className={`hidden items-center gap-1.5 text-xs md:inline-flex ${
+                isDirty ? "text-amber-600" : "text-ink/50"
+              }`}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  isDirty ? "bg-amber-500 animate-pulse" : "bg-emerald-500"
+                }`}
+                aria-hidden
+              />
+              {isDirty
+                ? "Unsaved changes…"
+                : autoStatus || `Last saved: ${lastSaved}`}
+              {" · "}
+              {wordCount} words · ~{a.reading_time_min} min
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
