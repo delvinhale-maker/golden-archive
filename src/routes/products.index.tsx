@@ -119,7 +119,7 @@ function ProductsPage() {
   }, [shouldNoindex]);
 
   const query = useQuery({
-    queryKey: ["mp", "products", search],
+    queryKey: ["mp", "products", search.category, search.sort, search.q],
     queryFn: () =>
       getProducts({
         data: {
@@ -127,22 +127,41 @@ function ProductsPage() {
           sort: search.sort,
           q: search.q,
           page: 1,
-          pageSize: 60,
+          pageSize: 100,
         },
       }),
     placeholderData: keepPreviousData,
   });
 
   const raw = (query.data?.items ?? []) as Product[];
-  const products = applyClientFilters(raw, search);
+  const filtered = applyClientFilters(raw, search);
+  const pageSize = Math.max(1, Math.min(100, search.pageSize ?? DEFAULT_PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(Math.max(1, search.page ?? 1), totalPages);
+  const pageStart = (currentPage - 1) * pageSize;
+  const products = filtered.slice(pageStart, pageStart + pageSize);
   const theme = getCategoryTheme(search.category);
 
   const updateSearch = (patch: Record<string, unknown>) => {
+    // Reset to page 1 whenever any filter/sort/pageSize changes.
+    const resetsPage = !("page" in patch);
     navigate({
       to: "/products",
-      search: { ...search, ...patch } as never,
+      search: { ...search, ...patch, ...(resetsPage ? { page: undefined } : {}) } as never,
       replace: true,
     });
+  };
+
+  const goToPage = (p: number) => {
+    const clamped = Math.min(Math.max(1, p), totalPages);
+    navigate({
+      to: "/products",
+      search: { ...search, page: clamped === 1 ? undefined : clamped } as never,
+      replace: false,
+    });
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const clearAll = () =>
