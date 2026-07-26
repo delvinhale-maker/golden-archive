@@ -277,8 +277,20 @@ function AdminAcademyEditor() {
       toast.error(error.message);
       return false;
     }
+    const nextA: Article = {
+      ...a,
+      ...(patch as Partial<Article>),
+      status: nextStatus ?? a.status,
+      published_at:
+        nextStatus === "published" && !a.published_at
+          ? (patch.published_at as string | null) ?? a.published_at
+          : a.published_at,
+    };
+    lastSavedSnapshotRef.current = JSON.stringify(nextA);
+    setIsDirty(false);
+    setAutoStatus(`Saved ${new Date().toLocaleTimeString()}`);
     if (nextStatus === "published") {
-      setA({ ...a, status: "published", published_at: patch.published_at ?? a.published_at });
+      setA(nextA);
       const origin = typeof window !== "undefined" ? window.location.origin : "";
       setPublished({ url: `${origin}/academy/article/${a.slug}` });
       toast.success("Published");
@@ -294,16 +306,46 @@ function AdminAcademyEditor() {
     return true;
   };
 
-  // Autosave every 30s if there are unsaved changes (best-effort)
+  // Track unsaved changes vs. the last persisted snapshot
   useEffect(() => {
     if (!a) return;
-    const t = setInterval(async () => {
+    const current = JSON.stringify(a);
+    setIsDirty(current !== lastSavedSnapshotRef.current);
+  }, [a]);
+
+  // Autosave 8s after the last edit, only when there are unsaved changes
+  useEffect(() => {
+    if (!a || !isDirty) return;
+    const t = setTimeout(async () => {
+      if (autosaveInFlightRef.current) return;
+      autosaveInFlightRef.current = true;
+      const snapshotBefore = JSON.stringify(a);
       const patch = buildPatch();
       const { error } = await supabase.from("academy_articles").update(patch).eq("id", a.id);
-      if (!error) setAutoStatus(`Autosaved ${new Date().toLocaleTimeString()}`);
-    }, 30000);
-    return () => clearInterval(t);
-  }, [a, buildPatch]);
+      autosaveInFlightRef.current = false;
+      if (error) {
+        setAutoStatus(`Autosave failed — ${error.message}`);
+        return;
+      }
+      // Only clear dirty flag if the article hasn't changed while saving
+      lastSavedSnapshotRef.current = snapshotBefore;
+      setIsDirty((prev) => (JSON.stringify(a) === snapshotBefore ? false : prev));
+      setAutoStatus(`Autosaved ${new Date().toLocaleTimeString()}`);
+    }, 8000);
+    return () => clearTimeout(t);
+  }, [a, isDirty, buildPatch]);
+
+  // Warn on tab close / navigation away with unsaved changes
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
 
   // Reading time auto-calc (200 wpm)
   useEffect(() => {
