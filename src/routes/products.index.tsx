@@ -447,6 +447,78 @@ function FilterBlock({ title, children }: { title: string; children: React.React
   );
 }
 
+function Pagination({
+  currentPage,
+  totalPages,
+  onChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onChange: (page: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+  const pages: (number | "…")[] = [];
+  const push = (v: number | "…") => {
+    if (pages[pages.length - 1] !== v) pages.push(v);
+  };
+  const window = 1;
+  for (let p = 1; p <= totalPages; p++) {
+    if (
+      p === 1 ||
+      p === totalPages ||
+      (p >= currentPage - window && p <= currentPage + window)
+    ) {
+      push(p);
+    } else {
+      push("…");
+    }
+  }
+  return (
+    <nav
+      aria-label="Pagination"
+      className="mt-8 flex flex-wrap items-center justify-center gap-2"
+    >
+      <button
+        type="button"
+        onClick={() => onChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="h-9 rounded-full border border-line bg-white px-4 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        Prev
+      </button>
+      {pages.map((p, i) =>
+        p === "…" ? (
+          <span key={`e-${i}`} className="px-2 text-sm text-mute">
+            …
+          </span>
+        ) : (
+          <button
+            key={p}
+            type="button"
+            onClick={() => onChange(p)}
+            aria-current={p === currentPage ? "page" : undefined}
+            className={
+              p === currentPage
+                ? "h-9 min-w-9 rounded-full bg-gold px-3 text-sm font-bold text-navy"
+                : "h-9 min-w-9 rounded-full border border-line bg-white px-3 text-sm font-semibold text-ink hover:bg-muted"
+            }
+          >
+            {p}
+          </button>
+        ),
+      )}
+      <button
+        type="button"
+        onClick={() => onChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="h-9 rounded-full border border-line bg-white px-4 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        Next
+      </button>
+    </nav>
+  );
+}
+
 function applyClientFilters(
   items: Product[],
   s: z.infer<typeof searchSchema>,
