@@ -106,6 +106,9 @@ function AdminAcademyEditor() {
   const [dragOver, setDragOver] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [published, setPublished] = useState<{ url: string } | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const lastSavedSnapshotRef = useRef<string>("");
+  const autosaveInFlightRef = useRef(false);
 
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [prodSearch, setProdSearch] = useState("");
