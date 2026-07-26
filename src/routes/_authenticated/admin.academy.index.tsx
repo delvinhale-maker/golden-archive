@@ -119,19 +119,21 @@ function AdminAcademyList() {
     return sorted;
   }, [rows, q, catFilter, statusFilter, showArchived, sort]);
 
-  const create = async () => {
-    if (!newTitle.trim()) return;
+  const create = async (title?: string, category?: string) => {
+    const t = (title ?? newTitle).trim();
+    const cat = category ?? newCategory;
+    if (!t) return;
     setCreating(true);
-    const slug = `${slugify(newTitle)}-${Date.now().toString(36).slice(-4)}`;
+    const slug = `${slugify(t)}-${Date.now().toString(36).slice(-4)}`;
     const { data, error } = await supabase
       .from("academy_articles")
       .insert({
         slug,
-        title: newTitle.trim(),
-        category: newCategory,
+        title: t,
+        category: cat,
         author_id: user?.id ?? null,
         author_name: "AurumVault Editorial",
-        body: `# ${newTitle.trim()}\n\nStart writing...`,
+        body: `# ${t}\n\nStart writing...`,
         status: "draft",
       })
       .select("id")
