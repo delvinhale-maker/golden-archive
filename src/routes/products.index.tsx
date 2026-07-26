@@ -22,7 +22,12 @@ const searchSchema = z.object({
   maxPrice: z.number().optional(),
   rating: z.number().optional(),
   sub: z.string().optional(),
+  page: z.number().int().optional(),
+  pageSize: z.number().int().optional(),
 });
+
+const PAGE_SIZE_OPTIONS = [24, 48, 96] as const;
+const DEFAULT_PAGE_SIZE = 24;
 
 const HIDDEN_CATEGORY_SLUGS = new Set([
   "business_operating_systems",
@@ -114,7 +119,7 @@ function ProductsPage() {
   }, [shouldNoindex]);
 
   const query = useQuery({
-    queryKey: ["mp", "products", search],
+    queryKey: ["mp", "products", search.category, search.sort, search.q],
     queryFn: () =>
       getProducts({
         data: {
@@ -122,22 +127,41 @@ function ProductsPage() {
           sort: search.sort,
           q: search.q,
           page: 1,
-          pageSize: 60,
+          pageSize: 100,
         },
       }),
     placeholderData: keepPreviousData,
   });
 
   const raw = (query.data?.items ?? []) as Product[];
-  const products = applyClientFilters(raw, search);
+  const filtered = applyClientFilters(raw, search);
+  const pageSize = Math.max(1, Math.min(100, search.pageSize ?? DEFAULT_PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(Math.max(1, search.page ?? 1), totalPages);
+  const pageStart = (currentPage - 1) * pageSize;
+  const products = filtered.slice(pageStart, pageStart + pageSize);
   const theme = getCategoryTheme(search.category);
 
   const updateSearch = (patch: Record<string, unknown>) => {
+    // Reset to page 1 whenever any filter/sort/pageSize changes.
+    const resetsPage = !("page" in patch);
     navigate({
       to: "/products",
-      search: { ...search, ...patch } as never,
+      search: { ...search, ...patch, ...(resetsPage ? { page: undefined } : {}) } as never,
       replace: true,
     });
+  };
+
+  const goToPage = (p: number) => {
+    const clamped = Math.min(Math.max(1, p), totalPages);
+    navigate({
+      to: "/products",
+      search: { ...search, page: clamped === 1 ? undefined : clamped } as never,
+      replace: false,
+    });
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const clearAll = () =>
@@ -200,9 +224,29 @@ function ProductsPage() {
           </aside>
 
           <div>
-            <p className="mb-4 text-sm text-mute">
-              {query.isFetching && !query.data ? "Loading..." : `${products.length} results`}
-            </p>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-sm text-mute">
+              <p>
+                {query.isFetching && !query.data
+                  ? "Loading..."
+                  : filtered.length === 0
+                    ? "0 results"
+                    : `Showing ${pageStart + 1}–${pageStart + products.length} of ${filtered.length} results`}
+              </p>
+              <label className="flex items-center gap-2">
+                <span className="text-xs uppercase tracking-caps">Per page</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => updateSearch({ pageSize: Number(e.target.value) })}
+                  className="h-9 rounded-full border border-line bg-white px-3 text-sm font-semibold text-ink focus:outline-none"
+                >
+                  {PAGE_SIZE_OPTIONS.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5">
               {query.isLoading
                 ? Array.from({ length: 6 }).map((_, i) => (
@@ -213,7 +257,15 @@ function ProductsPage() {
                   ))}
             </div>
 
-            {!query.isLoading && products.length === 0 && (() => {
+            {!query.isLoading && filtered.length > pageSize && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onChange={goToPage}
+              />
+            )}
+
+            {!query.isLoading && filtered.length === 0 && (() => {
               const onlyCategoryFilter =
                 !!search.category &&
                 !search.q &&
@@ -243,6 +295,7 @@ function ProductsPage() {
                 </div>
               );
             })()}
+
 
           </div>
         </div>
@@ -391,6 +444,78 @@ function FilterBlock({ title, children }: { title: string; children: React.React
       </div>
       {children}
     </div>
+  );
+}
+
+function Pagination({
+  currentPage,
+  totalPages,
+  onChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onChange: (page: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+  const pages: (number | "…")[] = [];
+  const push = (v: number | "…") => {
+    if (pages[pages.length - 1] !== v) pages.push(v);
+  };
+  const window = 1;
+  for (let p = 1; p <= totalPages; p++) {
+    if (
+      p === 1 ||
+      p === totalPages ||
+      (p >= currentPage - window && p <= currentPage + window)
+    ) {
+      push(p);
+    } else {
+      push("…");
+    }
+  }
+  return (
+    <nav
+      aria-label="Pagination"
+      className="mt-8 flex flex-wrap items-center justify-center gap-2"
+    >
+      <button
+        type="button"
+        onClick={() => onChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="h-9 rounded-full border border-line bg-white px-4 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        Prev
+      </button>
+      {pages.map((p, i) =>
+        p === "…" ? (
+          <span key={`e-${i}`} className="px-2 text-sm text-mute">
+            …
+          </span>
+        ) : (
+          <button
+            key={p}
+            type="button"
+            onClick={() => onChange(p)}
+            aria-current={p === currentPage ? "page" : undefined}
+            className={
+              p === currentPage
+                ? "h-9 min-w-9 rounded-full bg-gold px-3 text-sm font-bold text-navy"
+                : "h-9 min-w-9 rounded-full border border-line bg-white px-3 text-sm font-semibold text-ink hover:bg-muted"
+            }
+          >
+            {p}
+          </button>
+        ),
+      )}
+      <button
+        type="button"
+        onClick={() => onChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="h-9 rounded-full border border-line bg-white px-4 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        Next
+      </button>
+    </nav>
   );
 }
 
