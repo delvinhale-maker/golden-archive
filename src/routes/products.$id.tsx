@@ -426,6 +426,7 @@ function ProductPage() {
               ariaLabel={product.title}
               renderExpanded={() => (
                 <div className="aspect-[2/3] w-full overflow-hidden rounded-xl bg-[#f5f4ef]">
+                  {product.image && /^https?:\/\//.test(product.image) ? (
                     <img
                       src={optimizedCoverUrl(product.image, { width: 1200, quality: 82 }) ?? product.image}
                       srcSet={coverSrcSet(product.image, [800, 1200, 1600], 82)}
