@@ -198,6 +198,7 @@ function LargeCover({
 }
 
 function StarRow({ rating, count }: { rating: number; count: number }) {
+  if (!count || count <= 0) return null;
   return (
     <div className="flex items-center gap-2">
       <div className="flex">
@@ -214,7 +215,7 @@ function StarRow({ rating, count }: { rating: number; count: number }) {
       <span className="text-sm font-medium" style={{ color: NAVY }}>
         {rating.toFixed(1)}
       </span>
-      <span className="text-sm text-[#6b7280]">({count} reviews)</span>
+      <span className="text-sm text-[#6b7280]">({count})</span>
     </div>
   );
 }
