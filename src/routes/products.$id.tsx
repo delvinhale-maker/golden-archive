@@ -146,13 +146,15 @@ export const Route = createFileRoute("/products/$id")({
             availability: "https://schema.org/InStock",
             seller: { "@type": "Organization", name: "AurumVault" },
           },
-          aggregateRating: {
-            "@type": "AggregateRating",
-            ratingValue:
-              p.rating && p.reviewCount ? Number(p.rating).toFixed(1) : "5",
-            reviewCount:
-              p.rating && p.reviewCount ? p.reviewCount : 1,
-          },
+          ...(p.rating && p.reviewCount
+            ? {
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: Number(p.rating).toFixed(1),
+                  reviewCount: p.reviewCount,
+                },
+              }
+            : {}),
         }),
       });
     }
