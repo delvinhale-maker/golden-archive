@@ -93,7 +93,30 @@ function TermsPage() {
             transaction at issue.
           </Section>
 
-          <Section title="9. Changes to These Terms">
+          <Section title="9. Educational Content Disclaimer (Credit Repair, Consumer Law & Financial Titles)">
+            Certain products sold on AurumVault — including but not limited to
+            titles covering credit repair, disputing credit bureaus, Method of
+            Verification (M.O.V.) letters, "Suing the Credit Bureaus," debt
+            validation, FCRA/FDCPA strategies, and related consumer-law or
+            financial topics — are provided strictly for{" "}
+            <strong>educational and informational purposes only</strong>. These
+            products <strong>do not constitute legal, financial, tax, or
+            professional advice</strong>, and no attorney–client, fiduciary, or
+            advisory relationship is created by purchasing, downloading, or
+            reading them. Creators of these products are not necessarily
+            attorneys, and AurumVault is not a law firm. Laws vary by
+            jurisdiction and change over time; results are not guaranteed and
+            individual outcomes will vary. Before acting on anything contained
+            in these materials — including sending dispute letters, filing
+            lawsuits, or taking any legal or financial action — you should
+            consult a licensed attorney or qualified professional in your
+            jurisdiction. By purchasing these titles you acknowledge that you
+            use the information at your own risk and that AurumVault and the
+            creator disclaim all liability for any outcomes arising from your
+            use of the materials.
+          </Section>
+
+          <Section title="10. Changes to These Terms">
             We may update these terms at any time. Continued use of the Platform
             after changes means you accept the revised terms. Material changes will
             be announced by email or dashboard notice.
