@@ -697,9 +697,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           const coverPath = `${user.id}/${ts}-${f.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
           const up = await supabase.storage.from("product-covers").upload(coverPath, f, { upsert: false });
           if (up.error) throw up.error;
-          const { data: signed } = await supabase.storage.from("product-covers")
-            .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
-          const url = signed?.signedUrl ?? null;
+          const { data: pub } = supabase.storage.from("product-covers").getPublicUrl(coverPath);
+          const url = pub?.publicUrl ?? null;
           setUploadedCoverUrl(url);
           setCoverProgress(100);
           setCoverUploadError(null);
