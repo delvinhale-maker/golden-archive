@@ -45,6 +45,7 @@ export function MarketFooter() {
         <div className="flex gap-6 flex-wrap justify-center">
           <a href="/terms" className="hover:text-white">Terms</a>
           <a href="/privacy" className="hover:text-white">Privacy</a>
+          <a href="/refunds" className="hover:text-white">Refund Policy</a>
           <a href="/affiliate-disclosure" className="hover:text-white">Affiliate Disclosure</a>
           <a href="/creator-agreement" className="hover:text-white">Creator Agreement</a>
         </div>

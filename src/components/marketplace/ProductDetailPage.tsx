@@ -420,6 +420,18 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
                 {liked ? "Added to Wishlist" : "Add to Wishlist"}
               </button>
             </div>
+
+            {/* Refund policy note */}
+            <p className="mt-3 text-center text-xs text-ink/60">
+              Digital goods —{" "}
+              <a
+                href="/refunds"
+                className="font-medium text-navy underline underline-offset-2 hover:text-gold-ink"
+              >
+                see refund policy
+              </a>
+              . 14-day money-back guarantee on eligible purchases.
+            </p>
           </div>
         </div>
 
