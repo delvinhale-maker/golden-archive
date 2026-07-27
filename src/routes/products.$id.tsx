@@ -28,6 +28,7 @@ import {
 
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
+import { optimizedCoverUrl, coverSrcSet } from "@/lib/image-url";
 import { StripeEmbeddedProductCheckout } from "@/components/StripeEmbeddedCheckout";
 
 import { ImageZoom } from "@/components/marketplace/ImageZoom";
