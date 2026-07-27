@@ -6,6 +6,7 @@ import {
   AffiliateBookPlaceholder,
   isPlaceholderImage,
 } from "./AffiliateBookPlaceholder";
+import { AffiliateDisclosureLine } from "./AffiliateDisclosureLine";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -77,6 +78,7 @@ export function KingdomPicksRow() {
           <p className="mt-2 max-w-md text-sm text-navy/70">
             Handpicked reads we recommend — from trusted partners.
           </p>
+          <AffiliateDisclosureLine className="mt-3 justify-center" />
           <span className="mt-3 block h-[2px] w-10 bg-gold" />
         </div>
 
