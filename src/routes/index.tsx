@@ -89,6 +89,10 @@ const VaultFindsGrid = lazy(() =>
 const VaultFindsCategorySections = lazy(() =>
   import("@/components/marketplace/VaultFindsCategorySections").then((m) => ({ default: m.VaultFindsCategorySections })),
 );
+const AcademyLatestRow = lazy(() =>
+  import("@/components/marketplace/AcademyLatestRow").then((m) => ({ default: m.AcademyLatestRow })),
+);
+import { academyLatestQ } from "@/components/marketplace/AcademyLatestRow";
 
 const featuredQ = queryOptions({
   queryKey: ["mp", "featured"],
@@ -117,6 +121,7 @@ export const Route = createFileRoute("/")({
     context.queryClient.ensureQueryData(topCreatorsQ);
     context.queryClient.ensureQueryData(categoryCountsQ);
     context.queryClient.ensureQueryData(homepageLayoutQ);
+    context.queryClient.ensureQueryData(academyLatestQ);
   },
 
 
@@ -181,6 +186,11 @@ const SECTION_REGISTRY: Record<string, () => React.ReactElement> = {
       <IllustriousCreator />
     </HighlightsBoundary>
   ),
+  academy_latest: () => (
+    <Suspense fallback={null}>
+      <AcademyLatestRow />
+    </Suspense>
+  ),
 };
 
 const AFFILIATE_REGISTRY: Record<string, () => React.ReactElement> = {
@@ -204,6 +214,7 @@ const AFFILIATE_REGISTRY: Record<string, () => React.ReactElement> = {
 const DEFAULT_SECTION_ORDER = [
   "new_releases",
   "kingdom_picks",
+  "academy_latest",
   "category_grid",
   "featured_products",
   "illustrious_creator",

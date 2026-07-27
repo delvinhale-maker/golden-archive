@@ -217,3 +217,29 @@ export const listAllPublishedArticlesForSitemap = createServerFn({ method: "GET"
     return (data as Array<{ slug: string; updated_at: string | null }>) ?? [];
   },
 );
+
+export const listLatestAcademyArticles = createServerFn({ method: "GET" }).handler(
+  async (): Promise<{
+    articles: AcademyArticle[];
+    categoryNames: Record<string, string>;
+  }> => {
+    const supa = serverSupabase();
+    const [articlesRes, catsRes] = await Promise.all([
+      supa
+        .from("academy_articles")
+        .select(ARTICLE_COLS)
+        .eq("status", "published")
+        .order("published_at", { ascending: false })
+        .limit(3),
+      supa.from("academy_categories").select("slug,name"),
+    ]);
+    const categoryNames: Record<string, string> = {};
+    for (const c of (catsRes.data as Array<{ slug: string; name: string }> | null) ?? []) {
+      categoryNames[c.slug] = c.name;
+    }
+    return {
+      articles: (articlesRes.data as AcademyArticle[]) ?? [],
+      categoryNames,
+    };
+  },
+);
