@@ -939,9 +939,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           const coverPath = `${user.id}/${ts}-${cover.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
           const coverUp = await supabase.storage.from("product-covers").upload(coverPath, cover, { upsert: false });
           if (coverUp.error) throw coverUp.error;
-          const { data: signed } = await supabase.storage.from("product-covers")
-            .createSignedUrl(coverPath, 60 * 60 * 24 * 365 * 5);
-          coverUrl = signed?.signedUrl ?? null;
+          const { data: pub } = supabase.storage.from("product-covers").getPublicUrl(coverPath);
+          coverUrl = pub?.publicUrl ?? null;
           setUploadedCoverUrl(coverUrl);
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Cover upload failed. Check your connection and try again.";
