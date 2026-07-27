@@ -187,6 +187,8 @@ export function VaultFindsGrid() {
           )}
         </div>
 
+        <AffiliateDisclosureLine className="mb-5" />
+
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
           {items.map((it) => (
             <article
