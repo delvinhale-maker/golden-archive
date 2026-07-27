@@ -230,6 +230,16 @@ function CartPage() {
               </button>
             </div>
             <CheckoutMount items={cart.items} promoCode={appliedPromo} />
+            <p className="mt-4 text-center text-[11px] text-mute">
+              Digital goods —{" "}
+              <Link
+                to="/refunds"
+                className="font-medium text-navy underline underline-offset-2 hover:text-gold-ink"
+              >
+                see refund policy
+              </Link>
+              . 14-day money-back guarantee on eligible purchases.
+            </p>
           </div>
         )}
       </div>
