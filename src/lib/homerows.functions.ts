@@ -88,15 +88,19 @@ async function attachRatings(
   });
 }
 
-// Deterministic 24h rotation across the full catalog so every product cycles
-// through the homepage rows over time (SSR-safe, no per-request randomness).
+// Deterministic intra-day rotation: advances fast enough that every product
+// in the catalog passes through the visible window within a single 24h span.
+// Tick interval = 24h / arr.length, so after `arr.length` ticks (== 24h) the
+// rotation returns to its starting offset. SSR-safe (no per-request randomness).
 function rotateDaily<T>(arr: T[], salt = 0): T[] {
   if (arr.length <= 1) return arr;
-  const day = Math.floor(Date.now() / 86_400_000);
   const n = arr.length;
-  const offset = (((day + salt) % n) + n) % n;
+  const intervalMs = Math.max(1, Math.floor(86_400_000 / n));
+  const tick = Math.floor(Date.now() / intervalMs);
+  const offset = (((tick + salt) % n) + n) % n;
   return arr.slice(offset).concat(arr.slice(0, offset));
 }
+
 
 export const getHomeRows = createServerFn({ method: "GET" }).handler(
   async (): Promise<HomeRows> => {
