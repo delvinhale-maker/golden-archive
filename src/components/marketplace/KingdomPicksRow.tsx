@@ -6,6 +6,7 @@ import {
   AffiliateBookPlaceholder,
   isPlaceholderImage,
 } from "./AffiliateBookPlaceholder";
+import { AffiliateDisclosureLine } from "./AffiliateDisclosureLine";
 import { supabase } from "@/integrations/supabase/client";
 
 
