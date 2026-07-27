@@ -644,22 +644,14 @@ export const getHomeHighlights = createServerFn({ method: "GET" }).handler(
 // reaches the client the same way.
 // ============================================================================
 
-// Clone 1: New Releases — newest approved+published, ordered desc, top 8.
-export const getNewReleasesRowFn = createServerFn({ method: "GET" }).handler(
-  async (): Promise<Product[]> => {
-    // fetchDbProducts already orders by created_at desc
-    const items = await fetchDbProducts();
-    return items.slice(0, 8);
-  },
-);
-
-// Clone 2: Promoted Picks — featured=true, fallback to all products if empty.
+// Clone 1: New Releases — newest approved+published, rotated daily across all.
 export const getNewReleasesRowFn = createServerFn({ method: "GET" }).handler(
   async (): Promise<Product[]> => {
     const items = await fetchDbProducts();
     return rotateDaily(items, 1).slice(0, 8);
   },
 );
+
 
 // Clone 2: Promoted Picks — featured=true, fallback to all products if empty.
 export const getPromotedPicksRowFn = createServerFn({ method: "GET" }).handler(
