@@ -211,6 +211,8 @@ export function VaultFindsRow() {
           </div>
         </div>
 
+        <AffiliateDisclosureLine className="mb-4" />
+
         <div
           id="vault-finds-scroller"
           ref={scrollerRef}
