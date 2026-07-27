@@ -208,6 +208,22 @@ function CheckoutReturn() {
           Links valid for 90 days · check your email for a copy
         </motion.div>
 
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="mt-3 text-center text-xs text-mute"
+        >
+          Digital goods —{" "}
+          <Link
+            to="/refunds"
+            className="font-medium text-navy underline underline-offset-2 hover:text-gold-ink"
+          >
+            see refund policy
+          </Link>
+          . 14-day money-back guarantee on eligible purchases.
+        </motion.p>
+
         {session_id && (
           <p className="mt-4 font-mono text-xs text-mute">
             Order ref: {session_id.slice(-12)}
