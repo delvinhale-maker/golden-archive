@@ -654,6 +654,14 @@ export const getNewReleasesRowFn = createServerFn({ method: "GET" }).handler(
 );
 
 // Clone 2: Promoted Picks — featured=true, fallback to all products if empty.
+export const getNewReleasesRowFn = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Product[]> => {
+    const items = await fetchDbProducts();
+    return rotateDaily(items, 1).slice(0, 8);
+  },
+);
+
+// Clone 2: Promoted Picks — featured=true, fallback to all products if empty.
 export const getPromotedPicksRowFn = createServerFn({ method: "GET" }).handler(
   async (): Promise<Product[]> => {
     try {
@@ -670,14 +678,14 @@ export const getPromotedPicksRowFn = createServerFn({ method: "GET" }).handler(
       if (data && data.length > 0) {
         const products = (data as DbProductRow[]).map((r) => dbRowToProduct(r));
         const agg = await fetchReviewAggregates(supa, products.map((p) => p.id));
-        return applyAggregates(products, agg).slice(0, 8);
+        return rotateDaily(applyAggregates(products, agg), 2).slice(0, 8);
       }
     } catch {
       // fall through to fallback
     }
     // Fallback: all approved products
     const fallback = await fetchDbProducts();
-    return fallback.slice(0, 8);
+    return rotateDaily(fallback, 2).slice(0, 8);
   },
 );
 
@@ -685,7 +693,7 @@ export const getPromotedPicksRowFn = createServerFn({ method: "GET" }).handler(
 export const getRecommendedRowFn = createServerFn({ method: "GET" }).handler(
   async (): Promise<Product[]> => {
     const items = await fetchDbProducts();
-    return items.slice(0, 8);
+    return rotateDaily(items, 3).slice(0, 8);
   },
 );
 
