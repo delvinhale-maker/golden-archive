@@ -146,6 +146,8 @@ export function VaultFindsCategorySections() {
                 </span>
               </div>
 
+              <AffiliateDisclosureLine className="mb-4" />
+
               <div className="grid grid-cols-2 gap-4 md:gap-6">
                 {group.map((it) => {
                   const isUploading = uploadingId === it.id;
