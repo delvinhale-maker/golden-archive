@@ -185,6 +185,11 @@ const SECTION_REGISTRY: Record<string, () => React.ReactElement> = {
       <IllustriousCreator />
     </HighlightsBoundary>
   ),
+  academy_latest: () => (
+    <Suspense fallback={null}>
+      <AcademyLatestRow />
+    </Suspense>
+  ),
 };
 
 const AFFILIATE_REGISTRY: Record<string, () => React.ReactElement> = {
