@@ -28,6 +28,7 @@ import {
 
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
+import { optimizedCoverUrl, coverSrcSet } from "@/lib/image-url";
 import { StripeEmbeddedProductCheckout } from "@/components/StripeEmbeddedCheckout";
 
 import { ImageZoom } from "@/components/marketplace/ImageZoom";
@@ -426,7 +427,14 @@ function ProductPage() {
               renderExpanded={() => (
                 <div className="aspect-[2/3] w-full overflow-hidden rounded-xl bg-[#f5f4ef]">
                   {product.image && /^https?:\/\//.test(product.image) ? (
-                    <img src={product.image} alt={product.title} className="h-full w-full object-contain" />
+                    <img
+                      src={optimizedCoverUrl(product.image, { width: 1200, quality: 82 }) ?? product.image}
+                      srcSet={coverSrcSet(product.image, [800, 1200, 1600], 82)}
+                      sizes="90vw"
+                      alt={product.title}
+                      decoding="async"
+                      className="h-full w-full object-contain"
+                    />
                   ) : (
                     <ProductCover
                       title={product.title}
@@ -439,7 +447,15 @@ function ProductPage() {
               )}
             >
               {product.image && /^https?:\/\//.test(product.image) ? (
-                <img src={product.image} alt={product.title} className="h-full w-full object-contain" />
+                <img
+                  src={optimizedCoverUrl(product.image, { width: 700 }) ?? product.image}
+                  srcSet={coverSrcSet(product.image, [500, 800, 1200])}
+                  sizes="(min-width: 768px) 45vw, 90vw"
+                  alt={product.title}
+                  decoding="async"
+                  fetchPriority="high"
+                  className="h-full w-full object-contain"
+                />
               ) : (
                 <ProductCover
                   title={product.title}

@@ -8,6 +8,7 @@ import { useOwnsProduct } from "@/hooks/use-owned-products";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { categoryDisplay } from "@/lib/product-types";
 import { accentFor } from "@/lib/categories";
+import { optimizedCoverUrl, coverSrcSet } from "@/lib/image-url";
 
 import type { Product } from "@/lib/marketplace.functions";
 
@@ -40,9 +41,12 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         <div className="relative aspect-[2/3] w-full min-h-[280px] md:min-h-[320px] overflow-hidden rounded-md bg-[#F5F0E8] shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
           {hasImage ? (
             <img
-              src={product.image}
+              src={optimizedCoverUrl(product.image, { width: 300 }) ?? product.image}
+              srcSet={coverSrcSet(product.image, [300, 600, 900])}
+              sizes="(min-width: 1024px) 300px, (min-width: 640px) 45vw, 90vw"
               alt={product.title}
               loading="lazy"
+              decoding="async"
               onError={() => setImgFailed(true)}
               className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.04]"
             />
