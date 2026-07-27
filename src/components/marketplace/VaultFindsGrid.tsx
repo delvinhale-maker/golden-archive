@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { ExternalLink, Settings, ImageUp, Loader2, GripVertical } from "lucide-react";
 import { AffiliateImagePreview } from "./AffiliateImagePreview";
+import { AffiliateDisclosureLine } from "./AffiliateDisclosureLine";
 
 const BUCKET = "vault-finds";
 
