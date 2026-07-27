@@ -639,6 +639,16 @@ function ProductPage() {
             <div className="mt-4 flex items-center justify-center gap-2 text-xs text-mute">
               <Lock size={12} /> Secure checkout · Instant delivery
             </div>
+            <p className="mt-2 text-center text-xs text-mute">
+              Digital goods —{" "}
+              <Link
+                to="/refunds"
+                className="font-medium text-navy underline underline-offset-2 hover:text-gold-ink"
+              >
+                see refund policy
+              </Link>
+              . 14-day money-back guarantee on eligible purchases.
+            </p>
 
             {/* What's included — only for non-ebook products with content */}
             {product.included && product.included.length > 0 && (
