@@ -214,6 +214,7 @@ const AFFILIATE_REGISTRY: Record<string, () => React.ReactElement> = {
 const DEFAULT_SECTION_ORDER = [
   "new_releases",
   "kingdom_picks",
+  "academy_latest",
   "category_grid",
   "featured_products",
   "illustrious_creator",
