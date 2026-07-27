@@ -198,8 +198,30 @@ export type Product = {
   fileExt?: string | null;
 };
 
+export type ProductReviewSnippet = {
+  id: string;
+  author: string;
+  rating: number;
+  title: string | null;
+  body: string;
+  createdAt: string;
+};
+
+export type ProductRatingBreakdown = {
+  1: number;
+  2: number;
+  3: number;
+  4: number;
+  5: number;
+};
+
 export type ProductDetailResult =
-  | { kind: "published"; product: Product }
+  | {
+      kind: "published";
+      product: Product;
+      reviews: ProductReviewSnippet[];
+      ratingBreakdown: ProductRatingBreakdown;
+    }
   | { kind: "unpublished"; title: string | null }
   | { kind: "notFound" };
 
