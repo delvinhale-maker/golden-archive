@@ -89,6 +89,10 @@ const VaultFindsGrid = lazy(() =>
 const VaultFindsCategorySections = lazy(() =>
   import("@/components/marketplace/VaultFindsCategorySections").then((m) => ({ default: m.VaultFindsCategorySections })),
 );
+const AcademyLatestRow = lazy(() =>
+  import("@/components/marketplace/AcademyLatestRow").then((m) => ({ default: m.AcademyLatestRow })),
+);
+import { academyLatestQ } from "@/components/marketplace/AcademyLatestRow";
 
 const featuredQ = queryOptions({
   queryKey: ["mp", "featured"],
