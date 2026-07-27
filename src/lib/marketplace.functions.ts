@@ -480,15 +480,19 @@ async function safeFetch<T>(path: string, fallback: T): Promise<T> {
   }
 }
 
-// Deterministic 24h rotation: every product in the catalog cycles through
-// each homepage row over time without a random per-request shuffle (SSR-safe).
+// Deterministic intra-day rotation: advances fast enough that every product
+// in the catalog passes through the visible window within a single 24h span.
+// Tick interval = 24h / arr.length, so after `arr.length` ticks (== 24h) the
+// rotation returns to its starting offset. SSR-safe (no per-request randomness).
 function rotateDaily<T>(arr: T[], salt = 0): T[] {
   if (arr.length <= 1) return arr;
-  const day = Math.floor(Date.now() / 86_400_000);
   const n = arr.length;
-  const offset = (((day + salt) % n) + n) % n;
+  const intervalMs = Math.max(1, Math.floor(86_400_000 / n));
+  const tick = Math.floor(Date.now() / intervalMs);
+  const offset = (((tick + salt) % n) + n) % n;
   return arr.slice(offset).concat(arr.slice(0, offset));
 }
+
 
 export const getFeaturedProducts = createServerFn({ method: "GET" }).handler(async () => {
   const dbItems = await fetchDbProducts();
