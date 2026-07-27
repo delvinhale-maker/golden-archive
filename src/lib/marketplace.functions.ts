@@ -480,9 +480,19 @@ async function safeFetch<T>(path: string, fallback: T): Promise<T> {
   }
 }
 
+// Deterministic 24h rotation: every product in the catalog cycles through
+// each homepage row over time without a random per-request shuffle (SSR-safe).
+function rotateDaily<T>(arr: T[], salt = 0): T[] {
+  if (arr.length <= 1) return arr;
+  const day = Math.floor(Date.now() / 86_400_000);
+  const n = arr.length;
+  const offset = (((day + salt) % n) + n) % n;
+  return arr.slice(offset).concat(arr.slice(0, offset));
+}
+
 export const getFeaturedProducts = createServerFn({ method: "GET" }).handler(async () => {
   const dbItems = await fetchDbProducts();
-  return dbItems.slice(0, FEATURED_PRODUCTS_LIMIT);
+  return rotateDaily(dbItems, 0).slice(0, FEATURED_PRODUCTS_LIMIT);
 });
 
 export const getProducts = createServerFn({ method: "GET" })
@@ -634,14 +644,14 @@ export const getHomeHighlights = createServerFn({ method: "GET" }).handler(
 // reaches the client the same way.
 // ============================================================================
 
-// Clone 1: New Releases — newest approved+published, ordered desc, top 8.
+// Clone 1: New Releases — newest approved+published, rotated daily across all.
 export const getNewReleasesRowFn = createServerFn({ method: "GET" }).handler(
   async (): Promise<Product[]> => {
-    // fetchDbProducts already orders by created_at desc
     const items = await fetchDbProducts();
-    return items.slice(0, 8);
+    return rotateDaily(items, 1).slice(0, 8);
   },
 );
+
 
 // Clone 2: Promoted Picks — featured=true, fallback to all products if empty.
 export const getPromotedPicksRowFn = createServerFn({ method: "GET" }).handler(
@@ -660,14 +670,14 @@ export const getPromotedPicksRowFn = createServerFn({ method: "GET" }).handler(
       if (data && data.length > 0) {
         const products = (data as DbProductRow[]).map((r) => dbRowToProduct(r));
         const agg = await fetchReviewAggregates(supa, products.map((p) => p.id));
-        return applyAggregates(products, agg).slice(0, 8);
+        return rotateDaily(applyAggregates(products, agg), 2).slice(0, 8);
       }
     } catch {
       // fall through to fallback
     }
     // Fallback: all approved products
     const fallback = await fetchDbProducts();
-    return fallback.slice(0, 8);
+    return rotateDaily(fallback, 2).slice(0, 8);
   },
 );
 
@@ -675,7 +685,7 @@ export const getPromotedPicksRowFn = createServerFn({ method: "GET" }).handler(
 export const getRecommendedRowFn = createServerFn({ method: "GET" }).handler(
   async (): Promise<Product[]> => {
     const items = await fetchDbProducts();
-    return items.slice(0, 8);
+    return rotateDaily(items, 3).slice(0, 8);
   },
 );
 

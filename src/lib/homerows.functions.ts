@@ -88,6 +88,16 @@ async function attachRatings(
   });
 }
 
+// Deterministic 24h rotation across the full catalog so every product cycles
+// through the homepage rows over time (SSR-safe, no per-request randomness).
+function rotateDaily<T>(arr: T[], salt = 0): T[] {
+  if (arr.length <= 1) return arr;
+  const day = Math.floor(Date.now() / 86_400_000);
+  const n = arr.length;
+  const offset = (((day + salt) % n) + n) % n;
+  return arr.slice(offset).concat(arr.slice(0, offset));
+}
+
 export const getHomeRows = createServerFn({ method: "GET" }).handler(
   async (): Promise<HomeRows> => {
     try {
@@ -103,7 +113,7 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         .eq("status", "approved")
         .eq("published", true)
         .order("created_at", { ascending: false })
-        .limit(40);
+        .limit(200);
       if (error) console.error("[getHomeRows] db error:", error.message);
 
       const rows = (data ?? []) as Array<Row & { featured: boolean | null }>;
@@ -120,22 +130,23 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         return { newReleases: [], recommended: [], sponsored: [], diagnostics: emptyDiag() };
       }
 
-      // Full catalog fallback (up to 8) used when a row is empty or too thin.
-      const allProducts = rows.slice(0, 8).map((r) => toProduct(r));
+      // Rotate the full catalog daily so every product cycles through the rows.
+      const allProducts = rotateDaily(rows.map((r) => toProduct(r)), 0);
 
-      // New Releases: newest 8 (always "specific" when rows exist).
-      const newReleases = rows.slice(0, 8).map((r) => toProduct(r));
+      // New Releases: daily-rotated window over all approved products.
+      const newReleases = rotateDaily(rows.map((r) => toProduct(r)), 1).slice(0, 8);
       const newReleasesSource: RowSource = newReleases.length > 0 ? "specific" : "empty";
 
-      // Sponsored: featured=true; fallback to full catalog.
-      const sponsoredSpecific = rows
-        .filter((r) => r.featured === true)
-        .map((r) => toProduct(r, true));
-      const sponsored = sponsoredSpecific.length > 0 ? sponsoredSpecific : allProducts;
+      // Sponsored: featured=true, rotated daily; fallback to full catalog rotation.
+      const sponsoredSpecific = rotateDaily(
+        rows.filter((r) => r.featured === true).map((r) => toProduct(r, true)),
+        2,
+      );
+      const sponsored = (sponsoredSpecific.length > 0 ? sponsoredSpecific : allProducts).slice(0, 8);
       const sponsoredSource: RowSource =
         sponsoredSpecific.length > 0 ? "specific" : sponsored.length > 0 ? "fallback" : "empty";
 
-      // Recommended: rank by paid-sales count; fallback to all.
+      // Recommended: rank by paid-sales count; fallback to daily-rotated catalog.
       const ids = rows.map((r) => r.id);
       const { data: itemRows } = await supa
         .from("order_items")
@@ -150,19 +161,19 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       const recommended = hasPurchaseHistory
         ? [...rows]
             .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
-            .slice(0, 8)
             .map((r) => toProduct(r))
-        : allProducts;
+        : rotateDaily(rows.map((r) => toProduct(r)), 3);
+      const recommendedFinal = recommended.slice(0, 8);
       const recommendedSource: RowSource = hasPurchaseHistory
         ? "specific"
-        : recommended.length > 0
+        : recommendedFinal.length > 0
           ? "fallback"
           : "empty";
 
       const [nrR, spR, recR] = await Promise.all([
         attachRatings(supa, newReleases),
         attachRatings(supa, sponsored),
-        attachRatings(supa, recommended),
+        attachRatings(supa, recommendedFinal),
       ]);
       const diagnostics: HomeRowsDiagnostics = {
         totalApproved: rows.length,
