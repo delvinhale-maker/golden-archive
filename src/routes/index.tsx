@@ -792,8 +792,13 @@ function FeaturedSkeleton() {
 
 function IllustriousCreator() {
   const { data: creators } = useSuspenseQuery(featuredCreatorsQ);
-  const creator = (creators ?? [])[0];
-  if (!creator) return null;
+  const list = creators ?? [];
+  if (list.length === 0) return null;
+  // Deterministic daily rotation — stable within a day (no SSR hydration
+  // mismatch) and cycles through all approved creators over time. With a
+  // single creator, this trivially always resolves to that creator.
+  const dayIndex = Math.floor(Date.now() / 86_400_000);
+  const creator = list[dayIndex % list.length];
   return (
     <section className="bg-bg-page py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
