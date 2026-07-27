@@ -433,8 +433,8 @@ function mockProduct(absoluteIndex: number, category?: string): Product {
     category: cat,
     price,
     compareAtPrice: compare,
-    rating: 4 + ((absoluteIndex * 3) % 10) / 10,
-    reviewCount: 18 + ((absoluteIndex * 13) % 480),
+    rating: 0,
+    reviewCount: 0,
     // image is now rendered via <ProductCover> using title + category; keep a
     // stable placeholder string so consumers that read product.image still work.
     image: `av:${cat}:${absoluteIndex}`,
