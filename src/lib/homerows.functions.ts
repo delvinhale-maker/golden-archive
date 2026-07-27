@@ -163,18 +163,17 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
             .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
             .map((r) => toProduct(r))
         : rotateDaily(rows.map((r) => toProduct(r)), 3);
-      const recommendedSliced = recommended.slice(0, 8);
-      const recommendedFinal = recommendedSliced;
+      const recommendedFinal = recommended.slice(0, 8);
       const recommendedSource: RowSource = hasPurchaseHistory
         ? "specific"
-        : recommended.length > 0
+        : recommendedFinal.length > 0
           ? "fallback"
           : "empty";
 
       const [nrR, spR, recR] = await Promise.all([
         attachRatings(supa, newReleases),
         attachRatings(supa, sponsored),
-        attachRatings(supa, recommended),
+        attachRatings(supa, recommendedFinal),
       ]);
       const diagnostics: HomeRowsDiagnostics = {
         totalApproved: rows.length,
