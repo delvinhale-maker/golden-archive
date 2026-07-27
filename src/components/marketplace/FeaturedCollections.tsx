@@ -46,12 +46,12 @@ const COLLECTIONS: Collection[] = [
   {
     title: "Business Systems",
     kicker: "Build & Scale",
-    blurb: "Templates, SOPs, and dashboards used by 7-figure operators.",
+    blurb: "Money, credit, and operator playbooks from real builders.",
     image: businessImg,
     to: "/products",
-    search: { category: "Business" },
+    search: { category: "eBooks" },
     size: "md",
-    accentSlug: "business_operating_systems",
+    accentSlug: "ebooks",
   },
   {
     title: "AI Prompt Vault",
@@ -59,7 +59,7 @@ const COLLECTIONS: Collection[] = [
     blurb: "Curated prompt libraries and AI toolkits for modern builders.",
     image: aiImg,
     to: "/products",
-    search: { category: "Prompt Packs" },
+    search: { category: "AI Prompt Packs" },
     size: "md",
     accentSlug: "ai_prompt_packs",
   },
@@ -69,9 +69,9 @@ const COLLECTIONS: Collection[] = [
     blurb: "Devotionals, studies, and reflections for a rooted life.",
     image: faithImg,
     to: "/products",
-    search: { category: "Purpose" },
+    search: { category: "eBooks" },
     size: "md",
-    accentSlug: "bible_studies",
+    accentSlug: "ebooks",
   },
 ];
 
