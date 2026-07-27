@@ -198,8 +198,30 @@ export type Product = {
   fileExt?: string | null;
 };
 
+export type ProductReviewSnippet = {
+  id: string;
+  author: string;
+  rating: number;
+  title: string | null;
+  body: string;
+  createdAt: string;
+};
+
+export type ProductRatingBreakdown = {
+  1: number;
+  2: number;
+  3: number;
+  4: number;
+  5: number;
+};
+
 export type ProductDetailResult =
-  | { kind: "published"; product: Product }
+  | {
+      kind: "published";
+      product: Product;
+      reviews: ProductReviewSnippet[];
+      ratingBreakdown: ProductRatingBreakdown;
+    }
   | { kind: "unpublished"; title: string | null }
   | { kind: "notFound" };
 
@@ -512,7 +534,47 @@ export const getProduct = createServerFn({ method: "GET" })
     }
     const product = dbRowToProduct(row as DbProductRow);
     const agg = await fetchReviewAggregates(supabaseAdmin, [product.id]);
-    return { kind: "published", product: applyAggregates([product], agg)[0] } as ProductDetailResult;
+    const enriched = applyAggregates([product], agg)[0];
+
+    // Fetch up to 20 recent reviews for JSON-LD + build a 1..5 rating breakdown.
+    const breakdown: ProductRatingBreakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    const reviews: ProductReviewSnippet[] = [];
+    try {
+      const { data: rev } = await supabaseAdmin
+        .from("product_reviews")
+        .select("id,reviewer_name,rating,title,body,created_at")
+        .eq("product_id", product.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      for (const r of (rev ?? []) as Array<{
+        id: string;
+        reviewer_name: string | null;
+        rating: number;
+        title: string | null;
+        body: string;
+        created_at: string;
+      }>) {
+        const key = Math.max(1, Math.min(5, Math.round(r.rating))) as 1 | 2 | 3 | 4 | 5;
+        breakdown[key] += 1;
+        reviews.push({
+          id: r.id,
+          author: r.reviewer_name?.trim() || "AurumVault reader",
+          rating: r.rating,
+          title: r.title,
+          body: r.body,
+          createdAt: r.created_at,
+        });
+      }
+    } catch {
+      // Non-fatal — JSON-LD will simply omit review details.
+    }
+
+    return {
+      kind: "published",
+      product: enriched,
+      reviews,
+      ratingBreakdown: breakdown,
+    } as ProductDetailResult;
   });
 
 

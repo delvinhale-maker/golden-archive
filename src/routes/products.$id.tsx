@@ -129,33 +129,69 @@ export const Route = createFileRoute("/products/$id")({
 
     const scripts: Array<{ type: string; children: string }> = [];
     if (p) {
+      const reviews =
+        res?.kind === "published" ? res.reviews ?? [] : [];
+      const breakdown =
+        res?.kind === "published"
+          ? res.ratingBreakdown
+          : { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      const totalReviews = p.reviewCount ?? reviews.length;
+
+      const productLd: Record<string, unknown> = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: p.title,
+        description: rawDesc,
+        image: [previewImage],
+        brand: { "@type": "Brand", name: "AurumVault" },
+        offers: {
+          "@type": "Offer",
+          url,
+          priceCurrency: "USD",
+          price: Number(p.price).toFixed(2),
+          availability: "https://schema.org/InStock",
+          seller: { "@type": "Organization", name: "AurumVault" },
+        },
+      };
+
+      if (p.rating && totalReviews > 0) {
+        productLd.aggregateRating = {
+          "@type": "AggregateRating",
+          ratingValue: Number(p.rating).toFixed(1),
+          reviewCount: totalReviews,
+          bestRating: "5",
+          worstRating: "1",
+        };
+        // Google rich-results requires individual `review` entries alongside
+        // AggregateRating to render review snippets. Include up to 10.
+        if (reviews.length > 0) {
+          productLd.review = reviews.slice(0, 10).map((r) => ({
+            "@type": "Review",
+            reviewRating: {
+              "@type": "Rating",
+              ratingValue: String(r.rating),
+              bestRating: "5",
+              worstRating: "1",
+            },
+            author: { "@type": "Person", name: r.author },
+            datePublished: r.createdAt,
+            ...(r.title ? { name: r.title } : {}),
+            reviewBody: r.body,
+          }));
+        }
+        // Non-standard but useful for internal debugging: rating breakdown.
+        productLd.additionalProperty = (
+          [5, 4, 3, 2, 1] as const
+        ).map((star) => ({
+          "@type": "PropertyValue",
+          name: `${star}-star reviews`,
+          value: breakdown[star] ?? 0,
+        }));
+      }
+
       scripts.push({
         type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Product",
-          name: p.title,
-          description: rawDesc,
-          image: [previewImage],
-          brand: { "@type": "Brand", name: "AurumVault" },
-          offers: {
-            "@type": "Offer",
-            url,
-            priceCurrency: "USD",
-            price: Number(p.price).toFixed(2),
-            availability: "https://schema.org/InStock",
-            seller: { "@type": "Organization", name: "AurumVault" },
-          },
-          ...(p.rating && p.reviewCount
-            ? {
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: Number(p.rating).toFixed(1),
-                  reviewCount: p.reviewCount,
-                },
-              }
-            : {}),
-        }),
+        children: JSON.stringify(productLd),
       });
     }
 
