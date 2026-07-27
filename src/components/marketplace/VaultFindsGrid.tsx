@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { ExternalLink, Settings, ImageUp, Loader2, GripVertical } from "lucide-react";
 import { AffiliateImagePreview } from "./AffiliateImagePreview";
-import { AffiliateDisclosureLine } from "./AffiliateDisclosureLine";
 
 const BUCKET = "vault-finds";
 
@@ -186,8 +185,6 @@ export function VaultFindsGrid() {
             </Link>
           )}
         </div>
-
-        <AffiliateDisclosureLine className="mb-5" />
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
           {items.map((it) => (

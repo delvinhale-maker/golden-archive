@@ -4,7 +4,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { ExternalLink, ImageUp, Loader2 } from "lucide-react";
 import { AffiliateImagePreview } from "./AffiliateImagePreview";
-import { AffiliateDisclosureLine } from "./AffiliateDisclosureLine";
 
 const BUCKET = "vault-finds";
 
@@ -145,8 +144,6 @@ export function VaultFindsCategorySections() {
                   {cat.eyebrow}
                 </span>
               </div>
-
-              <AffiliateDisclosureLine className="mb-4" />
 
               <div className="grid grid-cols-2 gap-4 md:gap-6">
                 {group.map((it) => {
