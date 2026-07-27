@@ -121,6 +121,7 @@ export const Route = createFileRoute("/")({
     context.queryClient.ensureQueryData(topCreatorsQ);
     context.queryClient.ensureQueryData(categoryCountsQ);
     context.queryClient.ensureQueryData(homepageLayoutQ);
+    context.queryClient.ensureQueryData(academyLatestQ);
   },
 
 
