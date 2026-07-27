@@ -122,7 +122,7 @@ function TermsPage() {
             be announced by email or dashboard notice.
           </Section>
 
-          <Section title="10. Contact">
+          <Section title="11. Contact">
             For questions about these terms, email{" "}
             <a
               href="mailto:support@aurumvault.store"
