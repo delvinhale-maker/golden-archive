@@ -780,14 +780,13 @@ function FeaturedSkeleton() {
 }
 
 function IllustriousCreator() {
-  const { isFetching } = useSuspenseQuery(highlightsQ);
+  const { data: creators } = useSuspenseQuery(featuredCreatorsQ);
+  const creator = (creators ?? [])[0];
+  if (!creator) return null;
   return (
-    <section className="bg-bg-page py-16 md:py-24" aria-busy={isFetching}>
+    <section className="bg-bg-page py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader kicker="FEATURED CREATOR" title="Featured Creator" />
-        <span className="sr-only" aria-live="polite">
-          {isFetching ? "Refreshing featured creator" : ""}
-        </span>
         <div className="mx-auto max-w-md">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -798,10 +797,11 @@ function IllustriousCreator() {
             className="overflow-hidden rounded-lg border border-line bg-white shadow-card"
           >
             <div
-              className="h-[120px]"
+              className="h-[120px] bg-cover bg-center"
               style={{
-                background:
-                  "linear-gradient(135deg, #0f1629 0%, #1a2744 50%, #c9a227 130%)",
+                background: creator.coverUrl
+                  ? `url(${creator.coverUrl}) center/cover`
+                  : "linear-gradient(135deg, #0f1629 0%, #1a2744 50%, #c9a227 130%)",
               }}
             />
             <div className="px-6 pb-6">
@@ -809,30 +809,35 @@ function IllustriousCreator() {
                 className="-mt-8 grid h-16 w-16 place-items-center overflow-hidden rounded-full border-[3px] border-white bg-navy"
                 aria-hidden
               >
-                <img
-                  src="/og-image.png"
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
+                {creator.avatarUrl ? (
+                  <img
+                    src={creator.avatarUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="font-display text-lg text-gold-ink">
+                    {creator.brandName.slice(0, 1)}
+                  </span>
+                )}
               </div>
-              <div className="mt-3 flex items-center gap-1.5">
-                <div className="font-display text-lg font-bold text-navy">
-                  Delvin Hale
+              <div className="mt-3 font-display text-lg font-bold text-navy">
+                {creator.brandName}
+              </div>
+              {creator.pitch && (
+                <div className="text-[13px] text-mute line-clamp-2">
+                  {creator.pitch}
                 </div>
-                
-              </div>
-              <div className="text-[13px] text-mute">
-                Author · Entrepreneur · Digital Creator
-              </div>
+              )}
               <Link
-                to="/products"
+                to="/store/$slug"
+                params={{ slug: creator.brandSlug }}
                 className="mt-4 inline-flex items-center text-sm font-bold text-gold-ink hover:underline"
               >
                 View Store →
               </Link>
             </div>
           </motion.div>
-
         </div>
       </div>
     </section>
