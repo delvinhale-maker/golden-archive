@@ -53,10 +53,10 @@ export function FrequentlyBoughtTogether({ product }: { product: Product }) {
       </h2>
 
       <div className="mt-5 flex flex-col items-stretch gap-4 md:flex-row md:items-center">
-        <div className="flex flex-1 items-center gap-3 overflow-x-auto pb-1">
+        <div className="flex flex-1 flex-wrap items-start gap-2 md:flex-nowrap md:items-center md:gap-3 md:overflow-x-auto">
           {all.map((p, i) => (
-            <div key={p.id} className="flex items-center gap-3">
-              <label className="flex w-[120px] shrink-0 cursor-pointer flex-col gap-2 md:w-[140px]">
+            <div key={p.id} className="flex items-center gap-2 md:gap-3">
+              <label className="flex w-[104px] shrink-0 cursor-pointer flex-col gap-2 sm:w-[120px] md:w-[140px]">
                 <div className="relative aspect-[1.6/1] overflow-hidden rounded-md bg-[#f5f4ef] ring-1 ring-line">
                   {p.image && /^https?:\/\//.test(p.image) ? (
                     <img
@@ -71,6 +71,11 @@ export function FrequentlyBoughtTogether({ product }: { product: Product }) {
                       productId={p.id}
                       className="h-full w-full object-cover"
                     />
+                  )}
+                  {p.id === product.id && (
+                    <span className="absolute left-1 top-1 rounded-full bg-navy px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-caps text-white">
+                      This item
+                    </span>
                   )}
                 </div>
                 <div className="flex items-start gap-2">
