@@ -1488,6 +1488,7 @@ function StepDetails(p: {
   description: string; setDescription: (v: string) => void;
   language: string; setLanguage: (v: string) => void;
   category: typeof CATEGORIES[number]["value"]; setCategory: (v: typeof CATEGORIES[number]["value"]) => void;
+  subcategory: string | null; setSubcategory: (v: string | null) => void;
   keywords: string[]; setKeywords: (v: string[]) => void;
   kwInput: string; setKwInput: (v: string) => void; addKeyword: () => void;
   ageRange: string; setAgeRange: (v: string) => void;
