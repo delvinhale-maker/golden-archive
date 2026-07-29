@@ -161,23 +161,52 @@ export function useCart() {
 
   const add = useCallback((item: Omit<CartItem, "qty">, qty = 1) => {
     const current = readCart();
-    const idx = current.findIndex((i) => i.id === item.id);
+    const key = cartLineKey(item);
+    const idx = current.findIndex((i) => cartLineKey(i) === key);
     if (idx >= 0) current[idx] = { ...current[idx], qty: current[idx].qty + qty };
     else current.push({ ...item, qty });
     writeCart(current);
     window.dispatchEvent(new CustomEvent("av:cart:open"));
   }, []);
 
-  const setQty = useCallback((id: string, qty: number) => {
+  const setQty = useCallback((key: string, qty: number) => {
     const current = readCart()
-      .map((i) => (i.id === id ? { ...i, qty: Math.max(0, qty) } : i))
+      .map((i) => (matchesLine(i, key) ? { ...i, qty: Math.max(0, qty) } : i))
       .filter((i) => i.qty > 0);
     writeCart(current);
   }, []);
 
-  const remove = useCallback((id: string) => {
-    writeCart(readCart().filter((i) => i.id !== id));
+  const remove = useCallback((key: string) => {
+    writeCart(readCart().filter((i) => !matchesLine(i, key)));
   }, []);
+
+  /** Swap the selected edition/variant on an existing cart line. */
+  const setVariant = useCallback(
+    (
+      key: string,
+      variant: { variantId: string | null; variantName: string | null; price: number },
+    ) => {
+      const current = readCart();
+      const idx = current.findIndex((i) => matchesLine(i, key));
+      if (idx < 0) return;
+      const updated: CartItem = {
+        ...current[idx],
+        variantId: variant.variantId,
+        variantName: variant.variantName,
+        price: variant.price,
+      };
+      const nextKey = cartLineKey(updated);
+      const dupIdx = current.findIndex((i, n) => n !== idx && cartLineKey(i) === nextKey);
+      if (dupIdx >= 0) {
+        current[dupIdx] = { ...current[dupIdx], qty: current[dupIdx].qty + updated.qty };
+        current.splice(idx, 1);
+      } else {
+        current[idx] = updated;
+      }
+      writeCart(current);
+    },
+    [],
+  );
 
   const clear = useCallback(() => writeCart([]), []);
 
@@ -185,7 +214,8 @@ export function useCart() {
   const subtotal = items.reduce((n, i) => n + i.price * i.qty, 0);
   const has = useCallback((id: string) => items.some((i) => i.id === id), [items]);
 
-  return { items, count, subtotal, add, setQty, remove, clear, has };
+  return { items, count, subtotal, add, setQty, remove, setVariant, clear, has };
+
 }
 
 export function openCartDrawer() {
