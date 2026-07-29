@@ -62,7 +62,7 @@ export function PublishFlow({ editingId: editingIdProp, productTypeKey, invalidT
 
 const CATEGORIES: { label: string; value: import("@/lib/product-types").ProductCategoryEnum }[] = [
   { label: "eBooks", value: "ebooks" },
-  { label: "Financial Planners", value: "financial_planners" },
+  { label: "Planners", value: "financial_planners" },
   { label: "AI Prompt Packs", value: "ai_prompt_packs" },
   { label: "Digital Journals", value: "printable_journals" },
   { label: "Children's Educational", value: "childrens_educational" },
@@ -149,6 +149,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
   const [description, setDescription] = useState("");
   const [language, setLanguage] = useState("English");
   const [category, setCategory] = useState<import("@/lib/product-types").ProductCategoryEnum>(typeCfg.category);
+  const [subcategory, setSubcategory] = useState<string | null>(null);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [kwInput, setKwInput] = useState("");
   const [ageRange, setAgeRange] = useState("All ages");
@@ -314,6 +315,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
         description: description.trim(),
         creator_name: author.trim(),
         language, category,
+        subcategory: category === "financial_planners" ? subcategory : null,
         price_cents: priceCents,
         cover_url: opts?.coverUrl ?? uploadedCoverUrl ?? existingCoverUrl,
         file_path: opts?.filePath ?? uploadedFilePath ?? existingFilePath,
@@ -382,7 +384,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     user, title, subtitle, author, seriesName, edition, whatsIncluded, description,
-    language, category, keywords, ageRange, ownsRights, drm, premium, price, previewPages,
+    language, category, subcategory, keywords, ageRange, ownsRights, drm, premium, price, previewPages,
   ]);
 
 
@@ -413,7 +415,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       setAuthor(data.creator_name ?? "Delvin Hale");
       setDescription(data.description ?? "");
       setLanguage(data.language ?? "English");
-      setCategory((data.category as typeof CATEGORIES[number]["value"]) ?? "ebooks");
+     setCategory((data.category as typeof CATEGORIES[number]["value"]) ?? "ebooks");
+     setSubcategory(((data as unknown as { subcategory?: string | null }).subcategory) ?? null);
       setEditProductTypeKey(getProductTypeKeyByCategory(data.category as string));
       setPrice(((data.price_cents ?? 0) / 100).toString());
 
@@ -1017,6 +1020,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           creator_name: author.trim(),
           language,
           category,
+          subcategory: category === "financial_planners" ? subcategory : null,
           price_cents: priceCents,
           cover_url: coverUrl,
           file_path: storedFilePath,
@@ -1037,6 +1041,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           description: description.trim(),
           creator_name: author.trim(),
           language, category,
+          subcategory: category === "financial_planners" ? subcategory : null,
           price_cents: priceCents,
           cover_url: coverUrl,
           file_path: storedFilePath,
@@ -1268,6 +1273,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
               description={description} setDescription={setDescription}
               language={language} setLanguage={setLanguage}
               category={category} setCategory={setCategory}
+              subcategory={subcategory} setSubcategory={setSubcategory}
               keywords={keywords} setKeywords={setKeywords}
               kwInput={kwInput} setKwInput={setKwInput} addKeyword={addKeyword}
               ageRange={ageRange} setAgeRange={setAgeRange}
@@ -1483,6 +1489,7 @@ function StepDetails(p: {
   description: string; setDescription: (v: string) => void;
   language: string; setLanguage: (v: string) => void;
   category: typeof CATEGORIES[number]["value"]; setCategory: (v: typeof CATEGORIES[number]["value"]) => void;
+  subcategory: string | null; setSubcategory: (v: string | null) => void;
   keywords: string[]; setKeywords: (v: string[]) => void;
   kwInput: string; setKwInput: (v: string) => void; addKeyword: () => void;
   ageRange: string; setAgeRange: (v: string) => void;
@@ -1533,15 +1540,27 @@ function StepDetails(p: {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Category">
-          <select className="inp" value={p.category} onChange={(e) => p.setCategory(e.target.value as typeof p.category)}>
+          <select className="inp" value={p.category} onChange={(e) => { p.setCategory(e.target.value as typeof p.category); p.setSubcategory(null); }}>
             {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </Field>
-        <Field label="Age / Grade range">
-          <select className="inp" value={p.ageRange} onChange={(e) => p.setAgeRange(e.target.value)}>
-            {AGE_RANGES.map((a) => <option key={a}>{a}</option>)}
-          </select>
-        </Field>
+        {p.category === "financial_planners" ? (
+          <Field label="Planner type *">
+            <select className="inp" value={p.subcategory ?? ""} onChange={(e) => p.setSubcategory(e.target.value || null)}>
+              <option value="">Select a planner type…</option>
+              <option value="Financial Planners">Financial Planners</option>
+              <option value="Wedding Planners">Wedding Planners</option>
+              <option value="Health & Wellness Planners">Health &amp; Wellness Planners</option>
+              <option value="Life & Productivity Planners">Life &amp; Productivity Planners</option>
+            </select>
+          </Field>
+        ) : (
+          <Field label="Age / Grade range">
+            <select className="inp" value={p.ageRange} onChange={(e) => p.setAgeRange(e.target.value)}>
+              {AGE_RANGES.map((a) => <option key={a}>{a}</option>)}
+            </select>
+          </Field>
+        )}
       </div>
       <Field label={`Keywords (${p.keywords.length}/7)`}>
         <div className="flex flex-wrap gap-2 mb-2">

@@ -19,6 +19,7 @@ type DbProductRow = {
   id: string;
   title: string;
   category: string;
+  subcategory?: string | null;
   price_cents: number;
   compare_at_price_cents: number | null;
   cover_url: string | null;
@@ -68,6 +69,7 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
     id: r.id,
     title: r.title,
     category: catLabel,
+    subcategory: r.subcategory ?? null,
     price: r.price_cents / 100,
     compareAtPrice: compareAt,
     rating: 0,
@@ -134,7 +136,7 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
     const supa = serverSupabase();
     let query = supa
       .from("marketplace_products")
-      .select("id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score")
+      .select("id,title,category,subcategory,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score")
       .eq("status", "approved")
       .eq("published", true)
       .order("created_at", { ascending: false });
@@ -177,6 +179,7 @@ export type Product = {
   id: string;
   title: string;
   category: string;
+  subcategory?: string | null;
   price: number;
   compareAtPrice?: number;
   rating: number;
