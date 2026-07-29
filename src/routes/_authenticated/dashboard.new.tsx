@@ -1273,6 +1273,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
               description={description} setDescription={setDescription}
               language={language} setLanguage={setLanguage}
               category={category} setCategory={setCategory}
+              subcategory={subcategory} setSubcategory={setSubcategory}
               keywords={keywords} setKeywords={setKeywords}
               kwInput={kwInput} setKwInput={setKwInput} addKeyword={addKeyword}
               ageRange={ageRange} setAgeRange={setAgeRange}
