@@ -310,6 +310,9 @@ export const createCartCheckout = createServerFn({ method: "POST" })
       if (data.items.length > 50) throw new Error("Too many items");
       for (const it of data.items) {
         if (!it.id || typeof it.title !== "string") throw new Error("Invalid item");
+        if (it.variantId && !/^[a-f0-9-]{36}$/.test(it.variantId)) {
+          throw new Error("Invalid variantId");
+        }
         if (!Number.isFinite(it.priceCents) || it.priceCents < 50) {
           throw new Error("Invalid price");
         }
@@ -317,6 +320,7 @@ export const createCartCheckout = createServerFn({ method: "POST" })
           throw new Error("Invalid qty");
         }
       }
+
       if (data.environment !== "sandbox" && data.environment !== "live") {
         throw new Error("Invalid environment");
       }
