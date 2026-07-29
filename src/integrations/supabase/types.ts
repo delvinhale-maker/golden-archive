@@ -1308,6 +1308,7 @@ export type Database = {
           seller_id: string
           slug: string
           status: Database["public"]["Enums"]["product_status"]
+          subcategory: string | null
           subtitle: string | null
           title: string
           updated_at: string
@@ -1347,6 +1348,7 @@ export type Database = {
           seller_id: string
           slug?: string
           status?: Database["public"]["Enums"]["product_status"]
+          subcategory?: string | null
           subtitle?: string | null
           title: string
           updated_at?: string
@@ -1386,6 +1388,7 @@ export type Database = {
           seller_id?: string
           slug?: string
           status?: Database["public"]["Enums"]["product_status"]
+          subcategory?: string | null
           subtitle?: string | null
           title?: string
           updated_at?: string
