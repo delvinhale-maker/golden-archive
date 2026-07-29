@@ -69,6 +69,7 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
     id: r.id,
     title: r.title,
     category: catLabel,
+    subcategory: r.subcategory ?? null,
     price: r.price_cents / 100,
     compareAtPrice: compareAt,
     rating: 0,
