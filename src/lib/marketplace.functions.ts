@@ -615,7 +615,7 @@ export const getHomeHighlights = createServerFn({ method: "GET" }).handler(
         supa
           .from("marketplace_products")
           .select(
-            "id,title,category,price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score",
+            "id,title,category,price_cents,cover_url,description,seller_id,created_at",
           )
           .eq("status", "approved")
           .eq("published", true)
@@ -668,7 +668,7 @@ export const getPromotedPicksRowFn = createServerFn({ method: "GET" }).handler(
       const { data } = await supa
         .from("marketplace_products")
         .select(
-          "id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score",
+          "id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at",
         )
         .eq("status", "approved")
         .eq("published", true)
