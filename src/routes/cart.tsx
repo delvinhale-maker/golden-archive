@@ -3,7 +3,9 @@ import { useState } from "react";
 import { Loader2, Minus, Plus, ShieldCheck, ShoppingBag, Tag, Trash2, Truck } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
-import { useCart } from "@/hooks/use-av-store";
+import { cartLineKey, useCart } from "@/hooks/use-av-store";
+import { CartEditionSelect } from "@/components/marketplace/CartEditionSelect";
+
 import { StripeEmbeddedCartCheckout } from "@/components/StripeEmbeddedCheckout";
 import { RouteErrorFallback } from "@/components/RouteErrorFallback";
 
@@ -81,9 +83,11 @@ function CartPage() {
           <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
             {/* Items */}
             <ul className="space-y-3">
-              {cart.items.map((it) => (
+              {cart.items.map((it) => {
+                const lineKey = cartLineKey(it);
+                return (
                 <li
-                  key={it.id}
+                  key={lineKey}
                   className="flex gap-4 rounded-xl border border-line bg-white p-4"
                 >
                   <Link
@@ -109,11 +113,21 @@ function CartPage() {
                     >
                       {it.title}
                     </Link>
+                    <CartEditionSelect
+                      item={it}
+                      onChange={(v) =>
+                        cart.setVariant(lineKey, {
+                          variantId: v.variantId,
+                          variantName: v.variantName,
+                          price: v.price,
+                        })
+                      }
+                    />
                     <div className="mt-auto flex items-center justify-between pt-2">
                       <div className="inline-flex items-center rounded-full border border-line">
                         <button
                           aria-label="Decrease"
-                          onClick={() => cart.setQty(it.id, it.qty - 1)}
+                          onClick={() => cart.setQty(lineKey, it.qty - 1)}
                           className="flex h-8 w-8 items-center justify-center text-mute hover:text-ink"
                         >
                           <Minus size={14} />
@@ -121,7 +135,7 @@ function CartPage() {
                         <span className="w-7 text-center text-sm font-bold text-ink">{it.qty}</span>
                         <button
                           aria-label="Increase"
-                          onClick={() => cart.setQty(it.id, it.qty + 1)}
+                          onClick={() => cart.setQty(lineKey, it.qty + 1)}
                           className="flex h-8 w-8 items-center justify-center text-mute hover:text-ink"
                         >
                           <Plus size={14} />
@@ -129,7 +143,7 @@ function CartPage() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => cart.remove(it.id)}
+                        onClick={() => cart.remove(lineKey)}
                         className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold text-mute hover:bg-muted hover:text-red-600"
                       >
                         <Trash2 size={14} /> Remove
@@ -140,7 +154,9 @@ function CartPage() {
                     ${(it.price * it.qty).toFixed(2)}
                   </div>
                 </li>
-              ))}
+                );
+              })}
+
             </ul>
 
             {/* Summary */}

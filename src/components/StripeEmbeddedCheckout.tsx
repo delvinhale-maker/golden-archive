@@ -142,7 +142,9 @@ export function StripeEmbeddedCartCheckout({ items, promoCode, returnUrl }: Cart
           title: i.title,
           priceCents: Math.round(i.price * 100),
           qty: i.qty,
+          variantId: i.variantId ?? undefined,
         })),
+
         promoCode: promoCode ?? undefined,
         referralCode: getStoredRef() ?? undefined,
         returnUrl:

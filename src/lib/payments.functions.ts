@@ -291,7 +291,14 @@ const PROMOS: Record<string, { kind: "pct" | "flat"; value: number }> = {
 export const createCartCheckout = createServerFn({ method: "POST" })
   .inputValidator(
     (data: {
-      items: { id: string; title: string; priceCents: number; qty: number }[];
+      items: {
+        id: string;
+        title: string;
+        priceCents: number;
+        qty: number;
+        variantId?: string;
+      }[];
+
       promoCode?: string;
       referralCode?: string;
       returnUrl: string;
@@ -303,6 +310,9 @@ export const createCartCheckout = createServerFn({ method: "POST" })
       if (data.items.length > 50) throw new Error("Too many items");
       for (const it of data.items) {
         if (!it.id || typeof it.title !== "string") throw new Error("Invalid item");
+        if (it.variantId && !/^[a-f0-9-]{36}$/.test(it.variantId)) {
+          throw new Error("Invalid variantId");
+        }
         if (!Number.isFinite(it.priceCents) || it.priceCents < 50) {
           throw new Error("Invalid price");
         }
@@ -310,6 +320,7 @@ export const createCartCheckout = createServerFn({ method: "POST" })
           throw new Error("Invalid qty");
         }
       }
+
       if (data.environment !== "sandbox" && data.environment !== "live") {
         throw new Error("Invalid environment");
       }
@@ -338,10 +349,37 @@ export const createCartCheckout = createServerFn({ method: "POST" })
         }
       }
 
+      // Authoritative variant (edition) pricing/naming for lines that carry one.
+      const variantIds = data.items
+        .map((i) => i.variantId)
+        .filter((v): v is string => !!v);
+      const variantMap: Record<
+        string,
+        { product_id: string; name: string; price_cents: number }
+      > = {};
+      if (variantIds.length) {
+        const { data: vrows } = await supabase
+          .from("product_variants" as any)
+          .select("id,product_id,name,price_cents,is_active")
+          .in("id", variantIds)
+          .eq("is_active", true);
+        for (const v of (vrows ?? []) as any[]) {
+          variantMap[v.id] = {
+            product_id: v.product_id,
+            name: v.name,
+            price_cents: v.price_cents,
+          };
+        }
+      }
+      const variantFor = (it: { id: string; variantId?: string }) => {
+        const v = it.variantId ? variantMap[it.variantId] : undefined;
+        return v && v.product_id === it.id ? v : undefined;
+      };
+
       // Compute promo discount as % off each unit_amount, evenly.
       const promo = data.promoCode ? PROMOS[data.promoCode.toUpperCase()] : null;
       const subtotal = data.items.reduce((n, it) => {
-        const cents = dbMap[it.id]?.price_cents ?? it.priceCents;
+        const cents = variantFor(it)?.price_cents ?? dbMap[it.id]?.price_cents ?? it.priceCents;
         return n + cents * it.qty;
       }, 0);
       const discountTotal =
@@ -356,13 +394,15 @@ export const createCartCheckout = createServerFn({ method: "POST" })
 
       const line_items = data.items.map((it) => {
         const authoritative = dbMap[it.id];
-        const baseCents = authoritative?.price_cents ?? it.priceCents;
+        const variant = variantFor(it);
+        const baseCents = variant?.price_cents ?? authoritative?.price_cents ?? it.priceCents;
         const adjusted = Math.max(50, Math.round(baseCents * factor));
+        const baseName = authoritative?.title ?? it.title;
         return {
           price_data: {
             currency: "usd",
             product_data: {
-              name: authoritative?.title ?? it.title,
+              name: variant ? `${baseName} — ${variant.name}` : baseName,
               tax_code: "txcd_10000000",
             },
             unit_amount: adjusted,
@@ -371,6 +411,7 @@ export const createCartCheckout = createServerFn({ method: "POST" })
           quantity: it.qty,
         };
       });
+
 
       const sellerIds = Array.from(
         new Set(Object.values(dbMap).map((d) => d.seller_id).filter(Boolean)),
@@ -392,6 +433,10 @@ export const createCartCheckout = createServerFn({ method: "POST" })
             item_count: String(data.items.length),
             promo_code: data.promoCode ?? "",
             product_ids: dbIds.join(",").slice(0, 500),
+            variant_ids: data.items
+              .map((i) => i.variantId ?? "")
+              .join(",")
+              .slice(0, 500),
             seller_ids: sellerIds.join(",").slice(0, 500),
             tax_mode: taxMode,
             ...(data.referralCode ? { referral_code: data.referralCode.toUpperCase() } : {}),

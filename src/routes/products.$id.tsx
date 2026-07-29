@@ -605,23 +605,29 @@ function ProductPage() {
                   {product.isPreorder ? "Pre-order Now" : "Buy Now"} · ${displayPrice.toFixed(2)}
                 </motion.button>
 
-                {!hasVariants && (
-                  <motion.button
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() =>
-                      cart.add({
-                        id: product.id,
-                        title: product.title,
-                        price: product.price,
-                        category: product.category,
-                        image: product.image,
-                      })
-                    }
-                    className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-navy text-sm font-bold text-navy hover:bg-navy hover:text-white"
-                  >
-                    {inCart ? "✓ Added — View Cart" : "Add to Cart"}
-                  </motion.button>
-                )}
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  disabled={hasVariants && !selected}
+                  onClick={() =>
+                    cart.add({
+                      id: product.id,
+                      title: product.title,
+                      price: displayPrice,
+                      category: product.category,
+                      image: product.image,
+                      variantId: selected?.variant.id ?? null,
+                      variantName: selected?.variant.name ?? null,
+                    })
+                  }
+                  className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-navy text-sm font-bold text-navy hover:bg-navy hover:text-white disabled:opacity-60"
+                >
+                  {hasVariants && !selected
+                    ? "Select an edition"
+                    : inCart
+                      ? "✓ Added — View Cart"
+                      : "Add to Cart"}
+                </motion.button>
+
               </>
 
             )}
