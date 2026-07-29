@@ -553,8 +553,16 @@ function ProductPage() {
             </p>
 
             {hasVariants && (
-              <VariantPicker variants={variants} onChange={setSelected} />
+              <>
+                <VariantPicker variants={variants} onChange={setSelected} />
+                <p className="mt-2 text-xs text-mute">
+                  Every edition is a digital download — nothing is printed or
+                  shipped. "Print-at-home" simply means you can print the
+                  Standard PDF yourself if you prefer writing by hand.
+                </p>
+              </>
             )}
+
 
             {!hasVariants && (
               <FormatSelector formats={formats} value={format} onChange={setFormat} />
