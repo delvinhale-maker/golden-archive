@@ -31,14 +31,19 @@ export const CATEGORIES: CategoryDef[] = [
   },
   {
     slug: "financial_planners",
-    label: "Financial Planners",
+    label: "Planners",
     accent: "#1A6B3A",
     ink: "#FFFFFF",
-    icon: "💰",
+    icon: "🗓️",
     blurb:
-      "Printable and digital planners for cash flow, tithe, debt payoff, and long-horizon wealth building.",
+      "Printable and digital planners for money, weddings, wellness, and daily life — pick a subcategory to narrow down.",
     gradient: grad("#0A1F13", "#123D25", "#1A6B3A"),
-    subs: ["Monthly", "Weekly", "Debt Payoff", "Tithe", "Investments", "Retirement"],
+    subs: [
+      "Financial Planners",
+      "Wedding Planners",
+      "Health & Wellness Planners",
+      "Life & Productivity Planners",
+    ],
   },
   {
     slug: "ai_prompt_packs",
