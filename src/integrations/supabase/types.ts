@@ -1936,6 +1936,33 @@ export type Database = {
           },
         ]
       }
+      product_subcategories: {
+        Row: {
+          category_slug: string
+          created_at: string
+          id: string
+          name: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          category_slug: string
+          created_at?: string
+          id?: string
+          name: string
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          category_slug?: string
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_variants: {
         Row: {
           created_at: string
@@ -2468,6 +2495,10 @@ export type Database = {
           _seller_id: string
         }
         Returns: string
+      }
+      admin_rename_subcategory: {
+        Args: { _category_slug: string; _new_name: string; _old_name: string }
+        Returns: undefined
       }
       brand_slugify: { Args: { _name: string }; Returns: string }
       confirm_subscriber: { Args: { _token: string }; Returns: Json }

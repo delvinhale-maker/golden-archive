@@ -1,8 +1,10 @@
 import { getCategoryTheme } from "@/lib/category-theme";
 import { getCategoryDef, slugToLabel } from "@/lib/categories";
+import { useSubcategoryNames } from "@/lib/subcategories";
 import { Sparkles } from "lucide-react";
 import type { Product } from "@/lib/marketplace.functions";
 import { useMemo } from "react";
+
 
 type Creator = { id: string; name: string; count: number };
 
@@ -23,7 +25,9 @@ export function CategoryHero({
 }) {
   const theme = getCategoryTheme(category);
   const def = getCategoryDef(category);
+  const subs = useSubcategoryNames(category);
   const categoryLabel = category ? (def?.label ?? slugToLabel(category)) : null;
+
   const title = query
     ? `Results for "${query}"`
     : (categoryLabel ?? "Browse the Vault");
@@ -102,9 +106,10 @@ export function CategoryHero({
           {theme.blurb}
         </p>
 
-        {def?.subs?.length ? (
+        {subs.length ? (
           <div className="flex flex-wrap gap-2">
-            {def.subs.map((s) => {
+            {subs.map((s) => {
+
               const active = activeSub === s;
               return (
                 <button

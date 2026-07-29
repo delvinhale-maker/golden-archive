@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSubcategoryNames } from "@/lib/subcategories";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -1546,14 +1547,9 @@ function StepDetails(p: {
         </Field>
         {p.category === "financial_planners" ? (
           <Field label="Planner type *">
-            <select className="inp" value={p.subcategory ?? ""} onChange={(e) => p.setSubcategory(e.target.value || null)}>
-              <option value="">Select a planner type…</option>
-              <option value="Financial Planners">Financial Planners</option>
-              <option value="Wedding Planners">Wedding Planners</option>
-              <option value="Health & Wellness Planners">Health &amp; Wellness Planners</option>
-              <option value="Life & Productivity Planners">Life &amp; Productivity Planners</option>
-            </select>
+            <PlannerTypeSelect value={p.subcategory} onChange={p.setSubcategory} />
           </Field>
+
         ) : (
           <Field label="Age / Grade range">
             <select className="inp" value={p.ageRange} onChange={(e) => p.setAgeRange(e.target.value)}>
@@ -2870,3 +2866,23 @@ function PrePublishPreview(props: {
   );
 }
 
+
+function PlannerTypeSelect({
+  value,
+  onChange,
+}: {
+  value: string | null;
+  onChange: (v: string | null) => void;
+}) {
+  const options = useSubcategoryNames("financial_planners");
+  return (
+    <select className="inp" value={value ?? ""} onChange={(e) => onChange(e.target.value || null)}>
+      <option value="">Select a planner type…</option>
+      {options.map((o) => (
+        <option key={o} value={o}>
+          {o}
+        </option>
+      ))}
+    </select>
+  );
+}
