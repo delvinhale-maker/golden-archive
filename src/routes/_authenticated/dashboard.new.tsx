@@ -1041,6 +1041,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           description: description.trim(),
           creator_name: author.trim(),
           language, category,
+          subcategory: category === "financial_planners" ? subcategory : null,
           price_cents: priceCents,
           cover_url: coverUrl,
           file_path: storedFilePath,
