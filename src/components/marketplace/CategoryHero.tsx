@@ -25,7 +25,9 @@ export function CategoryHero({
 }) {
   const theme = getCategoryTheme(category);
   const def = getCategoryDef(category);
+  const subs = useSubcategoryNames(category);
   const categoryLabel = category ? (def?.label ?? slugToLabel(category)) : null;
+
   const title = query
     ? `Results for "${query}"`
     : (categoryLabel ?? "Browse the Vault");
