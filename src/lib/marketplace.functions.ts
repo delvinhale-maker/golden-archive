@@ -19,6 +19,7 @@ type DbProductRow = {
   id: string;
   title: string;
   category: string;
+  subcategory?: string | null;
   price_cents: number;
   compare_at_price_cents: number | null;
   cover_url: string | null;
