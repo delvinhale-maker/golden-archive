@@ -106,9 +106,10 @@ export function CategoryHero({
           {theme.blurb}
         </p>
 
-        {def?.subs?.length ? (
+        {subs.length ? (
           <div className="flex flex-wrap gap-2">
-            {def.subs.map((s) => {
+            {subs.map((s) => {
+
               const active = activeSub === s;
               return (
                 <button
