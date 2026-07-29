@@ -433,6 +433,10 @@ export const createCartCheckout = createServerFn({ method: "POST" })
             item_count: String(data.items.length),
             promo_code: data.promoCode ?? "",
             product_ids: dbIds.join(",").slice(0, 500),
+            variant_ids: data.items
+              .map((i) => i.variantId ?? "")
+              .join(",")
+              .slice(0, 500),
             seller_ids: sellerIds.join(",").slice(0, 500),
             tax_mode: taxMode,
             ...(data.referralCode ? { referral_code: data.referralCode.toUpperCase() } : {}),
