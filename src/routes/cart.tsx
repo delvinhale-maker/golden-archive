@@ -3,7 +3,9 @@ import { useState } from "react";
 import { Loader2, Minus, Plus, ShieldCheck, ShoppingBag, Tag, Trash2, Truck } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
-import { useCart } from "@/hooks/use-av-store";
+import { cartLineKey, useCart } from "@/hooks/use-av-store";
+import { CartEditionSelect } from "@/components/marketplace/CartEditionSelect";
+
 import { StripeEmbeddedCartCheckout } from "@/components/StripeEmbeddedCheckout";
 import { RouteErrorFallback } from "@/components/RouteErrorFallback";
 
