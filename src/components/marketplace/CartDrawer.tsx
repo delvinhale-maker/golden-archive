@@ -114,8 +114,10 @@ export function CartDrawer() {
                   <>
                     <div className="flex-1 overflow-y-auto px-5 py-4">
                       <ul className="space-y-4">
-                        {cart.items.map((it) => (
-                          <li key={it.id} className="flex gap-3">
+                        {cart.items.map((it) => {
+                          const lineKey = cartLineKey(it);
+                          return (
+                          <li key={lineKey} className="flex gap-3">
                             <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-[#f5f4ef]">
                               <ProductCover
                                 title={it.title}
@@ -131,11 +133,22 @@ export function CartDrawer() {
                               <div className="line-clamp-2 text-sm font-semibold text-ink">
                                 {it.title}
                               </div>
+                              <CartEditionSelect
+                                item={it}
+                                compact
+                                onChange={(v) =>
+                                  cart.setVariant(lineKey, {
+                                    variantId: v.variantId,
+                                    variantName: v.variantName,
+                                    price: v.price,
+                                  })
+                                }
+                              />
                               <div className="mt-1 flex items-center justify-between">
                                 <div className="inline-flex items-center rounded-full border border-line">
                                   <button
                                     aria-label="Decrease"
-                                    onClick={() => cart.setQty(it.id, it.qty - 1)}
+                                    onClick={() => cart.setQty(lineKey, it.qty - 1)}
                                     className="flex h-7 w-7 items-center justify-center text-mute hover:text-ink"
                                   >
                                     <Minus size={12} />
@@ -145,7 +158,7 @@ export function CartDrawer() {
                                   </span>
                                   <button
                                     aria-label="Increase"
-                                    onClick={() => cart.setQty(it.id, it.qty + 1)}
+                                    onClick={() => cart.setQty(lineKey, it.qty + 1)}
                                     className="flex h-7 w-7 items-center justify-center text-mute hover:text-ink"
                                   >
                                     <Plus size={12} />
@@ -158,13 +171,15 @@ export function CartDrawer() {
                             </div>
                             <button
                               aria-label="Remove"
-                              onClick={() => cart.remove(it.id)}
+                              onClick={() => cart.remove(lineKey)}
                               className="self-start text-mute hover:text-red-500"
                             >
                               <Trash2 size={14} />
                             </button>
                           </li>
-                        ))}
+                          );
+                        })}
+
                       </ul>
                     </div>
 
