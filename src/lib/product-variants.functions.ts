@@ -41,7 +41,7 @@ export const listPublicVariants = createServerFn({ method: "GET" })
     const { data: rows } = await supa
       .from("product_variants" as any)
       .select(
-        "id,product_id,name,description,license_type,price_cents,pay_what_you_want,min_price_cents,file_path,file_size_bytes,sort_order,is_active",
+        "id,product_id,name,description,license_type,price_cents,pay_what_you_want,min_price_cents,file_size_bytes,sort_order,is_active",
       )
       .eq("product_id", data.productId)
       .eq("is_active", true)

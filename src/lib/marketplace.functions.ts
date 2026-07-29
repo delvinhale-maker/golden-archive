@@ -26,8 +26,8 @@ type DbProductRow = {
   description: string | null;
   seller_id: string;
   created_at: string;
-  ai_review_status: string | null;
-  ai_review_score: number | null;
+  ai_review_status?: string | null;
+  ai_review_score?: number | null;
   is_preorder?: boolean | null;
   release_date?: string | null;
   released_at?: string | null;
@@ -136,7 +136,7 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
     const supa = serverSupabase();
     let query = supa
       .from("marketplace_products")
-      .select("id,title,category,subcategory,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score")
+      .select("id,title,category,subcategory,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at")
       .eq("status", "approved")
       .eq("published", true)
       .order("created_at", { ascending: false });
