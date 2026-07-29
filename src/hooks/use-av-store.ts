@@ -107,7 +107,20 @@ export type CartItem = {
   category: string;
   image?: string;
   qty: number;
+  /** Optional product variant (e.g. "Interactive Fillable PDF"). */
+  variantId?: string | null;
+  variantName?: string | null;
 };
+
+/** Stable per-line identity: same product + different edition = separate lines. */
+export function cartLineKey(item: { id: string; variantId?: string | null }) {
+  return `${item.id}::${item.variantId ?? ""}`;
+}
+
+function matchesLine(i: CartItem, key: string) {
+  return cartLineKey(i) === key || (!i.variantId && i.id === key);
+}
+
 
 function readCart(): CartItem[] {
   if (typeof window === "undefined") return [];
