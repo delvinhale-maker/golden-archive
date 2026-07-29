@@ -215,11 +215,31 @@ export function slugToLabel(slug?: string | null): string {
   return key.charAt(0).toUpperCase() + key.slice(1);
 }
 
-// Aliases for short tab labels used in the header nav.
+// Aliases for short tab labels used in the header nav, and legacy labels
+// preserved so old deep-links (e.g. ?category=Financial+Planners) keep resolving.
 const LABEL_ALIAS: Record<string, string> = {
   "Digital Journals": "printable_journals",
   Finance: "financial_planners",
+  "Financial Planners": "financial_planners",
 };
+
+// Structured subcategories per parent category. When a category appears here,
+// the storefront filters products by exact subcategory match instead of by
+// keyword-in-title/description.
+export const SUBCATEGORIES: Record<string, string[]> = {
+  financial_planners: [
+    "Financial Planners",
+    "Wedding Planners",
+    "Health & Wellness Planners",
+    "Life & Productivity Planners",
+  ],
+};
+
+export function hasStructuredSubs(slugOrLabel?: string | null): boolean {
+  const def = getCategoryDef(slugOrLabel);
+  return !!def && !!SUBCATEGORIES[def.slug];
+}
+
 
 
 export function labelToSlug(label?: string | null): string | undefined {
