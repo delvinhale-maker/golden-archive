@@ -291,7 +291,14 @@ const PROMOS: Record<string, { kind: "pct" | "flat"; value: number }> = {
 export const createCartCheckout = createServerFn({ method: "POST" })
   .inputValidator(
     (data: {
-      items: { id: string; title: string; priceCents: number; qty: number }[];
+      items: {
+        id: string;
+        title: string;
+        priceCents: number;
+        qty: number;
+        variantId?: string;
+      }[];
+
       promoCode?: string;
       referralCode?: string;
       returnUrl: string;
