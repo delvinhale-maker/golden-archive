@@ -349,10 +349,37 @@ export const createCartCheckout = createServerFn({ method: "POST" })
         }
       }
 
+      // Authoritative variant (edition) pricing/naming for lines that carry one.
+      const variantIds = data.items
+        .map((i) => i.variantId)
+        .filter((v): v is string => !!v);
+      const variantMap: Record<
+        string,
+        { product_id: string; name: string; price_cents: number }
+      > = {};
+      if (variantIds.length) {
+        const { data: vrows } = await supabase
+          .from("product_variants" as any)
+          .select("id,product_id,name,price_cents,is_active")
+          .in("id", variantIds)
+          .eq("is_active", true);
+        for (const v of (vrows ?? []) as any[]) {
+          variantMap[v.id] = {
+            product_id: v.product_id,
+            name: v.name,
+            price_cents: v.price_cents,
+          };
+        }
+      }
+      const variantFor = (it: { id: string; variantId?: string }) => {
+        const v = it.variantId ? variantMap[it.variantId] : undefined;
+        return v && v.product_id === it.id ? v : undefined;
+      };
+
       // Compute promo discount as % off each unit_amount, evenly.
       const promo = data.promoCode ? PROMOS[data.promoCode.toUpperCase()] : null;
       const subtotal = data.items.reduce((n, it) => {
-        const cents = dbMap[it.id]?.price_cents ?? it.priceCents;
+        const cents = variantFor(it)?.price_cents ?? dbMap[it.id]?.price_cents ?? it.priceCents;
         return n + cents * it.qty;
       }, 0);
       const discountTotal =
@@ -367,13 +394,15 @@ export const createCartCheckout = createServerFn({ method: "POST" })
 
       const line_items = data.items.map((it) => {
         const authoritative = dbMap[it.id];
-        const baseCents = authoritative?.price_cents ?? it.priceCents;
+        const variant = variantFor(it);
+        const baseCents = variant?.price_cents ?? authoritative?.price_cents ?? it.priceCents;
         const adjusted = Math.max(50, Math.round(baseCents * factor));
+        const baseName = authoritative?.title ?? it.title;
         return {
           price_data: {
             currency: "usd",
             product_data: {
-              name: authoritative?.title ?? it.title,
+              name: variant ? `${baseName} — ${variant.name}` : baseName,
               tax_code: "txcd_10000000",
             },
             unit_amount: adjusted,
@@ -382,6 +411,7 @@ export const createCartCheckout = createServerFn({ method: "POST" })
           quantity: it.qty,
         };
       });
+
 
       const sellerIds = Array.from(
         new Set(Object.values(dbMap).map((d) => d.seller_id).filter(Boolean)),
