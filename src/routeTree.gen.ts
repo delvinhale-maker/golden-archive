@@ -72,6 +72,7 @@ import { Route as AuthenticatedDashboardAiStudioRouteImport } from './routes/_au
 import { Route as AuthenticatedDashboardAffiliateRouteImport } from './routes/_authenticated/dashboard.affiliate'
 import { Route as AuthenticatedAdminVerifyPdfRouteImport } from './routes/_authenticated/admin.verify-pdf'
 import { Route as AuthenticatedAdminVaultFindsRouteImport } from './routes/_authenticated/admin.vault-finds'
+import { Route as AuthenticatedAdminSubcategoriesRouteImport } from './routes/_authenticated/admin.subcategories'
 import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authenticated/admin.products'
 import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin.payouts'
 import { Route as AuthenticatedAdminMessagesRouteImport } from './routes/_authenticated/admin.messages'
@@ -427,6 +428,12 @@ const AuthenticatedAdminVaultFindsRoute =
     path: '/admin/vault-finds',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminSubcategoriesRoute =
+  AuthenticatedAdminSubcategoriesRouteImport.update({
+    id: '/admin/subcategories',
+    path: '/admin/subcategories',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminProductsRoute =
   AuthenticatedAdminProductsRouteImport.update({
     id: '/admin/products',
@@ -645,6 +652,7 @@ export interface FileRoutesByFullPath {
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
+  '/admin/subcategories': typeof AuthenticatedAdminSubcategoriesRoute
   '/admin/vault-finds': typeof AuthenticatedAdminVaultFindsRoute
   '/admin/verify-pdf': typeof AuthenticatedAdminVerifyPdfRoute
   '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
@@ -734,6 +742,7 @@ export interface FileRoutesByTo {
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
+  '/admin/subcategories': typeof AuthenticatedAdminSubcategoriesRoute
   '/admin/vault-finds': typeof AuthenticatedAdminVaultFindsRoute
   '/admin/verify-pdf': typeof AuthenticatedAdminVerifyPdfRoute
   '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
@@ -827,6 +836,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/_authenticated/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
+  '/_authenticated/admin/subcategories': typeof AuthenticatedAdminSubcategoriesRoute
   '/_authenticated/admin/vault-finds': typeof AuthenticatedAdminVaultFindsRoute
   '/_authenticated/admin/verify-pdf': typeof AuthenticatedAdminVerifyPdfRoute
   '/_authenticated/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
@@ -920,6 +930,7 @@ export interface FileRouteTypes {
     | '/admin/messages'
     | '/admin/payouts'
     | '/admin/products'
+    | '/admin/subcategories'
     | '/admin/vault-finds'
     | '/admin/verify-pdf'
     | '/dashboard/affiliate'
@@ -1009,6 +1020,7 @@ export interface FileRouteTypes {
     | '/admin/messages'
     | '/admin/payouts'
     | '/admin/products'
+    | '/admin/subcategories'
     | '/admin/vault-finds'
     | '/admin/verify-pdf'
     | '/dashboard/affiliate'
@@ -1101,6 +1113,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/messages'
     | '/_authenticated/admin/payouts'
     | '/_authenticated/admin/products'
+    | '/_authenticated/admin/subcategories'
     | '/_authenticated/admin/vault-finds'
     | '/_authenticated/admin/verify-pdf'
     | '/_authenticated/dashboard/affiliate'
@@ -1636,6 +1649,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminVaultFindsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/subcategories': {
+      id: '/_authenticated/admin/subcategories'
+      path: '/admin/subcategories'
+      fullPath: '/admin/subcategories'
+      preLoaderRoute: typeof AuthenticatedAdminSubcategoriesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/products': {
       id: '/_authenticated/admin/products'
       path: '/admin/products'
@@ -1854,6 +1874,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
   AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
   AuthenticatedAdminProductsRoute: typeof AuthenticatedAdminProductsRoute
+  AuthenticatedAdminSubcategoriesRoute: typeof AuthenticatedAdminSubcategoriesRoute
   AuthenticatedAdminVaultFindsRoute: typeof AuthenticatedAdminVaultFindsRoute
   AuthenticatedAdminVerifyPdfRoute: typeof AuthenticatedAdminVerifyPdfRoute
   AuthenticatedDashboardAffiliateRoute: typeof AuthenticatedDashboardAffiliateRoute
@@ -1888,6 +1909,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
   AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
   AuthenticatedAdminProductsRoute: AuthenticatedAdminProductsRoute,
+  AuthenticatedAdminSubcategoriesRoute: AuthenticatedAdminSubcategoriesRoute,
   AuthenticatedAdminVaultFindsRoute: AuthenticatedAdminVaultFindsRoute,
   AuthenticatedAdminVerifyPdfRoute: AuthenticatedAdminVerifyPdfRoute,
   AuthenticatedDashboardAffiliateRoute: AuthenticatedDashboardAffiliateRoute,

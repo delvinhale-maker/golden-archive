@@ -1,8 +1,10 @@
 import { getCategoryTheme } from "@/lib/category-theme";
 import { getCategoryDef, slugToLabel } from "@/lib/categories";
+import { useSubcategoryNames } from "@/lib/subcategories";
 import { Sparkles } from "lucide-react";
 import type { Product } from "@/lib/marketplace.functions";
 import { useMemo } from "react";
+
 
 type Creator = { id: string; name: string; count: number };
 
