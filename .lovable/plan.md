@@ -35,7 +35,7 @@ New table `homepage_layout`:
 - Fixed anchors preserved as-is (Hero, CategoryCTABar, TrustBar, RefreshBar, ContinueBrowsing, AffiliateBandHeader, closing sections such as HeroStatsBar/TopCreators/WhyAurumVault/KingdomBibleApp/EmailCapture). Only the middle content rows and the affiliate rows are reorderable in this pass — matches "reorder sections" + "reorder affiliate bands independently" and avoids breaking the hero/footer chrome.
 
 ### Section keys exposed to admin
-Sections: `new_releases`, `kingdom_picks`, `category_grid`, `featured_products`, `illustrious_creator`.
+Sections: `new_releases`, `kingdom_picks`, `category_grid`, `featured_products`.
 Affiliates: `vault_finds_row`, `vault_finds_grid`, `vault_finds_category_sections`.
 
 ## Out of scope (can add later)

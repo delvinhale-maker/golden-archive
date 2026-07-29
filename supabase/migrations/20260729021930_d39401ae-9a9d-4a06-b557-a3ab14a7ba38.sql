@@ -1,0 +1,1 @@
+DELETE FROM public.homepage_layout WHERE key = 'illustrious_creator' AND kind = 'section';

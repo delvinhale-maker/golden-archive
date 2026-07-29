@@ -35,8 +35,6 @@ import statDownloadsImg from "@/assets/stat-downloads.jpg";
 import { kingdomPicksRowQ } from "@/components/marketplace/KingdomPicksRow";
 import { newReleasesRowQ } from "@/components/marketplace/NewReleasesRow";
 import { ContinueBrowsingRow } from "@/components/marketplace/HomeRows";
-import { creatorSpotlightQ } from "@/components/marketplace/CreatorSpotlight";
-import { featuredCreatorsQ } from "@/components/marketplace/FeaturedCreatorsRow";
 import { topCreatorsQ } from "@/components/marketplace/TopCreatorsLeaderboard";
 import { categoryCountsQ } from "@/components/marketplace/CategoryGrid13";
 import { SectionDivider } from "@/components/marketplace/SectionDivider";
@@ -64,12 +62,6 @@ const KingdomBibleAppBanner = lazy(() =>
 );
 const EmailCaptureBanner = lazy(() =>
   import("@/components/EmailCaptureBanner").then((m) => ({ default: m.EmailCaptureBanner })),
-);
-const CreatorSpotlight = lazy(() =>
-  import("@/components/marketplace/CreatorSpotlight").then((m) => ({ default: m.CreatorSpotlight })),
-);
-const FeaturedCreatorsRow = lazy(() =>
-  import("@/components/marketplace/FeaturedCreatorsRow").then((m) => ({ default: m.FeaturedCreatorsRow })),
 );
 const TopCreatorsLeaderboard = lazy(() =>
   import("@/components/marketplace/TopCreatorsLeaderboard").then((m) => ({ default: m.TopCreatorsLeaderboard })),
@@ -116,8 +108,6 @@ export const Route = createFileRoute("/")({
     context.queryClient.ensureQueryData(newReleasesRowQ);
     context.queryClient.ensureQueryData(kingdomPicksRowQ);
     context.queryClient.ensureQueryData(highlightsQ);
-    context.queryClient.ensureQueryData(creatorSpotlightQ);
-    context.queryClient.ensureQueryData(featuredCreatorsQ);
     context.queryClient.ensureQueryData(topCreatorsQ);
     context.queryClient.ensureQueryData(categoryCountsQ);
     context.queryClient.ensureQueryData(homepageLayoutQ);
@@ -181,11 +171,6 @@ const SECTION_REGISTRY: Record<string, () => React.ReactElement> = {
       <FeaturedProducts />
     </Suspense>
   ),
-  illustrious_creator: () => (
-    <HighlightsBoundary fallback={<CreatorSkeleton />} errorLabel="featured creator">
-      <IllustriousCreator />
-    </HighlightsBoundary>
-  ),
   academy_latest: () => (
     <Suspense fallback={null}>
       <AcademyLatestRow />
@@ -217,7 +202,6 @@ const DEFAULT_SECTION_ORDER = [
   "academy_latest",
   "category_grid",
   "featured_products",
-  "illustrious_creator",
 ];
 const DEFAULT_AFFILIATE_ORDER = [
   "vault_finds_row",
@@ -392,25 +376,6 @@ function HighlightsBoundary({
     >
       <Suspense fallback={fallback}>{children}</Suspense>
     </ErrorBoundary>
-  );
-}
-
-function CreatorSkeleton() {
-  return (
-    <section className="bg-[#f9fafb] py-16 md:py-24" aria-busy="true" aria-live="polite">
-      <div className="mx-auto max-w-md px-6">
-        <div className="av-card overflow-hidden">
-          <div className="h-[120px] animate-pulse bg-[#e5e7eb]" />
-          <div className="px-6 pb-6">
-            <div className="-mt-8 h-16 w-16 animate-pulse rounded-full border-[3px] border-white bg-[#e5e7eb]" />
-            <div className="mt-3 h-5 w-48 animate-pulse rounded bg-[#e5e7eb]" />
-            <div className="mt-2 h-4 w-64 animate-pulse rounded bg-[#eef0f3]" />
-            <div className="mt-4 h-6 w-16 animate-pulse rounded bg-[#eef0f3]" />
-          </div>
-        </div>
-        <span className="sr-only">Loading featured creator…</span>
-      </div>
-    </section>
   );
 }
 
@@ -784,76 +749,6 @@ function FeaturedSkeleton() {
           {Array.from({ length: 8 }).map((_, i) => (
             <ProductCardSkeleton key={i} />
           ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function IllustriousCreator() {
-  const { data: creators } = useSuspenseQuery(featuredCreatorsQ);
-  const list = creators ?? [];
-  if (list.length === 0) return null;
-  // Deterministic daily rotation — stable within a day (no SSR hydration
-  // mismatch) and cycles through all approved creators over time. With a
-  // single creator, this trivially always resolves to that creator.
-  const dayIndex = Math.floor(Date.now() / 86_400_000);
-  const creator = list[dayIndex % list.length];
-  return (
-    <section className="bg-bg-page py-16 md:py-24">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <SectionHeader kicker="FEATURED CREATOR" title="Featured Creator" />
-        <div className="mx-auto max-w-md">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4 }}
-            whileHover={{ y: -4 }}
-            className="overflow-hidden rounded-lg border border-line bg-white shadow-card"
-          >
-            <div
-              className="h-[120px] bg-cover bg-center"
-              style={{
-                background: creator.coverUrl
-                  ? `url(${creator.coverUrl}) center/cover`
-                  : "linear-gradient(135deg, #0f1629 0%, #1a2744 50%, #c9a227 130%)",
-              }}
-            />
-            <div className="px-6 pb-6">
-              <div
-                className="-mt-8 grid h-16 w-16 place-items-center overflow-hidden rounded-full border-[3px] border-white bg-navy"
-                aria-hidden
-              >
-                {creator.avatarUrl ? (
-                  <img
-                    src={creator.avatarUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="font-display text-lg text-gold-ink">
-                    {creator.brandName.slice(0, 1)}
-                  </span>
-                )}
-              </div>
-              <div className="mt-3 font-display text-lg font-bold text-navy">
-                {creator.brandName}
-              </div>
-              {creator.pitch && (
-                <div className="text-[13px] text-mute line-clamp-2">
-                  {creator.pitch}
-                </div>
-              )}
-              <Link
-                to="/store/$slug"
-                params={{ slug: creator.brandSlug }}
-                className="mt-4 inline-flex items-center text-sm font-bold text-gold-ink hover:underline"
-              >
-                View Store →
-              </Link>
-            </div>
-          </motion.div>
         </div>
       </div>
     </section>
