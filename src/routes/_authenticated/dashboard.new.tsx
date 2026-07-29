@@ -1540,15 +1540,27 @@ function StepDetails(p: {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Category">
-          <select className="inp" value={p.category} onChange={(e) => p.setCategory(e.target.value as typeof p.category)}>
+          <select className="inp" value={p.category} onChange={(e) => { p.setCategory(e.target.value as typeof p.category); p.setSubcategory(null); }}>
             {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </Field>
-        <Field label="Age / Grade range">
-          <select className="inp" value={p.ageRange} onChange={(e) => p.setAgeRange(e.target.value)}>
-            {AGE_RANGES.map((a) => <option key={a}>{a}</option>)}
-          </select>
-        </Field>
+        {p.category === "financial_planners" ? (
+          <Field label="Planner type *">
+            <select className="inp" value={p.subcategory ?? ""} onChange={(e) => p.setSubcategory(e.target.value || null)}>
+              <option value="">Select a planner type…</option>
+              <option value="Financial Planners">Financial Planners</option>
+              <option value="Wedding Planners">Wedding Planners</option>
+              <option value="Health & Wellness Planners">Health &amp; Wellness Planners</option>
+              <option value="Life & Productivity Planners">Life &amp; Productivity Planners</option>
+            </select>
+          </Field>
+        ) : (
+          <Field label="Age / Grade range">
+            <select className="inp" value={p.ageRange} onChange={(e) => p.setAgeRange(e.target.value)}>
+              {AGE_RANGES.map((a) => <option key={a}>{a}</option>)}
+            </select>
+          </Field>
+        )}
       </div>
       <Field label={`Keywords (${p.keywords.length}/7)`}>
         <div className="flex flex-wrap gap-2 mb-2">
