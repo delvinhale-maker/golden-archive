@@ -62,7 +62,7 @@ export function PublishFlow({ editingId: editingIdProp, productTypeKey, invalidT
 
 const CATEGORIES: { label: string; value: import("@/lib/product-types").ProductCategoryEnum }[] = [
   { label: "eBooks", value: "ebooks" },
-  { label: "Financial Planners", value: "financial_planners" },
+  { label: "Planners", value: "financial_planners" },
   { label: "AI Prompt Packs", value: "ai_prompt_packs" },
   { label: "Digital Journals", value: "printable_journals" },
   { label: "Children's Educational", value: "childrens_educational" },
