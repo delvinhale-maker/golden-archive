@@ -179,6 +179,7 @@ export type Product = {
   id: string;
   title: string;
   category: string;
+  subcategory?: string | null;
   price: number;
   compareAtPrice?: number;
   rating: number;
