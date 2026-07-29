@@ -530,12 +530,16 @@ function applyClientFilters(
     out = out.filter((p) => (p.rating ?? 0) >= s.rating!);
   }
   if (s.sub) {
-    const needle = s.sub.toLowerCase();
-    out = out.filter(
-      (p) =>
-        p.title.toLowerCase().includes(needle) ||
-        (p.description ?? "").toLowerCase().includes(needle),
-    );
+    if (hasStructuredSubs(s.category)) {
+      out = out.filter((p) => (p.subcategory ?? "") === s.sub);
+    } else {
+      const needle = s.sub.toLowerCase();
+      out = out.filter(
+        (p) =>
+          p.title.toLowerCase().includes(needle) ||
+          (p.description ?? "").toLowerCase().includes(needle),
+      );
+    }
   }
   switch (s.sort) {
     case "price-asc":
