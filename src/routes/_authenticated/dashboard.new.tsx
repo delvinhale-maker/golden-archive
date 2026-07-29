@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSubcategoryNames } from "@/lib/subcategories";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -2865,3 +2866,23 @@ function PrePublishPreview(props: {
   );
 }
 
+
+function PlannerTypeSelect({
+  value,
+  onChange,
+}: {
+  value: string | null;
+  onChange: (v: string | null) => void;
+}) {
+  const options = useSubcategoryNames("financial_planners");
+  return (
+    <select className="inp" value={value ?? ""} onChange={(e) => onChange(e.target.value || null)}>
+      <option value="">Select a planner type…</option>
+      {options.map((o) => (
+        <option key={o} value={o}>
+          {o}
+        </option>
+      ))}
+    </select>
+  );
+}
