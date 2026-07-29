@@ -415,7 +415,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       setAuthor(data.creator_name ?? "Delvin Hale");
       setDescription(data.description ?? "");
       setLanguage(data.language ?? "English");
-      setCategory((data.category as typeof CATEGORIES[number]["value"]) ?? "ebooks");
+     setCategory((data.category as typeof CATEGORIES[number]["value"]) ?? "ebooks");
+     setSubcategory(((data as unknown as { subcategory?: string | null }).subcategory) ?? null);
       setEditProductTypeKey(getProductTypeKeyByCategory(data.category as string));
       setPrice(((data.price_cents ?? 0) / 100).toString());
 
