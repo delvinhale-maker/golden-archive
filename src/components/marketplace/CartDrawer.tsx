@@ -2,7 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, Loader2, Minus, Plus, ShoppingBag, Tag, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useCart } from "@/hooks/use-av-store";
+import { cartLineKey, useCart } from "@/hooks/use-av-store";
+import { CartEditionSelect } from "@/components/marketplace/CartEditionSelect";
+
 import { ProductCover } from "./ProductCover";
 import { StripeEmbeddedCartCheckout } from "@/components/StripeEmbeddedCheckout";
 
