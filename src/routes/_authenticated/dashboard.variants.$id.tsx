@@ -116,6 +116,42 @@ function VariantsPage() {
     ]);
   }
 
+  function addEditionPreset(preset: "interactive" | "standard") {
+    const p =
+      preset === "interactive"
+        ? {
+            name: "Interactive Fillable PDF",
+            description:
+              "Type directly into your journal on any device — no printing required.",
+          }
+        : {
+            name: "Standard PDF Edition (print-at-home)",
+            description:
+              "A clean, static PDF with no digital form fields — download and print at home if you prefer writing by hand.",
+          };
+    setDrafts((d) => {
+      if (d.some((x) => x.name.trim().toLowerCase() === p.name.toLowerCase())) {
+        toast.info(`"${p.name}" is already added`);
+        return d;
+      }
+      return [
+        ...d,
+        {
+          ...p,
+          license_type: "",
+          price_dollars: "19.99",
+          pay_what_you_want: false,
+          min_price_dollars: "0.00",
+          file_path: "",
+          file_size_bytes: null,
+          sort_order: d.length,
+          is_active: true,
+        },
+      ];
+    });
+  }
+
+
   function removeVariant(i: number) {
     setDrafts((d) => d.filter((_, idx) => idx !== i));
   }
