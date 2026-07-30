@@ -150,7 +150,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
   const [description, setDescription] = useState("");
   const [language, setLanguage] = useState("English");
   const [category, setCategory] = useState<import("@/lib/product-types").ProductCategoryEnum>(typeCfg.category);
-  const [subcategory, setSubcategory] = useState<string | null>(null);
+  const [subcategory, setSubcategory] = useState<string | null>(typeCfg.subcategory ?? null);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [kwInput, setKwInput] = useState("");
   const [ageRange, setAgeRange] = useState("All ages");
@@ -2875,10 +2875,11 @@ function PlannerTypeSelect({
   onChange: (v: string | null) => void;
 }) {
   const options = useSubcategoryNames("financial_planners");
+  const all = value && !options.includes(value) ? [value, ...options] : options;
   return (
     <select className="inp" value={value ?? ""} onChange={(e) => onChange(e.target.value || null)}>
       <option value="">Select a planner type…</option>
-      {options.map((o) => (
+      {all.map((o) => (
         <option key={o} value={o}>
           {o}
         </option>
@@ -2886,3 +2887,4 @@ function PlannerTypeSelect({
     </select>
   );
 }
+

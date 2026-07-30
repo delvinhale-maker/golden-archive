@@ -6,6 +6,9 @@
 export type ProductTypeKey =
   | "ebook"
   | "financial_planner"
+  | "wedding_planner"
+  | "wellness_planner"
+  | "life_planner"
   | "ai_prompt_pack"
   | "budget_spreadsheet"
   | "printable_journal"
@@ -17,6 +20,7 @@ export type ProductTypeKey =
   | "business_template"
   | "audio"
   | "other";
+
 
 export type ProductCategoryEnum =
   | "ebooks"
@@ -51,7 +55,10 @@ export interface ProductTypeConfig {
   suggestedPriceCents: number;
   accent: string; // hex color for badges
   isEbook: boolean;
+  /** Pre-selects the "Planner type" subcategory in the publish flow. */
+  subcategory?: string;
 }
+
 
 const OFFICE_DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const OFFICE_XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -86,9 +93,59 @@ export const PRODUCT_TYPES: Record<ProductTypeKey, ProductTypeConfig> = {
     suggestedPriceCents: 1999,
     accent: "#1A6B3A",
     isEbook: false,
+    subcategory: "Financial Planners",
+  },
+  wedding_planner: {
+    key: "wedding_planner",
+    label: "Wedding Planner",
+    emoji: "💍",
+    tagline: "PDF wedding planner, checklist, or budget kit",
+    category: "financial_planners",
+    categoryLabel: "Wedding Planner",
+    fileExts: ["pdf", "xlsx"],
+    fileMimes: ["application/pdf", OFFICE_XLSX],
+    acceptString: ".pdf,.xlsx,application/pdf," + OFFICE_XLSX,
+    acceptedHint: ".PDF, .XLSX",
+    suggestedPriceCents: 1999,
+    accent: "#9D174D",
+    isEbook: false,
+    subcategory: "Wedding Planners",
+  },
+  wellness_planner: {
+    key: "wellness_planner",
+    label: "Health & Wellness Planner",
+    emoji: "🌿",
+    tagline: "PDF wellness, fitness, or meal planner",
+    category: "financial_planners",
+    categoryLabel: "Health & Wellness Planner",
+    fileExts: ["pdf", "xlsx"],
+    fileMimes: ["application/pdf", OFFICE_XLSX],
+    acceptString: ".pdf,.xlsx,application/pdf," + OFFICE_XLSX,
+    acceptedHint: ".PDF, .XLSX",
+    suggestedPriceCents: 1799,
+    accent: "#15803D",
+    isEbook: false,
+    subcategory: "Health & Wellness Planners",
+  },
+  life_planner: {
+    key: "life_planner",
+    label: "Life & Productivity Planner",
+    emoji: "🗓️",
+    tagline: "PDF goal, habit, or productivity planner",
+    category: "financial_planners",
+    categoryLabel: "Life & Productivity Planner",
+    fileExts: ["pdf", "xlsx"],
+    fileMimes: ["application/pdf", OFFICE_XLSX],
+    acceptString: ".pdf,.xlsx,application/pdf," + OFFICE_XLSX,
+    acceptedHint: ".PDF, .XLSX",
+    suggestedPriceCents: 1799,
+    accent: "#1D4ED8",
+    isEbook: false,
+    subcategory: "Life & Productivity Planners",
   },
   ai_prompt_pack: {
     key: "ai_prompt_pack",
+
     label: "AI Prompt Pack",
     emoji: "🤖",
     tagline: "PDF, TXT, or JSON prompt collection",
@@ -270,6 +327,9 @@ export const PRODUCT_TYPES: Record<ProductTypeKey, ProductTypeConfig> = {
 
 export const PRODUCT_TYPE_ORDER: ProductTypeKey[] = [
   "financial_planner",
+  "wedding_planner",
+  "wellness_planner",
+  "life_planner",
   "ai_prompt_pack",
   "printable_journal",
   "childrens_educational",
@@ -278,6 +338,7 @@ export const PRODUCT_TYPE_ORDER: ProductTypeKey[] = [
   "audio",
   "other",
 ];
+
 
 export function isProductTypeKey(key: unknown): key is ProductTypeKey {
   return typeof key === "string" && Object.prototype.hasOwnProperty.call(PRODUCT_TYPES, key);
