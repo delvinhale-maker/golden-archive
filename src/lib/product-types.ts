@@ -327,6 +327,9 @@ export const PRODUCT_TYPES: Record<ProductTypeKey, ProductTypeConfig> = {
 
 export const PRODUCT_TYPE_ORDER: ProductTypeKey[] = [
   "financial_planner",
+  "wedding_planner",
+  "wellness_planner",
+  "life_planner",
   "ai_prompt_pack",
   "printable_journal",
   "childrens_educational",
@@ -335,6 +338,7 @@ export const PRODUCT_TYPE_ORDER: ProductTypeKey[] = [
   "audio",
   "other",
 ];
+
 
 export function isProductTypeKey(key: unknown): key is ProductTypeKey {
   return typeof key === "string" && Object.prototype.hasOwnProperty.call(PRODUCT_TYPES, key);
