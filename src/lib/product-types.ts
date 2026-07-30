@@ -6,6 +6,9 @@
 export type ProductTypeKey =
   | "ebook"
   | "financial_planner"
+  | "wedding_planner"
+  | "wellness_planner"
+  | "life_planner"
   | "ai_prompt_pack"
   | "budget_spreadsheet"
   | "printable_journal"
@@ -17,6 +20,7 @@ export type ProductTypeKey =
   | "business_template"
   | "audio"
   | "other";
+
 
 export type ProductCategoryEnum =
   | "ebooks"
