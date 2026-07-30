@@ -418,7 +418,12 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       setLanguage(data.language ?? "English");
      setCategory((data.category as typeof CATEGORIES[number]["value"]) ?? "ebooks");
      setSubcategory(((data as unknown as { subcategory?: string | null }).subcategory) ?? null);
-      setEditProductTypeKey(getProductTypeKeyByCategory(data.category as string));
+      setEditProductTypeKey(
+        getProductTypeKeyByCategory(
+          data.category as string,
+          (data as unknown as { subcategory?: string | null }).subcategory ?? null,
+        ),
+      );
       setPrice(((data.price_cents ?? 0) / 100).toString());
 
       setExistingCoverUrl(data.cover_url ?? null);

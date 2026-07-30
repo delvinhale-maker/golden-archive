@@ -372,13 +372,24 @@ export function categoryDisplay(category: string | null | undefined): { label: s
 // Map a stored category back to the canonical product type key. Used when
 // editing an existing product so the publish flow header, labels, and file
 // restrictions match the original upload type.
+// When several types share one category (all planner types live under
+// "financial_planners"), the stored subcategory disambiguates them so a
+// Wedding Planner keeps its own label instead of falling back to the first
+// matching type.
 export function getProductTypeKeyByCategory(
   category: string | null | undefined,
+  subcategory?: string | null,
 ): ProductTypeKey | undefined {
   const c = (category ?? "").toLowerCase();
-  const match = (Object.entries(PRODUCT_TYPES) as [ProductTypeKey, ProductTypeConfig][]).find(
-    ([, t]) => t.category === c,
-  );
-  return match?.[0];
+  const entries = Object.entries(PRODUCT_TYPES) as [ProductTypeKey, ProductTypeConfig][];
+  const inCategory = entries.filter(([, t]) => t.category === c);
+  if (!inCategory.length) return undefined;
+  const sub = (subcategory ?? "").trim().toLowerCase();
+  if (sub) {
+    const bySub = inCategory.find(([, t]) => (t.subcategory ?? "").toLowerCase() === sub);
+    if (bySub) return bySub[0];
+  }
+  return inCategory[0][0];
 }
+
 

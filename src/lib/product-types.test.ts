@@ -7,14 +7,21 @@ import {
 } from "./product-types";
 
 describe("getProductTypeKeyByCategory", () => {
-  it("maps every product type's category back to its own key", () => {
+  it("maps every product type's category (+subcategory) back to its own key", () => {
     for (const [key, cfg] of Object.entries(PRODUCT_TYPES) as [
       ProductTypeKey,
       (typeof PRODUCT_TYPES)[ProductTypeKey],
     ][]) {
-      expect(getProductTypeKeyByCategory(cfg.category)).toBe(key);
+      expect(getProductTypeKeyByCategory(cfg.category, cfg.subcategory ?? null)).toBe(key);
     }
   });
+
+  it("disambiguates planner types by stored subcategory", () => {
+    expect(getProductTypeKeyByCategory("financial_planners", "Wedding Planners")).toBe("wedding_planner");
+    expect(getProductTypeKeyByCategory("financial_planners", "Health & Wellness Planners")).toBe("wellness_planner");
+    expect(getProductTypeKeyByCategory("financial_planners", "Life & Productivity Planners")).toBe("life_planner");
+  });
+
 
   it("maps ai_prompt_packs category to the AI Prompt Pack label (edit flow header)", () => {
     const key = getProductTypeKeyByCategory("ai_prompt_packs");
