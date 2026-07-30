@@ -362,7 +362,31 @@ function VariantsPage() {
           ))}
         </div>
 
+        <div className="mt-6 rounded-2xl border border-ink/10 bg-paper p-4">
+          <p className="text-sm font-bold text-ink">Quick add editions</p>
+          <p className="mt-1 text-xs text-mute">
+            Offer both journal/planner editions as separate labeled downloads. Upload the matching file on each one after adding.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => addEditionPreset("interactive")}
+              className="inline-flex items-center gap-2 rounded-full border border-navy/30 bg-white px-4 py-2 text-xs font-bold text-navy hover:border-navy"
+            >
+              <Plus size={12} /> Interactive Fillable PDF
+            </button>
+            <button
+              type="button"
+              onClick={() => addEditionPreset("standard")}
+              className="inline-flex items-center gap-2 rounded-full border border-navy/30 bg-white px-4 py-2 text-xs font-bold text-navy hover:border-navy"
+            >
+              <Plus size={12} /> Standard PDF Edition (print-at-home)
+            </button>
+          </div>
+        </div>
+
         <div className="mt-6 flex flex-wrap items-center gap-3">
+
           <button
             type="button"
             onClick={addVariant}
