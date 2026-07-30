@@ -55,7 +55,10 @@ export interface ProductTypeConfig {
   suggestedPriceCents: number;
   accent: string; // hex color for badges
   isEbook: boolean;
+  /** Pre-selects the "Planner type" subcategory in the publish flow. */
+  subcategory?: string;
 }
+
 
 const OFFICE_DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const OFFICE_XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
