@@ -531,6 +531,7 @@ export type Database = {
       agent_memory: {
         Row: {
           agent_id: string
+          client_id: string | null
           content: string
           created_at: string
           embedding: string | null
@@ -539,6 +540,7 @@ export type Database = {
         }
         Insert: {
           agent_id: string
+          client_id?: string | null
           content: string
           created_at?: string
           embedding?: string | null
@@ -547,6 +549,7 @@ export type Database = {
         }
         Update: {
           agent_id?: string
+          client_id?: string | null
           content?: string
           created_at?: string
           embedding?: string | null
@@ -754,6 +757,7 @@ export type Database = {
       }
       conversations: {
         Row: {
+          client_id: string | null
           created_at: string
           id: string
           is_team_channel: boolean
@@ -761,6 +765,7 @@ export type Database = {
           title: string | null
         }
         Insert: {
+          client_id?: string | null
           created_at?: string
           id?: string
           is_team_channel?: boolean
@@ -768,6 +773,7 @@ export type Database = {
           title?: string | null
         }
         Update: {
+          client_id?: string | null
           created_at?: string
           id?: string
           is_team_channel?: boolean
