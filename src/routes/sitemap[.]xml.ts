@@ -113,6 +113,8 @@ export const Route = createFileRoute("/sitemap.xml")({
                   priority: "0.7",
                 });
               }
+            } else {
+              await logFailure("academy_categories", catRes);
             }
             if (articleRes.ok) {
               const arts = (await articleRes.json()) as Array<{
