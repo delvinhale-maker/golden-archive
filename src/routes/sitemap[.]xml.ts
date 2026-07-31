@@ -131,9 +131,12 @@ export const Route = createFileRoute("/sitemap.xml")({
                   priority: "0.8",
                 });
               }
+            } else {
+              await logFailure("academy_articles", articleRes);
             }
           }
-        } catch {
+        } catch (err) {
+          console.error("[sitemap] dynamic entry fetch threw:", err);
           // Sitemap should still render with static routes if the DB read fails
         }
 
