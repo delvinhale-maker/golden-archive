@@ -4,7 +4,7 @@ export function TrustBadges() {
   const items = [
     { icon: Download, label: "Instant Delivery", sub: "Email link in seconds" },
     { icon: ShieldCheck, label: "Buyer Protection", sub: "Curated resources" },
-    { icon: RefreshCw, label: "7-Day Guarantee", sub: "Full refund window" },
+    { icon: RefreshCw, label: "14-Day Guarantee", sub: "Full refund window" },
     { icon: Lock, label: "Secure Checkout", sub: "Encrypted by Stripe" },
   ];
   return (
