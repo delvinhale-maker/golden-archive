@@ -13,12 +13,12 @@ export const Route = createFileRoute("/sell")({
   head: () => ({
     meta: [
       { title: "Apply to Sell on AurumVault | Creator Application" },
-      { name: "description", content: "Apply to join AurumVault. Keep 70% of every sale. 4-step application, 48-hour review." },
+      { name: "description", content: "Apply to join AurumVault. Keep 85% of every sale — 15% platform fee. 4-step application, 48-hour review." },
       { property: "og:title", content: "Apply to Sell on AurumVault" },
-      { property: "og:description", content: "Apply to join AurumVault. Keep 70% of every sale." },
+      { property: "og:description", content: "Apply to join AurumVault. Keep 85% of every sale — 15% platform fee." },
       { property: "og:url", content: "https://www.aurumvault.store/sell" },
       { name: "twitter:title", content: "Apply to Sell on AurumVault" },
-      { name: "twitter:description", content: "Apply to join AurumVault. Keep 70% of every sale." },
+      { name: "twitter:description", content: "Apply to join AurumVault. Keep 85% of every sale — 15% platform fee." },
     ],
     links: [{ rel: "canonical", href: "https://www.aurumvault.store/sell" }],
   }),
