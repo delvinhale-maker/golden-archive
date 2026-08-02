@@ -37,7 +37,7 @@ export function KingdomGuarantee() {
             Purpose-driven. Quality-verified.
           </h3>
           <p className="mt-1 text-[13px] leading-relaxed text-mute">
-            Every resource is reviewed by our team and backed by a 7-day,
+            Every resource is reviewed by our team and backed by a 14-day,
             no-questions-asked refund window. If it doesn't move you forward,
             we'll make it right.
           </p>
