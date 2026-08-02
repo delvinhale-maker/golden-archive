@@ -4,7 +4,7 @@ export function TrustBadges() {
   const items = [
     { icon: Download, label: "Instant Delivery", sub: "Email link in seconds" },
     { icon: ShieldCheck, label: "Buyer Protection", sub: "Curated resources" },
-    { icon: RefreshCw, label: "7-Day Guarantee", sub: "Full refund window" },
+    { icon: RefreshCw, label: "14-Day Guarantee", sub: "Full refund window" },
     { icon: Lock, label: "Secure Checkout", sub: "Encrypted by Stripe" },
   ];
   return (
@@ -37,7 +37,7 @@ export function KingdomGuarantee() {
             Purpose-driven. Quality-verified.
           </h3>
           <p className="mt-1 text-[13px] leading-relaxed text-mute">
-            Every resource is reviewed by our team and backed by a 7-day,
+            Every resource is reviewed by our team and backed by a 14-day,
             no-questions-asked refund window. If it doesn't move you forward,
             we'll make it right.
           </p>
