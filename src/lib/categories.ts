@@ -269,3 +269,16 @@ export function getCategoryDef(labelOrSlug?: string | null): CategoryDef | undef
       : undefined)
   );
 }
+
+// Canonical top-nav / browse category set used by the header, search page,
+// and homepage category tiles. Keep this as the single source for nav chips.
+export const NAV_CATEGORIES = [
+  "All",
+  "AI Prompt Packs",
+  "eBooks",
+  "Journals",
+  "Financial Planners",
+] as const;
+
+// Same set without the "All" pseudo-category, for browse grids.
+export const BROWSE_CATEGORIES = NAV_CATEGORIES.filter((c) => c !== "All");
