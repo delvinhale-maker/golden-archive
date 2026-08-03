@@ -119,17 +119,11 @@ function ProductsPage() {
   }, [shouldNoindex]);
 
   const query = useQuery({
-    queryKey: ["mp", "products", search.category, search.sort, search.q],
-    queryFn: () =>
-      getProducts({
-        data: {
-          category: search.category,
-          sort: search.sort,
-          q: search.q,
-          page: 1,
-          pageSize: 100,
-        },
-      }),
+    ...productsQueryOptions({
+      category: search.category,
+      sort: search.sort,
+      q: search.q,
+    }),
     placeholderData: keepPreviousData,
   });
 

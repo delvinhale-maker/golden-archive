@@ -13,7 +13,7 @@ const SHOP_LINKS: FooterLink[] = [
 const COMPANY_LINKS: FooterLink[] = [
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
-  { label: "Support", to: "/dashboard/help" },
+  { label: "Support", to: "/support" },
 ];
 
 const CREATOR_LINKS: FooterLink[] = [
@@ -21,7 +21,7 @@ const CREATOR_LINKS: FooterLink[] = [
   { label: "Browse Creators", to: "/creators" },
   { label: "Become a Creator", to: "/become-a-creator" },
   { label: "Creator Terms", to: "/creator-terms" },
-  { label: "Creator FAQ", to: "/dashboard/help" },
+  { label: "Creator FAQ", to: "/support" },
   { label: "Creator Login", to: "/auth" },
   { label: "Affiliate Program", to: "/affiliates" },
 ];
