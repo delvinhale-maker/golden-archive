@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Crown, Filter, SlidersHorizontal, Star, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -50,8 +50,39 @@ const SORTS = [
   { v: "rating", l: "Top Rated" },
 ];
 
+type ProductsQueryArgs = {
+  category?: string;
+  sort?: string;
+  q?: string;
+};
+
+function productsQueryOptions(args: ProductsQueryArgs) {
+  return queryOptions({
+    queryKey: ["mp", "products", args.category, args.sort, args.q],
+    queryFn: () =>
+      getProducts({
+        data: { ...args, page: 1, pageSize: 100 },
+      }),
+  });
+}
+
 export const Route = createFileRoute("/products/")({
   validateSearch: searchSchema,
+  loaderDeps: ({ search }) => ({
+    category: search.category,
+    sort: search.sort,
+    q: search.q,
+  }),
+  loader: ({ context, deps }) =>
+    context.queryClient.ensureQueryData(
+      productsQueryOptions({
+        category: deps.category
+          ? getCategoryDef(deps.category)?.label ?? deps.category
+          : undefined,
+        sort: deps.sort,
+        q: deps.q,
+      }),
+    ),
   head: () => ({
     meta: [
       { title: "Browse the Vault | AurumVault — Gold Standard Digital Commerce" },
@@ -119,17 +150,11 @@ function ProductsPage() {
   }, [shouldNoindex]);
 
   const query = useQuery({
-    queryKey: ["mp", "products", search.category, search.sort, search.q],
-    queryFn: () =>
-      getProducts({
-        data: {
-          category: search.category,
-          sort: search.sort,
-          q: search.q,
-          page: 1,
-          pageSize: 100,
-        },
-      }),
+    ...productsQueryOptions({
+      category: search.category,
+      sort: search.sort,
+      q: search.q,
+    }),
     placeholderData: keepPreviousData,
   });
 
@@ -226,10 +251,10 @@ function ProductsPage() {
           <div>
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-sm text-mute">
               <p>
-                {query.isFetching && !query.data
-                  ? "Loading..."
+                {!query.data
+                  ? "Loading results…"
                   : filtered.length === 0
-                    ? "0 results"
+                    ? "No results"
                     : `Showing ${pageStart + 1}–${pageStart + products.length} of ${filtered.length} results`}
               </p>
               <label className="flex items-center gap-2">
