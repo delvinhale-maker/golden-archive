@@ -89,6 +89,7 @@ import { Route as AuthenticatedDashboardBumpsIdRouteImport } from './routes/_aut
 import { Route as AuthenticatedDashboardEditIdRouteImport } from './routes/_authenticated/dashboard.edit.$id'
 import { Route as AuthenticatedDashboardPreorderIdRouteImport } from './routes/_authenticated/dashboard.preorder.$id'
 import { Route as AuthenticatedDashboardVariantsIdRouteImport } from './routes/_authenticated/dashboard.variants.$id'
+import { Route as ApiPublicAcademyReceiveArticleRouteImport } from './routes/api/public/academy/receive-article'
 import { Route as ApiPublicCronReleasePreordersRouteImport } from './routes/api/public/cron/release-preorders'
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
 import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/public/hooks/audit-covers'
@@ -530,6 +531,12 @@ const AuthenticatedDashboardVariantsIdRoute =
     path: '/dashboard/variants/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicAcademyReceiveArticleRoute =
+  ApiPublicAcademyReceiveArticleRouteImport.update({
+    id: '/api/public/academy/receive-article',
+    path: '/api/public/academy/receive-article',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCronReleasePreordersRoute =
   ApiPublicCronReleasePreordersRouteImport.update({
     id: '/api/public/cron/release-preorders',
@@ -676,6 +683,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
   '/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
+  '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
@@ -766,6 +774,7 @@ export interface FileRoutesByTo {
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
   '/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
+  '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
@@ -860,6 +869,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
   '/_authenticated/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
   '/_authenticated/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
+  '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
@@ -954,6 +964,7 @@ export interface FileRouteTypes {
     | '/dashboard/edit/$id'
     | '/dashboard/preorder/$id'
     | '/dashboard/variants/$id'
+    | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
@@ -1044,6 +1055,7 @@ export interface FileRouteTypes {
     | '/dashboard/edit/$id'
     | '/dashboard/preorder/$id'
     | '/dashboard/variants/$id'
+    | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
@@ -1137,6 +1149,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/edit/$id'
     | '/_authenticated/dashboard/preorder/$id'
     | '/_authenticated/dashboard/variants/$id'
+    | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
@@ -1194,6 +1207,7 @@ export interface RootRouteChildren {
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicAcademyReceiveArticleRoute: typeof ApiPublicAcademyReceiveArticleRoute
   ApiPublicCronReleasePreordersRoute: typeof ApiPublicCronReleasePreordersRoute
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
   ApiPublicHooksAuditCoversRoute: typeof ApiPublicHooksAuditCoversRoute
@@ -1768,6 +1782,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardVariantsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/academy/receive-article': {
+      id: '/api/public/academy/receive-article'
+      path: '/api/public/academy/receive-article'
+      fullPath: '/api/public/academy/receive-article'
+      preLoaderRoute: typeof ApiPublicAcademyReceiveArticleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/release-preorders': {
       id: '/api/public/cron/release-preorders'
       path: '/api/public/cron/release-preorders'
@@ -2022,6 +2043,7 @@ const rootRouteChildren: RootRouteChildren = {
   SubscribeConfirmRoute: SubscribeConfirmRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicAcademyReceiveArticleRoute: ApiPublicAcademyReceiveArticleRoute,
   ApiPublicCronReleasePreordersRoute: ApiPublicCronReleasePreordersRoute,
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
   ApiPublicHooksAuditCoversRoute: ApiPublicHooksAuditCoversRoute,
