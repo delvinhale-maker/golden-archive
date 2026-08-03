@@ -251,10 +251,10 @@ function ProductsPage() {
           <div>
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-sm text-mute">
               <p>
-                {query.isFetching && !query.data
-                  ? "Loading..."
+                {!query.data
+                  ? "Loading results…"
                   : filtered.length === 0
-                    ? "0 results"
+                    ? "No results"
                     : `Showing ${pageStart + 1}–${pageStart + products.length} of ${filtered.length} results`}
               </p>
               <label className="flex items-center gap-2">
