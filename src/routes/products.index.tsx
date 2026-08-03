@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Crown, Filter, SlidersHorizontal, Star, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -50,8 +50,39 @@ const SORTS = [
   { v: "rating", l: "Top Rated" },
 ];
 
+type ProductsQueryArgs = {
+  category?: string;
+  sort?: string;
+  q?: string;
+};
+
+function productsQueryOptions(args: ProductsQueryArgs) {
+  return queryOptions({
+    queryKey: ["mp", "products", args.category, args.sort, args.q],
+    queryFn: () =>
+      getProducts({
+        data: { ...args, page: 1, pageSize: 100 },
+      }),
+  });
+}
+
 export const Route = createFileRoute("/products/")({
   validateSearch: searchSchema,
+  loaderDeps: ({ search }) => ({
+    category: search.category,
+    sort: search.sort,
+    q: search.q,
+  }),
+  loader: ({ context, deps }) =>
+    context.queryClient.ensureQueryData(
+      productsQueryOptions({
+        category: deps.category
+          ? getCategoryDef(deps.category)?.label ?? deps.category
+          : undefined,
+        sort: deps.sort,
+        q: deps.q,
+      }),
+    ),
   head: () => ({
     meta: [
       { title: "Browse the Vault | AurumVault — Gold Standard Digital Commerce" },
