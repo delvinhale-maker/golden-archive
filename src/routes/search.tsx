@@ -29,10 +29,10 @@ const RECENT_KEY = "av:recent-searches";
 const TRENDING = [
   "Kingdom Mind",
   "Money Smart",
-  "Leadership",
-  "Templates",
+  "AI Prompt Packs",
   "Journals",
-  "Audio",
+  "Financial Planners",
+  "eBooks",
 ];
 const CATEGORIES = BROWSE_CATEGORIES;
 
