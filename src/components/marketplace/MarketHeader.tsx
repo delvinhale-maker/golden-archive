@@ -25,6 +25,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { getProducts } from "@/lib/marketplace.functions";
 import { NotificationsBell } from "./NotificationsBell";
 import { supabase } from "@/integrations/supabase/client";
+import { NAV_CATEGORIES } from "@/lib/categories";
 
 const CATEGORIES = [
   "All",
