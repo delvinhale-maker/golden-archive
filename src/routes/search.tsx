@@ -9,6 +9,7 @@ import { AffiliateCard } from "@/components/marketplace/AffiliateCard";
 import { getProducts } from "@/lib/marketplace.functions";
 import { fetchAffiliateProducts } from "@/lib/affiliate";
 import { RouteErrorFallback } from "@/components/RouteErrorFallback";
+import { BROWSE_CATEGORIES } from "@/lib/categories";
 
 export const Route = createFileRoute("/search")({
   validateSearch: z.object({ q: z.string().optional() }),
@@ -33,7 +34,7 @@ const TRENDING = [
   "Journals",
   "Audio",
 ];
-const CATEGORIES = ["eBooks", "Journals", "Templates", "Audio", "Financial Planners", "Leadership"];
+const CATEGORIES = BROWSE_CATEGORIES;
 
 function readRecent(): string[] {
   if (typeof window === "undefined") return [];

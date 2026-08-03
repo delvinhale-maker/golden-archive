@@ -144,16 +144,19 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const CATS = [
-  { label: "eBooks", icon: BookOpen, slug: "eBooks" },
-  { label: "Journals", icon: GraduationCap, slug: "Journals" },
-  // "Templates" temporarily hidden — keep out of the homepage tile row.
-  { label: "Audio", icon: Headphones, slug: "Audio" },
-  { label: "Financial Planners", icon: Wallet, slug: "Financial Planners" },
-  { label: "Leadership", icon: Crown, slug: "Leadership" },
-  { label: "Purpose", icon: Swords, slug: "Purpose" },
-  { label: "Business", icon: Briefcase, slug: "Business" },
-];
+// Homepage category tiles — labels come from the canonical nav list so they
+// never drift from the header / search chips.
+const CAT_ICONS: Record<string, typeof BookOpen> = {
+  "AI Prompt Packs": Sparkles,
+  eBooks: BookOpen,
+  Journals: GraduationCap,
+  "Financial Planners": Wallet,
+};
+const CATS = BROWSE_CATEGORIES.map((label) => ({
+  label,
+  icon: CAT_ICONS[label] ?? BookOpen,
+  slug: label,
+}));
 
 const SECTION_REGISTRY: Record<string, () => React.ReactElement> = {
   new_releases: () => (
