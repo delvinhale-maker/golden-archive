@@ -5,10 +5,6 @@ import {
   DollarSign,
   Users,
   BookOpen,
-  GraduationCap,
-  LayoutTemplate,
-  Music,
-  Palette,
   Wand2,
   BarChart3,
   Mail,
@@ -270,11 +266,9 @@ function HowItWorks() {
 function WhatToSell() {
   const items = [
     { icon: BookOpen, label: "eBooks" },
-    { icon: GraduationCap, label: "Online Courses" },
-    { icon: LayoutTemplate, label: "Templates & Kits" },
-    { icon: Music, label: "Audio & Music" },
-    { icon: Palette, label: "Design Assets" },
-    { icon: Sparkles, label: "Coaching & Guides" },
+    { icon: Sparkles, label: "AI Prompt Packs" },
+    { icon: BookOpen, label: "Journals" },
+    { icon: BarChart3, label: "Financial Planners" },
   ];
   return (
     <section className="bg-paper py-16 md:py-24">
@@ -311,12 +305,12 @@ function WhatToSell() {
 
 function CreatorTools() {
   const items = [
-    { icon: Wand2, title: "AI Cover Generator", body: "Premium covers in seconds. No design skills required." },
-    { icon: Sparkles, title: "Copy Assistant", body: "Product descriptions, taglines, and SEO — written for you." },
-    { icon: BarChart3, title: "Revenue Analytics", body: "Real-time earnings, conversion funnels, top products." },
-    { icon: Mail, title: "Buyer Email Capture", body: "Grow your list on every sale. Own your audience." },
-    { icon: ShieldCheck, title: "Fraud Protection", body: "Secure downloads, chargeback defense, verified buyers." },
+    { icon: Sparkles, title: "AI Copy Assistant", body: "Product descriptions, taglines, SEO copy, and cover design briefs — written for you in AI Studio." },
+    { icon: BarChart3, title: "Revenue Analytics", body: "Real-time earnings, units sold, and top products in your dashboard." },
     { icon: Crown, title: "Featured Placement", body: "Kingdom Picks and curated shelves surface your best work." },
+    { icon: ShieldCheck, title: "Secure Delivery", body: "Tokenized, expiring download links protect your files on every sale." },
+    { icon: Wand2, title: "AI Cover Generator", body: "One-click premium cover art, no design skills required.", soon: true },
+    { icon: Mail, title: "Buyer Email Capture", body: "Grow and export your own buyer list on every sale.", soon: true },
   ];
   return (
     <section
@@ -353,8 +347,16 @@ function CreatorTools() {
               >
                 <it.icon size={20} />
               </div>
-              <h3 className="font-display text-xl" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
+              <h3 className="font-display text-xl flex items-center gap-2 flex-wrap" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
                 {it.title}
+                {"soon" in it && it.soon ? (
+                  <span
+                    className="rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em]"
+                    style={{ borderColor: `${GOLD}66`, color: GOLD, fontFamily: "inherit" }}
+                  >
+                    Coming soon
+                  </span>
+                ) : null}
               </h3>
               <p className="mt-2 text-sm text-white/70 leading-relaxed">{it.body}</p>
             </div>
@@ -370,7 +372,7 @@ function FAQ() {
     { q: "How much does it cost to sell?", a: "Nothing upfront. AurumVault takes a 15% platform fee on each sale; you keep 85%. No monthly fees, no listing fees." },
     { q: "How fast is the review process?", a: "We review every application within 48 hours. Once approved, you can upload products immediately." },
     { q: "How do I get paid?", a: "Earnings accumulate in your seller balance and are paid out on the schedule shown in your dashboard, once past our clearance window." },
-    { q: "What can I sell?", a: "eBooks, courses, templates, design assets, audio, coaching guides — any digital product that fits our curated, purpose-driven standard." },
+    { q: "What can I sell?", a: "eBooks, AI prompt packs, journals, and financial planners — any digital product that fits our curated, purpose-driven standard." },
     { q: "Do I own my content?", a: "Always. You retain full rights to your work. AurumVault is a distribution license, not an assignment." },
     { q: "What's the quality bar?", a: "Every product is reviewed for craft, originality, and value. We keep the marketplace curated so buyers trust it — and so your work stands out." },
   ];
