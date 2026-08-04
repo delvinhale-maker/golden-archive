@@ -351,8 +351,16 @@ function CreatorTools() {
               >
                 <it.icon size={20} />
               </div>
-              <h3 className="font-display text-xl" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
+              <h3 className="font-display text-xl flex items-center gap-2 flex-wrap" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
                 {it.title}
+                {"soon" in it && it.soon ? (
+                  <span
+                    className="rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em]"
+                    style={{ borderColor: `${GOLD}66`, color: GOLD, fontFamily: "inherit" }}
+                  >
+                    Coming soon
+                  </span>
+                ) : null}
               </h3>
               <p className="mt-2 text-sm text-white/70 leading-relaxed">{it.body}</p>
             </div>
