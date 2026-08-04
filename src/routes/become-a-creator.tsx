@@ -270,11 +270,9 @@ function HowItWorks() {
 function WhatToSell() {
   const items = [
     { icon: BookOpen, label: "eBooks" },
-    { icon: GraduationCap, label: "Online Courses" },
-    { icon: LayoutTemplate, label: "Templates & Kits" },
-    { icon: Music, label: "Audio & Music" },
-    { icon: Palette, label: "Design Assets" },
-    { icon: Sparkles, label: "Coaching & Guides" },
+    { icon: Sparkles, label: "AI Prompt Packs" },
+    { icon: BookOpen, label: "Journals" },
+    { icon: BarChart3, label: "Financial Planners" },
   ];
   return (
     <section className="bg-paper py-16 md:py-24">
