@@ -309,12 +309,12 @@ function WhatToSell() {
 
 function CreatorTools() {
   const items = [
-    { icon: Wand2, title: "AI Cover Generator", body: "Premium covers in seconds. No design skills required." },
-    { icon: Sparkles, title: "Copy Assistant", body: "Product descriptions, taglines, and SEO — written for you." },
-    { icon: BarChart3, title: "Revenue Analytics", body: "Real-time earnings, conversion funnels, top products." },
-    { icon: Mail, title: "Buyer Email Capture", body: "Grow your list on every sale. Own your audience." },
-    { icon: ShieldCheck, title: "Fraud Protection", body: "Secure downloads, chargeback defense, verified buyers." },
+    { icon: Sparkles, title: "AI Copy Assistant", body: "Product descriptions, taglines, SEO copy, and cover design briefs — written for you in AI Studio." },
+    { icon: BarChart3, title: "Revenue Analytics", body: "Real-time earnings, units sold, and top products in your dashboard." },
     { icon: Crown, title: "Featured Placement", body: "Kingdom Picks and curated shelves surface your best work." },
+    { icon: ShieldCheck, title: "Secure Delivery", body: "Tokenized, expiring download links protect your files on every sale." },
+    { icon: Wand2, title: "AI Cover Generator", body: "One-click premium cover art, no design skills required.", soon: true },
+    { icon: Mail, title: "Buyer Email Capture", body: "Grow and export your own buyer list on every sale.", soon: true },
   ];
   return (
     <section
