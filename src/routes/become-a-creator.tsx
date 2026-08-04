@@ -368,7 +368,7 @@ function FAQ() {
     { q: "How much does it cost to sell?", a: "Nothing upfront. AurumVault takes a 15% platform fee on each sale; you keep 85%. No monthly fees, no listing fees." },
     { q: "How fast is the review process?", a: "We review every application within 48 hours. Once approved, you can upload products immediately." },
     { q: "How do I get paid?", a: "Earnings accumulate in your seller balance and are paid out on the schedule shown in your dashboard, once past our clearance window." },
-    { q: "What can I sell?", a: "eBooks, courses, templates, design assets, audio, coaching guides — any digital product that fits our curated, purpose-driven standard." },
+    { q: "What can I sell?", a: "eBooks, AI prompt packs, journals, and financial planners — any digital product that fits our curated, purpose-driven standard." },
     { q: "Do I own my content?", a: "Always. You retain full rights to your work. AurumVault is a distribution license, not an assignment." },
     { q: "What's the quality bar?", a: "Every product is reviewed for craft, originality, and value. We keep the marketplace curated so buyers trust it — and so your work stands out." },
   ];
