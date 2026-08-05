@@ -96,7 +96,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Discover premium eBooks, courses, templates, and digital resources from verified purpose-driven creators on AurumVault.",
+          "Discover premium eBooks, AI prompt packs, journals, and financial planners from purpose-driven creators on AurumVault.",
       },
       { property: "og:site_name", content: "AurumVault" },
       { property: "og:type", content: "website" },
@@ -104,7 +104,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:description",
         content:
-          "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
+          "Premium digital marketplace for eBooks, AI prompt packs, journals, and financial planners.",
       },
       { property: "og:url", content: "https://www.aurumvault.store" },
       { property: "og:image", content: "https://www.aurumvault.store/og-image.png" },
@@ -117,7 +117,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "twitter:description",
         content:
-          "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
+          "Premium digital marketplace for eBooks, AI prompt packs, journals, and financial planners.",
       },
       { name: "twitter:image", content: "https://www.aurumvault.store/og-image.png" },
     ],
@@ -175,7 +175,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               url: "https://www.aurumvault.store",
               name: "AurumVault",
               description:
-                "Premium digital marketplace for eBooks, courses, templates, audio, and leadership resources.",
+                "Premium digital marketplace for eBooks, AI prompt packs, journals, and financial planners.",
               publisher: { "@id": "https://www.aurumvault.store/#organization" },
               potentialAction: {
                 "@type": "SearchAction",

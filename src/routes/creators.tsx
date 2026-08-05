@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { MapPin, Search } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getApprovedCreators, type CreatorSummary } from "@/lib/creators.functions";
-import { CATEGORIES } from "@/lib/categories";
+import { BROWSE_CATEGORIES, labelToSlug } from "@/lib/categories";
 
 const creatorsQ = queryOptions({
   queryKey: ["mp", "creators-all"],
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/creators")({
       {
         name: "description",
         content:
-          "Discover creators shipping premium digital resources on AurumVault — filter by category and country.",
+          "Discover creators shipping premium eBooks, AI prompt packs, journals, and financial planners on AurumVault — filter by category and country.",
       },
       { property: "og:title", content: "Browse Creators — AurumVault" },
       {
@@ -68,7 +68,8 @@ function CreatorsPage() {
             Meet the vault
           </h1>
           <p className="mt-3 max-w-2xl text-white/70">
-            Creators shipping eBooks, courses, templates, and audio to the AurumVault community.
+            Creators shipping eBooks, AI prompt packs, journals, and financial planners to the
+            AurumVault community.
           </p>
         </div>
       </section>
@@ -95,9 +96,13 @@ function CreatorsPage() {
               className="h-11 rounded-full border border-white/15 bg-white/5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-gold"
             >
               <option value="all">All categories</option>
-              {CATEGORIES.map((c) => (
-                <option key={c.slug} value={c.slug} className="text-ink">
-                  {c.label}
+              {BROWSE_CATEGORIES.map((label) => (
+                <option
+                  key={label}
+                  value={labelToSlug(label) ?? label}
+                  className="text-ink"
+                >
+                  {label}
                 </option>
               ))}
             </select>

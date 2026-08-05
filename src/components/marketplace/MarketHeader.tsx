@@ -483,7 +483,7 @@ function LiveSearch({
   setQ,
   onSubmit,
   onPick,
-  placeholder = "Search eBooks, courses, templates...",
+  placeholder = "Search eBooks, prompt packs, journals...",
 }: {
   q: string;
   setQ: (v: string) => void;
