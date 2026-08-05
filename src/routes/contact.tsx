@@ -30,13 +30,13 @@ const CHANNELS = [
     icon: LifeBuoy,
     title: "Customer support",
     body: "Order issues, downloads, refunds.",
-    email: "support@aurumvault.store",
+    email: "support@supportaurumvault.tech",
   },
   {
     icon: Store,
     title: "Creator inquiries",
     body: "Apply to sell, royalties, payouts.",
-    email: "creators@aurumvault.store",
+    email: "creators@supportaurumvault.tech",
   },
   {
     icon: Mail,
@@ -234,7 +234,7 @@ function ContactPage() {
           <p className="mt-2 text-sm text-white/70">
             AurumVault
             <br />
-            All correspondence: support@aurumvault.store
+            All correspondence: support@supportaurumvault.tech
           </p>
         </div>
       </main>

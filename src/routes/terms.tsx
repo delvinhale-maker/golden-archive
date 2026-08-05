@@ -125,10 +125,10 @@ function TermsPage() {
           <Section title="11. Contact">
             For questions about these terms, email{" "}
             <a
-              href="mailto:support@aurumvault.store"
+              href="mailto:support@supportaurumvault.tech"
               className="text-navy hover:text-gold-ink hover:underline"
             >
-              support@aurumvault.store
+              support@supportaurumvault.tech
             </a>
             .
           </Section>
