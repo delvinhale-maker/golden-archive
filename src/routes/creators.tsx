@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { MapPin, Search } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getApprovedCreators, type CreatorSummary } from "@/lib/creators.functions";
-import { BROWSE_CATEGORIES, getCategoryDef } from "@/lib/categories";
+import { BROWSE_CATEGORIES, labelToSlug } from "@/lib/categories";
 
 const creatorsQ = queryOptions({
   queryKey: ["mp", "creators-all"],
@@ -99,7 +99,7 @@ function CreatorsPage() {
               {BROWSE_CATEGORIES.map((label) => (
                 <option
                   key={label}
-                  value={getCategoryDef(label)?.slug ?? label}
+                  value={labelToSlug(label) ?? label}
                   className="text-ink"
                 >
                   {label}
