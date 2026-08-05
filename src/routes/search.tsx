@@ -124,7 +124,7 @@ function SearchPage() {
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search eBooks, courses, templates, creators..."
+            placeholder="Search eBooks, prompt packs, journals, creators..."
             className="h-14 w-full rounded-full border border-line bg-white pl-12 pr-12 text-base text-ink shadow-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/40"
           />
           {q && (
