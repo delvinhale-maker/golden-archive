@@ -364,7 +364,7 @@ function BookshelfPage() {
         <div className="mt-8 rounded-2xl bg-red-50 border border-red-200 p-5 flex items-start gap-3">
           <XCircle className="text-red-600 shrink-0" />
           <p className="text-sm text-red-900">
-            Application not approved. Email support@aurumvault.store to reapply.
+            Application not approved. Email support@supportaurumvault.tech to reapply.
           </p>
         </div>
       )}

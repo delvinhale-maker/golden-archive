@@ -129,10 +129,10 @@ function CreatorAgreementPage() {
             <p className="mt-2 text-sm">
               Seller questions:{" "}
               <a
-                href="mailto:creators@aurumvault.store"
+                href="mailto:creators@supportaurumvault.tech"
                 className="text-navy hover:text-gold-ink hover:underline"
               >
-                creators@aurumvault.store
+                creators@supportaurumvault.tech
               </a>
               .
             </p>

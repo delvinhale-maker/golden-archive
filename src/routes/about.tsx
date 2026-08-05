@@ -125,8 +125,8 @@ function AboutPage() {
               contact page
             </Link>{" "}
             or email{" "}
-            <a href="mailto:support@aurumvault.store" className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink">
-              support@aurumvault.store
+            <a href="mailto:support@supportaurumvault.tech" className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink">
+              support@supportaurumvault.tech
             </a>
             . We reply within 24 hours, Monday through Friday.
           </p>
