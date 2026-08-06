@@ -58,9 +58,13 @@ export function MarketHeader() {
     navigate({ to: "/products", search: { q, category: activeCat } as never });
   };
 
-  const goCategory = (c: string) => {
-    navigate({ to: "/products", search: { category: c } as never });
+  const goCategory = (c: string, sub?: string) => {
+    navigate({
+      to: "/products",
+      search: (sub ? { category: c, sub } : { category: c }) as never,
+    });
   };
+
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40">
