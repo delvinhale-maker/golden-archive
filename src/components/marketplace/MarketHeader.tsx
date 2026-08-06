@@ -25,9 +25,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { getProducts } from "@/lib/marketplace.functions";
 import { NotificationsBell } from "./NotificationsBell";
 import { supabase } from "@/integrations/supabase/client";
-import { NAV_CATEGORIES } from "@/lib/categories";
+import { NAV_CATEGORIES, SUBCATEGORIES, labelToSlug } from "@/lib/categories";
 
 const CATEGORIES = NAV_CATEGORIES;
+
+function subsFor(label: string): string[] | undefined {
+  const slug = labelToSlug(label);
+  return slug ? SUBCATEGORIES[slug] : undefined;
+}
 
 
 
@@ -40,6 +45,7 @@ export function MarketHeader() {
   }) as unknown as Record<string, unknown> | undefined;
   const activeCat = (searchState?.category as string) ?? "All";
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openSubs, setOpenSubs] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const wishlist = useWishlist();
   const cart = useCart();
