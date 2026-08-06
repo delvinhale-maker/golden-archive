@@ -820,7 +820,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
   const step3Valid = isListPriceValid(price);
 
   const priceNum = parseFloat(price || "0");
-  const royaltyPct = 0.7;
+  const royaltyPct = 0.85;
   const royalty = priceNum * royaltyPct;
 
   function next() {
