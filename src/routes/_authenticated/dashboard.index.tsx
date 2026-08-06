@@ -526,7 +526,7 @@ function CreateNewTitleMenu() {
   function choose(key: ProductTypeKey) {
     setOpen(false);
     buttonRef.current?.focus();
-    navigate({ to: "/dashboard/new", search: { type: key } });
+    navigate({ to: "/dashboard/new", search: { id: undefined, type: key, invalidType: undefined } });
   }
 
   function openMenu(startIndex: number) {

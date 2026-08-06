@@ -117,6 +117,7 @@ export function MarketHeader() {
             {canUpload ? (
               <Link
                 to="/dashboard/new"
+                search={{ id: undefined, type: undefined, invalidType: undefined }}
                 data-tab-cta="solid"
                 className="hidden md:inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold hover:opacity-90"
               >
@@ -441,6 +442,7 @@ export function MarketHeader() {
               {canUpload ? (
                 <Link
                   to="/dashboard/new"
+                  search={{ id: undefined, type: undefined, invalidType: undefined }}
                   onClick={() => setMenuOpen(false)}
                   data-tab-cta="solid"
                   className="flex w-full items-center justify-center gap-2 rounded-full py-3 text-center text-sm font-semibold"

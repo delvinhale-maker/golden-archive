@@ -240,7 +240,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
 
   function resumeDraft() {
     if (!draftBanner) return;
-    navigate({ to: "/dashboard/new", search: { id: draftBanner.productId } });
+    navigate({ to: "/dashboard/new", search: { id: draftBanner.productId, type: undefined, invalidType: undefined } });
   }
 
   async function discardDraft() {
