@@ -221,6 +221,7 @@ const LABEL_ALIAS: Record<string, string> = {
   "Digital Journals": "printable_journals",
   Finance: "financial_planners",
   "Financial Planners": "financial_planners",
+  Planners: "financial_planners",
 };
 
 // Structured subcategories per parent category. When a category appears here,
@@ -277,7 +278,7 @@ export const NAV_CATEGORIES = [
   "AI Prompt Packs",
   "eBooks",
   "Journals",
-  "Financial Planners",
+  "Planners",
 ] as const;
 
 // Same set without the "All" pseudo-category, for browse grids.

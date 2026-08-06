@@ -25,9 +25,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { getProducts } from "@/lib/marketplace.functions";
 import { NotificationsBell } from "./NotificationsBell";
 import { supabase } from "@/integrations/supabase/client";
-import { NAV_CATEGORIES } from "@/lib/categories";
+import { NAV_CATEGORIES, SUBCATEGORIES, labelToSlug } from "@/lib/categories";
 
 const CATEGORIES = NAV_CATEGORIES;
+
+function subsFor(label: string): string[] | undefined {
+  const slug = labelToSlug(label);
+  return slug ? SUBCATEGORIES[slug] : undefined;
+}
 
 
 
@@ -40,6 +45,7 @@ export function MarketHeader() {
   }) as unknown as Record<string, unknown> | undefined;
   const activeCat = (searchState?.category as string) ?? "All";
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openSubs, setOpenSubs] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const wishlist = useWishlist();
   const cart = useCart();
@@ -58,9 +64,13 @@ export function MarketHeader() {
     navigate({ to: "/products", search: { q, category: activeCat } as never });
   };
 
-  const goCategory = (c: string) => {
-    navigate({ to: "/products", search: { category: c } as never });
+  const goCategory = (c: string, sub?: string) => {
+    navigate({
+      to: "/products",
+      search: (sub ? { category: c, sub } : { category: c }) as never,
+    });
   };
+
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40">
@@ -107,6 +117,7 @@ export function MarketHeader() {
             {canUpload ? (
               <Link
                 to="/dashboard/new"
+                search={{ id: undefined, type: undefined, invalidType: undefined }}
                 data-tab-cta="solid"
                 className="hidden md:inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold hover:opacity-90"
               >
@@ -223,10 +234,62 @@ export function MarketHeader() {
         <div className="mx-auto flex h-10 max-w-7xl items-center gap-1 overflow-x-auto px-8">
           {CATEGORIES.map((c) => {
             const active = activeCat === c || (c === "All" && pathname === "/");
+            const subs = subsFor(c);
+            if (subs) {
+              return (
+                <div key={c} className="relative">
+                  <button
+                    onClick={() => setOpenSubs(openSubs === c ? null : c)}
+                    data-nav-tab
+                    data-active={active ? "true" : "false"}
+                    aria-expanded={openSubs === c}
+                    className="relative flex h-10 items-center gap-1 px-3 text-[13px]"
+                  >
+                    {c}
+                    <ChevronDown size={13} />
+                    {active && (
+                      <motion.span
+                        layoutId="cat-underline"
+                        data-nav-underline
+                        className="absolute bottom-0 left-2 right-2 h-[2px]"
+                      />
+                    )}
+                  </button>
+                  {openSubs === c && (
+                    <div className="absolute left-0 top-10 z-50 w-64 overflow-hidden rounded-md border border-white/10 bg-navy py-1 shadow-xl">
+                      <button
+                        onClick={() => {
+                          goCategory(c);
+                          setOpenSubs(null);
+                        }}
+                        className="block w-full px-4 py-2 text-left text-[13px] text-white/80 hover:bg-white/10"
+                      >
+                        All {c}
+                      </button>
+                      {subs.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => {
+                            goCategory(c, s);
+                            setOpenSubs(null);
+                          }}
+                          className="block w-full px-4 py-2 text-left text-[13px] text-white/80 hover:bg-white/10"
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
             return (
               <button
                 key={c}
-                onClick={() => goCategory(c)}
+                onClick={() => {
+                  setOpenSubs(null);
+                  goCategory(c);
+                }}
                 data-nav-tab
                 data-active={active ? "true" : "false"}
                 className="relative flex h-10 items-center px-3 text-[13px]"
@@ -258,15 +321,24 @@ export function MarketHeader() {
         <div className="flex h-10 items-center gap-1 overflow-x-auto px-4">
           {CATEGORIES.map((c) => {
             const active = activeCat === c;
+            const subs = subsFor(c);
             return (
               <button
                 key={c}
-                onClick={() => goCategory(c)}
+                onClick={() => {
+                  if (subs) {
+                    setOpenSubs(openSubs === c ? null : c);
+                    return;
+                  }
+                  setOpenSubs(null);
+                  goCategory(c);
+                }}
                 data-nav-tab
                 data-active={active ? "true" : "false"}
-                className="relative whitespace-nowrap px-3 text-[13px]"
+                className="relative flex items-center gap-1 whitespace-nowrap px-3 text-[13px]"
               >
                 {c}
+                {subs && <ChevronDown size={13} />}
                 {active && (
                   <motion.span
                     layoutId="cat-underline-m"
@@ -279,7 +351,34 @@ export function MarketHeader() {
           })}
         </div>
 
+        {openSubs && subsFor(openSubs) && (
+          <div className="flex items-center gap-2 overflow-x-auto border-t border-white/10 px-4 py-2">
+            <button
+              onClick={() => {
+                goCategory(openSubs);
+                setOpenSubs(null);
+              }}
+              className="whitespace-nowrap rounded-full border border-white/20 px-3 py-1 text-[12px] text-white/80"
+            >
+              All {openSubs}
+            </button>
+            {subsFor(openSubs)!.map((s) => (
+              <button
+                key={s}
+                onClick={() => {
+                  goCategory(openSubs, s);
+                  setOpenSubs(null);
+                }}
+                className="whitespace-nowrap rounded-full border border-white/20 px-3 py-1 text-[12px] text-white/80"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+
       </div>
+
 
       {/* Mobile menu overlay */}
       <AnimatePresence>
@@ -343,6 +442,7 @@ export function MarketHeader() {
               {canUpload ? (
                 <Link
                   to="/dashboard/new"
+                  search={{ id: undefined, type: undefined, invalidType: undefined }}
                   onClick={() => setMenuOpen(false)}
                   data-tab-cta="solid"
                   className="flex w-full items-center justify-center gap-2 rounded-full py-3 text-center text-sm font-semibold"

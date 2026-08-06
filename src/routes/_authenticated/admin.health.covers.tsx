@@ -114,6 +114,7 @@ function CoverAuditPage() {
           <div className="flex gap-2">
             <Link
               to="/admin/health/covers/alerts"
+              search={{} as never}
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-300 bg-white text-xs"
             >
               Alerts
