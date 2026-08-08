@@ -425,15 +425,11 @@ function ImportTool() {
       body_markdown:
         "# The Sample Academy Article\n\nReplace this text with the full article body in Markdown. Include at least 50 characters so the article can be validated and saved.",
     };
-    const blob = new Blob([JSON.stringify(template, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "academy-article-template.json";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    const text = JSON.stringify(template, null, 2);
+    void navigator.clipboard
+      ?.writeText(text)
+      .then(() => toast.success("Template JSON copied to clipboard."))
+      .catch(() => toast.error("Couldn’t copy — use Download template instead."));
   };
 
   return (
@@ -531,13 +527,22 @@ function ImportTool() {
                 Download a ready-to-fill template with every supported Academy field.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={downloadTemplate}
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[#B8860B] bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-[#B8860B]/10 focus:outline-none focus:ring-2 focus:ring-[#B8860B]/40"
-            >
-              <FileJson className="h-4 w-4" /> Download template
-            </button>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <a
+                href="/academy-article-template.json"
+                download="academy-article-template.json"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#B8860B] bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-[#B8860B]/10 focus:outline-none focus:ring-2 focus:ring-[#B8860B]/40"
+              >
+                <FileJson className="h-4 w-4" /> Download template
+              </a>
+              <button
+                type="button"
+                onClick={downloadTemplate}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-ink/20 bg-white px-3 py-2 text-sm font-medium text-ink/80 hover:bg-ink/5"
+              >
+                Copy JSON
+              </button>
+            </div>
           </div>
 
           <p className="text-xs text-ink/50">
