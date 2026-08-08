@@ -399,6 +399,43 @@ function ImportTool() {
 
   const previewHtml = useMemo(() => (form ? renderMarkdown(form.body) : ""), [form?.body]);
 
+  const downloadTemplate = () => {
+    const template = {
+      seo_title: "The Sample Academy Article",
+      focus_keyword: "sample focus keyword",
+      meta_description: "A concise description of the sample Academy article for search results.",
+      secondary_keywords: ["supporting keyword one", "supporting keyword two"],
+      url_slug: "sample-academy-article",
+      canonical_url: "",
+      schema_type: "Article",
+      og_title: "The Sample Academy Article",
+      og_description: "A social sharing description for the sample Academy article.",
+      twitter_card: "summary_large_image",
+      index_follow: true,
+      subtitle: "A short supporting subtitle",
+      category: "financial-freedom",
+      difficulty: "beginner",
+      author: "AurumVault Editorial",
+      excerpt: "A short summary shown before the full Academy article.",
+      tags: ["sample", "academy"],
+      featured_image_alt: "Describe the featured image here",
+      image_caption: "Optional caption for the featured image.",
+      recommended_products: [],
+      related_articles: [],
+      body_markdown:
+        "# The Sample Academy Article\n\nReplace this text with the full article body in Markdown. Include at least 50 characters so the article can be validated and saved.",
+    };
+    const blob = new Blob([JSON.stringify(template, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "academy-article-template.json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <Link
