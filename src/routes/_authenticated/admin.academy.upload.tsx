@@ -399,6 +399,43 @@ function ImportTool() {
 
   const previewHtml = useMemo(() => (form ? renderMarkdown(form.body) : ""), [form?.body]);
 
+  const downloadTemplate = () => {
+    const template = {
+      seo_title: "The Sample Academy Article",
+      focus_keyword: "sample focus keyword",
+      meta_description: "A concise description of the sample Academy article for search results.",
+      secondary_keywords: ["supporting keyword one", "supporting keyword two"],
+      url_slug: "sample-academy-article",
+      canonical_url: "",
+      schema_type: "Article",
+      og_title: "The Sample Academy Article",
+      og_description: "A social sharing description for the sample Academy article.",
+      twitter_card: "summary_large_image",
+      index_follow: true,
+      subtitle: "A short supporting subtitle",
+      category: "financial-freedom",
+      difficulty: "beginner",
+      author: "AurumVault Editorial",
+      excerpt: "A short summary shown before the full Academy article.",
+      tags: ["sample", "academy"],
+      featured_image_alt: "Describe the featured image here",
+      image_caption: "Optional caption for the featured image.",
+      recommended_products: [],
+      related_articles: [],
+      body_markdown:
+        "# The Sample Academy Article\n\nReplace this text with the full article body in Markdown. Include at least 50 characters so the article can be validated and saved.",
+    };
+    const blob = new Blob([JSON.stringify(template, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "academy-article-template.json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <Link
@@ -486,6 +523,22 @@ function ImportTool() {
             </summary>
             <PasteBox onSubmit={(t) => handleText(t, "pasted.json")} />
           </details>
+
+          <div className="flex flex-col gap-3 rounded-xl border border-[#B8860B]/25 bg-[#B8860B]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-ink">Need the right format?</p>
+              <p className="mt-1 text-xs text-ink/60">
+                Download a ready-to-fill template with every supported Academy field.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={downloadTemplate}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[#B8860B] bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-[#B8860B]/10 focus:outline-none focus:ring-2 focus:ring-[#B8860B]/40"
+            >
+              <FileJson className="h-4 w-4" /> Download template
+            </button>
+          </div>
 
           <p className="text-xs text-ink/50">
             Required: <code>seo_title</code>, <code>category</code>, <code>body_markdown</code>.
