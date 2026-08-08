@@ -425,15 +425,11 @@ function ImportTool() {
       body_markdown:
         "# The Sample Academy Article\n\nReplace this text with the full article body in Markdown. Include at least 50 characters so the article can be validated and saved.",
     };
-    const blob = new Blob([JSON.stringify(template, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "academy-article-template.json";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    const text = JSON.stringify(template, null, 2);
+    void navigator.clipboard
+      ?.writeText(text)
+      .then(() => toast.success("Template JSON copied to clipboard."))
+      .catch(() => toast.error("Couldn’t copy — use Download template instead."));
   };
 
   return (
