@@ -524,6 +524,22 @@ function ImportTool() {
             <PasteBox onSubmit={(t) => handleText(t, "pasted.json")} />
           </details>
 
+          <div className="flex flex-col gap-3 rounded-xl border border-[#B8860B]/25 bg-[#B8860B]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-ink">Need the right format?</p>
+              <p className="mt-1 text-xs text-ink/60">
+                Download a ready-to-fill template with every supported Academy field.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={downloadTemplate}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[#B8860B] bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-[#B8860B]/10 focus:outline-none focus:ring-2 focus:ring-[#B8860B]/40"
+            >
+              <FileJson className="h-4 w-4" /> Download template
+            </button>
+          </div>
+
           <p className="text-xs text-ink/50">
             Required: <code>seo_title</code>, <code>category</code>, <code>body_markdown</code>.
             Everything else is optional and defaults sensibly.
