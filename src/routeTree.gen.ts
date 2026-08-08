@@ -84,6 +84,7 @@ import { Route as ApiPublicContactRouteImport } from './routes/api/public/contac
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedAdminAcademyIndexRouteImport } from './routes/_authenticated/admin.academy.index'
 import { Route as AuthenticatedAdminAcademyIdRouteImport } from './routes/_authenticated/admin.academy.$id'
+import { Route as AuthenticatedAdminAcademyUploadRouteImport } from './routes/_authenticated/admin.academy.upload'
 import { Route as AuthenticatedAdminHealthCoversRouteImport } from './routes/_authenticated/admin.health.covers'
 import { Route as AuthenticatedDashboardBumpsIdRouteImport } from './routes/_authenticated/dashboard.bumps.$id'
 import { Route as AuthenticatedDashboardEditIdRouteImport } from './routes/_authenticated/dashboard.edit.$id'
@@ -501,6 +502,12 @@ const AuthenticatedAdminAcademyIdRoute =
     path: '/admin/academy/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminAcademyUploadRoute =
+  AuthenticatedAdminAcademyUploadRouteImport.update({
+    id: '/admin/academy/upload',
+    path: '/admin/academy/upload',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminHealthCoversRoute =
   AuthenticatedAdminHealthCoversRouteImport.update({
     id: '/admin/health/covers',
@@ -678,6 +685,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/admin/academy/$id': typeof AuthenticatedAdminAcademyIdRoute
+  '/admin/academy/upload': typeof AuthenticatedAdminAcademyUploadRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
@@ -769,6 +777,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/admin/academy/$id': typeof AuthenticatedAdminAcademyIdRoute
+  '/admin/academy/upload': typeof AuthenticatedAdminAcademyUploadRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
@@ -864,6 +873,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/admin/academy/$id': typeof AuthenticatedAdminAcademyIdRoute
+  '/_authenticated/admin/academy/upload': typeof AuthenticatedAdminAcademyUploadRoute
   '/_authenticated/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/_authenticated/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/_authenticated/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
@@ -959,6 +969,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/dashboard/'
     | '/admin/academy/$id'
+    | '/admin/academy/upload'
     | '/admin/health/covers'
     | '/dashboard/bumps/$id'
     | '/dashboard/edit/$id'
@@ -1050,6 +1061,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/admin/academy/$id'
+    | '/admin/academy/upload'
     | '/admin/health/covers'
     | '/dashboard/bumps/$id'
     | '/dashboard/edit/$id'
@@ -1144,6 +1156,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/admin/academy/$id'
+    | '/_authenticated/admin/academy/upload'
     | '/_authenticated/admin/health/covers'
     | '/_authenticated/dashboard/bumps/$id'
     | '/_authenticated/dashboard/edit/$id'
@@ -1747,6 +1760,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAcademyIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/academy/upload': {
+      id: '/_authenticated/admin/academy/upload'
+      path: '/admin/academy/upload'
+      fullPath: '/admin/academy/upload'
+      preLoaderRoute: typeof AuthenticatedAdminAcademyUploadRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/health/covers': {
       id: '/_authenticated/admin/health/covers'
       path: '/admin/health/covers'
@@ -1911,6 +1931,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedAdminAcademyIdRoute: typeof AuthenticatedAdminAcademyIdRoute
+  AuthenticatedAdminAcademyUploadRoute: typeof AuthenticatedAdminAcademyUploadRoute
   AuthenticatedAdminHealthCoversRoute: typeof AuthenticatedAdminHealthCoversRouteWithChildren
   AuthenticatedDashboardBumpsIdRoute: typeof AuthenticatedDashboardBumpsIdRoute
   AuthenticatedDashboardEditIdRoute: typeof AuthenticatedDashboardEditIdRoute
@@ -1948,6 +1969,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   AuthenticatedAdminAcademyIdRoute: AuthenticatedAdminAcademyIdRoute,
+  AuthenticatedAdminAcademyUploadRoute: AuthenticatedAdminAcademyUploadRoute,
   AuthenticatedAdminHealthCoversRoute:
     AuthenticatedAdminHealthCoversRouteWithChildren,
   AuthenticatedDashboardBumpsIdRoute: AuthenticatedDashboardBumpsIdRoute,

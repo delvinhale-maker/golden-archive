@@ -232,9 +232,18 @@ function AdminAcademyList() {
               Search, filter, duplicate, archive, and manage every article.
             </p>
           </div>
-          <Link to="/admin" className="text-sm text-[#B8860B]">
-            ← Admin
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/admin/academy/upload"
+              className="rounded-lg border border-[#B8860B] px-3 py-1.5 text-sm text-[#B8860B]"
+            >
+              Import JSON
+            </Link>
+            <Link to="/admin" className="text-sm text-[#B8860B]">
+              ← Admin
+            </Link>
+          </div>
+
         </div>
 
         {/* Create */}
