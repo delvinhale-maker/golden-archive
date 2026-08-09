@@ -10,6 +10,7 @@ import {
   CalendarClock,
   Eye,
   Search,
+  Download,
   Plus,
   X,
   Sparkles,
@@ -185,6 +186,21 @@ export function EditorialStudioFab() {
       hint: "Meta, OG, schema, robots",
       icon: <Search size={20} />,
       onClick: () => void jumpToEditor("seo"),
+    },
+    {
+      key: "template",
+      label: "Download JSON template",
+      hint: "Format an Academy article import",
+      icon: <Download size={20} />,
+      onClick: () => {
+        const link = document.createElement("a");
+        link.href = "/academy-article-template.json";
+        link.download = "academy-article-template.json";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setOpen(false);
+      },
     },
   ];
 
