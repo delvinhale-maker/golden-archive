@@ -36,6 +36,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SellRouteImport } from './routes/sell'
+import { Route as SellWithUsRouteImport } from './routes/sell-with-us'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -235,6 +236,11 @@ const SearchRoute = SearchRouteImport.update({
 const SellRoute = SellRouteImport.update({
   id: '/sell',
   path: '/sell',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SellWithUsRoute = SellWithUsRouteImport.update({
+  id: '/sell-with-us',
+  path: '/sell-with-us',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -638,6 +644,7 @@ export interface FileRoutesByFullPath {
   '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
+  '/sell-with-us': typeof SellWithUsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
@@ -730,6 +737,7 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
+  '/sell-with-us': typeof SellWithUsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
@@ -826,6 +834,7 @@ export interface FileRoutesById {
   '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
+  '/sell-with-us': typeof SellWithUsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
@@ -922,6 +931,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/search'
     | '/sell'
+    | '/sell-with-us'
     | '/sitemap.xml'
     | '/support'
     | '/terms'
@@ -1014,6 +1024,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/search'
     | '/sell'
+    | '/sell-with-us'
     | '/sitemap.xml'
     | '/support'
     | '/terms'
@@ -1109,6 +1120,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/search'
     | '/sell'
+    | '/sell-with-us'
     | '/sitemap.xml'
     | '/support'
     | '/terms'
@@ -1205,6 +1217,7 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SearchRoute: typeof SearchRoute
   SellRoute: typeof SellRoute
+  SellWithUsRoute: typeof SellWithUsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
@@ -1422,6 +1435,13 @@ declare module '@tanstack/react-router' {
       path: '/sell'
       fullPath: '/sell'
       preLoaderRoute: typeof SellRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sell-with-us': {
+      id: '/sell-with-us'
+      path: '/sell-with-us'
+      fullPath: '/sell-with-us'
+      preLoaderRoute: typeof SellWithUsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -2050,6 +2070,7 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SearchRoute: SearchRoute,
   SellRoute: SellRoute,
+  SellWithUsRoute: SellWithUsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
@@ -2081,13 +2102,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
