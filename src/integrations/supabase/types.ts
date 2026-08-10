@@ -972,6 +972,30 @@ export type Database = {
           },
         ]
       }
+      creator_leads: {
+        Row: {
+          created_at: string
+          email: string
+          follower_count: number
+          id: string
+          product_type: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          follower_count?: number
+          id?: string
+          product_type: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          follower_count?: number
+          id?: string
+          product_type?: string
+        }
+        Relationships: []
+      }
       creator_payout_methods: {
         Row: {
           created_at: string
