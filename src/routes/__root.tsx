@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { installGlobalErrorHandlers, reportClientError } from "../lib/client-error-reporter";
 import { ThemeProvider } from "../lib/theme/ThemeProvider";
+import { CookieConsent } from "../components/CookieConsent";
 
 function NotFoundComponent() {
   return (
@@ -197,16 +198,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         }),
       },
 
-      // Google Analytics 4 (placeholder)
-      // Replace G-XXXXXXXXXX with your GA4 Measurement ID
-      {
-        src: "https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX",
-        async: true,
-      },
-      {
-        children:
-          "window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-XXXXXXXXXX');",
-      },
+      // NOTE: Google Analytics 4 and Google AdSense tags are intentionally NOT
+      // loaded here. They are non-essential (advertising/analytics) and are
+      // injected only after the visitor accepts cookies — see
+      // src/components/CookieConsent.tsx.
     ],
   }),
   shellComponent: RootShell,
@@ -262,6 +257,7 @@ function RootComponent() {
           <Outlet />
         </RouteFadeIn>
       </MotionConfig>
+      <CookieConsent />
     </QueryClientProvider>
   );
 }
