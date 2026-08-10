@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { installGlobalErrorHandlers, reportClientError } from "../lib/client-error-reporter";
 import { ThemeProvider } from "../lib/theme/ThemeProvider";
+import { CookieConsent } from "../components/CookieConsent";
 
 function NotFoundComponent() {
   return (
