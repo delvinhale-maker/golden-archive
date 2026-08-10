@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MarketShell } from "@/components/marketplace/MarketShell";
+import { openConsentSettings } from "@/lib/consent";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
