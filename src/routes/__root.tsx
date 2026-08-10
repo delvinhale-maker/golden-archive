@@ -256,6 +256,7 @@ function RootComponent() {
           <Outlet />
         </RouteFadeIn>
       </MotionConfig>
+      <CookieConsent />
     </QueryClientProvider>
   );
 }
