@@ -95,11 +95,16 @@ function SellWithUsPage() {
       return;
     }
     setBusy(true);
-    const { error: insertError } = await supabase.from("creator_leads").insert({
-      email: parsed.data.toLowerCase(),
-      product_type: productType,
-      follower_count: Math.round(followers),
-    });
+    // Server-side dedupe: a unique index on (email, product_type) means a repeat
+    // signup is ignored rather than inserted again.
+    const { error: insertError } = await supabase.from("creator_leads").upsert(
+      {
+        email: parsed.data.toLowerCase(),
+        product_type: productType,
+        follower_count: Math.round(followers),
+      },
+      { onConflict: "email,product_type", ignoreDuplicates: true },
+    );
     setBusy(false);
     if (insertError) {
       setError("Something went wrong saving your details. Please try again.");
