@@ -56,15 +56,60 @@ function PrivacyPage() {
           <Section title="3. Sharing & Subprocessors">
             We share data only with service providers needed to operate the
             Platform, such as payment processors (Stripe), cloud hosting and
-            database services (Lovable Cloud), and email delivery providers. We do
-            not sell personal information.
+            database services (Lovable Cloud), email delivery providers, and
+            advertising and analytics providers (Google, including Google AdSense
+            and Google Analytics). We do not sell personal information.
           </Section>
 
           <Section title="4. Cookies & Analytics">
-            We use cookies and similar technologies to maintain sessions, remember
-            preferences, and understand how visitors use the Platform. You can
-            manage cookies through your browser settings.
+            <p>
+              We use cookies and similar technologies to maintain sessions, remember
+              preferences (such as your cart), and understand how visitors use the
+              Platform. Essential cookies are always active; advertising and
+              analytics cookies load only after you accept them in our cookie
+              banner. You can manage cookies through your browser settings, or{" "}
+              <button
+                type="button"
+                onClick={openConsentSettings}
+                className="font-medium text-ink underline"
+              >
+                change your cookie choices
+              </button>
+              .
+            </p>
+            <p className="mt-3">
+              <strong>Google AdSense and advertising cookies.</strong> This site uses
+              or may use Google AdSense to serve advertisements. Third-party vendors,
+              including Google, use cookies to serve ads based on your prior visits
+              to this website or other websites. Google's use of advertising cookies
+              enables it and its partners to serve ads to you based on your visits to
+              this site and/or other sites on the internet. This use of Google is
+              covered by the "Sharing &amp; Subprocessors" disclosure above, where
+              Google is named alongside Stripe and Lovable Cloud.
+            </p>
+            <p className="mt-3">
+              You may opt out of personalized advertising by visiting{" "}
+              <a
+                href="https://adssettings.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-ink underline"
+              >
+                Google Ad Settings (adssettings.google.com)
+              </a>
+              , or opt out of third-party vendor cookies at{" "}
+              <a
+                href="https://www.aboutads.info"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-ink underline"
+              >
+                www.aboutads.info
+              </a>
+              .
+            </p>
           </Section>
+
 
           <Section title="5. Data Retention">
             We keep your account and transaction data for as long as your account
