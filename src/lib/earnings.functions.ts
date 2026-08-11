@@ -2,10 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+export type PayoutFrequency = "weekly" | "monthly";
+
 export type PayoutMethod = {
   seller_id: string;
   method: "bank" | "paypal" | "wise" | "other";
   details: Record<string, string>;
+  frequency: PayoutFrequency;
   updated_at: string;
 };
 
