@@ -58,7 +58,8 @@ const PayloadSchema = z.object({
     .string({ message: "category is required" })
     .trim()
     .min(1)
-    .transform((v) => v.toLowerCase().replace(/[\s_]+/g, "-")),
+    .transform((v) => v.toLowerCase()),
+
   focus_keyword: optStr,
   meta_description: optStr,
   secondary_keywords: strArr,
