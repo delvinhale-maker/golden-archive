@@ -390,6 +390,33 @@ function PayoutsPage() {
                     </button>
                   ))}
                 </div>
+                </div>
+
+                <fieldset className="mt-5">
+                  <legend className="text-sm font-medium text-navy">Payout frequency</legend>
+                  <p className="text-xs text-mute mt-1">
+                    Weekly payouts are reviewed every Friday. Monthly payouts are reviewed on the first Friday of each month.
+                  </p>
+                  <div className="mt-2 inline-flex rounded-lg border border-navy/15 p-1">
+                    {(["weekly", "monthly"] as const).map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        aria-pressed={frequency === f}
+                        onClick={() => {
+                          setFrequency(f);
+                          if (savedAt) setSavedAt(null);
+                        }}
+                        className={`px-4 py-1.5 rounded-md text-sm capitalize ${
+                          frequency === f ? "bg-navy text-white" : "text-navy hover:bg-navy/5"
+                        }`}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                   {METHOD_FIELDS[selectedMethod].map((f) => {
                     const err = fieldErrors[f.key];
