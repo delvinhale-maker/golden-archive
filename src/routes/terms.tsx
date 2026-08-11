@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 
 export const Route = createFileRoute("/terms")({
@@ -56,8 +56,14 @@ function TermsPage() {
             Buyers receive a license to use purchased digital products for personal
             use unless the product listing or creator agreement specifies otherwise.
             Reselling, redistributing, or sharing files without authorization is
-            prohibited. All sales are final unless a product is materially defective
-            or unavailable.
+            prohibited. Refunds are available under the terms of our{" "}
+            <Link
+              to="/refunds"
+              className="text-navy hover:text-gold-ink hover:underline"
+            >
+              Refund Policy
+            </Link>
+            , including a 14-day money-back guarantee for eligible purchases.
           </Section>
 
           <Section title="4. Creator Obligations">
