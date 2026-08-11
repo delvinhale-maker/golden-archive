@@ -567,6 +567,21 @@ function ImportTool() {
         </div>
       )}
 
+      {warnings.length > 0 && (
+        <div className="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-4">
+          <div className="flex items-center gap-2 font-medium text-amber-900">
+            <AlertTriangle className="h-4 w-4" /> Imported with adjustments
+          </div>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-800">
+            {warnings.map((w) => (
+              <li key={w}>{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+
+
       {/* Step 1 — upload */}
       {step === "upload" && (
         <div className="mt-6 space-y-4">
