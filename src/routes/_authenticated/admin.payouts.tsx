@@ -7,6 +7,8 @@ import { ShieldCheck, ArrowLeft, CheckCircle2, Clock, DollarSign, Loader2, Histo
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { getPayoutScheduleStatus } from "@/lib/payout-schedule.functions";
+import { PayoutEncryptionKeyCard } from "@/components/admin/PayoutEncryptionKeyCard";
+
 
 export const Route = createFileRoute("/_authenticated/admin/payouts")({
   component: AdminPayoutsPage,
@@ -243,6 +245,10 @@ function AdminPayoutsPage() {
             </div>
           )}
         </div>
+
+        <PayoutEncryptionKeyCard />
+
+
 
 
         <section>
