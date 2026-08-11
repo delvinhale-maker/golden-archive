@@ -30,6 +30,45 @@ const CATEGORIES = [
 ];
 const CATEGORY_VALUES = CATEGORIES.map((c) => c.value);
 
+/** Loose category matching so real-world files (e.g. "AI & Productivity") import cleanly. */
+const CATEGORY_ALIASES: Record<string, string> = {
+  ai: "ai-productivity",
+  aiproductivity: "ai-productivity",
+  productivity: "ai-productivity",
+  aitools: "ai-productivity",
+  finance: "financial-freedom",
+  financial: "financial-freedom",
+  financialfreedom: "financial-freedom",
+  money: "financial-freedom",
+  credit: "financial-freedom",
+  publishing: "digital-publishing",
+  digitalpublishing: "digital-publishing",
+  selfpublishing: "digital-publishing",
+  writing: "digital-publishing",
+  kingdom: "kingdom-living",
+  kingdomliving: "kingdom-living",
+  faith: "kingdom-living",
+  business: "entrepreneurship",
+  entrepreneur: "entrepreneurship",
+  entrepreneurship: "entrepreneurship",
+  startup: "entrepreneurship",
+};
+
+/** Returns a valid Academy category, or null when nothing matches. */
+function normalizeCategory(input: string): string | null {
+  const key = input.toLowerCase().replace(/\band\b|&/g, "").replace(/[^a-z0-9]/g, "");
+  if (!key) return null;
+  const exact = CATEGORY_VALUES.find((v) => v.replace(/-/g, "") === key);
+  if (exact) return exact;
+  if (CATEGORY_ALIASES[key]) return CATEGORY_ALIASES[key];
+  const partial = CATEGORY_VALUES.find(
+    (v) => key.includes(v.replace(/-/g, "")) || v.replace(/-/g, "").includes(key),
+  );
+  return partial ?? null;
+}
+
+
+
 const DIFFICULTIES = ["beginner", "intermediate", "advanced"] as const;
 
 /* ------------------------------------------------------------------ */
