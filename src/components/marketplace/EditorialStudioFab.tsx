@@ -192,15 +192,25 @@ export function EditorialStudioFab() {
       label: "Download JSON template",
       hint: "Format an Academy article import",
       icon: <Download size={20} />,
-      onClick: () => {
-        const link = document.createElement("a");
-        link.href = "/academy-article-template.json";
-        link.download = "academy-article-template.json";
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+      onClick: async () => {
         setOpen(false);
+        try {
+          const res = await fetch("/academy-article-template.json", { cache: "no-store" });
+          const text = await res.text();
+          const blob = new Blob([text], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "academy-article-template.json";
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 2000);
+        } catch {
+          window.open("/academy-article-template.json", "_blank");
+        }
       },
+
     },
   ];
 
