@@ -603,11 +603,11 @@ function ImportTool() {
             />
           </div>
 
-          <details className="rounded-xl border border-ink/10 bg-white p-4 text-sm">
+          <details open className="rounded-xl border border-ink/10 bg-white p-4 text-sm">
             <summary className="cursor-pointer font-medium text-ink">
               Or paste the JSON directly
             </summary>
-            <PasteBox onSubmit={(t) => handleText(t, "pasted.json")} />
+            <PasteBox onSubmit={(t) => handleText(t, "pasted.json")} template={templateText} />
           </details>
 
           <div className="flex flex-col gap-3 rounded-xl border border-[#B8860B]/25 bg-[#B8860B]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -618,22 +618,30 @@ function ImportTool() {
               </p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-2">
-              <a
-                href="/academy-article-template.json"
-                download="academy-article-template.json"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#B8860B] bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-[#B8860B]/10 focus:outline-none focus:ring-2 focus:ring-[#B8860B]/40"
-              >
-                <FileJson className="h-4 w-4" /> Download template
-              </a>
               <button
                 type="button"
                 onClick={downloadTemplate}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#B8860B] bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-[#B8860B]/10 focus:outline-none focus:ring-2 focus:ring-[#B8860B]/40"
+              >
+                <FileJson className="h-4 w-4" /> Download template
+              </button>
+              <button
+                type="button"
+                onClick={() => void copyTemplate()}
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-ink/20 bg-white px-3 py-2 text-sm font-medium text-ink/80 hover:bg-ink/5"
               >
                 Copy JSON
               </button>
+              <button
+                type="button"
+                onClick={() => handleText(templateText, "template.json")}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-ink/20 bg-white px-3 py-2 text-sm font-medium text-ink/80 hover:bg-ink/5"
+              >
+                Use template
+              </button>
             </div>
           </div>
+
 
           <p className="text-xs text-ink/50">
             Required: <code>seo_title</code>, <code>category</code>, <code>body_markdown</code>.
