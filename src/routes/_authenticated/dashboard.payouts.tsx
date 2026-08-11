@@ -369,6 +369,17 @@ function PayoutsPage() {
                         · updated {new Date(method.updated_at).toLocaleDateString()}
                       </span>
                     </div>
+                    <div className="mt-2 flex items-center gap-1.5 text-xs text-navy/70">
+                      <CalendarClock size={14} className="text-navy/50" />
+                      <span>
+                        Next payout date:{" "}
+                        <span className="font-medium text-navy">
+                          {formatPayoutDate(
+                            nextPayoutDate(method.frequency === "monthly" ? "monthly" : "weekly"),
+                          )}
+                        </span>
+                      </span>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button
