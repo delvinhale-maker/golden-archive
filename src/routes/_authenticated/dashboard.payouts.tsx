@@ -459,6 +459,13 @@ function PayoutsPage() {
                       </button>
                     ))}
                   </div>
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-navy/70">
+                    <CalendarClock size={14} className="text-navy/50" />
+                    <span>
+                      Next payout date:{" "}
+                      <span className="font-medium text-navy">{formatPayoutDate(nextPayoutDate(frequency))}</span>
+                    </span>
+                  </p>
                 </fieldset>
 
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
