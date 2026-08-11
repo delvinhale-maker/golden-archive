@@ -30,7 +30,74 @@ const CATEGORIES = [
 ];
 const CATEGORY_VALUES = CATEGORIES.map((c) => c.value);
 
+/** Loose category matching so real-world files (e.g. "AI & Productivity") import cleanly. */
+const CATEGORY_ALIASES: Record<string, string> = {
+  ai: "ai-productivity",
+  aiproductivity: "ai-productivity",
+  productivity: "ai-productivity",
+  aitools: "ai-productivity",
+  finance: "financial-freedom",
+  financial: "financial-freedom",
+  financialfreedom: "financial-freedom",
+  money: "financial-freedom",
+  credit: "financial-freedom",
+  publishing: "digital-publishing",
+  digitalpublishing: "digital-publishing",
+  selfpublishing: "digital-publishing",
+  writing: "digital-publishing",
+  kingdom: "kingdom-living",
+  kingdomliving: "kingdom-living",
+  faith: "kingdom-living",
+  business: "entrepreneurship",
+  entrepreneur: "entrepreneurship",
+  entrepreneurship: "entrepreneurship",
+  startup: "entrepreneurship",
+};
+
+/** Returns a valid Academy category, or null when nothing matches. */
+function normalizeCategory(input: string): string | null {
+  const key = input.toLowerCase().replace(/\band\b|&/g, "").replace(/[^a-z0-9]/g, "");
+  if (!key) return null;
+  const exact = CATEGORY_VALUES.find((v) => v.replace(/-/g, "") === key);
+  if (exact) return exact;
+  if (CATEGORY_ALIASES[key]) return CATEGORY_ALIASES[key];
+  const partial = CATEGORY_VALUES.find(
+    (v) => key.includes(v.replace(/-/g, "")) || v.replace(/-/g, "").includes(key),
+  );
+  return partial ?? null;
+}
+
+
+
 const DIFFICULTIES = ["beginner", "intermediate", "advanced"] as const;
+
+/** Ready-to-fill sample used by the download / copy / demo-fill buttons. */
+const TEMPLATE_ARTICLE = {
+  seo_title: "The Sample Academy Article",
+  focus_keyword: "sample focus keyword",
+  meta_description: "A concise description of the sample Academy article for search results.",
+  secondary_keywords: ["supporting keyword one", "supporting keyword two"],
+  url_slug: "sample-academy-article",
+  canonical_url: "",
+  schema_type: "Article",
+  og_title: "The Sample Academy Article",
+  og_description: "A social sharing description for the sample Academy article.",
+  twitter_card: "summary_large_image",
+  index_follow: true,
+  subtitle: "A short supporting subtitle",
+  category: "financial-freedom",
+  difficulty: "beginner",
+  author: "AurumVault Editorial",
+  excerpt: "A short summary shown before the full Academy article.",
+  tags: ["sample", "academy"],
+  featured_image_alt: "Describe the featured image here",
+  image_caption: "Optional caption for the featured image.",
+  recommended_products: [] as string[],
+  related_articles: [] as string[],
+  body_markdown:
+    "# The Sample Academy Article\n\nReplace this text with the full article body in Markdown. Include at least 50 characters so the article can be validated and saved.",
+};
+
 
 /* ------------------------------------------------------------------ */
 /* JSON schema                                                         */
@@ -58,7 +125,8 @@ const PayloadSchema = z.object({
     .string({ message: "category is required" })
     .trim()
     .min(1)
-    .transform((v) => v.toLowerCase().replace(/[\s_]+/g, "-")),
+    .transform((v) => v.toLowerCase()),
+
   focus_keyword: optStr,
   meta_description: optStr,
   secondary_keywords: strArr,
@@ -257,6 +325,7 @@ function ImportTool() {
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<string[]>([]);
+  const [warnings, setWarnings] = useState<string[]>([]);
   const [fileName, setFileName] = useState("");
   const [form, setForm] = useState<FormState | null>(null);
   const [step, setStep] = useState<"upload" | "edit" | "review">("upload");
@@ -268,18 +337,23 @@ function ImportTool() {
 
   const handleText = (text: string, name: string) => {
     setErrors([]);
+    setWarnings([]);
     let raw: unknown;
     try {
-      raw = JSON.parse(text);
+      raw = JSON.parse(text.replace(/^\uFEFF/, "").trim());
     } catch {
       setErrors(["The file is not valid JSON. Check for trailing commas or missing quotes."]);
       return;
     }
     if (Array.isArray(raw)) {
-      setErrors([
-        "This file contains a list of articles. Upload one article object at a time (a single { ... } object).",
-      ]);
-      return;
+      if (raw.length === 1 && raw[0] && typeof raw[0] === "object") {
+        raw = raw[0];
+      } else {
+        setErrors([
+          "This file contains a list of articles. Upload one article object at a time (a single { ... } object).",
+        ]);
+        return;
+      }
     }
     const parsed = PayloadSchema.safeParse(raw);
     if (!parsed.success) {
@@ -291,22 +365,33 @@ function ImportTool() {
       );
       return;
     }
-    if (!CATEGORY_VALUES.includes(parsed.data.category)) {
-      setErrors([
-        `category: "${parsed.data.category}" is not a valid Academy category. Allowed: ${CATEGORY_VALUES.join(", ")}`,
-      ]);
-      return;
+
+    const nextWarnings: string[] = [];
+    const matched = normalizeCategory(parsed.data.category);
+    const category = matched ?? CATEGORY_VALUES[0];
+    if (!matched) {
+      nextWarnings.push(
+        `category: "${parsed.data.category}" didn’t match an Academy category, so it was set to “${CATEGORIES[0].label}”. Pick the right one below before saving.`,
+      );
+    } else if (matched !== parsed.data.category) {
+      nextWarnings.push(`category: "${parsed.data.category}" was matched to “${matched}”.`);
     }
+
     setFileName(name);
-    setForm(toForm(parsed.data));
+    setForm(toForm({ ...parsed.data, category }));
+    setWarnings(nextWarnings);
     setStep("edit");
     toast.success("JSON parsed — every matching field was populated.");
   };
 
+
   const onFile = async (file: File | undefined | null) => {
     if (!file) return;
-    if (!/\.json$/i.test(file.name) && file.type !== "application/json") {
-      setErrors(["Only .json files are accepted."]);
+    // Mobile pickers often report an empty/wrong MIME type and sometimes drop the
+    // extension, so we accept the file and let JSON parsing be the real gate.
+    if (/\.(pdf|docx?|png|jpe?g|zip|epub|mp4)$/i.test(file.name)) {
+      setErrors(["That doesn’t look like a .json article file."]);
+
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
@@ -399,38 +484,46 @@ function ImportTool() {
 
   const previewHtml = useMemo(() => (form ? renderMarkdown(form.body) : ""), [form?.body]);
 
+  const templateText = JSON.stringify(TEMPLATE_ARTICLE, null, 2);
+
+  /** Blob download — works on mobile browsers that ignore <a download> on static files. */
   const downloadTemplate = () => {
-    const template = {
-      seo_title: "The Sample Academy Article",
-      focus_keyword: "sample focus keyword",
-      meta_description: "A concise description of the sample Academy article for search results.",
-      secondary_keywords: ["supporting keyword one", "supporting keyword two"],
-      url_slug: "sample-academy-article",
-      canonical_url: "",
-      schema_type: "Article",
-      og_title: "The Sample Academy Article",
-      og_description: "A social sharing description for the sample Academy article.",
-      twitter_card: "summary_large_image",
-      index_follow: true,
-      subtitle: "A short supporting subtitle",
-      category: "financial-freedom",
-      difficulty: "beginner",
-      author: "AurumVault Editorial",
-      excerpt: "A short summary shown before the full Academy article.",
-      tags: ["sample", "academy"],
-      featured_image_alt: "Describe the featured image here",
-      image_caption: "Optional caption for the featured image.",
-      recommended_products: [],
-      related_articles: [],
-      body_markdown:
-        "# The Sample Academy Article\n\nReplace this text with the full article body in Markdown. Include at least 50 characters so the article can be validated and saved.",
-    };
-    const text = JSON.stringify(template, null, 2);
-    void navigator.clipboard
-      ?.writeText(text)
-      .then(() => toast.success("Template JSON copied to clipboard."))
-      .catch(() => toast.error("Couldn’t copy — use Download template instead."));
+    try {
+      const blob = new Blob([templateText], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "academy-article-template.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      toast.success("Template downloaded.");
+    } catch {
+      toast.error("Download blocked — use “Copy JSON” instead.");
+    }
   };
+
+  const copyTemplate = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(templateText);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = templateText;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+      }
+      toast.success("Template JSON copied to clipboard.");
+    } catch {
+      toast.error("Couldn’t copy — use Download template instead.");
+    }
+  };
+
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
@@ -477,6 +570,21 @@ function ImportTool() {
         </div>
       )}
 
+      {warnings.length > 0 && (
+        <div className="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-4">
+          <div className="flex items-center gap-2 font-medium text-amber-900">
+            <AlertTriangle className="h-4 w-4" /> Imported with adjustments
+          </div>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-800">
+            {warnings.map((w) => (
+              <li key={w}>{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+
+
       {/* Step 1 — upload */}
       {step === "upload" && (
         <div className="mt-6 space-y-4">
@@ -513,11 +621,11 @@ function ImportTool() {
             />
           </div>
 
-          <details className="rounded-xl border border-ink/10 bg-white p-4 text-sm">
+          <details open className="rounded-xl border border-ink/10 bg-white p-4 text-sm">
             <summary className="cursor-pointer font-medium text-ink">
               Or paste the JSON directly
             </summary>
-            <PasteBox onSubmit={(t) => handleText(t, "pasted.json")} />
+            <PasteBox onSubmit={(t) => handleText(t, "pasted.json")} template={templateText} />
           </details>
 
           <div className="flex flex-col gap-3 rounded-xl border border-[#B8860B]/25 bg-[#B8860B]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -528,22 +636,30 @@ function ImportTool() {
               </p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-2">
-              <a
-                href="/academy-article-template.json"
-                download="academy-article-template.json"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#B8860B] bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-[#B8860B]/10 focus:outline-none focus:ring-2 focus:ring-[#B8860B]/40"
-              >
-                <FileJson className="h-4 w-4" /> Download template
-              </a>
               <button
                 type="button"
                 onClick={downloadTemplate}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#B8860B] bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-[#B8860B]/10 focus:outline-none focus:ring-2 focus:ring-[#B8860B]/40"
+              >
+                <FileJson className="h-4 w-4" /> Download template
+              </button>
+              <button
+                type="button"
+                onClick={() => void copyTemplate()}
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-ink/20 bg-white px-3 py-2 text-sm font-medium text-ink/80 hover:bg-ink/5"
               >
                 Copy JSON
               </button>
+              <button
+                type="button"
+                onClick={() => handleText(templateText, "template.json")}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-ink/20 bg-white px-3 py-2 text-sm font-medium text-ink/80 hover:bg-ink/5"
+              >
+                Use template
+              </button>
             </div>
           </div>
+
 
           <p className="text-xs text-ink/50">
             Required: <code>seo_title</code>, <code>category</code>, <code>body_markdown</code>.
@@ -804,7 +920,13 @@ function Meta({ k, v }: { k: string; v: string }) {
   );
 }
 
-function PasteBox({ onSubmit }: { onSubmit: (text: string) => void }) {
+function PasteBox({
+  onSubmit,
+  template,
+}: {
+  onSubmit: (text: string) => void;
+  template?: string;
+}) {
   const [text, setText] = useState("");
   return (
     <div className="mt-3 space-y-3">
@@ -815,14 +937,35 @@ function PasteBox({ onSubmit }: { onSubmit: (text: string) => void }) {
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
-      <button
-        type="button"
-        onClick={() => onSubmit(text)}
-        disabled={!text.trim()}
-        className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-      >
-        Parse JSON
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => onSubmit(text)}
+          disabled={!text.trim()}
+          className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        >
+          Parse JSON
+        </button>
+        {template && (
+          <button
+            type="button"
+            onClick={() => setText(template)}
+            className="rounded-lg border border-ink/20 bg-white px-4 py-2 text-sm font-medium text-ink/80"
+          >
+            Paste template here
+          </button>
+        )}
+        {text && (
+          <button
+            type="button"
+            onClick={() => setText("")}
+            className="rounded-lg border border-ink/20 bg-white px-4 py-2 text-sm font-medium text-ink/60"
+          >
+            Clear
+          </button>
+        )}
+      </div>
     </div>
   );
 }
+
