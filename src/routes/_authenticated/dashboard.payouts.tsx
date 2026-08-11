@@ -167,7 +167,7 @@ function PayoutsPage() {
     setFieldErrors({});
     setSavingMethod(true);
     try {
-      await saveMethodFn({ data: { method: selectedMethod, details: result.cleaned } });
+      await saveMethodFn({ data: { method: selectedMethod, frequency, details: result.cleaned } });
       setSavedAt(new Date());
       toast.success(method ? "Payout method updated" : "Payout method saved");
       await refresh();
