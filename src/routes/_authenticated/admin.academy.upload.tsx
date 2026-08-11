@@ -385,21 +385,49 @@ function ImportTool() {
   };
 
 
+  /** Reads a file as text with a FileReader fallback (some Android providers
+   *  reject Blob.text() and throw a generic "file upload failed" error). */
+  const readFileText = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ""));
+      reader.onerror = () => reject(reader.error ?? new Error("read failed"));
+      reader.readAsText(file);
+    });
+
   const onFile = async (file: File | undefined | null) => {
     if (!file) return;
+    setErrors([]);
     // Mobile pickers often report an empty/wrong MIME type and sometimes drop the
     // extension, so we accept the file and let JSON parsing be the real gate.
     if (/\.(pdf|docx?|png|jpe?g|zip|epub|mp4)$/i.test(file.name)) {
       setErrors(["That doesn’t look like a .json article file."]);
-
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
       setErrors(["File is larger than 2 MB."]);
       return;
     }
-    handleText(await file.text(), file.name);
+    let text = "";
+    try {
+      text = await file.text();
+    } catch {
+      try {
+        text = await readFileText(file);
+      } catch {
+        setErrors([
+          "Your browser couldn’t read that file (this happens with some phone file pickers, cloud/Drive files, or downloads still syncing). Open the file, copy its contents, and use “Or paste the JSON directly” below.",
+        ]);
+        return;
+      }
+    }
+    if (!text.trim()) {
+      setErrors(["That file came through empty. Try re-saving it locally, or paste the JSON below."]);
+      return;
+    }
+    handleText(text, file.name);
   };
+
 
   const saveDraft = async (publish: boolean) => {
     if (!form) return;
@@ -615,7 +643,7 @@ function ImportTool() {
             <input
               ref={fileRef}
               type="file"
-              accept=".json,application/json"
+              accept=".json,.txt,application/json,text/json,text/plain,*/*"
               className="hidden"
               onChange={(e) => void onFile(e.target.files?.[0])}
             />
