@@ -2,10 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+export type PayoutFrequency = "weekly" | "monthly";
+
 export type PayoutMethod = {
   seller_id: string;
   method: "bank" | "paypal" | "wise" | "other";
   details: Record<string, string>;
+  frequency: PayoutFrequency;
   updated_at: string;
 };
 
@@ -125,7 +128,7 @@ export const getMyPayoutMethod = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
       .from("creator_payout_methods" as any)
-      .select("seller_id, method, details, updated_at")
+      .select("seller_id, method, details, frequency, updated_at")
       .eq("seller_id", context.userId)
       .maybeSingle();
     return (data as PayoutMethod | null) ?? null;
@@ -133,6 +136,7 @@ export const getMyPayoutMethod = createServerFn({ method: "GET" })
 
 const upsertMethodSchema = z.object({
   method: z.enum(["bank", "paypal", "wise", "other"]),
+  frequency: z.enum(["weekly", "monthly"]).default("weekly"),
   details: z
     .record(z.string(), z.string().max(500))
     .refine((d) => Object.keys(d).length <= 20, { message: "too many fields" }),
@@ -150,6 +154,7 @@ export const upsertPayoutMethod = createServerFn({ method: "POST" })
           seller_id: context.userId,
           method: data.method,
           details: data.details,
+          frequency: data.frequency,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "seller_id" },
