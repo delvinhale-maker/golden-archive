@@ -26,6 +26,40 @@ function fmt(cents: number) {
   return `$${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+// Payout reviews run Fridays at 14:00 UTC. Weekly = the next Friday.
+// Monthly = the first Friday of the next applicable month.
+function nextPayoutDate(frequency: "weekly" | "monthly", from: Date = new Date()): Date {
+  const fridayAt = (y: number, m: number, d: number) => new Date(Date.UTC(y, m, d, 14, 0, 0, 0));
+
+  if (frequency === "weekly") {
+    const d = fridayAt(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate());
+    let days = (5 - d.getUTCDay() + 7) % 7;
+    if (days === 0 && from.getTime() >= d.getTime()) days = 7;
+    d.setUTCDate(d.getUTCDate() + days);
+    return d;
+  }
+
+  const firstFridayOf = (year: number, month: number) => {
+    const first = fridayAt(year, month, 1);
+    const offset = (5 - first.getUTCDay() + 7) % 7;
+    first.setUTCDate(1 + offset);
+    return first;
+  };
+
+  const thisMonth = firstFridayOf(from.getUTCFullYear(), from.getUTCMonth());
+  if (from.getTime() < thisMonth.getTime()) return thisMonth;
+  return firstFridayOf(from.getUTCFullYear(), from.getUTCMonth() + 1);
+}
+
+function formatPayoutDate(d: Date) {
+  return d.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 type FieldDef = {
   key: string;
   label: string;
