@@ -328,6 +328,9 @@ function PayoutsPage() {
                     <div className="mt-1 flex items-center gap-2 text-navy">
                       <CheckCircle2 size={16} className="text-emerald-700" />
                       <span className="font-medium capitalize">{method.method}</span>
+                      <span className="rounded-full border border-navy/15 bg-white px-2 py-0.5 text-xs capitalize text-navy/70">
+                        {method.frequency === "monthly" ? "Monthly payouts" : "Weekly payouts"}
+                      </span>
                       <span className="text-mute text-xs">
                         · updated {new Date(method.updated_at).toLocaleDateString()}
                       </span>
@@ -339,6 +342,7 @@ function PayoutsPage() {
                         setEditingMethod(true);
                         setSelectedMethod(method.method);
                         setDetails(method.details ?? {});
+                        setFrequency(method.frequency === "monthly" ? "monthly" : "weekly");
                         setFieldErrors({});
                         setSavedAt(null);
                       }}
