@@ -126,12 +126,15 @@ export const getMyPayoutMethod = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<PayoutMethod | null> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { safeDecryptPayoutDetails } = await import("@/lib/payout-crypto.server");
     const { data } = await supabaseAdmin
       .from("creator_payout_methods" as any)
       .select("seller_id, method, details, frequency, updated_at")
       .eq("seller_id", context.userId)
       .maybeSingle();
-    return (data as PayoutMethod | null) ?? null;
+    if (!data) return null;
+    const row = data as unknown as PayoutMethod;
+    return { ...row, details: await safeDecryptPayoutDetails((data as any).details) };
   });
 
 const upsertMethodSchema = z.object({
@@ -147,13 +150,14 @@ export const upsertPayoutMethod = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => upsertMethodSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { encryptPayoutDetails } = await import("@/lib/payout-crypto.server");
     const { error } = await supabaseAdmin
       .from("creator_payout_methods" as any)
       .upsert(
         {
           seller_id: context.userId,
           method: data.method,
-          details: data.details,
+          details: await encryptPayoutDetails(data.details),
           frequency: data.frequency,
           updated_at: new Date().toISOString(),
         },
@@ -162,6 +166,7 @@ export const upsertPayoutMethod = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 export const deletePayoutMethod = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
