@@ -86,6 +86,7 @@ function PayoutsPage() {
   const [loading, setLoading] = useState(true);
 
   const [selectedMethod, setSelectedMethod] = useState<PayoutMethod["method"]>("bank");
+  const [frequency, setFrequency] = useState<"weekly" | "monthly">("weekly");
   const [details, setDetails] = useState<Record<string, string>>({});
   const [savingMethod, setSavingMethod] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
