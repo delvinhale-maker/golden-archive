@@ -297,6 +297,7 @@ function ImportTool() {
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<string[]>([]);
+  const [warnings, setWarnings] = useState<string[]>([]);
   const [fileName, setFileName] = useState("");
   const [form, setForm] = useState<FormState | null>(null);
   const [step, setStep] = useState<"upload" | "edit" | "review">("upload");
@@ -308,18 +309,23 @@ function ImportTool() {
 
   const handleText = (text: string, name: string) => {
     setErrors([]);
+    setWarnings([]);
     let raw: unknown;
     try {
-      raw = JSON.parse(text);
+      raw = JSON.parse(text.replace(/^\uFEFF/, "").trim());
     } catch {
       setErrors(["The file is not valid JSON. Check for trailing commas or missing quotes."]);
       return;
     }
     if (Array.isArray(raw)) {
-      setErrors([
-        "This file contains a list of articles. Upload one article object at a time (a single { ... } object).",
-      ]);
-      return;
+      if (raw.length === 1 && raw[0] && typeof raw[0] === "object") {
+        raw = raw[0];
+      } else {
+        setErrors([
+          "This file contains a list of articles. Upload one article object at a time (a single { ... } object).",
+        ]);
+        return;
+      }
     }
     const parsed = PayloadSchema.safeParse(raw);
     if (!parsed.success) {
@@ -331,17 +337,25 @@ function ImportTool() {
       );
       return;
     }
-    if (!CATEGORY_VALUES.includes(parsed.data.category)) {
-      setErrors([
-        `category: "${parsed.data.category}" is not a valid Academy category. Allowed: ${CATEGORY_VALUES.join(", ")}`,
-      ]);
-      return;
+
+    const nextWarnings: string[] = [];
+    const matched = normalizeCategory(parsed.data.category);
+    const category = matched ?? CATEGORY_VALUES[0];
+    if (!matched) {
+      nextWarnings.push(
+        `category: "${parsed.data.category}" didn’t match an Academy category, so it was set to “${CATEGORIES[0].label}”. Pick the right one below before saving.`,
+      );
+    } else if (matched !== parsed.data.category) {
+      nextWarnings.push(`category: "${parsed.data.category}" was matched to “${matched}”.`);
     }
+
     setFileName(name);
-    setForm(toForm(parsed.data));
+    setForm(toForm({ ...parsed.data, category }));
+    setWarnings(nextWarnings);
     setStep("edit");
     toast.success("JSON parsed — every matching field was populated.");
   };
+
 
   const onFile = async (file: File | undefined | null) => {
     if (!file) return;
