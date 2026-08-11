@@ -390,7 +390,6 @@ function PayoutsPage() {
                     </button>
                   ))}
                 </div>
-                </div>
 
                 <fieldset className="mt-5">
                   <legend className="text-sm font-medium text-navy">Payout frequency</legend>
