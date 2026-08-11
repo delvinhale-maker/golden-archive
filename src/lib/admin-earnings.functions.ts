@@ -132,11 +132,19 @@ export const adminListPayoutRequests = createServerFn({ method: "GET" })
       : { data: [] as { id: string; display_name: string | null }[] };
     const nameMap = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
 
-    return ((rows ?? []) as any[]).map((r) => ({
-      ...r,
-      seller_name: nameMap.get(r.seller_id) ?? null,
-    })) as AdminPayoutRequest[];
+    const { safeDecryptPayoutDetails } = await import("@/lib/payout-crypto.server");
+
+    return (await Promise.all(
+      ((rows ?? []) as any[]).map(async (r) => ({
+        ...r,
+        method_snapshot: r.method_snapshot
+          ? { ...r.method_snapshot, details: await safeDecryptPayoutDetails(r.method_snapshot.details) }
+          : null,
+        seller_name: nameMap.get(r.seller_id) ?? null,
+      })),
+    )) as AdminPayoutRequest[];
   });
+
 
 const decideSchema = z.object({
   request_id: z.string().uuid(),
