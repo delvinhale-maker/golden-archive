@@ -643,7 +643,7 @@ function ImportTool() {
             <input
               ref={fileRef}
               type="file"
-              accept=".json,application/json"
+              accept=".json,.txt,application/json,text/json,text/plain,*/*"
               className="hidden"
               onChange={(e) => void onFile(e.target.files?.[0])}
             />
