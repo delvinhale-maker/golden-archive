@@ -902,7 +902,13 @@ function Meta({ k, v }: { k: string; v: string }) {
   );
 }
 
-function PasteBox({ onSubmit }: { onSubmit: (text: string) => void }) {
+function PasteBox({
+  onSubmit,
+  template,
+}: {
+  onSubmit: (text: string) => void;
+  template?: string;
+}) {
   const [text, setText] = useState("");
   return (
     <div className="mt-3 space-y-3">
@@ -913,14 +919,35 @@ function PasteBox({ onSubmit }: { onSubmit: (text: string) => void }) {
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
-      <button
-        type="button"
-        onClick={() => onSubmit(text)}
-        disabled={!text.trim()}
-        className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-      >
-        Parse JSON
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => onSubmit(text)}
+          disabled={!text.trim()}
+          className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        >
+          Parse JSON
+        </button>
+        {template && (
+          <button
+            type="button"
+            onClick={() => setText(template)}
+            className="rounded-lg border border-ink/20 bg-white px-4 py-2 text-sm font-medium text-ink/80"
+          >
+            Paste template here
+          </button>
+        )}
+        {text && (
+          <button
+            type="button"
+            onClick={() => setText("")}
+            className="rounded-lg border border-ink/20 bg-white px-4 py-2 text-sm font-medium text-ink/60"
+          >
+            Clear
+          </button>
+        )}
+      </div>
     </div>
   );
 }
+
