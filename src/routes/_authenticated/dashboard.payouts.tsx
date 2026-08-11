@@ -16,7 +16,7 @@ import {
 } from "@/lib/earnings.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Banknote, Wallet, Send, FileText, Loader2, CheckCircle2, Clock, XCircle, Mail, Pencil, Trash2, X } from "lucide-react";
+import { Banknote, Wallet, Send, FileText, Loader2, CheckCircle2, Clock, XCircle, Mail, Pencil, Trash2, X, CalendarClock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/payouts")({
   component: PayoutsPage,
@@ -24,6 +24,40 @@ export const Route = createFileRoute("/_authenticated/dashboard/payouts")({
 
 function fmt(cents: number) {
   return `$${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// Payout reviews run Fridays at 14:00 UTC. Weekly = the next Friday.
+// Monthly = the first Friday of the next applicable month.
+function nextPayoutDate(frequency: "weekly" | "monthly", from: Date = new Date()): Date {
+  const fridayAt = (y: number, m: number, d: number) => new Date(Date.UTC(y, m, d, 14, 0, 0, 0));
+
+  if (frequency === "weekly") {
+    const d = fridayAt(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate());
+    let days = (5 - d.getUTCDay() + 7) % 7;
+    if (days === 0 && from.getTime() >= d.getTime()) days = 7;
+    d.setUTCDate(d.getUTCDate() + days);
+    return d;
+  }
+
+  const firstFridayOf = (year: number, month: number) => {
+    const first = fridayAt(year, month, 1);
+    const offset = (5 - first.getUTCDay() + 7) % 7;
+    first.setUTCDate(1 + offset);
+    return first;
+  };
+
+  const thisMonth = firstFridayOf(from.getUTCFullYear(), from.getUTCMonth());
+  if (from.getTime() < thisMonth.getTime()) return thisMonth;
+  return firstFridayOf(from.getUTCFullYear(), from.getUTCMonth() + 1);
+}
+
+function formatPayoutDate(d: Date) {
+  return d.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 type FieldDef = {
@@ -335,6 +369,17 @@ function PayoutsPage() {
                         · updated {new Date(method.updated_at).toLocaleDateString()}
                       </span>
                     </div>
+                    <div className="mt-2 flex items-center gap-1.5 text-xs text-navy/70">
+                      <CalendarClock size={14} className="text-navy/50" />
+                      <span>
+                        Next payout date:{" "}
+                        <span className="font-medium text-navy">
+                          {formatPayoutDate(
+                            nextPayoutDate(method.frequency === "monthly" ? "monthly" : "weekly"),
+                          )}
+                        </span>
+                      </span>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -414,6 +459,13 @@ function PayoutsPage() {
                       </button>
                     ))}
                   </div>
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-navy/70">
+                    <CalendarClock size={14} className="text-navy/50" />
+                    <span>
+                      Next payout date:{" "}
+                      <span className="font-medium text-navy">{formatPayoutDate(nextPayoutDate(frequency))}</span>
+                    </span>
+                  </p>
                 </fieldset>
 
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
