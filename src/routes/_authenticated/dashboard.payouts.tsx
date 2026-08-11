@@ -120,6 +120,7 @@ function PayoutsPage() {
     if (m) {
       setSelectedMethod(m.method);
       setDetails(m.details ?? {});
+      setFrequency(m.frequency === "monthly" ? "monthly" : "weekly");
     }
   }
 
