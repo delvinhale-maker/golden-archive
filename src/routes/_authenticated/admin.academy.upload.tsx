@@ -387,8 +387,11 @@ function ImportTool() {
 
   const onFile = async (file: File | undefined | null) => {
     if (!file) return;
-    if (!/\.json$/i.test(file.name) && file.type !== "application/json") {
-      setErrors(["Only .json files are accepted."]);
+    // Mobile pickers often report an empty/wrong MIME type and sometimes drop the
+    // extension, so we accept the file and let JSON parsing be the real gate.
+    if (/\.(pdf|docx?|png|jpe?g|zip|epub|mp4)$/i.test(file.name)) {
+      setErrors(["That doesn’t look like a .json article file."]);
+
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
