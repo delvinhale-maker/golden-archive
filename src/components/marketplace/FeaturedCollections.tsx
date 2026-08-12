@@ -24,12 +24,12 @@ type Collection = {
 
 const COLLECTIONS: Collection[] = [
   {
-    title: "Financial Freedom",
+    title: "Planners",
     kicker: "The Wealth Vault",
     blurb: "Playbooks and systems from operators who've built lasting wealth.",
     image: financialImg,
     to: "/products",
-    search: { category: "Financial Planners" },
+    search: { category: "Planners" },
     size: "lg",
     accentSlug: "financial_planners",
   },
