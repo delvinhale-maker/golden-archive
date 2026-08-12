@@ -972,6 +972,24 @@ export type Database = {
           },
         ]
       }
+      creator_lead_rate_limits: {
+        Row: {
+          created_at: string
+          id: string
+          ip_hash: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_hash: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_hash?: string
+        }
+        Relationships: []
+      }
       creator_leads: {
         Row: {
           created_at: string
@@ -2528,6 +2546,10 @@ export type Database = {
         Returns: undefined
       }
       brand_slugify: { Args: { _name: string }; Returns: string }
+      check_creator_lead_rate_limit: {
+        Args: { _ip_hash: string; _max_per_hour?: number }
+        Returns: boolean
+      }
       confirm_subscriber: { Args: { _token: string }; Returns: Json }
       delete_email: {
         Args: { message_id: number; queue_name: string }
