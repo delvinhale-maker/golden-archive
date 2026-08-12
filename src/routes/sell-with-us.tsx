@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useRef, useState } from "react";
 import { z } from "zod";
-import { Check, Sparkles, ArrowDown } from "lucide-react";
+import { Check, Sparkles, ArrowDown, Download } from "lucide-react";
 import { submitCreatorLead } from "@/lib/creator-leads.functions";
 
 /**
