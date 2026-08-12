@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { Check, Sparkles, ArrowDown } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { submitCreatorLead } from "@/lib/creator-leads.functions";
 
 /**
  * Tune these numbers to change the earnings estimate — nothing is hardcoded below.
@@ -14,6 +15,8 @@ const CALC_CONFIG = {
   lowPrice: 7.99,
   /** High-end price point per sale (USD). */
   highPrice: 19.99,
+  /** Creator take-home share after AurumVault's 15% fee. */
+  takeHomeRate: 0.85,
   /** Slider bounds + step for the follower input. */
   followerMin: 0,
   followerMax: 100_000,
@@ -38,14 +41,14 @@ export const Route = createFileRoute("/sell-with-us")({
       {
         property: "og:description",
         content:
-          "Journals, planners, prompt packs and ebooks. Estimate your earnings and get the free Seller Starter Kit.",
+          "Journals, planners, prompt packs and ebooks. Keep 85% of every sale, paid every Friday. Get the free Seller Starter Kit.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "How Much Could You Earn Selling on AurumVault?" },
       {
         name: "twitter:description",
-        content: "Estimate your earnings and get the free AurumVault Seller Starter Kit.",
+        content: "Keep 85% of every sale, paid every Friday. Get the free AurumVault Seller Starter Kit.",
       },
     ],
     links: [{ rel: "canonical", href: "https://www.aurumvault.store/sell-with-us" }],
@@ -70,13 +73,14 @@ function SellWithUsPage() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const formRef = useRef<HTMLDivElement | null>(null);
+  const submitLead = useServerFn(submitCreatorLead);
 
   const { low, high, sales } = useMemo(() => {
     const estimatedMonthlySales = followers * CALC_CONFIG.conversionRate;
     return {
       sales: estimatedMonthlySales,
-      low: estimatedMonthlySales * CALC_CONFIG.lowPrice,
-      high: estimatedMonthlySales * CALC_CONFIG.highPrice,
+      low: estimatedMonthlySales * CALC_CONFIG.lowPrice * CALC_CONFIG.takeHomeRate,
+      high: estimatedMonthlySales * CALC_CONFIG.highPrice * CALC_CONFIG.takeHomeRate,
     };
   }, [followers]);
 
@@ -95,22 +99,22 @@ function SellWithUsPage() {
       return;
     }
     setBusy(true);
-    // Server-side dedupe: a unique index on (email, product_type) means a repeat
-    // signup is ignored rather than inserted again.
-    const { error: insertError } = await supabase.from("creator_leads").upsert(
-      {
-        email: parsed.data.toLowerCase(),
-        product_type: productType,
-        follower_count: Math.round(followers),
-      },
-      { onConflict: "email,product_type", ignoreDuplicates: true },
-    );
-    setBusy(false);
-    if (insertError) {
+    try {
+      // Server-side dedupe: a unique index on (email, product_type) means a repeat
+      // signup is ignored rather than inserted again.
+      await submitLead({
+        data: {
+          email: parsed.data.toLowerCase(),
+          productType,
+          followerCount: Math.round(followers),
+        },
+      });
+      setDone(true);
+    } catch (e) {
       setError("Something went wrong saving your details. Please try again.");
-      return;
+    } finally {
+      setBusy(false);
     }
-    setDone(true);
   }
 
   return (
@@ -125,12 +129,12 @@ function SellWithUsPage() {
           <p className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-gold">
             <Sparkles size={12} /> For creators
           </p>
-          <h1 className="mt-5 font-display text-3xl leading-tight md:text-5xl">
+          <h1 className="mt-5 font-display text-3xl leading-tight text-white md:text-5xl">
             How Much Could You Earn Selling on AurumVault?
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/75 md:text-lg">
-            You keep your share of every sale while we handle the storefront, payments, and
-            audience. Bring your journals, planners, and prompt packs — we'll bring the buyers.
+            Join the creators already turning journals, planners, and prompt packs into passive
+            income — keep 85% of every sale, paid out every Friday.
           </p>
           <button
             type="button"
@@ -145,7 +149,7 @@ function SellWithUsPage() {
       {/* Calculator */}
       <section className="mx-auto max-w-3xl px-5 md:px-8 pb-4">
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 md:p-8 backdrop-blur">
-          <h2 className="font-display text-2xl md:text-3xl">Earnings calculator</h2>
+          <h2 className="font-display text-2xl text-white md:text-3xl">Earnings calculator</h2>
           <p className="mt-1 text-sm text-white/60">
             A rough estimate based on typical creator conversion — your real numbers depend on
             pricing and audience fit.
@@ -204,7 +208,8 @@ function SellWithUsPage() {
               {usd(low)}–{usd(high)}
             </p>
             <p className="mt-2 text-xs text-white/60">
-              ≈ {Math.round(sales).toLocaleString("en-US")} sales/month from {productType.toLowerCase()}
+              ≈ {Math.round(sales).toLocaleString("en-US")} sales/month from{" "}
+              {productType.toLowerCase()} · based on your 85% share
             </p>
           </div>
         </div>
@@ -222,7 +227,7 @@ function SellWithUsPage() {
               <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gold text-navy">
                 <Check size={22} />
               </span>
-              <h2 className="mt-4 font-display text-2xl">Your Starter Kit is on its way</h2>
+              <h2 className="mt-4 font-display text-2xl text-white">Your Starter Kit is on its way</h2>
               <p className="mt-2 text-sm text-white/70">
                 Check your inbox shortly — we'll send the templates, pricing guide, and launch
                 checklist to <span className="text-gold">{email.trim().toLowerCase()}</span>.
@@ -230,7 +235,7 @@ function SellWithUsPage() {
             </div>
           ) : (
             <>
-              <h2 className="font-display text-2xl md:text-3xl">
+              <h2 className="font-display text-2xl text-white md:text-3xl">
                 Get your free Seller Starter Kit to launch your first product
               </h2>
               <p className="mt-2 text-sm text-white/65">
@@ -266,9 +271,9 @@ function SellWithUsPage() {
         <div className="mx-auto max-w-4xl px-5 md:px-8 py-12 md:py-16">
           <ul className="grid gap-5 md:grid-cols-3">
             {[
-              "Keep your share of every sale — no listing fees, no monthly cost to start.",
+              "Keep 85% of every sale — no listing fees, no monthly cost to start.",
+              "Paid out every Friday, automatically — no chasing invoices.",
               "Your products, your brand — we bring the traffic and handle checkout.",
-              "Launch in under a day with our templates and pricing guide.",
             ].map((t) => (
               <li
                 key={t}
@@ -287,7 +292,7 @@ function SellWithUsPage() {
       {/* Footer CTA */}
       <section className="border-t border-white/10">
         <div className="mx-auto max-w-3xl px-5 md:px-8 py-14 text-center">
-          <h2 className="font-display text-2xl md:text-3xl">Ready to see your first sale?</h2>
+          <h2 className="font-display text-2xl text-white md:text-3xl">Ready to see your first sale?</h2>
           <p className="mt-2 text-sm text-white/65">
             Grab the kit, then apply whenever you're ready.
           </p>
