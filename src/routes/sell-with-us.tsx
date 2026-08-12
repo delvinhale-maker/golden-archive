@@ -246,6 +246,25 @@ function SellWithUsPage() {
                 <Download size={16} /> Download the Starter Kit (PDF)
               </a>
 
+              <div className="mt-5">
+                <button
+                  type="button"
+                  onClick={resend}
+                  disabled={resending || resent}
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/20 px-5 text-sm font-semibold text-white/80 transition-colors hover:border-gold/50 hover:text-white disabled:opacity-60"
+                >
+                  <Mail size={16} />
+                  {resending ? "Sending…" : resent ? "Email sent" : "Resend the email"}
+                </button>
+                {resent ? (
+                  <p className="mt-2 text-xs text-white/60">
+                    Sent again to {email.trim().toLowerCase()} — check spam if it doesn't arrive.
+                  </p>
+                ) : null}
+                {resendError ? (
+                  <p className="mt-2 text-xs text-red-300">{resendError}</p>
+                ) : null}
+              </div>
             </div>
           ) : (
             <>
