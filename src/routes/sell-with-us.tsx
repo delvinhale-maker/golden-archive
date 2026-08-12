@@ -111,7 +111,6 @@ function SellWithUsPage() {
       });
       setDone(true);
     } catch (e: any) {
-      console.error("submitCreatorLead failed", e);
       setError(e?.message ?? "Something went wrong saving your details. Please try again.");
     } finally {
       setBusy(false);
