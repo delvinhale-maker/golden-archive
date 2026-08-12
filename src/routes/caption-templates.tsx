@@ -81,7 +81,7 @@ function CaptionTemplatesPage() {
 
   return (
     <MarketShell>
-      <main className="scheme-surface-bg" style={{ backgroundColor: "var(--scheme-bg)" }}>
+      <main>
         {/* Hero */}
         <section className="relative overflow-hidden border-b border-white/10">
           <div
@@ -124,18 +124,18 @@ function CaptionTemplatesPage() {
         </section>
 
         {/* Positioning */}
-        <section className="border-b border-white/10 px-5 py-12 sm:px-8 sm:py-16">
+        <section className="border-b border-navy/10 px-5 py-12 sm:px-8 sm:py-16">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="font-display text-2xl text-white sm:text-3xl">
+            <h2 className="font-display text-2xl text-navy sm:text-3xl">
               Captions Created for the Business Behind the Post
             </h2>
             <GoldRule className="mx-auto my-5" />
-            <p className="text-[15px] leading-relaxed text-white/75">
+            <p className="text-[15px] leading-relaxed text-ink/80">
               Stop wondering what to say. AurumVault Caption Templates give professionals
               and business owners ready-to-customize social media content built around the
               conversations their customers actually care about.
             </p>
-            <p className="mt-4 text-[15px] leading-relaxed text-white/70">
+            <p className="mt-4 text-[15px] leading-relaxed text-ink/75">
               From educational posts and sales captions to engagement prompts,
               storytelling, authority-building content, and strategic calls to action,
               each collection is designed to help you post more consistently while
@@ -144,7 +144,7 @@ function CaptionTemplatesPage() {
             <p className="mt-6 font-display text-lg text-gold">
               Done-for-you starting points. Personalized by you.
             </p>
-            <p className="text-[13px] text-white/60">
+            <p className="text-[13px] text-ink/65">
               Built to save you time without removing your voice.
             </p>
           </div>
@@ -153,7 +153,7 @@ function CaptionTemplatesPage() {
         {/* Category grid */}
         <section id="collections" className="px-5 py-12 sm:px-8 sm:py-16">
           <div className="mx-auto max-w-6xl">
-            <h2 className="font-display text-2xl text-white sm:text-3xl">
+            <h2 className="font-display text-2xl text-navy sm:text-3xl">
               Browse by niche
             </h2>
             <GoldRule className="my-5" />
@@ -163,23 +163,23 @@ function CaptionTemplatesPage() {
                   key={c.sub}
                   to="/products"
                   search={{ category: "Caption Templates", sub: c.sub } as never}
-                  className="group flex items-start gap-4 rounded-lg border border-white/10 bg-white/[0.03] p-5 transition-colors hover:border-gold/50 hover:bg-white/[0.06]"
+                  className="group flex items-start gap-4 rounded-lg border border-navy/10 bg-white p-5 transition-colors hover:border-gold/50 hover:bg-cream/60"
                 >
                   <CategoryLineIcon slug="caption_templates" className="h-9 w-9 shrink-0" />
                   <span className="min-w-0">
-                    <span className="block text-[10px] font-semibold uppercase tracking-[0.22em] text-gold/90">
+                    <span className="block text-[10px] font-semibold uppercase tracking-[0.22em] text-gold-ink">
                       Caption Templates
                     </span>
-                    <span className="mt-1 block font-display text-lg text-white">
+                    <span className="mt-1 block font-display text-lg text-navy">
                       {c.title}
                     </span>
-                    <span className="mt-1 block text-[13px] leading-snug text-white/60">
+                    <span className="mt-1 block text-[13px] leading-snug text-ink/65">
                       {c.note}
                     </span>
                   </span>
                   <ArrowRight
                     size={16}
-                    className="ml-auto mt-1 shrink-0 text-white/40 transition-transform group-hover:translate-x-0.5 group-hover:text-gold"
+                    className="ml-auto mt-1 shrink-0 text-ink/40 transition-transform group-hover:translate-x-0.5 group-hover:text-gold"
                   />
                 </Link>
               ))}
@@ -188,13 +188,13 @@ function CaptionTemplatesPage() {
         </section>
 
         {/* Customization system */}
-        <section className="border-t border-white/10 px-5 py-12 sm:px-8 sm:py-16">
+        <section className="border-t border-navy/10 px-5 py-12 sm:px-8 sm:py-16">
           <div className="mx-auto max-w-3xl">
-            <h2 className="font-display text-2xl text-white sm:text-3xl">
+            <h2 className="font-display text-2xl text-navy sm:text-3xl">
               A simple customization system
             </h2>
             <GoldRule className="my-5" />
-            <p className="text-[15px] leading-relaxed text-white/70">
+            <p className="text-[15px] leading-relaxed text-ink/75">
               Every collection uses standardized placeholders. Replace them with your own
               details before publishing so each caption sounds like you.
             </p>
@@ -202,13 +202,13 @@ function CaptionTemplatesPage() {
               {PLACEHOLDERS.map((p) => (
                 <li
                   key={p}
-                  className="rounded-full border border-gold/30 px-3 py-1 font-mono text-[12px] text-gold/90"
+                  className="rounded-full border border-gold/30 px-3 py-1 font-mono text-[12px] text-gold-ink"
                 >
                   {p}
                 </li>
               ))}
             </ul>
-            <p className="mt-6 text-[13px] text-white/55">
+            <p className="mt-6 text-[13px] text-ink/60">
               Delivered as PDF, with optional editable DOCX where the creator provides it.
             </p>
           </div>
