@@ -56,6 +56,10 @@ export async function sendCreatorStarterKitEmail(email: string, productType: str
       status: "pending",
     });
 
+    // One-click unsubscribe token: lets the mail platform attach the compliant
+    // List-Unsubscribe header + footer link pointing at our branded page.
+    const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, email);
+
     const { error } = await supabase.rpc("enqueue_email", {
       queue_name: "transactional_emails",
       payload: {
@@ -70,6 +74,7 @@ export async function sendCreatorStarterKitEmail(email: string, productType: str
         label: TEMPLATE_NAME,
         idempotency_key: `creator-starter-kit-${email}-${productType}`,
         queued_at: nowIso,
+        ...(unsubscribeToken ? { unsubscribe_token: unsubscribeToken } : {}),
       },
     });
 
