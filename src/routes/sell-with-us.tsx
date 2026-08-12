@@ -231,11 +231,21 @@ function SellWithUsPage() {
               <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gold text-navy">
                 <Check size={22} />
               </span>
-              <h2 className="mt-4 font-display text-2xl text-white">Your Starter Kit is on its way</h2>
+              <h2 className="mt-4 font-display text-2xl text-white">Your Starter Kit is ready</h2>
               <p className="mt-2 text-sm text-white/70">
-                Check your inbox shortly — we'll send the templates, pricing guide, and launch
-                checklist to <span className="text-gold">{email.trim().toLowerCase()}</span>.
+                We've emailed a copy to{" "}
+                <span className="text-gold">{email.trim().toLowerCase()}</span> — or grab it right
+                now:
               </p>
+              <a
+                href="/seller-starter-kit.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex min-h-[48px] items-center gap-2 rounded-full bg-gold px-6 text-sm font-bold text-navy transition-shadow hover:shadow-[0_14px_40px_-12px_rgba(201,162,39,0.6)]"
+              >
+                <Download size={16} /> Download the Starter Kit (PDF)
+              </a>
+
             </div>
           ) : (
             <>
