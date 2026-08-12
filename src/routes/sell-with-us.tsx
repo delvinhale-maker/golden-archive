@@ -69,10 +69,12 @@ function SellWithUsPage() {
   const [productType, setProductType] = useState<string>(CALC_CONFIG.productTypes[0]);
   const [followers, setFollowers] = useState<number>(CALC_CONFIG.followerDefault);
   const [email, setEmail] = useState("");
+  const [company, setCompany] = useState(""); // honeypot — real users never see this
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const formRef = useRef<HTMLDivElement | null>(null);
+  const mountedAt = useRef<number>(Date.now());
   const submitLead = useServerFn(submitCreatorLead);
 
   const { low, high, sales } = useMemo(() => {
@@ -107,6 +109,8 @@ function SellWithUsPage() {
           email: parsed.data.toLowerCase(),
           productType,
           followerCount: Math.round(followers),
+          company,
+          elapsedMs: Date.now() - mountedAt.current,
         },
       });
       setDone(true);
@@ -242,6 +246,17 @@ function SellWithUsPage() {
                 Templates, a pricing guide, and a launch checklist. No account or password needed.
               </p>
               <form onSubmit={submit} className="mt-6 flex flex-col gap-3 sm:flex-row">
+                {/* Honeypot: hidden from humans, tempting to bots. */}
+                <input
+                  type="text"
+                  name="company"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  className="absolute left-[-9999px] h-0 w-0 opacity-0"
+                />
                 <input
                   type="email"
                   value={email}

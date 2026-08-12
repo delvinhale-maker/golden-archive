@@ -7,7 +7,14 @@ const leadSchema = z.object({
   email: z.string().trim().min(3).max(255).email(),
   productType: z.string().trim().min(1).max(60),
   followerCount: z.number().int().min(0).max(100_000_000),
+  /** Honeypot field — must stay empty; bots that autofill it are rejected. */
+  company: z.string().max(200).optional().default(""),
+  /** Milliseconds the visitor spent on the form before submitting. */
+  elapsedMs: z.number().int().min(0).max(86_400_000).optional().default(0),
 });
+
+/** Forms filled faster than this are almost certainly automated. */
+const MIN_FILL_MS = 1500;
 
 function publicSupabase() {
   return createClient<Database>(
@@ -24,6 +31,12 @@ function publicSupabase() {
 export const submitCreatorLead = createServerFn({ method: "POST" })
   .validator((data) => leadSchema.parse(data))
   .handler(async ({ data }) => {
+    // Lightweight challenge: honeypot + minimum fill time. Bots see a fake
+    // success so they don't retry with a different strategy.
+    if (data.company.trim().length > 0 || data.elapsedMs < MIN_FILL_MS) {
+      return { ok: true, duplicate: false };
+    }
+
     const supa = publicSupabase();
     const { error } = await supa.from("creator_leads").insert({
       email: data.email.toLowerCase(),
