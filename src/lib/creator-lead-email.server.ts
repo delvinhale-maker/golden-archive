@@ -27,7 +27,7 @@ function generateToken(): string {
  * first send. Best-effort: a failure just means this send has no footer link.
  */
 async function getOrCreateUnsubscribeToken(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   email: string,
 ): Promise<string | null> {
   try {
