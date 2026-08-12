@@ -217,7 +217,7 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
             className="absolute left-1/2 top-1/2 h-[260px] w-[150px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.55),0_0_0_1px_rgba(201,168,76,0.3)] sm:h-[290px] sm:w-[180px] md:h-[340px] md:w-[220px]"
             style={{ zIndex: z[i] }}
           >
-            <div className="h-[58%] bg-white p-3 sm:h-[60%] sm:p-3.5 md:h-[62%] md:p-4">
+            <div className="h-[58%] bg-white p-4 sm:h-[60%] sm:p-4 md:h-[62%] md:p-5">
               <Cover p={p} className="h-full w-full rounded-md bg-white" imgClassName="object-top" />
             </div>
             <div className="flex h-[42%] flex-col justify-start gap-1.5 p-2.5 sm:h-[40%] md:h-[38%] md:p-3">
