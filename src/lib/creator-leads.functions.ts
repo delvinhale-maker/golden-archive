@@ -8,6 +8,8 @@ const leadSchema = z.object({
   email: z.string().trim().min(3).max(255).email(),
   productType: z.string().trim().min(1).max(60),
   followerCount: z.number().int().min(0).max(100_000_000),
+  /** Which CTA the submission came from (hero, footer, sticky…). */
+  ctaSource: z.string().trim().max(60).optional().default("unknown"),
   /** Honeypot field — must stay empty; bots that autofill it are rejected. */
   company: z.string().max(200).optional().default(""),
   /** Milliseconds the visitor spent on the form before submitting. */
@@ -80,6 +82,7 @@ export const submitCreatorLead = createServerFn({ method: "POST" })
       email: data.email.toLowerCase(),
       product_type: data.productType,
       follower_count: data.followerCount,
+      cta_source: data.ctaSource,
     });
 
     if (error) {

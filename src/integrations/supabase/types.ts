@@ -993,6 +993,7 @@ export type Database = {
       creator_leads: {
         Row: {
           created_at: string
+          cta_source: string | null
           email: string
           follower_count: number
           id: string
@@ -1000,6 +1001,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          cta_source?: string | null
           email: string
           follower_count?: number
           id?: string
@@ -1007,6 +1009,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          cta_source?: string | null
           email?: string
           follower_count?: number
           id?: string
@@ -1146,6 +1149,30 @@ export type Database = {
           status?: string
           submitted_at?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      cta_click_events: {
+        Row: {
+          created_at: string
+          cta_location: string
+          id: string
+          page_path: string | null
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          cta_location: string
+          id?: string
+          page_path?: string | null
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          cta_location?: string
+          id?: string
+          page_path?: string | null
+          session_id?: string
         }
         Relationships: []
       }
