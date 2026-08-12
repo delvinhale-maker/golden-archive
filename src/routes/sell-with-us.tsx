@@ -380,6 +380,19 @@ function SellWithUsPage() {
           </div>
         </div>
       </section>
+
+      {/* Sticky mobile CTA */}
+      {!done ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-navy/95 px-4 py-3 backdrop-blur md:hidden">
+          <button
+            type="button"
+            onClick={() => scrollToForm("sticky-mobile")}
+            className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-gold text-sm font-bold text-navy"
+          >
+            Get My Free Starter Kit
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
