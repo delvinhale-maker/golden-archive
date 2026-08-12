@@ -106,7 +106,10 @@ function SellWithUsPage() {
 
   const atMax = followers >= CALC_CONFIG.followerMax;
 
-  function scrollToForm() {
+  function scrollToForm(source: string) {
+    // Analytics first, fire-and-forget — never blocks the scroll.
+    logCtaClick(source);
+    ctaSource.current = source;
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
