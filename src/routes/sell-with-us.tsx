@@ -2,8 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useRef, useState } from "react";
 import { z } from "zod";
-import { Check, Sparkles, ArrowDown, Download } from "lucide-react";
-import { submitCreatorLead } from "@/lib/creator-leads.functions";
+import { Check, Sparkles, ArrowDown, Download, Mail } from "lucide-react";
+import { submitCreatorLead, resendCreatorStarterKit } from "@/lib/creator-leads.functions";
 
 /**
  * Tune these numbers to change the earnings estimate — nothing is hardcoded below.
