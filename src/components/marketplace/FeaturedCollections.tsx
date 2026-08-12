@@ -16,6 +16,7 @@ type Collection = {
   kicker: string;
   blurb: string;
   image: string;
+  alt: string;
   to: string;
   search?: Record<string, string>;
   size: "lg" | "md";
