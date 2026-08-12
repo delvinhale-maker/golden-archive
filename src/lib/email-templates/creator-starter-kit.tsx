@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Body, Container, Head, Heading, Html, Preview, Section, Text, Button } from "@react-email/components";
+import { Body, Container, Head, Heading, Html, Link, Preview, Section, Text, Button } from "@react-email/components";
 import type { TemplateEntry } from "./registry";
 import { styles } from "./_shared";
 
@@ -9,6 +9,9 @@ interface Props {
 }
 
 const SITE_URL_DEFAULT = "https://www.aurumvault.store";
+/** Static PDF served from the site's public directory. */
+export const STARTER_KIT_PATH = "/seller-starter-kit.pdf";
+
 
 const Email = ({ siteUrl = SITE_URL_DEFAULT, productType }: Props) => (
   <Html lang="en" dir="ltr">
@@ -34,13 +37,27 @@ const Email = ({ siteUrl = SITE_URL_DEFAULT, productType }: Props) => (
             automatically every Friday.
           </Text>
           <div style={{ textAlign: "center", margin: "24px 0 8px" }}>
-            <Button href={`${siteUrl}/sell`} style={styles.button}>
-              Start your application
+            <Button href={`${siteUrl}${STARTER_KIT_PATH}`} style={styles.button}>
+              Download your Starter Kit (PDF)
             </Button>
           </div>
+          <Text style={{ ...styles.mute, textAlign: "center" }}>
+            Link not working? Copy and paste this into your browser:{" "}
+            <Link href={`${siteUrl}${STARTER_KIT_PATH}`} style={{ color: "#c9a227" }}>
+              {`${siteUrl}${STARTER_KIT_PATH}`}
+            </Link>
+          </Text>
+          <Text style={{ ...styles.text, textAlign: "center" }}>
+            When you're ready,{" "}
+            <Link href={`${siteUrl}/sell`} style={{ color: "#c9a227" }}>
+              start your application
+            </Link>{" "}
+            to sell on AurumVault.
+          </Text>
           <Text style={styles.mute}>
             Questions? Just reply to this email — a real person reads it.
           </Text>
+
         </Section>
       </Container>
     </Body>
