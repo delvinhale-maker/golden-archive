@@ -9,6 +9,9 @@ interface Props {
 }
 
 const SITE_URL_DEFAULT = "https://www.aurumvault.store";
+/** Static PDF served from the site's public directory. */
+export const STARTER_KIT_PATH = "/seller-starter-kit.pdf";
+
 
 const Email = ({ siteUrl = SITE_URL_DEFAULT, productType }: Props) => (
   <Html lang="en" dir="ltr">
