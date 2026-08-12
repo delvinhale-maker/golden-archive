@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
@@ -15,6 +16,8 @@ const leadSchema = z.object({
 
 /** Forms filled faster than this are almost certainly automated. */
 const MIN_FILL_MS = 1500;
+/** Max submissions accepted per hour from the same visitor fingerprint. */
+const MAX_PER_HOUR = 5;
 
 function publicSupabase() {
   return createClient<Database>(
@@ -24,9 +27,29 @@ function publicSupabase() {
   );
 }
 
+/** SHA-256 of the caller IP so we never store a raw address. */
+async function callerFingerprint(): Promise<string | null> {
+  let headers: Headers;
+  try {
+    headers = getRequest().headers;
+  } catch {
+    return null;
+  }
+  const ip =
+    headers.get("cf-connecting-ip") ||
+    headers.get("x-real-ip") ||
+    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    null;
+  if (!ip) return null;
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`creator-lead:${ip}`));
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 /**
  * Public server function for creator-lead capture. No auth required.
- * Uses upsert with ignoreDuplicates so repeat submissions are idempotent.
+ * Spam protection: honeypot + minimum fill time, then a per-IP hourly rate limit.
  */
 export const submitCreatorLead = createServerFn({ method: "POST" })
   .validator((data) => leadSchema.parse(data))
@@ -38,6 +61,21 @@ export const submitCreatorLead = createServerFn({ method: "POST" })
     }
 
     const supa = publicSupabase();
+
+    const ipHash = await callerFingerprint();
+    if (ipHash) {
+      const { data: allowed, error: rlError } = await supa.rpc("check_creator_lead_rate_limit", {
+        _ip_hash: ipHash,
+        _max_per_hour: MAX_PER_HOUR,
+      });
+      if (rlError) {
+        console.error("Creator lead rate-limit check failed:", rlError);
+      } else if (allowed === false) {
+        throw new Error("Too many signups from this connection. Please try again in an hour.");
+      }
+    }
+
+
     const { error } = await supa.from("creator_leads").insert({
       email: data.email.toLowerCase(),
       product_type: data.productType,
