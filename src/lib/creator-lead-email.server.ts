@@ -165,8 +165,12 @@ export async function sendCreatorStarterKitEmail(
         status: "failed",
         error_message: "enqueue failed",
       });
+      return { sent: false, reason: "enqueue_failed" };
     }
+
+    return { sent: true };
   } catch (e) {
     console.error("Starter kit email failed", e);
+    return { sent: false, reason: "error" };
   }
 }
