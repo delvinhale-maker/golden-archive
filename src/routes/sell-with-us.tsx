@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { Check, Sparkles, ArrowDown, Download, Mail } from "lucide-react";
 import { submitCreatorLead, resendCreatorStarterKit } from "@/lib/creator-leads.functions";
+import { logCtaClick } from "@/lib/cta-tracking";
 
 /**
  * Tune these numbers to change the earnings estimate — nothing is hardcoded below.
