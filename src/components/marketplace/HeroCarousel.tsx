@@ -157,8 +157,8 @@ function HeroVisual({ items }: { items: HeroProduct[] }) {
           className="absolute left-1/2 top-1/2 h-[280px] w-[160px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.55),0_0_0_1px_rgba(201,168,76,0.35)] sm:h-[320px] sm:w-[190px] md:h-[380px] md:w-[230px]"
           style={{ zIndex: z[i] }}
         >
-          <div className="h-[62%] bg-white">
-            <Cover p={p} fit="contain" className="h-full w-full rounded-none bg-white" />
+          <div className="h-[62%] bg-white p-3 sm:p-4">
+            <Cover p={p} fit="contain" className="h-full w-full rounded-md bg-white" />
           </div>
           <div className="flex h-[38%] flex-col justify-center bg-white p-2.5 md:p-3">
             <div className="text-[10px] font-semibold tracking-[0.18em] text-gold-ink">
