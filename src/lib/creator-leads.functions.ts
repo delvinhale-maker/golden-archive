@@ -91,5 +91,9 @@ export const submitCreatorLead = createServerFn({ method: "POST" })
       throw new Error(`Failed to save your details: ${error.message} (${error.code})`);
     }
 
+    // Confirmation email is best-effort; a delivery problem must not fail the signup.
+    const { sendCreatorStarterKitEmail } = await import("@/lib/creator-lead-email.server");
+    await sendCreatorStarterKitEmail(data.email.toLowerCase(), data.productType);
+
     return { ok: true };
   });
