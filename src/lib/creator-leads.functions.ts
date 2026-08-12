@@ -31,6 +31,12 @@ function publicSupabase() {
 export const submitCreatorLead = createServerFn({ method: "POST" })
   .validator((data) => leadSchema.parse(data))
   .handler(async ({ data }) => {
+    // Lightweight challenge: honeypot + minimum fill time. Bots see a fake
+    // success so they don't retry with a different strategy.
+    if (data.company.trim().length > 0 || data.elapsedMs < MIN_FILL_MS) {
+      return { ok: true, duplicate: false };
+    }
+
     const supa = publicSupabase();
     const { error } = await supa.from("creator_leads").insert({
       email: data.email.toLowerCase(),
