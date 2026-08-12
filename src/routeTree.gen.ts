@@ -93,6 +93,7 @@ import { Route as AuthenticatedDashboardPreorderIdRouteImport } from './routes/_
 import { Route as AuthenticatedDashboardVariantsIdRouteImport } from './routes/_authenticated/dashboard.variants.$id'
 import { Route as ApiPublicAcademyReceiveArticleRouteImport } from './routes/api/public/academy/receive-article'
 import { Route as ApiPublicCronReleasePreordersRouteImport } from './routes/api/public/cron/release-preorders'
+import { Route as ApiPublicCronRotatePayoutKeysRouteImport } from './routes/api/public/cron/rotate-payout-keys'
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
 import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/public/hooks/audit-covers'
 import { Route as ApiPublicHooksAutoReleaseReviewsRouteImport } from './routes/api/public/hooks/auto-release-reviews'
@@ -556,6 +557,12 @@ const ApiPublicCronReleasePreordersRoute =
     path: '/api/public/cron/release-preorders',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronRotatePayoutKeysRoute =
+  ApiPublicCronRotatePayoutKeysRouteImport.update({
+    id: '/api/public/cron/rotate-payout-keys',
+    path: '/api/public/cron/rotate-payout-keys',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHealthCategoriesRoute =
   ApiPublicHealthCategoriesRouteImport.update({
     id: '/api/public/health/categories',
@@ -700,6 +707,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
+  '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -793,6 +801,7 @@ export interface FileRoutesByTo {
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
+  '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -890,6 +899,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
+  '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -987,6 +997,7 @@ export interface FileRouteTypes {
     | '/dashboard/variants/$id'
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
+    | '/api/public/cron/rotate-payout-keys'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
@@ -1080,6 +1091,7 @@ export interface FileRouteTypes {
     | '/dashboard/variants/$id'
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
+    | '/api/public/cron/rotate-payout-keys'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
@@ -1176,6 +1188,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/variants/$id'
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
+    | '/api/public/cron/rotate-payout-keys'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
@@ -1235,6 +1248,7 @@ export interface RootRouteChildren {
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicAcademyReceiveArticleRoute: typeof ApiPublicAcademyReceiveArticleRoute
   ApiPublicCronReleasePreordersRoute: typeof ApiPublicCronReleasePreordersRoute
+  ApiPublicCronRotatePayoutKeysRoute: typeof ApiPublicCronRotatePayoutKeysRoute
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
   ApiPublicHooksAuditCoversRoute: typeof ApiPublicHooksAuditCoversRoute
   ApiPublicHooksAutoReleaseReviewsRoute: typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -1836,6 +1850,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronReleasePreordersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/rotate-payout-keys': {
+      id: '/api/public/cron/rotate-payout-keys'
+      path: '/api/public/cron/rotate-payout-keys'
+      fullPath: '/api/public/cron/rotate-payout-keys'
+      preLoaderRoute: typeof ApiPublicCronRotatePayoutKeysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/health/categories': {
       id: '/api/public/health/categories'
       path: '/api/public/health/categories'
@@ -2088,6 +2109,7 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicAcademyReceiveArticleRoute: ApiPublicAcademyReceiveArticleRoute,
   ApiPublicCronReleasePreordersRoute: ApiPublicCronReleasePreordersRoute,
+  ApiPublicCronRotatePayoutKeysRoute: ApiPublicCronRotatePayoutKeysRoute,
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
   ApiPublicHooksAuditCoversRoute: ApiPublicHooksAuditCoversRoute,
   ApiPublicHooksAutoReleaseReviewsRoute: ApiPublicHooksAutoReleaseReviewsRoute,
