@@ -246,6 +246,17 @@ function SellWithUsPage() {
                 Templates, a pricing guide, and a launch checklist. No account or password needed.
               </p>
               <form onSubmit={submit} className="mt-6 flex flex-col gap-3 sm:flex-row">
+                {/* Honeypot: hidden from humans, tempting to bots. */}
+                <input
+                  type="text"
+                  name="company"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  className="absolute left-[-9999px] h-0 w-0 opacity-0"
+                />
                 <input
                   type="email"
                   value={email}
