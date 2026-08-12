@@ -29,7 +29,7 @@ export const getLeadAnalytics = createServerFn({ method: "GET" })
         .limit(20000),
       supabaseAdmin
         .from("creator_leads")
-        .select("cta_source, product_type, follower_count, created_at")
+        .select("email, cta_source, product_type, follower_count, created_at")
         .gte("created_at", since)
         .limit(20000),
     ]);
@@ -37,5 +37,20 @@ export const getLeadAnalytics = createServerFn({ method: "GET" })
     if (clicks.error) throw clicks.error;
     if (leads.error) throw leads.error;
 
-    return buildLeadAnalytics(clicks.data ?? [], leads.data ?? [], data.days);
+    // "Confirmed" = the Starter Kit email actually went out to that lead.
+    const emails = [...new Set((leads.data ?? []).map((l) => l.email).filter(Boolean))];
+    let confirmedEmails: string[] = [];
+    if (emails.length > 0) {
+      const { data: sends, error: sendErr } = await supabaseAdmin
+        .from("email_send_log")
+        .select("recipient_email, status")
+        .eq("template_name", "creator-starter-kit")
+        .in("status", ["sent", "delivered"])
+        .in("recipient_email", emails)
+        .limit(20000);
+      if (sendErr) throw sendErr;
+      confirmedEmails = (sends ?? []).map((s) => s.recipient_email);
+    }
+
+    return buildLeadAnalytics(clicks.data ?? [], leads.data ?? [], data.days, confirmedEmails);
   });
