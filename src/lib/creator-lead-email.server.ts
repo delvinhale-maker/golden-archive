@@ -14,6 +14,47 @@ function redact(email: string): string {
   return l && d ? `${l[0]}***@${d}` : "***";
 }
 
+function generateToken(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
+ * Returns the recipient's stable one-click unsubscribe token, creating one on
+ * first send. Best-effort: a failure just means this send has no footer link.
+ */
+async function getOrCreateUnsubscribeToken(
+  supabase: ReturnType<typeof createClient>,
+  email: string,
+): Promise<string | null> {
+  try {
+    const { data: existing } = await supabase
+      .from("email_unsubscribe_tokens")
+      .select("token")
+      .eq("email", email)
+      .maybeSingle();
+    if (existing?.token) return existing.token as string;
+
+    const token = generateToken();
+    await supabase
+      .from("email_unsubscribe_tokens")
+      .upsert({ token, email }, { onConflict: "email", ignoreDuplicates: true });
+
+    const { data: stored } = await supabase
+      .from("email_unsubscribe_tokens")
+      .select("token")
+      .eq("email", email)
+      .maybeSingle();
+    return (stored?.token as string) ?? null;
+  } catch (e) {
+    console.error("Unsubscribe token lookup failed", { email: redact(email) });
+    return null;
+  }
+}
+
 /**
  * Renders and queues the Seller Starter Kit confirmation email.
  * Best-effort: never throws — lead capture must succeed even if email fails.
