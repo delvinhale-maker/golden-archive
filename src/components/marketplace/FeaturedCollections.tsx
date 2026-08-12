@@ -16,6 +16,7 @@ type Collection = {
   kicker: string;
   blurb: string;
   image: string;
+  alt: string;
   to: string;
   search?: Record<string, string>;
   size: "lg" | "md";
@@ -28,6 +29,7 @@ const COLLECTIONS: Collection[] = [
     kicker: "The Wealth Vault",
     blurb: "Playbooks and systems from operators who've built lasting wealth.",
     image: financialImg,
+    alt: "Financial planners and wealth-building organizers on a clean workspace",
     to: "/products",
     search: { category: "Planners" },
     size: "lg",
@@ -38,6 +40,7 @@ const COLLECTIONS: Collection[] = [
     kicker: "Reflect & Record",
     blurb: "Beautiful printable journals for reflection, gratitude, prayer, and creative practice.",
     image: leadershipImg,
+    alt: "Beautiful printable journals for reflection, gratitude, and creative practice",
     to: "/products",
     search: { category: "Journals" },
     size: "md",
@@ -48,6 +51,7 @@ const COLLECTIONS: Collection[] = [
     kicker: "Build & Scale",
     blurb: "Money, credit, and operator playbooks from real builders.",
     image: businessImg,
+    alt: "Digital business systems and money playbooks for entrepreneurs",
     to: "/products",
     search: { category: "eBooks" },
     size: "md",
@@ -58,6 +62,7 @@ const COLLECTIONS: Collection[] = [
     kicker: "New Frontier",
     blurb: "Curated prompt libraries and AI toolkits for modern builders.",
     image: aiImg,
+    alt: "AI prompt packs and toolkits for modern creators and builders",
     to: "/products",
     search: { category: "AI Prompt Packs" },
     size: "md",
@@ -68,6 +73,7 @@ const COLLECTIONS: Collection[] = [
     kicker: "Personal Growth",
     blurb: "Devotionals, studies, and reflections for a rooted life.",
     image: faithImg,
+    alt: "Faith-based devotionals and personal growth resources",
     to: "/products",
     search: { category: "eBooks" },
     size: "md",
@@ -106,7 +112,7 @@ function CollectionCard({ c, index }: { c: Collection; index: number }) {
         <div className={isLarge ? "relative h-[520px] w-full" : "relative h-[300px] w-full"}>
           <img
             src={c.image}
-            alt={c.title}
+            alt={c.alt}
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
           />
