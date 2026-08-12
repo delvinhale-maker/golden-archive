@@ -35,7 +35,8 @@ export const submitCreatorLead = createServerFn({ method: "POST" })
     );
 
     if (error) {
-      throw new Error("Failed to save your details. Please try again.");
+      console.error("Creator lead upsert failed:", error);
+      throw new Error(`Failed to save your details: ${error.message} (${error.code})`);
     }
 
     return { ok: true };
