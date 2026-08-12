@@ -18,6 +18,7 @@ export type ProductTypeKey =
   | "digital_toolkit"
   | "business_operating_system"
   | "business_template"
+  | "caption_template"
   | "audio"
   | "other";
 
@@ -39,7 +40,8 @@ export type ProductCategoryEnum =
   | "childrens_educational"
   | "bible_studies"
   | "digital_toolkits"
-  | "business_operating_systems";
+  | "business_operating_systems"
+  | "caption_templates";
 
 export interface ProductTypeConfig {
   key: ProductTypeKey;
@@ -289,6 +291,21 @@ export const PRODUCT_TYPES: Record<ProductTypeKey, ProductTypeConfig> = {
     accent: "#1E40AF",
     isEbook: false,
   },
+  caption_template: {
+    key: "caption_template",
+    label: "Caption Templates",
+    emoji: "💬",
+    tagline: "Done-for-you caption collection (PDF, DOCX, ZIP)",
+    category: "caption_templates",
+    categoryLabel: "Caption Templates",
+    fileExts: ["pdf", "docx", "zip"],
+    fileMimes: ["application/pdf", OFFICE_DOCX, "application/zip", "application/x-zip-compressed"],
+    acceptString: ".pdf,.docx,.zip,application/pdf," + OFFICE_DOCX + ",application/zip",
+    acceptedHint: ".PDF, .DOCX, .ZIP",
+    suggestedPriceCents: 1799,
+    accent: "#8A6A1F",
+    isEbook: false,
+  },
   audio: {
     key: "audio",
     label: "Audio",
@@ -335,6 +352,7 @@ export const PRODUCT_TYPE_ORDER: ProductTypeKey[] = [
   "childrens_educational",
   "business_operating_system",
   "business_template",
+  "caption_template",
   "audio",
   "other",
 ];

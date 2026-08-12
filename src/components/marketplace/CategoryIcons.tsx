@@ -275,7 +275,27 @@ export const CATEGORY_ICONS: Record<
   prompt_packs: AIPromptIcon,
   audio: AudioIcon,
   templates: TemplatesIcon,
+  caption_templates: CaptionTemplatesIcon,
 };
+
+function CaptionTemplatesIcon(props: IconProps) {
+  return (
+    <svg {...BASE_PROPS} {...props}>
+      {/* speech plate */}
+      <path
+        d="M8 11 H40 A2 2 0 0 1 42 13 V31 A2 2 0 0 1 40 33 H21 L14 39 V33 H8 A2 2 0 0 1 6 31 V13 A2 2 0 0 1 8 11 Z"
+        fill={NAVY_FILL}
+        stroke={INK}
+        strokeWidth="1.2"
+      />
+      {/* caption lines */}
+      <path d="M12 18 H30 M12 23 H34 M12 28 H24" stroke={INK} strokeWidth="0.9" opacity="0.75" />
+      {/* gold rule + mark */}
+      <path d="M28 28 H36" stroke={GOLD} strokeWidth="1.1" />
+      <path d="M36.5 16.5 L38.5 20.5 L36.5 24.5 L34.5 20.5 Z" fill={GOLD_SOFT} opacity="0.9" />
+    </svg>
+  );
+}
 
 export function CategoryLineIcon({
   slug,

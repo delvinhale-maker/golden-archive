@@ -26,12 +26,26 @@ import { getProducts } from "@/lib/marketplace.functions";
 import { NotificationsBell } from "./NotificationsBell";
 import { supabase } from "@/integrations/supabase/client";
 import { NAV_CATEGORIES, SUBCATEGORIES, labelToSlug } from "@/lib/categories";
+import { subcategoriesQuery, type Subcategory } from "@/lib/subcategories";
 
 const CATEGORIES = NAV_CATEGORIES;
 
-function subsFor(label: string): string[] | undefined {
+/**
+ * Nav sub-menu names for a category. Admin-managed rows in
+ * product_subcategories win, so new niches appear in the dropdown without a
+ * code change; the static list in categories.ts is the fallback.
+ */
+function subsForWith(
+  label: string,
+  managed: Subcategory[] | undefined,
+): string[] | undefined {
   const slug = labelToSlug(label);
-  return slug ? SUBCATEGORIES[slug] : undefined;
+  if (!slug) return undefined;
+  const fromDb = (managed ?? [])
+    .filter((s) => s.category_slug === slug)
+    .map((s) => s.name);
+  if (fromDb.length) return fromDb;
+  return SUBCATEGORIES[slug];
 }
 
 
@@ -49,6 +63,8 @@ export function MarketHeader() {
   const [q, setQ] = useState("");
   const wishlist = useWishlist();
   const cart = useCart();
+  const { data: managedSubs } = useQuery(subcategoriesQuery);
+  const subsFor = (label: string) => subsForWith(label, managedSubs);
   const { user, isAdmin, isSeller } = useAuth();
   const canUpload = isAdmin || isSeller;
 
