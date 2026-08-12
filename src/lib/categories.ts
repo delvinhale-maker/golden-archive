@@ -145,6 +145,28 @@ export const CATEGORIES: CategoryDef[] = [
     subs: ["ChatGPT", "Claude", "Gemini", "Marketing", "Writing", "Research"],
   },
   {
+    slug: "caption_templates",
+    label: "Caption Templates",
+    accent: "#8A6A1F",
+    ink: "#FFFFFF",
+    icon: "💬",
+    blurb:
+      "Professionally structured, niche-specific caption collections created to help you educate, engage, promote, and stay visible online.",
+    gradient: grad("#0A0F1C", "#1C2440", "#8A6A1F"),
+    subs: [
+      "Realtor Caption Templates",
+      "Beauty Business Caption Templates",
+      "Digital Product Seller Caption Templates",
+      "Credit & Finance Caption Templates",
+      "Author & KDP Caption Templates",
+      "Faith-Based Entrepreneur Caption Templates",
+      "Photographer Caption Templates",
+      "Coach Caption Templates",
+      "Boutique Caption Templates",
+      "Restaurant Caption Templates",
+    ],
+  },
+  {
     slug: "templates",
     label: "Templates",
     accent: "#3A4A5C",
