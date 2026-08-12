@@ -55,32 +55,69 @@ async function getOrCreateUnsubscribeToken(
   }
 }
 
+export type StarterKitSendResult =
+  | { sent: true }
+  | { sent: false; reason: "opted_out" | "config" | "template" | "enqueue_failed" | "error" };
+
+/**
+ * True when the address must never receive this email again: it is on the
+ * suppression list (bounce/complaint/unsubscribe) or its one-click
+ * unsubscribe token has been used.
+ */
+async function isOptedOut(supabase: any, email: string): Promise<boolean> {
+  const { data: suppressed, error: supErr } = await supabase
+    .from("suppressed_emails")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
+  if (supErr) {
+    // Fail closed: if we can't confirm consent, don't send.
+    console.error("Suppression check failed", { email: redact(email) });
+    return true;
+  }
+  if (suppressed) return true;
+
+  const { data: token, error: tokErr } = await supabase
+    .from("email_unsubscribe_tokens")
+    .select("used_at")
+    .eq("email", email)
+    .maybeSingle();
+  if (tokErr) {
+    console.error("Unsubscribe state check failed", { email: redact(email) });
+    return true;
+  }
+  return Boolean(token?.used_at);
+}
+
 /**
  * Renders and queues the Seller Starter Kit confirmation email.
  * Best-effort: never throws — lead capture must succeed even if email fails.
+ * Skips any address that has unsubscribed or been suppressed.
  */
-export async function sendCreatorStarterKitEmail(email: string, productType: string): Promise<void> {
+export async function sendCreatorStarterKitEmail(
+  email: string,
+  productType: string,
+): Promise<StarterKitSendResult> {
   try {
     const supabaseUrl = process.env.SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!supabaseUrl || !serviceKey) {
       console.error("Starter kit email skipped: missing server configuration");
-      return;
+      return { sent: false, reason: "config" };
     }
     const tpl = TEMPLATES[TEMPLATE_NAME];
     if (!tpl) {
       console.error("Starter kit email skipped: template missing");
-      return;
+      return { sent: false, reason: "template" };
     }
 
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    const { data: suppressed } = await supabase
-      .from("suppressed_emails")
-      .select("id")
-      .eq("email", email)
-      .maybeSingle();
-    if (suppressed) return;
+    if (await isOptedOut(supabase, email)) {
+      console.warn("Starter kit email skipped: recipient opted out", { email: redact(email) });
+      return { sent: false, reason: "opted_out" };
+    }
+
 
     const props = { siteUrl: SITE_URL, productType };
     const element = React.createElement(tpl.component, props);
