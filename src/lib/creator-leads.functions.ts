@@ -82,6 +82,7 @@ export const submitCreatorLead = createServerFn({ method: "POST" })
       email: data.email.toLowerCase(),
       product_type: data.productType,
       follower_count: data.followerCount,
+      cta_source: data.ctaSource,
     });
 
     if (error) {
