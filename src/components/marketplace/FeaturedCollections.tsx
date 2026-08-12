@@ -112,7 +112,7 @@ function CollectionCard({ c, index }: { c: Collection; index: number }) {
         <div className={isLarge ? "relative h-[520px] w-full" : "relative h-[300px] w-full"}>
           <img
             src={c.image}
-            alt={c.title}
+            alt={c.alt}
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
           />
