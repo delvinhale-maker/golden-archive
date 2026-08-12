@@ -79,6 +79,7 @@ function SellWithUsPage() {
   const [resendError, setResendError] = useState<string | null>(null);
   const formRef = useRef<HTMLDivElement | null>(null);
   const mountedAt = useRef<number>(Date.now());
+  const ctaSource = useRef<string>("form-direct");
   const submitLead = useServerFn(submitCreatorLead);
   const resendKit = useServerFn(resendCreatorStarterKit);
 
@@ -130,6 +131,7 @@ function SellWithUsPage() {
           email: parsed.data.toLowerCase(),
           productType,
           followerCount: Math.round(followers),
+          ctaSource: ctaSource.current,
           company,
           elapsedMs: Date.now() - mountedAt.current,
         },
@@ -163,7 +165,7 @@ function SellWithUsPage() {
           </p>
           <button
             type="button"
-            onClick={scrollToForm}
+            onClick={() => scrollToForm("hero")}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-bold text-navy transition-shadow hover:shadow-[0_14px_40px_-12px_rgba(201,162,39,0.6)]"
           >
             Get My Free Starter Kit <ArrowDown size={15} />
@@ -364,7 +366,7 @@ function SellWithUsPage() {
           <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <button
               type="button"
-              onClick={scrollToForm}
+              onClick={() => scrollToForm("footer")}
               className="inline-flex min-h-[48px] items-center gap-2 rounded-full bg-gold px-7 text-sm font-bold text-navy transition-shadow hover:shadow-[0_14px_40px_-12px_rgba(201,162,39,0.6)]"
             >
               Get My Free Starter Kit
