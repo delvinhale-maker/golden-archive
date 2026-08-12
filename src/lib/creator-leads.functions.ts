@@ -22,7 +22,7 @@ function publicSupabase() {
  * Uses upsert with ignoreDuplicates so repeat submissions are idempotent.
  */
 export const submitCreatorLead = createServerFn({ method: "POST" })
-  .inputValidator((data) => leadSchema.parse(data))
+  .validator((data) => leadSchema.parse(data))
   .handler(async ({ data }) => {
     const supa = publicSupabase();
     const { error } = await supa.from("creator_leads").upsert(
