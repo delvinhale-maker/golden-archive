@@ -25,17 +25,18 @@ export const submitCreatorLead = createServerFn({ method: "POST" })
   .validator((data) => leadSchema.parse(data))
   .handler(async ({ data }) => {
     const supa = publicSupabase();
-    const { error } = await supa.from("creator_leads").upsert(
-      {
-        email: data.email.toLowerCase(),
-        product_type: data.productType,
-        follower_count: data.followerCount,
-      },
-      { onConflict: "email,product_type", ignoreDuplicates: true },
-    );
+    const { error } = await supa.from("creator_leads").insert({
+      email: data.email.toLowerCase(),
+      product_type: data.productType,
+      follower_count: data.followerCount,
+    });
 
     if (error) {
-      console.error("Creator lead upsert failed:", error);
+      // Treat a unique-constraint violation (duplicate email + product type) as idempotent success.
+      if (error.code === "23505") {
+        return { ok: true, duplicate: true };
+      }
+      console.error("Creator lead insert failed:", error);
       throw new Error(`Failed to save your details: ${error.message} (${error.code})`);
     }
 
