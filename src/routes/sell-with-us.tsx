@@ -2,8 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useRef, useState } from "react";
 import { z } from "zod";
-import { Check, Sparkles, ArrowDown, Download } from "lucide-react";
-import { submitCreatorLead } from "@/lib/creator-leads.functions";
+import { Check, Sparkles, ArrowDown, Download, Mail } from "lucide-react";
+import { submitCreatorLead, resendCreatorStarterKit } from "@/lib/creator-leads.functions";
 
 /**
  * Tune these numbers to change the earnings estimate — nothing is hardcoded below.
@@ -73,9 +73,26 @@ function SellWithUsPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
   const formRef = useRef<HTMLDivElement | null>(null);
   const mountedAt = useRef<number>(Date.now());
   const submitLead = useServerFn(submitCreatorLead);
+  const resendKit = useServerFn(resendCreatorStarterKit);
+
+  async function resend() {
+    setResendError(null);
+    setResending(true);
+    try {
+      await resendKit({ data: { email: email.trim().toLowerCase(), productType } });
+      setResent(true);
+    } catch (e: any) {
+      setResendError(e?.message ?? "Couldn't resend the email. Please try again shortly.");
+    } finally {
+      setResending(false);
+    }
+  }
 
   const { low, high, sales } = useMemo(() => {
     const estimatedMonthlySales = followers * CALC_CONFIG.conversionRate;
@@ -246,6 +263,25 @@ function SellWithUsPage() {
                 <Download size={16} /> Download the Starter Kit (PDF)
               </a>
 
+              <div className="mt-5">
+                <button
+                  type="button"
+                  onClick={resend}
+                  disabled={resending || resent}
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/20 px-5 text-sm font-semibold text-white/80 transition-colors hover:border-gold/50 hover:text-white disabled:opacity-60"
+                >
+                  <Mail size={16} />
+                  {resending ? "Sending…" : resent ? "Email sent" : "Resend the email"}
+                </button>
+                {resent ? (
+                  <p className="mt-2 text-xs text-white/60">
+                    Sent again to {email.trim().toLowerCase()} — check spam if it doesn't arrive.
+                  </p>
+                ) : null}
+                {resendError ? (
+                  <p className="mt-2 text-xs text-red-300">{resendError}</p>
+                ) : null}
+              </div>
             </div>
           ) : (
             <>

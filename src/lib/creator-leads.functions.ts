@@ -97,3 +97,40 @@ export const submitCreatorLead = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+const resendSchema = z.object({
+  email: z.string().trim().min(3).max(255).email(),
+  productType: z.string().trim().min(1).max(60),
+});
+
+/** Max resend requests accepted per hour from the same visitor fingerprint. */
+const MAX_RESENDS_PER_HOUR = 3;
+
+/**
+ * Re-sends the Seller Starter Kit confirmation email. Only works for an email
+ * that already exists in creator_leads, and is rate limited per IP.
+ */
+export const resendCreatorStarterKit = createServerFn({ method: "POST" })
+  .validator((data) => resendSchema.parse(data))
+  .handler(async ({ data }) => {
+    const email = data.email.toLowerCase();
+    const supa = publicSupabase();
+
+    const ipHash = await callerFingerprint();
+    if (ipHash) {
+      const { data: allowed, error: rlError } = await supa.rpc("check_creator_lead_rate_limit", {
+        _ip_hash: ipHash,
+        _max_per_hour: MAX_RESENDS_PER_HOUR,
+      });
+      if (rlError) {
+        console.error("Starter kit resend rate-limit check failed:", rlError);
+      } else if (allowed === false) {
+        throw new Error("Too many resend requests. Please try again in an hour.");
+      }
+    }
+
+    const { sendCreatorStarterKitEmail } = await import("@/lib/creator-lead-email.server");
+    await sendCreatorStarterKitEmail(email, data.productType);
+
+    return { ok: true };
+  });
