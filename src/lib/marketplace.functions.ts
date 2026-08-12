@@ -651,11 +651,12 @@ export const getHomeHighlights = createServerFn({ method: "GET" }).handler(
 // reaches the client the same way.
 // ============================================================================
 
-// Clone 1: New Releases — newest approved+published, rotated daily across all.
+// Clone 1: Just Dropped — strictly the newest approved+published titles.
+// No daily rotation here: this row must always reflect the latest releases.
 export const getNewReleasesRowFn = createServerFn({ method: "GET" }).handler(
   async (): Promise<Product[]> => {
     const items = await fetchDbProducts();
-    return rotateDaily(items, 1).slice(0, 8);
+    return items.slice(0, 8);
   },
 );
 
