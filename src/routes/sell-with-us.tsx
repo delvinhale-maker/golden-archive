@@ -73,9 +73,26 @@ function SellWithUsPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
   const formRef = useRef<HTMLDivElement | null>(null);
   const mountedAt = useRef<number>(Date.now());
   const submitLead = useServerFn(submitCreatorLead);
+  const resendKit = useServerFn(resendCreatorStarterKit);
+
+  async function resend() {
+    setResendError(null);
+    setResending(true);
+    try {
+      await resendKit({ data: { email: email.trim().toLowerCase(), productType } });
+      setResent(true);
+    } catch (e: any) {
+      setResendError(e?.message ?? "Couldn't resend the email. Please try again shortly.");
+    } finally {
+      setResending(false);
+    }
+  }
 
   const { low, high, sales } = useMemo(() => {
     const estimatedMonthlySales = followers * CALC_CONFIG.conversionRate;
