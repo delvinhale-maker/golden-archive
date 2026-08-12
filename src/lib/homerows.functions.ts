@@ -137,8 +137,8 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       // Rotate the full catalog daily so every product cycles through the rows.
       const allProducts = rotateDaily(rows.map((r) => toProduct(r)), 0);
 
-      // New Releases: daily-rotated window over all approved products.
-      const newReleases = rotateDaily(rows.map((r) => toProduct(r)), 1).slice(0, 8);
+      // Just Dropped: strictly newest first (rows are already created_at desc).
+      const newReleases = rows.map((r) => toProduct(r)).slice(0, 8);
       const newReleasesSource: RowSource = newReleases.length > 0 ? "specific" : "empty";
 
       // Sponsored: featured=true, rotated daily; fallback to full catalog rotation.
