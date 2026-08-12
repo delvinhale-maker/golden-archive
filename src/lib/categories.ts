@@ -201,6 +201,8 @@ export const CATEGORY_ACCENT: Record<string, string> = {
   // Business systems / toolkits → Dusty Blue as neutral operator tone
   business_operating_systems: "var(--accent-dusty)",
   digital_toolkits: "var(--accent-dusty)",
+  // Caption Templates → restrained gold (brand voice)
+  caption_templates: "var(--gold)",
 };
 
 export function accentFor(slugOrLabel?: string | null): string {
@@ -244,12 +246,26 @@ const LABEL_ALIAS: Record<string, string> = {
   Finance: "financial_planners",
   "Financial Planners": "financial_planners",
   Planners: "financial_planners",
+  Captions: "caption_templates",
+  "Caption Templates": "caption_templates",
 };
 
 // Structured subcategories per parent category. When a category appears here,
 // the storefront filters products by exact subcategory match instead of by
 // keyword-in-title/description.
 export const SUBCATEGORIES: Record<string, string[]> = {
+  caption_templates: [
+    "Realtor Caption Templates",
+    "Beauty Business Caption Templates",
+    "Digital Product Seller Caption Templates",
+    "Credit & Finance Caption Templates",
+    "Author & KDP Caption Templates",
+    "Faith-Based Entrepreneur Caption Templates",
+    "Photographer Caption Templates",
+    "Coach Caption Templates",
+    "Boutique Caption Templates",
+    "Restaurant Caption Templates",
+  ],
   financial_planners: [
     "Financial Planners",
     "Wedding Planners",
@@ -301,6 +317,7 @@ export const NAV_CATEGORIES = [
   "eBooks",
   "Journals",
   "Planners",
+  "Caption Templates",
 ] as const;
 
 // Same set without the "All" pseudo-category, for browse grids.
