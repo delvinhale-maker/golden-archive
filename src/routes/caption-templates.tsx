@@ -228,7 +228,7 @@ function CaptionTemplatesPage() {
             </p>
             <Link
               to="/dashboard/new"
-              search={{ type: "caption_template" }}
+              search={{ type: "caption_template" as const, id: undefined, invalidType: undefined }}
               className="mt-7 inline-flex items-center justify-center rounded-full bg-navy px-7 py-3 text-[15px] font-semibold text-white transition hover:bg-navy/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
               Upload PDF or DOCX
