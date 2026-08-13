@@ -626,8 +626,13 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     }
     // Structural validation is only meaningful for ebook manuscripts (pdf/epub/docx).
     // For other product types, skip the deep validation to allow zip/mp3/mp4/etc.
+    // Deep structural validation applies to any product whose accepted formats
+    // are document-only (ebooks + caption templates: pdf/docx/epub). Types that
+    // allow archives/media (zip, mp3, mp4…) skip it.
+    const DOC_ONLY_EXTS = ["pdf", "docx", "epub"];
+    const isDocumentOnlyType = typeCfg.fileExts.every((e) => DOC_ONLY_EXTS.includes(e));
     try {
-      if (typeCfg.isEbook) {
+      if (typeCfg.isEbook || isDocumentOnlyType) {
         const { validateManuscriptFile } = await import("@/lib/manuscript-validate");
         const res = await validateManuscriptFile(f);
         if (!res.ok) {
@@ -991,7 +996,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       if (publish && storedFilePath) {
         try {
           const { validateStoredManuscript } = await import("@/lib/manuscript-validate.functions");
-          const check = await validateStoredManuscript({ data: { filePath: storedFilePath } });
+          const check = await validateStoredManuscript({ data: { filePath: storedFilePath, allowedExts: typeCfg.fileExts } });
           if (!check.ok) {
             setFileError(check.reason);
             setFileUploadError(check.reason);

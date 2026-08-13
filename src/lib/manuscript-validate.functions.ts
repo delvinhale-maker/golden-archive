@@ -13,12 +13,15 @@ import { validateManuscriptBytes } from "@/lib/manuscript-validate";
  */
 export const validateStoredManuscript = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { filePath: string }) => {
+  .inputValidator((data: { filePath: string; allowedExts?: string[] }) => {
     if (!data.filePath || typeof data.filePath !== "string") {
       throw new Error("filePath required");
     }
     if (data.filePath.length > 512) throw new Error("filePath too long");
     if (data.filePath.includes("..")) throw new Error("Invalid filePath");
+    if (data.allowedExts && !Array.isArray(data.allowedExts)) {
+      throw new Error("allowedExts must be an array");
+    }
     return data;
   })
   .handler(async ({ data, context }) => {
@@ -41,8 +44,30 @@ export const validateStoredManuscript = createServerFn({ method: "POST" })
     if (dl.error || !dl.data) {
       return { ok: false as const, reason: "File not found in storage." };
     }
+    // Hard size cap (mirrors the client MAX_FILE_MB) so an oversized object
+    // pushed straight into storage can never be published.
+    const MAX_BYTES = 650 * 1024 * 1024;
+    if (dl.data.size > MAX_BYTES) {
+      return {
+        ok: false as const,
+        reason: `File exceeds the ${MAX_BYTES / 1024 / 1024} MB limit (${(dl.data.size / 1024 / 1024).toFixed(1)} MB).`,
+      };
+    }
+    if (dl.data.size === 0) {
+      return { ok: false as const, reason: "File is empty (0 bytes)." };
+    }
     const buf = new Uint8Array(await dl.data.arrayBuffer());
     const filename = data.filePath.split("/").pop() ?? "file";
+    const allowed = (data.allowedExts ?? ["pdf", "docx", "epub"]).map((e) =>
+      e.toLowerCase().replace(/^\./, ""),
+    );
+    const nameExt = filename.toLowerCase().split(".").pop() ?? "";
+    if (!allowed.includes(nameExt)) {
+      return {
+        ok: false as const,
+        reason: `Unsupported file type ".${nameExt}". Allowed: ${allowed.map((e) => `.${e.toUpperCase()}`).join(", ")}.`,
+      };
+    }
     const result = validateManuscriptBytes(buf, filename);
     if (result.ok) return { ok: true as const, ext: result.ext };
     return { ok: false as const, reason: result.reason, ext: result.ext };
