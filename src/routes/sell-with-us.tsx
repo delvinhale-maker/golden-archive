@@ -254,20 +254,33 @@ function SellWithUsPage() {
               <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gold text-navy">
                 <Check size={22} />
               </span>
-              <h2 className="mt-4 font-display text-2xl text-white">Your Starter Kit is ready</h2>
-              <p className="mt-2 text-sm text-white/70">
-                We've emailed a copy to{" "}
-                <span className="text-gold">{email.trim().toLowerCase()}</span> — or grab it right
-                now:
+              <h2 className="mt-4 font-display text-2xl text-white">Your Starter Kit Is Ready</h2>
+              <p className="mx-auto mt-2 max-w-md break-words text-sm text-white/70">
+                Thanks! Your AurumVault Creator Starter Kit is ready to download. We've also emailed
+                a copy to <span className="text-gold">{email.trim().toLowerCase()}</span>.
               </p>
               <a
-                href="/seller-starter-kit.pdf"
+                href={STARTER_KIT_URL}
+                download={STARTER_KIT_FILENAME}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-5 inline-flex min-h-[48px] items-center gap-2 rounded-full bg-gold px-6 text-sm font-bold text-navy transition-shadow hover:shadow-[0_14px_40px_-12px_rgba(201,162,39,0.6)]"
+                aria-label="Download your AurumVault Creator Starter Kit (PDF)"
+                onClick={() => logCtaClick("creator_starter_kit_download")}
+                className="mt-5 inline-flex min-h-[48px] max-w-full items-center justify-center gap-2 rounded-full bg-gold px-6 text-center text-sm font-bold text-navy transition-shadow hover:shadow-[0_14px_40px_-12px_rgba(201,162,39,0.6)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-navy"
               >
-                <Download size={16} /> Download the Starter Kit (PDF)
+                <Download size={16} aria-hidden="true" /> Download Your Creator Starter Kit
               </a>
+
+              <p className="mt-6 text-sm text-white/65">
+                Ready to start selling? Apply to become an AurumVault creator.
+              </p>
+              <Link
+                to="/sell"
+                onClick={() => logCtaClick("starter_kit_success_apply")}
+                className="mt-3 inline-flex min-h-[44px] items-center rounded-full border border-white/25 px-6 text-sm font-semibold text-white/85 hover:border-gold hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              >
+                Apply to Sell
+              </Link>
 
               <div className="mt-5">
                 <button
@@ -289,6 +302,7 @@ function SellWithUsPage() {
                 ) : null}
               </div>
             </div>
+
           ) : (
             <>
               <h2 className="font-display text-2xl text-white md:text-3xl">
