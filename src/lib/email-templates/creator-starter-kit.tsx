@@ -10,7 +10,7 @@ interface Props {
 
 const SITE_URL_DEFAULT = "https://www.aurumvault.store";
 /** Static PDF served from the site's public directory. */
-export const STARTER_KIT_PATH = "/seller-starter-kit.pdf";
+export const STARTER_KIT_PATH = "/downloads/AurumVault-Creator-Starter-Kit.pdf";
 
 
 const Email = ({ siteUrl = SITE_URL_DEFAULT, productType }: Props) => (
