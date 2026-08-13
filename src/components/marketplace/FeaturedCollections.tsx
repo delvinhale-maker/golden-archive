@@ -1,13 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
-import financialImgAsset from "@/assets/coll-planners.png.asset.json";
-const financialImg = financialImgAsset.url;
-import journalsImgAsset from "@/assets/journals-collection.png.asset.json";
-const leadershipImg = journalsImgAsset.url;
+import financialImg from "@/assets/coll-planners-clean.jpg";
+import leadershipImg from "@/assets/coll-journals-clean.jpg";
 import businessImg from "@/assets/coll-business.jpg";
-import aiImgAsset from "@/assets/ai-prompt-vault-hero.png.asset.json";
-const aiImg = aiImgAsset.url;
+import aiImg from "@/assets/coll-ai-clean.jpg";
 import faithImg from "@/assets/coll-faith.jpg";
 import { accentFor } from "@/lib/categories";
 
