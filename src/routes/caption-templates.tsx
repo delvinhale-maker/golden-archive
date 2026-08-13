@@ -213,6 +213,30 @@ function CaptionTemplatesPage() {
             </p>
           </div>
         </section>
+
+        {/* Creator upload CTA */}
+        <section className="border-t border-navy/10 bg-white px-5 py-12 sm:px-8 sm:py-16">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="font-display text-2xl text-navy sm:text-3xl">
+              Sell your own caption templates
+            </h2>
+            <GoldRule className="mx-auto my-5" />
+            <p className="mx-auto max-w-xl text-[15px] leading-relaxed text-ink/75">
+              Upload your caption collection as a <strong>PDF</strong> or an editable{" "}
+              <strong>DOCX</strong> (ZIP bundles welcome for multi-file sets) and publish it to
+              the Caption Templates storefront.
+            </p>
+            <Link
+              to="/dashboard/new"
+              search={{ type: "caption_template" as const, id: undefined, invalidType: undefined }}
+              className="mt-7 inline-flex items-center justify-center rounded-full bg-navy px-7 py-3 text-[15px] font-semibold text-white transition hover:bg-navy/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+            >
+              Upload PDF or DOCX
+            </Link>
+            <p className="mt-3 text-[13px] text-ink/60">Accepted files: .PDF, .DOCX, .ZIP</p>
+          </div>
+        </section>
+
       </main>
     </MarketShell>
   );
