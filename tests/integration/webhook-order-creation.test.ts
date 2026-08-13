@@ -177,16 +177,16 @@ describe("Stripe webhook → order persistence", () => {
     expect(item.seller_id).toBe("seller_1");
     expect(item.product_title).toBe("Kingdom Mind");
     expect(item.unit_amount_cents).toBe(2700);
-    // 9% platform fee (see PLATFORM_FEE_PCT)
-    expect(item.platform_fee_cents).toBe(243);
-    expect(item.seller_amount_cents).toBe(2457);
+    // 15% platform fee retained by AurumVault (see PLATFORM_FEE_PCT)
+    expect(item.platform_fee_cents).toBe(405);
+    expect(item.seller_amount_cents).toBe(2295);
 
     expect(tables.order_downloads).toHaveLength(1);
     expect(tables.order_downloads[0].order_item_id).toBe(item.id);
     expect(tables.order_downloads[0].token).toMatch(/^[0-9a-f]{64}$/);
 
     expect(tables.seller_balances).toHaveLength(1);
-    expect(tables.seller_balances[0].pending_cents).toBe(2457);
+    expect(tables.seller_balances[0].pending_cents).toBe(2295);
   });
 
   it("is idempotent — replaying the same session does not double-insert", async () => {
