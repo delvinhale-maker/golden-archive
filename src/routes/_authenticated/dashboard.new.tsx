@@ -996,7 +996,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       if (publish && storedFilePath) {
         try {
           const { validateStoredManuscript } = await import("@/lib/manuscript-validate.functions");
-          const check = await validateStoredManuscript({ data: { filePath: storedFilePath } });
+          const check = await validateStoredManuscript({ data: { filePath: storedFilePath, allowedExts: typeCfg.fileExts } });
           if (!check.ok) {
             setFileError(check.reason);
             setFileUploadError(check.reason);
