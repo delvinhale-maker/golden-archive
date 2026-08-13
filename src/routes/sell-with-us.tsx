@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Check, Sparkles, ArrowDown, Download, Mail } from "lucide-react";
 import { submitCreatorLead, resendCreatorStarterKit } from "@/lib/creator-leads.functions";
 import { logCtaClick } from "@/lib/cta-tracking";
+import { STARTER_KIT_URL, STARTER_KIT_FILENAME } from "@/lib/starter-kit";
 
 /**
  * Tune these numbers to change the earnings estimate — nothing is hardcoded below.
