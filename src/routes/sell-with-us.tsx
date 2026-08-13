@@ -137,7 +137,9 @@ function SellWithUsPage() {
           elapsedMs: Date.now() - mountedAt.current,
         },
       });
+      logCtaClick("creator_starter_kit_submit");
       setDone(true);
+
     } catch (e: any) {
       setError(e?.message ?? "Something went wrong saving your details. Please try again.");
     } finally {
