@@ -271,7 +271,7 @@ function CreatorEarningsPage() {
       {/* CTA */}
       <section className="border-t border-white/10 bg-white/[0.02]">
         <div className="mx-auto max-w-2xl px-5 py-14 text-center md:px-8">
-          <h2 className="font-display text-2xl text-white md:text-3xl">
+          <h2 className="font-display text-2xl !text-white md:text-3xl">
             Ready to Turn Your Content Into Income?
           </h2>
           <p className="mt-3 text-sm text-white/70">
