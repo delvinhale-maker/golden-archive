@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/dashboard/earn")({
 });
 
 const HOLDING_MS = 24 * 60 * 60 * 1000;
-const SUPPORT_EMAIL = "support@supportaurumvault.tech";
+const SUPPORT_EMAIL = "support@aurumvault.tech";
 
 type OrderItemRow = {
   id: string;

@@ -63,7 +63,7 @@ export function ReportIssueLink({ title }: { title: string }) {
   const subject = encodeURIComponent(`Issue with "${title}" on AurumVault`);
   return (
     <a
-      href={`mailto:support@supportaurumvault.tech?subject=${subject}`}
+      href={`mailto:support@aurumvault.tech?subject=${subject}`}
       className="mt-8 inline-flex items-center gap-1.5 text-xs font-semibold text-mute hover:text-ink"
     >
       <Flag size={11} /> Report an issue with this product

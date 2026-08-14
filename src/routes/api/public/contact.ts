@@ -7,7 +7,7 @@ import { TEMPLATES } from '@/lib/email-templates/registry'
 const SITE_NAME = 'AurumVault'
 const SENDER_DOMAIN = 'notify.www.aurumvault.store'
 const FROM_DOMAIN = 'www.aurumvault.store'
-const NOTIFY_TO = 'support@supportaurumvault.tech'
+const NOTIFY_TO = 'support@aurumvault.tech'
 
 const ALLOWED_TOPICS = new Set(['support', 'creator', 'press', 'other'])
 

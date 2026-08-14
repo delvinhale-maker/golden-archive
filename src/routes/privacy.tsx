@@ -148,10 +148,10 @@ function PrivacyPage() {
           <Section title="10. Contact">
             For privacy questions or data requests, email{" "}
             <a
-              href="mailto:support@supportaurumvault.tech"
+              href="mailto:support@aurumvault.tech"
               className="text-navy hover:text-gold-ink hover:underline"
             >
-              support@supportaurumvault.tech
+              support@aurumvault.tech
             </a>
             .
           </Section>

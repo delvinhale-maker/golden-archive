@@ -10,7 +10,7 @@ export const Route = createFileRoute("/support")({
       {
         name: "description",
         content:
-          "Answers to the most common questions about AurumVault purchases, downloads, refunds, and creator payouts. Reach support at support@supportaurumvault.tech.",
+          "Answers to the most common questions about AurumVault purchases, downloads, refunds, and creator payouts. Reach support at support@aurumvault.tech.",
       },
       { property: "og:title", content: "AurumVault Support" },
       {
@@ -44,7 +44,7 @@ const TOPICS = [
   {
     icon: Mail,
     title: "Contact a Human",
-    body: "Email support@supportaurumvault.tech for orders, creators@supportaurumvault.tech for seller questions. Reply within 24h.",
+    body: "Email support@aurumvault.tech for orders, creators@aurumvault.tech for seller questions. Reply within 24h.",
   },
 ];
 
@@ -89,7 +89,7 @@ const FAQ_SECTIONS: { title: string; items: FAQ[] }[] = [
       },
       {
         q: "A download link isn't working. What do I do?",
-        a: "First, sign in and try the link in Account → My Downloads (that link is always current). If it still fails, email support@supportaurumvault.tech with your order number and we'll re-issue it within 24 hours.",
+        a: "First, sign in and try the link in Account → My Downloads (that link is always current). If it still fails, email support@aurumvault.tech with your order number and we'll re-issue it within 24 hours.",
       },
       {
         q: "Can I read a preview before buying?",
@@ -102,7 +102,7 @@ const FAQ_SECTIONS: { title: string; items: FAQ[] }[] = [
     items: [
       {
         q: "What is your refund policy?",
-        a: "We offer a 14-day money-back guarantee on digital purchases you haven't fully downloaded or consumed. If a product isn't what was described, or you're not satisfied, email support@supportaurumvault.tech within 14 days of purchase and we'll issue a refund to your original payment method.",
+        a: "We offer a 14-day money-back guarantee on digital purchases you haven't fully downloaded or consumed. If a product isn't what was described, or you're not satisfied, email support@aurumvault.tech within 14 days of purchase and we'll issue a refund to your original payment method.",
       },
       {
         q: "How long does a refund take?",
@@ -152,7 +152,7 @@ const FAQ_SECTIONS: { title: string; items: FAQ[] }[] = [
       },
       {
         q: "How do I delete my account?",
-        a: "Email support@supportaurumvault.tech from the address on your account and we'll delete your data within 7 days. See our Privacy Policy for details on what's retained for legal/tax reasons.",
+        a: "Email support@aurumvault.tech from the address on your account and we'll delete your data within 7 days. See our Privacy Policy for details on what's retained for legal/tax reasons.",
       },
     ],
   },
@@ -225,10 +225,10 @@ function SupportPage() {
               <p className="mt-2 text-sm text-white/75">
                 Email{" "}
                 <a
-                  href="mailto:support@supportaurumvault.tech"
+                  href="mailto:support@aurumvault.tech"
                   className="text-gold-ink hover:underline"
                 >
-                  support@supportaurumvault.tech
+                  support@aurumvault.tech
                 </a>{" "}
                 or use the{" "}
                 <Link to="/contact" className="text-gold-ink hover:underline">
