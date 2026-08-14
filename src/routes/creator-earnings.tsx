@@ -124,7 +124,23 @@ function CreatorEarningsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-navy text-white">
+    <div className="relative min-h-screen overflow-hidden bg-navy text-white">
+      {/* Subtle gold-on-navy vault pattern — fixed behind all glassmorphism sections */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10"
+        style={{
+          backgroundImage: `
+            radial-gradient(circle at 20% 10%, rgba(201,162,39,0.08) 0%, transparent 28%),
+            radial-gradient(circle at 80% 30%, rgba(201,162,39,0.06) 0%, transparent 24%),
+            radial-gradient(circle at 50% 80%, rgba(201,162,39,0.07) 0%, transparent 32%),
+            radial-gradient(1.5px 1.5px at 12px 18px, rgba(201,162,39,0.22), transparent),
+            radial-gradient(1.5px 1.5px at 36px 54px, rgba(201,162,39,0.18), transparent)
+          `,
+          backgroundSize: "100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px",
+        }}
+      />
+
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-white/10 bg-navy/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3 md:px-8">
@@ -143,11 +159,23 @@ function CreatorEarningsPage() {
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(65%_55%_at_50%_0%,rgba(201,162,39,0.22),transparent_70%)]"
         />
+        {/* Vault arch outline */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-1/2 h-[140%] w-[140%] -translate-x-1/2 -translate-y-1/2 opacity-[0.04] md:h-[160%] md:w-[160%]"
+          style={{
+            background: `
+              radial-gradient(ellipse at 50% 100%, transparent 58%, rgba(201,162,39,0.55) 60%, transparent 62%),
+              radial-gradient(ellipse at 50% 100%, transparent 68%, rgba(201,162,39,0.35) 70%, transparent 72%),
+              radial-gradient(ellipse at 50% 100%, transparent 78%, rgba(201,162,39,0.18) 80%, transparent 82%)
+            `,
+          }}
+        />
         <div className="relative mx-auto max-w-3xl px-5 py-16 text-center md:px-8 md:py-24">
           <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gold/30 bg-gold/10 text-gold">
             <Coins size={28} aria-hidden="true" />
           </span>
-          <h1 className="mt-6 font-display text-3xl leading-tight md:text-5xl">
+          <h1 className="mt-6 font-display text-3xl leading-tight !text-white md:text-5xl">
             How Much Could You Earn Selling on <span className="text-gold">AurumVault</span>?
           </h1>
           <p className="mt-5 text-base text-white/75 md:text-lg">
@@ -221,7 +249,7 @@ function CreatorEarningsPage() {
 
       {/* Benefits */}
       <section className="mx-auto max-w-5xl px-5 py-12 md:px-8 md:py-16">
-        <h2 className="text-center font-display text-2xl md:text-3xl">
+        <h2 className="text-center font-display text-2xl !text-white md:text-3xl">
           Why Creators Choose AurumVault
         </h2>
         <ul className="mt-8 grid gap-5 md:grid-cols-3">
@@ -243,7 +271,7 @@ function CreatorEarningsPage() {
       {/* CTA */}
       <section className="border-t border-white/10 bg-white/[0.02]">
         <div className="mx-auto max-w-2xl px-5 py-14 text-center md:px-8">
-          <h2 className="font-display text-2xl md:text-3xl">
+          <h2 className="font-display text-2xl text-white md:text-3xl">
             Ready to Turn Your Content Into Income?
           </h2>
           <p className="mt-3 text-sm text-white/70">
