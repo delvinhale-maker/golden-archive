@@ -88,10 +88,10 @@ function RefundsPage() {
           <Section title="5. How to Request a Refund">
             Email{" "}
             <a
-              href="mailto:support@supportaurumvault.tech"
+              href="mailto:support@aurumvault.tech"
               className="text-navy hover:text-gold-ink hover:underline"
             >
-              support@supportaurumvault.tech
+              support@aurumvault.tech
             </a>{" "}
             from the address on your order with your order number and a short
             note about the reason. Most requests are reviewed within one
@@ -115,10 +115,10 @@ function RefundsPage() {
           <Section title="8. Contact">
             Questions about this policy? Email{" "}
             <a
-              href="mailto:support@supportaurumvault.tech"
+              href="mailto:support@aurumvault.tech"
               className="text-navy hover:text-gold-ink hover:underline"
             >
-              support@supportaurumvault.tech
+              support@aurumvault.tech
             </a>{" "}
             or visit the{" "}
             <Link to="/support" className="text-navy hover:text-gold-ink hover:underline">

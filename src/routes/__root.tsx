@@ -166,7 +166,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               contactPoint: {
                 "@type": "ContactPoint",
                 contactType: "customer support",
-                email: "support@supportaurumvault.tech",
+                email: "support@aurumvault.tech",
                 availableLanguage: ["English"],
               },
             },
