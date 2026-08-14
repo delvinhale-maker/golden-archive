@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { ExternalLink, Settings, ImageUp, Loader2, GripVertical } from "lucide-react";
 import { AffiliateImagePreview } from "./AffiliateImagePreview";
+import { rotateHalfDay } from "@/lib/affiliate-rotation";
 
 const BUCKET = "vault-finds";
 
@@ -163,6 +164,10 @@ export function VaultFindsGrid() {
 
   if (!items || items.length === 0) return null;
 
+  // Admins see the raw sort_order so drag-to-reorder persists the intended order;
+  // visitors see the same list rotated on a 12-hour cycle.
+  const display = isAdmin ? items : rotateHalfDay(items, 1);
+
   return (
     <section className="bg-white py-14 md:py-20" aria-labelledby="vault-finds-grid-title">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -187,7 +192,7 @@ export function VaultFindsGrid() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
-          {items.map((it) => (
+          {display.map((it) => (
             <article
               key={it.id}
               data-vf-id={it.id}

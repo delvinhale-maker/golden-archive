@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, ExternalLink, Settings, ImageUp, Loader2 } from "lucide-react";
 import { AffiliateImagePreview } from "./AffiliateImagePreview";
+import { rotateHalfDay } from "@/lib/affiliate-rotation";
 
 const BUCKET = "vault-finds";
 
@@ -28,24 +29,6 @@ const ACCENTS: Record<
   dusty: { bg: "#3E5C76", text: "#ffffff", btnBg: "#ffffff", btnText: "#0f1629", disclosure: "rgba(255,255,255,0.75)" },
   cream: { bg: "#F4F1E8", text: "#0f1629", btnBg: "#0f1629", btnText: "#ffffff", disclosure: "rgba(15,22,41,0.55)" },
 };
-
-function isoWeek(d = new Date()): number {
-  const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-  const day = t.getUTCDay() || 7;
-  t.setUTCDate(t.getUTCDate() + 4 - day);
-  const yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
-  return Math.ceil(((t.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-}
-
-function rotate<T>(pool: T[], week: number, count: number): T[] {
-  if (pool.length === 0) return [];
-  const start = week % pool.length;
-  const out: T[] = [];
-  for (let i = 0; i < count; i++) {
-    out.push(pool[(start + i) % pool.length]);
-  }
-  return out;
-}
 
 export function VaultFindsRow() {
   const { isAdmin } = useAuth();
@@ -129,7 +112,7 @@ export function VaultFindsRow() {
       .then(({ data }) => {
         if (!active) return;
         const pool = (data ?? []) as VaultFind[];
-        setItems(rotate(pool, isoWeek(), Math.min(6, Math.max(pool.length, 1))));
+        setItems(rotateHalfDay(pool, 0, Math.min(6, Math.max(pool.length, 1))));
       });
     return () => {
       active = false;
