@@ -23,6 +23,7 @@ import { Route as CartRouteImport } from './routes/cart'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CreatorAgreementRouteImport } from './routes/creator-agreement'
 import { Route as CreatorDashboardRouteImport } from './routes/creator-dashboard'
+import { Route as CreatorEarningsRouteImport } from './routes/creator-earnings'
 import { Route as CreatorTermsRouteImport } from './routes/creator-terms'
 import { Route as CreatorsRouteImport } from './routes/creators'
 import { Route as GiftCardsRouteImport } from './routes/gift-cards'
@@ -174,6 +175,11 @@ const CreatorAgreementRoute = CreatorAgreementRouteImport.update({
 const CreatorDashboardRoute = CreatorDashboardRouteImport.update({
   id: '/creator-dashboard',
   path: '/creator-dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorEarningsRoute = CreatorEarningsRouteImport.update({
+  id: '/creator-earnings',
+  path: '/creator-earnings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreatorTermsRoute = CreatorTermsRouteImport.update({
@@ -651,6 +657,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
+  '/creator-earnings': typeof CreatorEarningsRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
   '/gift-cards': typeof GiftCardsRoute
@@ -748,6 +755,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
+  '/creator-earnings': typeof CreatorEarningsRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
   '/gift-cards': typeof GiftCardsRoute
@@ -847,6 +855,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/creator-agreement': typeof CreatorAgreementRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
+  '/creator-earnings': typeof CreatorEarningsRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
   '/gift-cards': typeof GiftCardsRoute
@@ -947,6 +956,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/creator-agreement'
     | '/creator-dashboard'
+    | '/creator-earnings'
     | '/creator-terms'
     | '/creators'
     | '/gift-cards'
@@ -1044,6 +1054,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/creator-agreement'
     | '/creator-dashboard'
+    | '/creator-earnings'
     | '/creator-terms'
     | '/creators'
     | '/gift-cards'
@@ -1142,6 +1153,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/creator-agreement'
     | '/creator-dashboard'
+    | '/creator-earnings'
     | '/creator-terms'
     | '/creators'
     | '/gift-cards'
@@ -1242,6 +1254,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   CreatorAgreementRoute: typeof CreatorAgreementRoute
   CreatorDashboardRoute: typeof CreatorDashboardRoute
+  CreatorEarningsRoute: typeof CreatorEarningsRoute
   CreatorTermsRoute: typeof CreatorTermsRoute
   CreatorsRoute: typeof CreatorsRoute
   GiftCardsRoute: typeof GiftCardsRoute
@@ -1384,6 +1397,13 @@ declare module '@tanstack/react-router' {
       path: '/creator-dashboard'
       fullPath: '/creator-dashboard'
       preLoaderRoute: typeof CreatorDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator-earnings': {
+      id: '/creator-earnings'
+      path: '/creator-earnings'
+      fullPath: '/creator-earnings'
+      preLoaderRoute: typeof CreatorEarningsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/creator-terms': {
@@ -2120,6 +2140,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   CreatorAgreementRoute: CreatorAgreementRoute,
   CreatorDashboardRoute: CreatorDashboardRoute,
+  CreatorEarningsRoute: CreatorEarningsRoute,
   CreatorTermsRoute: CreatorTermsRoute,
   CreatorsRoute: CreatorsRoute,
   GiftCardsRoute: GiftCardsRoute,
