@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { ExternalLink, ImageUp, Loader2 } from "lucide-react";
 import { AffiliateImagePreview } from "./AffiliateImagePreview";
+import { rotateHalfDay } from "@/lib/affiliate-rotation";
 
 const BUCKET = "vault-finds";
 
@@ -119,7 +120,7 @@ export function VaultFindsCategorySections() {
 
   if (!items || items.length === 0) return null;
 
-  const groups = chunk(items, 4).slice(0, CATEGORIES.length);
+  const groups = chunk(rotateHalfDay(items, 2), 4).slice(0, CATEGORIES.length);
   if (groups.length === 0) return null;
 
   return (
