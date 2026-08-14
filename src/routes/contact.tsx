@@ -42,7 +42,7 @@ const CHANNELS = [
     icon: Mail,
     title: "Press & partnerships",
     body: "Media, collaborations, brand deals.",
-    email: "hello@aurumvault.store",
+    email: "support@supportaurumvault.tech",
   },
 ];
 
