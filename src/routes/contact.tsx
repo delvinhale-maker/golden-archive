@@ -25,24 +25,23 @@ export const Route = createFileRoute("/contact")({
   component: ContactPage,
 });
 
+const CONTACT_EMAIL = "support@supportaurumvault.tech";
+
 const CHANNELS = [
   {
     icon: LifeBuoy,
     title: "Customer support",
     body: "Order issues, downloads, refunds.",
-    email: "support@supportaurumvault.tech",
   },
   {
     icon: Store,
     title: "Creator inquiries",
     body: "Apply to sell, royalties, payouts.",
-    email: "creators@supportaurumvault.tech",
   },
   {
     icon: Mail,
     title: "Press & partnerships",
     body: "Media, collaborations, brand deals.",
-    email: "support@supportaurumvault.tech",
   },
 ];
 
