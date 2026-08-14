@@ -210,10 +210,10 @@ function ContactPage() {
         </form>
 
         <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {CHANNELS.map(({ icon: Icon, title, body, email }) => (
+          {CHANNELS.map(({ icon: Icon, title, body }) => (
             <a
-              key={email}
-              href={`mailto:${email}`}
+              key={title}
+              href={`mailto:${CONTACT_EMAIL}`}
               className="group rounded-2xl border border-ink/10 bg-white p-5 transition hover:border-gold/40 hover:shadow-sm"
             >
               <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-navy text-gold">
@@ -222,7 +222,7 @@ function ContactPage() {
               <div className="mt-3 font-display text-lg text-navy">{title}</div>
               <p className="mt-1 text-sm text-mute">{body}</p>
               <div className="mt-3 text-sm font-medium text-navy group-hover:text-gold-ink">
-                {email}
+                {CONTACT_EMAIL}
               </div>
             </a>
           ))}
