@@ -1,0 +1,1 @@
+delete from public.creator_leads where email = 'delvin.hale+creatortest1@gmail.com';
