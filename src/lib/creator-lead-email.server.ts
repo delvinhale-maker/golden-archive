@@ -175,6 +175,95 @@ export async function sendCreatorStarterKitEmail(
   }
 }
 
+const CONFIRM_TEMPLATE_NAME = "creator-signup-confirmation";
+
+export type SignupConfirmationSendResult =
+  | { sent: true }
+  | { sent: false; reason: "opted_out" | "config" | "template" | "enqueue_failed" | "error" };
+
+/**
+ * Renders and queues a dedicated signup confirmation email.
+ * Best-effort: never throws — lead capture must succeed even if email fails.
+ * Skips any address that has unsubscribed or been suppressed.
+ */
+export async function sendCreatorSignupConfirmation(
+  email: string,
+  productType: string,
+): Promise<SignupConfirmationSendResult> {
+  try {
+    const supabaseUrl = process.env.SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !serviceKey) {
+      console.error("Signup confirmation email skipped: missing server configuration");
+      return { sent: false, reason: "config" };
+    }
+    const tpl = TEMPLATES[CONFIRM_TEMPLATE_NAME];
+    if (!tpl) {
+      console.error("Signup confirmation email skipped: template missing");
+      return { sent: false, reason: "template" };
+    }
+
+    const supabase = createClient(supabaseUrl, serviceKey);
+
+    if (await isOptedOut(supabase, email)) {
+      console.warn("Signup confirmation email skipped: recipient opted out", { email: redact(email) });
+      return { sent: false, reason: "opted_out" };
+    }
+
+    const props = { siteUrl: SITE_URL, productType, email: redact(email) };
+    const element = React.createElement(tpl.component, props);
+    const html = await render(element);
+    const text = await render(element, { plainText: true });
+    const subject = typeof tpl.subject === "function" ? tpl.subject(props) : tpl.subject;
+    const messageId = crypto.randomUUID();
+    const nowIso = new Date().toISOString();
+
+    await supabase.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: CONFIRM_TEMPLATE_NAME,
+      recipient_email: email,
+      status: "pending",
+    });
+
+    const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, email);
+
+    const { error } = await supabase.rpc("enqueue_email", {
+      queue_name: "transactional_emails",
+      payload: {
+        message_id: messageId,
+        to: email,
+        from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+        sender_domain: SENDER_DOMAIN,
+        subject,
+        html,
+        text,
+        purpose: "transactional",
+        label: CONFIRM_TEMPLATE_NAME,
+        idempotency_key: `creator-signup-confirmation-${email}-${productType}`,
+        queued_at: nowIso,
+        ...(unsubscribeToken ? { unsubscribe_token: unsubscribeToken } : {}),
+      },
+    });
+
+    if (error) {
+      console.error("Signup confirmation email enqueue failed", { error, email: redact(email) });
+      await supabase.from("email_send_log").insert({
+        message_id: messageId,
+        template_name: CONFIRM_TEMPLATE_NAME,
+        recipient_email: email,
+        status: "failed",
+        error_message: "enqueue failed",
+      });
+      return { sent: false, reason: "enqueue_failed" };
+    }
+
+    return { sent: true };
+  } catch (e) {
+    console.error("Signup confirmation email failed", e);
+    return { sent: false, reason: "error" };
+  }
+}
+
 /** Where new-creator-signup notifications go. */
 const ADMIN_ALERT_EMAIL = "delvin.hale@gmail.com";
 const ADMIN_TEMPLATE_NAME = "creator-lead-admin-alert";
