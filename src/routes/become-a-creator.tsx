@@ -55,7 +55,6 @@ function BecomeACreatorPage() {
   return (
     <MarketShell>
       <Hero />
-      <SocialProof />
       <ValueProps />
       <HowItWorks />
       <WhatToSell />
