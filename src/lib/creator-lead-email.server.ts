@@ -232,7 +232,7 @@ export async function sendCreatorLeadAdminAlert(lead: {
         text,
         purpose: "transactional",
         label: ADMIN_TEMPLATE_NAME,
-        idempotency_key: `creator-lead-alert-${lead.email}-${lead.productType}`,
+        idempotency_key: `creator-lead-alert-${messageId}`,
         queued_at: nowIso,
         ...(unsubscribeToken ? { unsubscribe_token: unsubscribeToken } : {}),
       },
