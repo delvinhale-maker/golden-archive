@@ -14,12 +14,6 @@ import {
 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 
-// TODO: replace with real numbers once available.
-const SOCIAL_PROOF = {
-  creators: "120+",
-  productsSold: "2,400+",
-  countries: "38",
-};
 
 const NAVY = "#1B2A4A";
 const NAVY_DEEP = "#11192E";
