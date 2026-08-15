@@ -16,21 +16,13 @@ export function FeaturedCreatorsRow() {
   return (
     <section className="bg-bg-page py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <div>
-            <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
-              FEATURED CREATORS
-            </div>
-            <h2 className="mt-1 font-display text-2xl font-bold text-white md:text-3xl">
-              Creators shipping premium resources
-            </h2>
+        <div className="mb-6">
+          <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
+            FEATURED CREATORS
           </div>
-          <Link
-            to="/creators"
-            className="hidden shrink-0 text-sm font-bold text-gold-ink hover:underline md:inline"
-          >
-            Browse all creators →
-          </Link>
+          <h2 className="mt-1 font-display text-2xl font-bold text-white md:text-3xl">
+            Creators shipping premium resources
+          </h2>
         </div>
         <div className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 lg:-mx-8 lg:px-8">
           {list.map((c) => (
