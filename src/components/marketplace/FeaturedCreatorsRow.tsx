@@ -71,11 +71,6 @@ export function FeaturedCreatorsRow() {
             </Link>
           ))}
         </div>
-        <div className="mt-4 text-center md:hidden">
-          <Link to="/creators" className="text-sm font-bold text-gold-ink hover:underline">
-            Browse all creators →
-          </Link>
-        </div>
       </div>
     </section>
   );
