@@ -57,6 +57,7 @@ function BecomeACreatorPage() {
       <Hero />
       <ValueProps />
       <StartCreatingCTA />
+      <PreSetupFAQ />
       <HowItWorks />
       <WhatToSell />
       <CreatorTools />
