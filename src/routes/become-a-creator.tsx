@@ -231,6 +231,42 @@ function StartCreatingCTA() {
   );
 }
 
+function PreSetupFAQ() {
+  const items = [
+    { q: "Do I need a large audience to apply?", a: "No. We review your product quality and brand fit, not your follower count." },
+    { q: "What digital products can I sell?", a: "eBooks, AI prompt packs, journals, and planners — any digital product that fits our curated standard." },
+    { q: "How much does AurumVault keep per sale?", a: "You keep 85% of every sale. AurumVault takes a 15% platform fee — no monthly or listing fees." },
+    { q: "How long until my first product is live?", a: "Applications are reviewed within 48 hours. Once approved, you can publish in minutes." },
+    { q: "Do I keep ownership of my work?", a: "Yes. You retain full rights to your content. AurumVault is a distribution license, not an assignment." },
+  ];
+  return (
+    <section className="bg-white py-14 md:py-20">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
+        <div className="text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold-ink">Before You Start</p>
+          <h2
+            className="mt-2 text-3xl md:text-5xl text-navy"
+            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+          >
+            Quick answers.
+          </h2>
+        </div>
+        <div className="mt-10 divide-y divide-ink/10 border-y border-ink/10">
+          {items.map((it) => (
+            <details key={it.q} className="group py-5">
+              <summary className="flex cursor-pointer items-center justify-between gap-4 font-semibold text-navy">
+                {it.q}
+                <span className="text-gold-ink transition-transform group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 text-sm leading-relaxed text-ink/70">{it.a}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function HowItWorks() {
   const steps = [
     { n: "01", title: "Apply in 2 minutes", body: "Tell us about your brand, what you sell, and where to reach you. Four short steps." },
