@@ -56,6 +56,7 @@ function BecomeACreatorPage() {
     <MarketShell>
       <Hero />
       <ValueProps />
+      <StartCreatingCTA />
       <HowItWorks />
       <WhatToSell />
       <CreatorTools />
