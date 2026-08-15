@@ -1,0 +1,1 @@
+delete from public.creator_leads where email like 'signup-verify%@aurumvault.tech' or email like '%@example.com';
