@@ -174,3 +174,78 @@ export async function sendCreatorStarterKitEmail(
     return { sent: false, reason: "error" };
   }
 }
+
+/** Where new-creator-signup notifications go. */
+const ADMIN_ALERT_EMAIL = "support@aurumvault.tech";
+const ADMIN_TEMPLATE_NAME = "creator-lead-admin-alert";
+
+/**
+ * Notifies the AurumVault team that a new creator signed up.
+ * Best-effort: never throws — lead capture must succeed even if this fails.
+ */
+export async function sendCreatorLeadAdminAlert(lead: {
+  email: string;
+  productType: string;
+  followerCount?: number;
+  ctaSource?: string;
+}): Promise<void> {
+  try {
+    const supabaseUrl = process.env.SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !serviceKey) return;
+    const tpl = TEMPLATES[ADMIN_TEMPLATE_NAME];
+    if (!tpl) return;
+
+    const supabase = createClient(supabaseUrl, serviceKey);
+    const nowIso = new Date().toISOString();
+    const props = {
+      leadEmail: lead.email,
+      productType: lead.productType,
+      followerCount: lead.followerCount,
+      ctaSource: lead.ctaSource,
+      signedUpAt: nowIso,
+    };
+    const element = React.createElement(tpl.component, props);
+    const html = await render(element);
+    const text = await render(element, { plainText: true });
+    const subject = typeof tpl.subject === "function" ? tpl.subject(props) : tpl.subject;
+    const messageId = crypto.randomUUID();
+
+    await supabase.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: ADMIN_TEMPLATE_NAME,
+      recipient_email: ADMIN_ALERT_EMAIL,
+      status: "pending",
+    });
+
+    const { error } = await supabase.rpc("enqueue_email", {
+      queue_name: "transactional_emails",
+      payload: {
+        message_id: messageId,
+        to: ADMIN_ALERT_EMAIL,
+        from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+        sender_domain: SENDER_DOMAIN,
+        subject,
+        html,
+        text,
+        purpose: "transactional",
+        label: ADMIN_TEMPLATE_NAME,
+        idempotency_key: `creator-lead-alert-${lead.email}-${lead.productType}`,
+        queued_at: nowIso,
+      },
+    });
+
+    if (error) {
+      console.error("Creator lead admin alert enqueue failed", { error });
+      await supabase.from("email_send_log").insert({
+        message_id: messageId,
+        template_name: ADMIN_TEMPLATE_NAME,
+        recipient_email: ADMIN_ALERT_EMAIL,
+        status: "failed",
+        error_message: "enqueue failed",
+      });
+    }
+  } catch (e) {
+    console.error("Creator lead admin alert failed", e);
+  }
+}
