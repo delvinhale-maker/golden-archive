@@ -218,6 +218,8 @@ export async function sendCreatorLeadAdminAlert(lead: {
       status: "pending",
     });
 
+    const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, ADMIN_ALERT_EMAIL);
+
     const { error } = await supabase.rpc("enqueue_email", {
       queue_name: "transactional_emails",
       payload: {
@@ -232,6 +234,7 @@ export async function sendCreatorLeadAdminAlert(lead: {
         label: ADMIN_TEMPLATE_NAME,
         idempotency_key: `creator-lead-alert-${lead.email}-${lead.productType}`,
         queued_at: nowIso,
+        ...(unsubscribeToken ? { unsubscribe_token: unsubscribeToken } : {}),
       },
     });
 
