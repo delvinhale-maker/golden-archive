@@ -95,10 +95,13 @@ export const submitCreatorLead = createServerFn({ method: "POST" })
     }
 
     // Confirmation + team notification are best-effort; delivery problems must not fail the signup.
-    const { sendCreatorStarterKitEmail, sendCreatorLeadAdminAlert } = await import(
-      "@/lib/creator-lead-email.server"
-    );
+    const {
+      sendCreatorStarterKitEmail,
+      sendCreatorSignupConfirmation,
+      sendCreatorLeadAdminAlert,
+    } = await import("@/lib/creator-lead-email.server");
     await sendCreatorStarterKitEmail(data.email.toLowerCase(), data.productType);
+    await sendCreatorSignupConfirmation(data.email.toLowerCase(), data.productType);
     await sendCreatorLeadAdminAlert({
       email: data.email.toLowerCase(),
       productType: data.productType,
