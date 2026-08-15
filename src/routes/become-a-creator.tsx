@@ -14,12 +14,6 @@ import {
 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 
-// TODO: replace with real numbers once available.
-const SOCIAL_PROOF = {
-  creators: "120+",
-  productsSold: "2,400+",
-  countries: "38",
-};
 
 const NAVY = "#1B2A4A";
 const NAVY_DEEP = "#11192E";
@@ -61,7 +55,6 @@ function BecomeACreatorPage() {
   return (
     <MarketShell>
       <Hero />
-      <SocialProof />
       <ValueProps />
       <HowItWorks />
       <WhatToSell />
@@ -137,32 +130,6 @@ function Hero() {
   );
 }
 
-function SocialProof() {
-  const items = [
-    { value: SOCIAL_PROOF.creators, label: "Creators earning on AurumVault" },
-    { value: SOCIAL_PROOF.productsSold, label: "Products sold" },
-    { value: SOCIAL_PROOF.countries, label: "Countries reached" },
-  ];
-  return (
-    <section className="bg-white border-b border-ink/10">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 grid grid-cols-3 gap-4">
-        {items.map((it) => (
-          <div key={it.label} className="text-center">
-            <div
-              className="font-display text-2xl md:text-4xl"
-              style={{ color: NAVY, fontFamily: "'Cormorant Garamond', Georgia, serif" }}
-            >
-              {it.value}
-            </div>
-            <div className="mt-1 text-[10px] md:text-xs uppercase tracking-[0.18em] text-mute">
-              {it.label}
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
 
 function ValueProps() {
   const items = [
