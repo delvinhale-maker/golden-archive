@@ -11,6 +11,7 @@ import { template as subscriberConfirmation } from './subscriber-confirmation'
 import { template as contactMessageReceived } from './contact-message-received'
 import { template as errorAlert } from './error-alert'
 import { template as creatorStarterKit } from './creator-starter-kit'
+import { template as creatorSignupConfirmation } from './creator-signup-confirmation'
 import { template as creatorLeadAdminAlert } from './creator-lead-admin-alert'
 
 export interface TemplateEntry {
@@ -35,5 +36,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'contact-message-received': contactMessageReceived,
   'error-alert': errorAlert,
   'creator-starter-kit': creatorStarterKit,
+  'creator-signup-confirmation': creatorSignupConfirmation,
   'creator-lead-admin-alert': creatorLeadAdminAlert,
 }
