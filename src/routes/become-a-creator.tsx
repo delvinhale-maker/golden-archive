@@ -189,6 +189,47 @@ function ValueProps() {
   );
 }
 
+function StartCreatingCTA() {
+  return (
+    <section className="relative overflow-hidden bg-gold py-14 md:py-20">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-20 top-1/2 h-[400px] w-[400px] -translate-y-1/2 rounded-full bg-white/10 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-20 top-1/2 h-[400px] w-[400px] -translate-y-1/2 rounded-full bg-white/10 blur-3xl"
+      />
+      <div className="relative mx-auto max-w-4xl px-4 sm:px-6 text-center">
+        <h2
+          className="text-3xl md:text-5xl text-navy"
+          style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+        >
+          Start building your vault today.
+        </h2>
+        <p className="mx-auto mt-4 max-w-2xl text-base md:text-lg text-navy/80">
+          Apply in minutes, get reviewed in 48 hours, and publish your first digital product this week.
+        </p>
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link
+            to="/sell"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-navy px-8 py-4 text-sm font-bold text-gold transition-all hover:shadow-[0_18px_40px_-12px_rgba(27,42,74,0.5)] active:scale-[0.98]"
+          >
+            Start My Creator Setup
+            <ArrowRight size={16} />
+          </Link>
+          <a
+            href="#how-it-works"
+            className="inline-flex items-center justify-center rounded-full border-2 border-navy/40 px-8 py-4 text-sm font-bold text-navy hover:bg-navy hover:text-gold transition-colors"
+          >
+            See How It Works
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function HowItWorks() {
   const steps = [
     { n: "01", title: "Apply in 2 minutes", body: "Tell us about your brand, what you sell, and where to reach you. Four short steps." },
