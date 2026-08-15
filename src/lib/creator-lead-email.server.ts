@@ -176,7 +176,7 @@ export async function sendCreatorStarterKitEmail(
 }
 
 /** Where new-creator-signup notifications go. */
-const ADMIN_ALERT_EMAIL = "support@aurumvault.tech";
+const ADMIN_ALERT_EMAIL = "delvin.hale@gmail.com";
 const ADMIN_TEMPLATE_NAME = "creator-lead-admin-alert";
 
 /**
