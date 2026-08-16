@@ -425,7 +425,10 @@ function LeadAnalyticsPage() {
           keyCol="follower band"
           rows={data?.pageByFollowerBand ?? []}
         />
+
+        <ResendLeadEmails />
       </main>
+
     </div>
   );
 }
