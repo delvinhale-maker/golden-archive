@@ -1,15 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useTransition } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, BarChart3, RefreshCw, Loader2 } from "lucide-react";
+import { ArrowLeft, BarChart3, RefreshCw, Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { getLeadAnalytics } from "@/lib/lead-analytics.functions";
+import {
+  listCreatorLeads,
+  adminResendCreatorLeadEmails,
+  type AdminCreatorLead,
+} from "@/lib/admin-creator-leads.functions";
 import type {
   BreakdownRow,
   ConversionRow,
   LeadAnalytics,
   SegmentRow,
 } from "@/lib/lead-analytics";
+
 
 export const Route = createFileRoute("/_authenticated/admin/lead-analytics")({
   component: LeadAnalyticsPage,
@@ -191,7 +197,121 @@ function FunnelBar({ totals }: { totals: LeadAnalytics["totals"] }) {
   );
 }
 
+function ResendLeadEmails() {
+  const fetchLeads = useServerFn(listCreatorLeads);
+  const resend = useServerFn(adminResendCreatorLeadEmails);
+  const [leads, setLeads] = useState<AdminCreatorLead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyEmail, setBusyEmail] = useState<string | null>(null);
+  const [manualEmail, setManualEmail] = useState("");
+
+  const load = () => {
+    setLoading(true);
+    fetchLeads({ data: { limit: 25 } })
+      .then(setLeads)
+      .catch(() => toast.error("Failed to load creator leads"))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  async function doResend(email: string, productType?: string) {
+    setBusyEmail(email);
+    try {
+      const r = await resend({ data: { email, productType } });
+      const failed = [
+        !r.confirmation.sent ? `confirmation (${r.confirmation.reason})` : null,
+        !r.starterKit.sent ? `starter kit (${r.starterKit.reason})` : null,
+      ].filter(Boolean);
+      if (failed.length === 0) toast.success(`Both emails re-sent to ${email}`);
+      else if (failed.length === 2) toast.error(`Couldn't send: ${failed.join(", ")}`);
+      else toast.warning(`Partially sent — failed: ${failed.join(", ")}`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Resend failed");
+    } finally {
+      setBusyEmail(null);
+    }
+  }
+
+  return (
+    <section className="rounded-xl border border-black/10 bg-white p-4">
+      <div className="flex items-center gap-2">
+        <Mail size={16} className="text-navy" />
+        <h2 className="text-sm font-bold text-navy">Resend creator signup emails</h2>
+        <button
+          type="button"
+          onClick={load}
+          disabled={loading}
+          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-black/15 px-3 py-1 text-xs font-medium text-navy hover:bg-black/5 disabled:opacity-60"
+        >
+          {loading ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />} Reload
+        </button>
+      </div>
+      <p className="mt-1 text-xs text-black/50">
+        Sends the signup confirmation and Seller Starter Kit emails again. Unsubscribed or suppressed
+        addresses are skipped.
+      </p>
+
+      <form
+        className="mt-3 flex flex-col gap-2 sm:flex-row"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const email = manualEmail.trim().toLowerCase();
+          if (email) void doResend(email);
+        }}
+      >
+        <input
+          type="email"
+          value={manualEmail}
+          onChange={(e) => setManualEmail(e.target.value)}
+          placeholder="lead@example.com"
+          className="min-h-[40px] flex-1 rounded-lg border border-black/15 px-3 text-sm text-navy outline-none focus:border-navy"
+        />
+        <button
+          type="submit"
+          disabled={busyEmail !== null || manualEmail.trim().length === 0}
+          className="min-h-[40px] rounded-lg bg-navy px-4 text-sm font-semibold text-white disabled:opacity-60"
+        >
+          {busyEmail === manualEmail.trim().toLowerCase() ? "Sending…" : "Resend by email"}
+        </button>
+      </form>
+
+      <ul className="mt-4 divide-y divide-black/10">
+        {leads.length === 0 && !loading ? (
+          <li className="py-3 text-sm text-black/50">No creator leads yet.</li>
+        ) : null}
+        {leads.map((l) => (
+          <li key={`${l.email}-${l.createdAt}`} className="flex flex-wrap items-center gap-2 py-2.5">
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-medium text-navy">{l.email}</div>
+              <div className="text-xs text-black/50">
+                {l.productType} · {l.followerCount.toLocaleString("en-US")} followers ·{" "}
+                {new Date(l.createdAt).toLocaleDateString("en-US")}
+                {l.ctaSource ? ` · ${l.ctaSource}` : ""}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => void doResend(l.email, l.productType)}
+              disabled={busyEmail !== null}
+              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-black/15 px-3 text-xs font-semibold text-navy hover:bg-black/5 disabled:opacity-60"
+            >
+              {busyEmail === l.email ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                <Mail size={12} />
+              )}
+              Resend both
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function LeadAnalyticsPage() {
+
   const fetchAnalytics = useServerFn(getLeadAnalytics);
   const [days, setDays] = useState<number>(30);
   const [data, setData] = useState<LeadAnalytics | null>(null);
@@ -305,7 +425,10 @@ function LeadAnalyticsPage() {
           keyCol="follower band"
           rows={data?.pageByFollowerBand ?? []}
         />
+
+        <ResendLeadEmails />
       </main>
+
     </div>
   );
 }
