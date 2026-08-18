@@ -718,9 +718,9 @@ export const getKingdomPicksRowFn = createServerFn({ method: "GET" }).handler(
         .eq("active", true)
         .order("featured", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(8);
+        .limit(60);
       if (error || !data) return [];
-      return data.map((r) => ({
+      const pool = data.map((r) => ({
         id: r.id as string,
         title: r.title as string,
         price: r.price != null ? Number(r.price) : null,
@@ -729,9 +729,12 @@ export const getKingdomPicksRowFn = createServerFn({ method: "GET" }).handler(
         imageUrl: (r.image_url as string | null) ?? null,
         badge: (r.badge as string | null) ?? null,
       }));
+      // Rotate the visible 8 every 12 hours so the whole pool cycles through.
+      return rotateHalfDay(pool, 3, 8);
     } catch {
       return [];
     }
   },
 );
+
 
