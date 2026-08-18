@@ -4,6 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { slugToLabel, labelToSlug, getCategoryDef } from "@/lib/categories";
 import { MARKETPLACE_PAGE_SIZE, FEATURED_PRODUCTS_LIMIT } from "@/lib/marketplace-config";
+import { rotateHalfDay } from "@/lib/affiliate-rotation";
+
 
 const API_BASE = "https://web-builder-pro-delvinhale.replit.app/api";
 
