@@ -21,6 +21,7 @@ import { Route as BecomeACreatorRouteImport } from './routes/become-a-creator'
 import { Route as CaptionTemplatesRouteImport } from './routes/caption-templates'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ContentCreatorTemplatesRouteImport } from './routes/content-creator-templates'
 import { Route as CreatorAgreementRouteImport } from './routes/creator-agreement'
 import { Route as CreatorDashboardRouteImport } from './routes/creator-dashboard'
 import { Route as CreatorEarningsRouteImport } from './routes/creator-earnings'
@@ -165,6 +166,11 @@ const CartRoute = CartRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContentCreatorTemplatesRoute = ContentCreatorTemplatesRouteImport.update({
+  id: '/content-creator-templates',
+  path: '/content-creator-templates',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreatorAgreementRoute = CreatorAgreementRouteImport.update({
@@ -655,6 +661,7 @@ export interface FileRoutesByFullPath {
   '/caption-templates': typeof CaptionTemplatesRoute
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
+  '/content-creator-templates': typeof ContentCreatorTemplatesRoute
   '/creator-agreement': typeof CreatorAgreementRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
@@ -753,6 +760,7 @@ export interface FileRoutesByTo {
   '/caption-templates': typeof CaptionTemplatesRoute
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
+  '/content-creator-templates': typeof ContentCreatorTemplatesRoute
   '/creator-agreement': typeof CreatorAgreementRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
@@ -853,6 +861,7 @@ export interface FileRoutesById {
   '/caption-templates': typeof CaptionTemplatesRoute
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
+  '/content-creator-templates': typeof ContentCreatorTemplatesRoute
   '/creator-agreement': typeof CreatorAgreementRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
@@ -954,6 +963,7 @@ export interface FileRouteTypes {
     | '/caption-templates'
     | '/cart'
     | '/contact'
+    | '/content-creator-templates'
     | '/creator-agreement'
     | '/creator-dashboard'
     | '/creator-earnings'
@@ -1052,6 +1062,7 @@ export interface FileRouteTypes {
     | '/caption-templates'
     | '/cart'
     | '/contact'
+    | '/content-creator-templates'
     | '/creator-agreement'
     | '/creator-dashboard'
     | '/creator-earnings'
@@ -1151,6 +1162,7 @@ export interface FileRouteTypes {
     | '/caption-templates'
     | '/cart'
     | '/contact'
+    | '/content-creator-templates'
     | '/creator-agreement'
     | '/creator-dashboard'
     | '/creator-earnings'
@@ -1252,6 +1264,7 @@ export interface RootRouteChildren {
   CaptionTemplatesRoute: typeof CaptionTemplatesRoute
   CartRoute: typeof CartRoute
   ContactRoute: typeof ContactRoute
+  ContentCreatorTemplatesRoute: typeof ContentCreatorTemplatesRoute
   CreatorAgreementRoute: typeof CreatorAgreementRoute
   CreatorDashboardRoute: typeof CreatorDashboardRoute
   CreatorEarningsRoute: typeof CreatorEarningsRoute
@@ -1383,6 +1396,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/content-creator-templates': {
+      id: '/content-creator-templates'
+      path: '/content-creator-templates'
+      fullPath: '/content-creator-templates'
+      preLoaderRoute: typeof ContentCreatorTemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/creator-agreement': {
@@ -2138,6 +2158,7 @@ const rootRouteChildren: RootRouteChildren = {
   CaptionTemplatesRoute: CaptionTemplatesRoute,
   CartRoute: CartRoute,
   ContactRoute: ContactRoute,
+  ContentCreatorTemplatesRoute: ContentCreatorTemplatesRoute,
   CreatorAgreementRoute: CreatorAgreementRoute,
   CreatorDashboardRoute: CreatorDashboardRoute,
   CreatorEarningsRoute: CreatorEarningsRoute,
