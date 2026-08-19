@@ -1,0 +1,1 @@
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'film_tv_creator_production';

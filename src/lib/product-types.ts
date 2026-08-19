@@ -19,6 +19,8 @@ export type ProductTypeKey =
   | "business_operating_system"
   | "business_template"
   | "caption_template"
+  | "creator_production_system"
+
   | "audio"
   | "other";
 
@@ -41,7 +43,9 @@ export type ProductCategoryEnum =
   | "bible_studies"
   | "digital_toolkits"
   | "business_operating_systems"
-  | "caption_templates";
+  | "caption_templates"
+  | "film_tv_creator_production";
+
 
 export interface ProductTypeConfig {
   key: ProductTypeKey;
@@ -307,7 +311,33 @@ export const PRODUCT_TYPES: Record<ProductTypeKey, ProductTypeConfig> = {
     accent: "#8A6A1F",
     isEbook: false,
   },
+  creator_production_system: {
+    key: "creator_production_system",
+    label: "Creator Production System",
+    emoji: "🎬",
+    tagline: "Multi-workflow production system for film, TV & creator businesses",
+    category: "film_tv_creator_production",
+    categoryLabel: "Creator Production System",
+    fileExts: ["pdf", "docx", "xlsx", "zip"],
+    fileMimes: [
+      "application/pdf",
+      OFFICE_DOCX,
+      OFFICE_XLSX,
+      "application/zip",
+    ],
+    acceptString:
+      ".pdf,.docx,.xlsx,.zip,application/pdf," +
+      OFFICE_DOCX +
+      "," +
+      OFFICE_XLSX +
+      ",application/zip",
+    acceptedHint: ".PDF, .DOCX, .XLSX, .ZIP",
+    suggestedPriceCents: 6900,
+    accent: "#C9A227",
+    isEbook: false,
+  },
   audio: {
+
     key: "audio",
     label: "Audio",
     emoji: "🎵",
@@ -354,6 +384,8 @@ export const PRODUCT_TYPE_ORDER: ProductTypeKey[] = [
   "business_operating_system",
   "business_template",
   "caption_template",
+  "creator_production_system",
+
   "audio",
   "other",
 ];
