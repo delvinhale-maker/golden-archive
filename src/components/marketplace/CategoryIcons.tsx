@@ -276,7 +276,32 @@ export const CATEGORY_ICONS: Record<
   audio: AudioIcon,
   templates: TemplatesIcon,
   caption_templates: CaptionTemplatesIcon,
+  film_tv_creator_production: FilmProductionIcon,
 };
+
+/** Restrained cinematic mark — a framed viewport with a gold aperture. */
+function FilmProductionIcon(props: IconProps) {
+  return (
+    <svg {...BASE_PROPS} {...props}>
+      <rect
+        x="6"
+        y="12"
+        width="36"
+        height="24"
+        rx="2"
+        fill={NAVY_FILL}
+        stroke={INK}
+        strokeWidth="1.2"
+      />
+      <path d="M12 17 H24" stroke={INK} strokeWidth="0.9" opacity="0.7" />
+      <path d="M12 22 H20" stroke={INK} strokeWidth="0.9" opacity="0.5" />
+      <circle cx="31" cy="24" r="6" fill="none" stroke={GOLD} strokeWidth="1.2" />
+      <circle cx="31" cy="24" r="2" fill={GOLD_SOFT} opacity="0.9" />
+      <path d="M6 39 H42" stroke={GOLD} strokeWidth="1.1" />
+    </svg>
+  );
+}
+
 
 function CaptionTemplatesIcon(props: IconProps) {
   return (

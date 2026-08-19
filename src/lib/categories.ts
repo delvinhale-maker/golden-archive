@@ -167,6 +167,25 @@ export const CATEGORIES: CategoryDef[] = [
     ],
   },
   {
+    slug: "film_tv_creator_production",
+    label: "Film, TV & Creator Production",
+    accent: "#C9A227",
+    ink: "#FFFFFF",
+    icon: "🎬",
+    blurb:
+      "Professional systems for creators building stories, productions, audiences, and entertainment businesses.",
+    gradient: grad("#07080D", "#101728", "#3A2F14"),
+    subs: [
+      "Vertical Series & Microdrama",
+      "Film & Tubi-Style Production",
+      "Reality TV",
+      "YouTube & Social Video",
+      "Music & Entertainment",
+      "Pitching & Distribution",
+      "AI Creator Tools",
+    ],
+  },
+  {
     slug: "templates",
     label: "Templates",
     accent: "#3A4A5C",
@@ -178,6 +197,8 @@ export const CATEGORIES: CategoryDef[] = [
     subs: ["Notion", "Figma", "Docs", "Slides", "Canva", "Email"],
   },
 ];
+
+
 
 // Secondary accent-color assignment (color-coded per-category flavor).
 // Uses tokens defined in src/styles.css: --accent-emerald | --accent-burgundy
@@ -203,7 +224,10 @@ export const CATEGORY_ACCENT: Record<string, string> = {
   digital_toolkits: "var(--accent-dusty)",
   // Caption Templates → restrained gold (brand voice)
   caption_templates: "var(--gold)",
+  // Film, TV & Creator Production → cinematic gold
+  film_tv_creator_production: "var(--gold)",
 };
+
 
 export function accentFor(slugOrLabel?: string | null): string {
   const def = getCategoryDef(slugOrLabel);
@@ -248,7 +272,11 @@ const LABEL_ALIAS: Record<string, string> = {
   Planners: "financial_planners",
   Captions: "caption_templates",
   "Caption Templates": "caption_templates",
+  "Film & TV": "film_tv_creator_production",
+  "Film, TV & Creator Production": "film_tv_creator_production",
+  "Creator Production": "film_tv_creator_production",
 };
+
 
 // Structured subcategories per parent category. When a category appears here,
 // the storefront filters products by exact subcategory match instead of by
@@ -272,6 +300,16 @@ export const SUBCATEGORIES: Record<string, string[]> = {
     "Health & Wellness Planners",
     "Life & Productivity Planners",
   ],
+  film_tv_creator_production: [
+    "Vertical Series & Microdrama",
+    "Film & Tubi-Style Production",
+    "Reality TV",
+    "YouTube & Social Video",
+    "Music & Entertainment",
+    "Pitching & Distribution",
+    "AI Creator Tools",
+  ],
+
 };
 
 export function hasStructuredSubs(slugOrLabel?: string | null): boolean {
@@ -318,6 +356,8 @@ export const NAV_CATEGORIES = [
   "Journals",
   "Planners",
   "Caption Templates",
+  "Film & TV",
+
 ] as const;
 
 // Same set without the "All" pseudo-category, for browse grids.

@@ -8,6 +8,11 @@ import { useOwnsProduct } from "@/hooks/use-owned-products";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { categoryDisplay } from "@/lib/product-types";
 import { accentFor } from "@/lib/categories";
+import {
+  CREATOR_SYSTEM_BADGE,
+  isCreatorProductionSystem,
+} from "@/lib/creator-production";
+
 import { optimizedCoverUrl, coverSrcSet } from "@/lib/image-url";
 
 import type { Product } from "@/lib/marketplace.functions";
@@ -88,6 +93,11 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
       </Link>
 
       <div className="flex flex-1 flex-col p-4">
+        {isCreatorProductionSystem(product.category) && (
+          <div className="mb-1 inline-block rounded-sm border border-gold/45 bg-gold/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-caps text-gold-ink">
+            {CREATOR_SYSTEM_BADGE}
+          </div>
+        )}
         {(() => {
           const d = categoryDisplay(product.category);
           return (
@@ -99,6 +109,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             </div>
           );
         })()}
+
         <Link
           to="/products/$id"
           params={{ id: product.id }}

@@ -53,6 +53,7 @@ import { Route as AcademyCategoryRouteImport } from './routes/academy.$category'
 import { Route as AccountSettingsRouteImport } from './routes/account.settings'
 import { Route as ApiAiStudioStreamRouteImport } from './routes/api/ai-studio-stream'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as CollectionsFilmTvCreatorProductionRouteImport } from './routes/collections.film-tv-creator-production'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
@@ -328,6 +329,12 @@ const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   path: '/checkout/return',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CollectionsFilmTvCreatorProductionRoute =
+  CollectionsFilmTvCreatorProductionRouteImport.update({
+    id: '/collections/film-tv-creator-production',
+    path: '/collections/film-tv-creator-production',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DownloadTokenRoute = DownloadTokenRouteImport.update({
   id: '/download/$token',
   path: '/download/$token',
@@ -692,6 +699,7 @@ export interface FileRoutesByFullPath {
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -790,6 +798,7 @@ export interface FileRoutesByTo {
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -892,6 +901,7 @@ export interface FileRoutesById {
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -994,6 +1004,7 @@ export interface FileRouteTypes {
     | '/account/settings'
     | '/api/ai-studio-stream'
     | '/checkout/return'
+    | '/collections/film-tv-creator-production'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1092,6 +1103,7 @@ export interface FileRouteTypes {
     | '/account/settings'
     | '/api/ai-studio-stream'
     | '/checkout/return'
+    | '/collections/film-tv-creator-production'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1193,6 +1205,7 @@ export interface FileRouteTypes {
     | '/account/settings'
     | '/api/ai-studio-stream'
     | '/checkout/return'
+    | '/collections/film-tv-creator-production'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1292,6 +1305,7 @@ export interface RootRouteChildren {
   ABrandSlugRoute: typeof ABrandSlugRoute
   ApiAiStudioStreamRoute: typeof ApiAiStudioStreamRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  CollectionsFilmTvCreatorProductionRoute: typeof CollectionsFilmTvCreatorProductionRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   StoreSlugRoute: typeof StoreSlugRoute
@@ -1620,6 +1634,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout/return'
       fullPath: '/checkout/return'
       preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/collections/film-tv-creator-production': {
+      id: '/collections/film-tv-creator-production'
+      path: '/collections/film-tv-creator-production'
+      fullPath: '/collections/film-tv-creator-production'
+      preLoaderRoute: typeof CollectionsFilmTvCreatorProductionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/download/$token': {
@@ -2186,6 +2207,8 @@ const rootRouteChildren: RootRouteChildren = {
   ABrandSlugRoute: ABrandSlugRoute,
   ApiAiStudioStreamRoute: ApiAiStudioStreamRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  CollectionsFilmTvCreatorProductionRoute:
+    CollectionsFilmTvCreatorProductionRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   StoreSlugRoute: StoreSlugRoute,
