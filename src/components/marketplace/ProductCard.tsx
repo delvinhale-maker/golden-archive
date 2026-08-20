@@ -12,6 +12,7 @@ import {
   CREATOR_SYSTEM_BADGE,
   isCreatorProductionSystem,
 } from "@/lib/creator-production";
+import { isBusinessSystem } from "@/lib/business-systems";
 
 import { optimizedCoverUrl, coverSrcSet } from "@/lib/image-url";
 
