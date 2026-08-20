@@ -13,6 +13,9 @@ import { template as errorAlert } from './error-alert'
 import { template as creatorStarterKit } from './creator-starter-kit'
 import { template as creatorSignupConfirmation } from './creator-signup-confirmation'
 import { template as creatorLeadAdminAlert } from './creator-lead-admin-alert'
+import { template as subscriberWelcome1 } from './subscriber-welcome-1'
+import { template as subscriberWelcome2 } from './subscriber-welcome-2'
+import { template as subscriberWelcome3 } from './subscriber-welcome-3'
 
 export interface TemplateEntry {
   component: ComponentType<any>
@@ -38,4 +41,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'creator-starter-kit': creatorStarterKit,
   'creator-signup-confirmation': creatorSignupConfirmation,
   'creator-lead-admin-alert': creatorLeadAdminAlert,
+  'subscriber-welcome-1': subscriberWelcome1,
+  'subscriber-welcome-2': subscriberWelcome2,
+  'subscriber-welcome-3': subscriberWelcome3,
 }

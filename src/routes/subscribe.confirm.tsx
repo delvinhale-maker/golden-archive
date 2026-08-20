@@ -32,6 +32,17 @@ function ConfirmPage() {
       const payload = data as { ok: boolean; already?: boolean; email?: string };
       if (payload.email) setEmail(payload.email);
       setStatus(payload.already ? "already" : "confirmed");
+
+      // Fire the first welcome email on a fresh confirmation only. Best-effort —
+      // the confirmation itself already succeeded, so a failure here shouldn't
+      // change what the user sees.
+      if (!payload.already && payload.email) {
+        fetch("/api/public/subscribers/welcome", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: payload.email }),
+        }).catch(() => {});
+      }
     })();
   }, [token]);
 

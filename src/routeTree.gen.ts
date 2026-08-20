@@ -103,12 +103,14 @@ import { Route as AuthenticatedDashboardVariantsIdRouteImport } from './routes/_
 import { Route as ApiPublicAcademyReceiveArticleRouteImport } from './routes/api/public/academy/receive-article'
 import { Route as ApiPublicCronReleasePreordersRouteImport } from './routes/api/public/cron/release-preorders'
 import { Route as ApiPublicCronRotatePayoutKeysRouteImport } from './routes/api/public/cron/rotate-payout-keys'
+import { Route as ApiPublicCronSubscriberSequenceRouteImport } from './routes/api/public/cron/subscriber-sequence'
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
 import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/public/hooks/audit-covers'
 import { Route as ApiPublicHooksAutoReleaseReviewsRouteImport } from './routes/api/public/hooks/auto-release-reviews'
 import { Route as ApiPublicHooksPayoutReleaseHeartbeatRouteImport } from './routes/api/public/hooks/payout-release-heartbeat'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicSubscribersSubscribeRouteImport } from './routes/api/public/subscribers/subscribe'
+import { Route as ApiPublicSubscribersWelcomeRouteImport } from './routes/api/public/subscribers/welcome'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -620,6 +622,12 @@ const ApiPublicCronRotatePayoutKeysRoute =
     path: '/api/public/cron/rotate-payout-keys',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronSubscriberSequenceRoute =
+  ApiPublicCronSubscriberSequenceRouteImport.update({
+    id: '/api/public/cron/subscriber-sequence',
+    path: '/api/public/cron/subscriber-sequence',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHealthCategoriesRoute =
   ApiPublicHealthCategoriesRouteImport.update({
     id: '/api/public/health/categories',
@@ -654,6 +662,12 @@ const ApiPublicSubscribersSubscribeRoute =
   ApiPublicSubscribersSubscribeRouteImport.update({
     id: '/api/public/subscribers/subscribe',
     path: '/api/public/subscribers/subscribe',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicSubscribersWelcomeRoute =
+  ApiPublicSubscribersWelcomeRouteImport.update({
+    id: '/api/public/subscribers/welcome',
+    path: '/api/public/subscribers/welcome',
     getParentRoute: () => rootRouteImport,
   } as any)
 const LovableEmailQueueProcessRoute =
@@ -774,12 +788,14 @@ export interface FileRoutesByFullPath {
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
+  '/api/public/cron/subscriber-sequence': typeof ApiPublicCronSubscriberSequenceRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
   '/api/public/hooks/payout-release-heartbeat': typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
+  '/api/public/subscribers/welcome': typeof ApiPublicSubscribersWelcomeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -876,12 +892,14 @@ export interface FileRoutesByTo {
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
+  '/api/public/cron/subscriber-sequence': typeof ApiPublicCronSubscriberSequenceRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
   '/api/public/hooks/payout-release-heartbeat': typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
+  '/api/public/subscribers/welcome': typeof ApiPublicSubscribersWelcomeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -983,12 +1001,14 @@ export interface FileRoutesById {
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
+  '/api/public/cron/subscriber-sequence': typeof ApiPublicCronSubscriberSequenceRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
   '/api/public/hooks/payout-release-heartbeat': typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
+  '/api/public/subscribers/welcome': typeof ApiPublicSubscribersWelcomeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -1090,12 +1110,14 @@ export interface FileRouteTypes {
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/cron/rotate-payout-keys'
+    | '/api/public/cron/subscriber-sequence'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
     | '/api/public/hooks/payout-release-heartbeat'
     | '/api/public/payments/webhook'
     | '/api/public/subscribers/subscribe'
+    | '/api/public/subscribers/welcome'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -1192,12 +1214,14 @@ export interface FileRouteTypes {
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/cron/rotate-payout-keys'
+    | '/api/public/cron/subscriber-sequence'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
     | '/api/public/hooks/payout-release-heartbeat'
     | '/api/public/payments/webhook'
     | '/api/public/subscribers/subscribe'
+    | '/api/public/subscribers/welcome'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -1298,12 +1322,14 @@ export interface FileRouteTypes {
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/cron/rotate-payout-keys'
+    | '/api/public/cron/subscriber-sequence'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
     | '/api/public/hooks/payout-release-heartbeat'
     | '/api/public/payments/webhook'
     | '/api/public/subscribers/subscribe'
+    | '/api/public/subscribers/welcome'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -1364,12 +1390,14 @@ export interface RootRouteChildren {
   ApiPublicAcademyReceiveArticleRoute: typeof ApiPublicAcademyReceiveArticleRoute
   ApiPublicCronReleasePreordersRoute: typeof ApiPublicCronReleasePreordersRoute
   ApiPublicCronRotatePayoutKeysRoute: typeof ApiPublicCronRotatePayoutKeysRoute
+  ApiPublicCronSubscriberSequenceRoute: typeof ApiPublicCronSubscriberSequenceRoute
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
   ApiPublicHooksAuditCoversRoute: typeof ApiPublicHooksAuditCoversRoute
   ApiPublicHooksAutoReleaseReviewsRoute: typeof ApiPublicHooksAutoReleaseReviewsRoute
   ApiPublicHooksPayoutReleaseHeartbeatRoute: typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicSubscribersSubscribeRoute: typeof ApiPublicSubscribersSubscribeRoute
+  ApiPublicSubscribersWelcomeRoute: typeof ApiPublicSubscribersWelcomeRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
@@ -2035,6 +2063,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronRotatePayoutKeysRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/subscriber-sequence': {
+      id: '/api/public/cron/subscriber-sequence'
+      path: '/api/public/cron/subscriber-sequence'
+      fullPath: '/api/public/cron/subscriber-sequence'
+      preLoaderRoute: typeof ApiPublicCronSubscriberSequenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/health/categories': {
       id: '/api/public/health/categories'
       path: '/api/public/health/categories'
@@ -2075,6 +2110,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/subscribers/subscribe'
       fullPath: '/api/public/subscribers/subscribe'
       preLoaderRoute: typeof ApiPublicSubscribersSubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/subscribers/welcome': {
+      id: '/api/public/subscribers/welcome'
+      path: '/api/public/subscribers/welcome'
+      fullPath: '/api/public/subscribers/welcome'
+      preLoaderRoute: typeof ApiPublicSubscribersWelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/queue/process': {
@@ -2310,6 +2352,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAcademyReceiveArticleRoute: ApiPublicAcademyReceiveArticleRoute,
   ApiPublicCronReleasePreordersRoute: ApiPublicCronReleasePreordersRoute,
   ApiPublicCronRotatePayoutKeysRoute: ApiPublicCronRotatePayoutKeysRoute,
+  ApiPublicCronSubscriberSequenceRoute: ApiPublicCronSubscriberSequenceRoute,
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
   ApiPublicHooksAuditCoversRoute: ApiPublicHooksAuditCoversRoute,
   ApiPublicHooksAutoReleaseReviewsRoute: ApiPublicHooksAutoReleaseReviewsRoute,
@@ -2317,6 +2360,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicHooksPayoutReleaseHeartbeatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicSubscribersSubscribeRoute: ApiPublicSubscribersSubscribeRoute,
+  ApiPublicSubscribersWelcomeRoute: ApiPublicSubscribersWelcomeRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
