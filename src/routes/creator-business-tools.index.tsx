@@ -317,6 +317,9 @@ function CreatorBusinessToolsPage() {
                   key={c.name}
                   to="/creator-business-tools/$sub"
                   params={{ sub: c.slug }}
+                  onClick={() =>
+                    logCtaClick(`creator_business_tools_grid:${c.slug}`)
+                  }
                   className="group flex min-w-0 flex-col rounded-xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-gold/55 hover:bg-white/[0.06] focus-visible:border-gold focus-visible:outline-none"
                 >
 
