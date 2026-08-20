@@ -319,6 +319,14 @@ export const SUBCATEGORIES: Record<string, string[]> = {
     "Pitching & Distribution",
     "AI Creator Tools",
   ],
+  business_operating_systems: [
+    "AI Business Systems",
+    "Creator Business Systems",
+    "Marketing Systems",
+    "Sales & Client Systems",
+    "Operations & Productivity Systems",
+    "Interactive Decision Tools",
+  ],
 
 };
 
