@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { Check, Sparkles, ArrowDown, Download, Mail } from "lucide-react";
 import { submitCreatorLead, resendCreatorStarterKit } from "@/lib/creator-leads.functions";
@@ -83,6 +83,24 @@ function SellWithUsPage() {
   const ctaSource = useRef<string>("form-direct");
   const submitLead = useServerFn(submitCreatorLead);
   const resendKit = useServerFn(resendCreatorStarterKit);
+
+  // Prefill from an email captured on another page (e.g. Creator Business Tools CTA).
+  useEffect(() => {
+    try {
+      const handed = window.sessionStorage.getItem("av_prefill_email");
+      if (handed) {
+        setEmail(handed);
+        window.sessionStorage.removeItem("av_prefill_email");
+      }
+      const source = window.sessionStorage.getItem("av_prefill_cta_source");
+      if (source) {
+        ctaSource.current = source;
+        window.sessionStorage.removeItem("av_prefill_cta_source");
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   async function resend() {
     setResendError(null);

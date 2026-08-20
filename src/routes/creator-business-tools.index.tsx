@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, Mail } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { CategoryLineIcon } from "@/components/marketplace/CategoryIcons";
 import { ProductCard } from "@/components/marketplace/ProductCard";
 import { getProducts } from "@/lib/marketplace.functions";
+import { logCtaClick } from "@/lib/cta-tracking";
 import { subcategoriesQuery } from "@/lib/subcategories";
 import {
   CREATOR_TOOLS_DESCRIPTION,
@@ -90,6 +91,30 @@ const FILTERS = ["All", ...CREATOR_TOOL_SUBS.map((s) => s.filter)] as const;
 
 function CreatorBusinessToolsPage() {
   const [filter, setFilter] = useState<string>("All");
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  function startSignup(e: React.FormEvent) {
+    e.preventDefault();
+    const clean = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) {
+      setEmailError("Please enter a valid email address.");
+      return;
+    }
+    setEmailError(null);
+    logCtaClick("creator_business_tools_email_capture");
+    try {
+      window.sessionStorage.setItem("av_prefill_email", clean);
+      window.sessionStorage.setItem(
+        "av_prefill_cta_source",
+        "creator_business_tools_email_capture",
+      );
+    } catch {
+      /* ignore */
+    }
+    void navigate({ to: "/sell-with-us" });
+  }
 
   const { data: managed } = useQuery(subcategoriesQuery);
   const liveSubs = new Set(
@@ -292,6 +317,9 @@ function CreatorBusinessToolsPage() {
                   key={c.name}
                   to="/creator-business-tools/$sub"
                   params={{ sub: c.slug }}
+                  onClick={() =>
+                    logCtaClick(`creator_business_tools_grid:${c.slug}`)
+                  }
                   className="group flex min-w-0 flex-col rounded-xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-gold/55 hover:bg-white/[0.06] focus-visible:border-gold focus-visible:outline-none"
                 >
 
@@ -373,6 +401,51 @@ function CreatorBusinessToolsPage() {
                   the full catalog
                 </Link>{" "}
                 in the meantime.
+              </p>
+            )}
+          </div>
+        </section>
+
+        {/* Email capture → creator signup flow */}
+        <section className="border-b border-white/10 bg-[#080A11]">
+          <div className="mx-auto max-w-3xl px-4 py-12 text-center sm:px-6 md:py-16 lg:px-8">
+            <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-[10px] font-bold uppercase tracking-caps text-gold">
+              <Mail size={12} aria-hidden /> Creator access
+            </span>
+            <h2 className="mt-4 font-display text-2xl font-bold text-white md:text-3xl">
+              Get new Creator Business Tools first
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-white/70">
+              Enter your email to start creator signup and get the free
+              AurumVault Creator Starter Kit — plus early access to new tools.
+            </p>
+            <form
+              onSubmit={startSignup}
+              className="mx-auto mt-7 flex w-full max-w-md flex-col gap-3 sm:flex-row"
+              noValidate
+            >
+              <label htmlFor="cbt-email" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="cbt-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="flex-1 rounded-full border border-white/20 bg-white/[0.06] px-5 py-3 text-[14px] text-white placeholder-white/40 outline-none transition focus:border-gold"
+              />
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-[13px] font-bold uppercase tracking-caps text-navy transition hover:brightness-105"
+              >
+                Start Creator Signup <ArrowRight size={15} aria-hidden />
+              </button>
+            </form>
+            {emailError && (
+              <p role="alert" className="mt-3 text-[13px] text-red-300">
+                {emailError}
               </p>
             )}
           </div>

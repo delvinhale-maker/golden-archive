@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, BadgeCheck } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCard } from "@/components/marketplace/ProductCard";
 import { getProducts } from "@/lib/marketplace.functions";
+import { logCtaClick } from "@/lib/cta-tracking";
 import {
   CREATOR_TOOLS_LABEL,
   CREATOR_TOOLS_SLUG,
@@ -180,6 +181,39 @@ function CreatorToolSubPage() {
           </div>
         </section>
 
+        {/* CTA band */}
+        <section className="border-b border-white/10 bg-gradient-to-r from-[#0B1020] via-[#141024] to-[#241E10]">
+          <div className="mx-auto max-w-4xl px-4 py-12 text-center sm:px-6 md:py-16 lg:px-8">
+            <h2 className="font-display text-2xl font-bold text-white md:text-3xl">
+              Turn {sub.name.toLowerCase()} into paid work
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-[15px] text-white/75">
+              Browse the full Creator Business Tools department, or start creator
+              signup and get the free AurumVault Creator Starter Kit.
+            </p>
+            <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link
+                to="/sell-with-us"
+                onClick={() =>
+                  logCtaClick(`creator_tools_sub_cta_signup:${sub.slug}`)
+                }
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-[13px] font-bold uppercase tracking-caps text-navy transition hover:brightness-105"
+              >
+                Start Creator Signup <ArrowRight size={15} aria-hidden />
+              </Link>
+              <Link
+                to="/creator-business-tools"
+                onClick={() =>
+                  logCtaClick(`creator_tools_sub_cta_department:${sub.slug}`)
+                }
+                className="inline-flex items-center justify-center rounded-full border border-white/25 px-6 py-3 text-[13px] font-bold uppercase tracking-caps text-white transition hover:border-gold/70 hover:text-gold"
+              >
+                Browse the department
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* Related subcategories */}
         <section className="bg-[#080A11]">
           <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
@@ -192,6 +226,9 @@ function CreatorToolSubPage() {
                   key={s.slug}
                   to="/creator-business-tools/$sub"
                   params={{ sub: s.slug }}
+                  onClick={() =>
+                    logCtaClick(`creator_tools_sub_grid:${sub.slug}->${s.slug}`)
+                  }
                   className="group flex min-w-0 flex-col rounded-xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-gold/55 hover:bg-white/[0.06]"
                 >
                   <h3 className="font-display text-[17px] font-bold leading-snug text-white">
