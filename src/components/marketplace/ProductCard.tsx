@@ -98,6 +98,11 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             {CREATOR_SYSTEM_BADGE}
           </div>
         )}
+        {isBusinessSystem(product.category) && (
+          <div className="mb-1 inline-block rounded-sm border border-gold/45 bg-gold/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-caps text-gold-ink">
+            Complete Business System
+          </div>
+        )}
         {(() => {
           const d = categoryDisplay(product.category);
           return (
