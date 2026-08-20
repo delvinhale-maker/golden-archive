@@ -24,7 +24,6 @@ import { Route as CartRouteImport } from './routes/cart'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ContentCreatorTemplatesRouteImport } from './routes/content-creator-templates'
 import { Route as CreatorAgreementRouteImport } from './routes/creator-agreement'
-import { Route as CreatorBusinessToolsRouteImport } from './routes/creator-business-tools'
 import { Route as CreatorDashboardRouteImport } from './routes/creator-dashboard'
 import { Route as CreatorEarningsRouteImport } from './routes/creator-earnings'
 import { Route as CreatorTermsRouteImport } from './routes/creator-terms'
@@ -56,6 +55,7 @@ import { Route as AccountSettingsRouteImport } from './routes/account.settings'
 import { Route as ApiAiStudioStreamRouteImport } from './routes/api/ai-studio-stream'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as CollectionsFilmTvCreatorProductionRouteImport } from './routes/collections.film-tv-creator-production'
+import { Route as CreatorBusinessToolsIndexRouteImport } from './routes/creator-business-tools.index'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
@@ -184,11 +184,6 @@ const ContentCreatorTemplatesRoute = ContentCreatorTemplatesRouteImport.update({
 const CreatorAgreementRoute = CreatorAgreementRouteImport.update({
   id: '/creator-agreement',
   path: '/creator-agreement',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CreatorBusinessToolsRoute = CreatorBusinessToolsRouteImport.update({
-  id: '/creator-business-tools',
-  path: '/creator-business-tools',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreatorDashboardRoute = CreatorDashboardRouteImport.update({
@@ -345,6 +340,12 @@ const CollectionsFilmTvCreatorProductionRoute =
   CollectionsFilmTvCreatorProductionRouteImport.update({
     id: '/collections/film-tv-creator-production',
     path: '/collections/film-tv-creator-production',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const CreatorBusinessToolsIndexRoute =
+  CreatorBusinessToolsIndexRouteImport.update({
+    id: '/creator-business-tools/',
+    path: '/creator-business-tools/',
     getParentRoute: () => rootRouteImport,
   } as any)
 const DownloadTokenRoute = DownloadTokenRouteImport.update({
@@ -683,7 +684,6 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/content-creator-templates': typeof ContentCreatorTemplatesRoute
   '/creator-agreement': typeof CreatorAgreementRoute
-  '/creator-business-tools': typeof CreatorBusinessToolsRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
   '/creator-terms': typeof CreatorTermsRoute
@@ -720,6 +720,7 @@ export interface FileRoutesByFullPath {
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/academy/': typeof AcademyIndexRoute
+  '/creator-business-tools/': typeof CreatorBusinessToolsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
@@ -785,7 +786,6 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/content-creator-templates': typeof ContentCreatorTemplatesRoute
   '/creator-agreement': typeof CreatorAgreementRoute
-  '/creator-business-tools': typeof CreatorBusinessToolsRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
   '/creator-terms': typeof CreatorTermsRoute
@@ -821,6 +821,7 @@ export interface FileRoutesByTo {
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/academy': typeof AcademyIndexRoute
+  '/creator-business-tools': typeof CreatorBusinessToolsIndexRoute
   '/products': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
@@ -889,7 +890,6 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/content-creator-templates': typeof ContentCreatorTemplatesRoute
   '/creator-agreement': typeof CreatorAgreementRoute
-  '/creator-business-tools': typeof CreatorBusinessToolsRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
   '/creator-terms': typeof CreatorTermsRoute
@@ -926,6 +926,7 @@ export interface FileRoutesById {
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/academy/': typeof AcademyIndexRoute
+  '/creator-business-tools/': typeof CreatorBusinessToolsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/_authenticated/admin/community': typeof AuthenticatedAdminCommunityRoute
@@ -994,7 +995,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/content-creator-templates'
     | '/creator-agreement'
-    | '/creator-business-tools'
     | '/creator-dashboard'
     | '/creator-earnings'
     | '/creator-terms'
@@ -1031,6 +1031,7 @@ export interface FileRouteTypes {
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/academy/'
+    | '/creator-business-tools/'
     | '/products/'
     | '/admin/auto-release'
     | '/admin/community'
@@ -1096,7 +1097,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/content-creator-templates'
     | '/creator-agreement'
-    | '/creator-business-tools'
     | '/creator-dashboard'
     | '/creator-earnings'
     | '/creator-terms'
@@ -1132,6 +1132,7 @@ export interface FileRouteTypes {
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/academy'
+    | '/creator-business-tools'
     | '/products'
     | '/admin/auto-release'
     | '/admin/community'
@@ -1199,7 +1200,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/content-creator-templates'
     | '/creator-agreement'
-    | '/creator-business-tools'
     | '/creator-dashboard'
     | '/creator-earnings'
     | '/creator-terms'
@@ -1236,6 +1236,7 @@ export interface FileRouteTypes {
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/academy/'
+    | '/creator-business-tools/'
     | '/products/'
     | '/_authenticated/admin/auto-release'
     | '/_authenticated/admin/community'
@@ -1304,7 +1305,6 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   ContentCreatorTemplatesRoute: typeof ContentCreatorTemplatesRoute
   CreatorAgreementRoute: typeof CreatorAgreementRoute
-  CreatorBusinessToolsRoute: typeof CreatorBusinessToolsRoute
   CreatorDashboardRoute: typeof CreatorDashboardRoute
   CreatorEarningsRoute: typeof CreatorEarningsRoute
   CreatorTermsRoute: typeof CreatorTermsRoute
@@ -1336,6 +1336,7 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   StoreSlugRoute: typeof StoreSlugRoute
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
+  CreatorBusinessToolsIndexRoute: typeof CreatorBusinessToolsIndexRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicAcademyReceiveArticleRoute: typeof ApiPublicAcademyReceiveArticleRoute
@@ -1457,13 +1458,6 @@ declare module '@tanstack/react-router' {
       path: '/creator-agreement'
       fullPath: '/creator-agreement'
       preLoaderRoute: typeof CreatorAgreementRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/creator-business-tools': {
-      id: '/creator-business-tools'
-      path: '/creator-business-tools'
-      fullPath: '/creator-business-tools'
-      preLoaderRoute: typeof CreatorBusinessToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/creator-dashboard': {
@@ -1681,6 +1675,13 @@ declare module '@tanstack/react-router' {
       path: '/collections/film-tv-creator-production'
       fullPath: '/collections/film-tv-creator-production'
       preLoaderRoute: typeof CollectionsFilmTvCreatorProductionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator-business-tools/': {
+      id: '/creator-business-tools/'
+      path: '/creator-business-tools'
+      fullPath: '/creator-business-tools/'
+      preLoaderRoute: typeof CreatorBusinessToolsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/download/$token': {
@@ -2222,7 +2223,6 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   ContentCreatorTemplatesRoute: ContentCreatorTemplatesRoute,
   CreatorAgreementRoute: CreatorAgreementRoute,
-  CreatorBusinessToolsRoute: CreatorBusinessToolsRoute,
   CreatorDashboardRoute: CreatorDashboardRoute,
   CreatorEarningsRoute: CreatorEarningsRoute,
   CreatorTermsRoute: CreatorTermsRoute,
@@ -2255,6 +2255,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   StoreSlugRoute: StoreSlugRoute,
   SubscribeConfirmRoute: SubscribeConfirmRoute,
+  CreatorBusinessToolsIndexRoute: CreatorBusinessToolsIndexRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicAcademyReceiveArticleRoute: ApiPublicAcademyReceiveArticleRoute,
