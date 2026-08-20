@@ -35,6 +35,8 @@ const CATEGORY_BLURBS: Record<string, string> = {
     "All-in-one bundles of templates, checklists, and prompts grouped by role and outcome.",
   business_operating_systems:
     "Complete systems — workflows, prompts, dashboards, and implementation plans — for marketing, sales, service, and operations.",
+  creator_business_tools:
+    "Media kits, rate cards, brand pitches, campaign tracking, analytics, and payment tools for working creators.",
   prompt_packs:
     "Battle-tested prompt libraries for ChatGPT, Claude, and Gemini — for marketing, writing, ops, and research.",
   templates:

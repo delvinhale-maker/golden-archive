@@ -20,6 +20,7 @@ export type ProductTypeKey =
   | "business_template"
   | "caption_template"
   | "creator_production_system"
+  | "creator_business_tool"
 
   | "audio"
   | "other";
@@ -44,7 +45,8 @@ export type ProductCategoryEnum =
   | "digital_toolkits"
   | "business_operating_systems"
   | "caption_templates"
-  | "film_tv_creator_production";
+  | "film_tv_creator_production"
+  | "creator_business_tools";
 
 
 export interface ProductTypeConfig {
@@ -334,6 +336,31 @@ export const PRODUCT_TYPES: Record<ProductTypeKey, ProductTypeConfig> = {
     acceptedHint: ".PDF, .DOCX, .XLSX, .ZIP",
     suggestedPriceCents: 6900,
     accent: "#C9A227",
+    isEbook: false,
+  },
+  creator_business_tool: {
+    key: "creator_business_tool",
+    label: "Creator Business Tool",
+    emoji: "📈",
+    tagline: "Interactive creator business system (PDF, DOCX, XLSX, or ZIP)",
+    category: "creator_business_tools",
+    categoryLabel: "Creator Business Tool",
+    fileExts: ["pdf", "docx", "xlsx", "zip"],
+    fileMimes: [
+      "application/pdf",
+      OFFICE_DOCX,
+      OFFICE_XLSX,
+      "application/zip",
+    ],
+    acceptString:
+      ".pdf,.docx,.xlsx,.zip,application/pdf," +
+      OFFICE_DOCX +
+      "," +
+      OFFICE_XLSX +
+      ",application/zip",
+    acceptedHint: ".PDF, .DOCX, .XLSX, .ZIP",
+    suggestedPriceCents: 2499,
+    accent: "#B08D2E",
     isEbook: false,
   },
   audio: {

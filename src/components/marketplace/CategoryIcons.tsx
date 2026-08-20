@@ -277,6 +277,7 @@ export const CATEGORY_ICONS: Record<
   templates: TemplatesIcon,
   caption_templates: CaptionTemplatesIcon,
   film_tv_creator_production: FilmProductionIcon,
+  creator_business_tools: BusinessOSIcon,
 };
 
 /** Restrained cinematic mark — a framed viewport with a gold aperture. */

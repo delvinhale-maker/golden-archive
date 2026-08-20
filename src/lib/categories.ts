@@ -193,6 +193,24 @@ export const CATEGORIES: CategoryDef[] = [
     ],
   },
   {
+    slug: "creator_business_tools",
+    label: "Creator Business Tools",
+    accent: "#B08D2E",
+    ink: "#FFFFFF",
+    icon: "📈",
+    blurb:
+      "Professional systems for creators, influencers, UGC professionals & personal brands — media kits, brand deals, campaigns, analytics, and payments.",
+    gradient: grad("#05070C", "#0B1424", "#241E10"),
+    subs: [
+      "Media Kits & Rate Cards",
+      "Brand Partnerships & Outreach",
+      "Campaign Management",
+      "Creator Analytics & Reporting",
+      "Invoicing & Payments",
+      "UGC & Client Systems",
+    ],
+  },
+  {
     slug: "templates",
     label: "Templates",
     accent: "#3A4A5C",
@@ -233,6 +251,8 @@ export const CATEGORY_ACCENT: Record<string, string> = {
   caption_templates: "var(--gold)",
   // Film, TV & Creator Production → cinematic gold
   film_tv_creator_production: "var(--gold)",
+  // Creator Business Tools → restrained gold (brand voice)
+  creator_business_tools: "var(--gold)",
 };
 
 
@@ -280,6 +300,8 @@ const LABEL_ALIAS: Record<string, string> = {
   Captions: "caption_templates",
   "Caption Templates": "caption_templates",
   "Film & TV": "film_tv_creator_production",
+  "Creator Tools": "creator_business_tools",
+  "Creator Business Tools": "creator_business_tools",
   "Film, TV & Creator Production": "film_tv_creator_production",
   "Creator Production": "film_tv_creator_production",
   "Business Systems": "business_operating_systems",
@@ -318,6 +340,14 @@ export const SUBCATEGORIES: Record<string, string[]> = {
     "Music & Entertainment",
     "Pitching & Distribution",
     "AI Creator Tools",
+  ],
+  creator_business_tools: [
+    "Media Kits & Rate Cards",
+    "Brand Partnerships & Outreach",
+    "Campaign Management",
+    "Creator Analytics & Reporting",
+    "Invoicing & Payments",
+    "UGC & Client Systems",
   ],
   business_operating_systems: [
     "AI Business Systems",
@@ -375,6 +405,7 @@ export const NAV_CATEGORIES = [
   "AI Prompt Packs",
   "Business Systems",
   "Caption Templates",
+  "Creator Business Tools",
   "Film & TV",
 
 ] as const;
