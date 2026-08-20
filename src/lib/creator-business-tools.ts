@@ -115,6 +115,21 @@ export const CREATOR_TOOL_SUBS: CreatorToolSub[] = [
       "Retainer and repeat-work structures",
     ],
   },
+  {
+    slug: "film-video-production",
+    filter: "Film & Video",
+    name: "Film, Video & Production",
+    blurb:
+      "Production planning, shot lists, video workflows, and delivery systems for creator-led film and video work.",
+    intro:
+      "Treat your video work like a production company. These tools cover pre-production planning, shoot-day logistics, editing workflows, and client delivery so nothing gets lost between the idea and the final cut.",
+    points: [
+      "Pre-production planning, scripts, and shot lists",
+      "Shoot-day call sheets, gear, and location logistics",
+      "Editing and post-production workflow trackers",
+      "Client review, delivery, and asset archive systems",
+    ],
+  },
 ];
 
 export function getCreatorToolSubBySlug(
