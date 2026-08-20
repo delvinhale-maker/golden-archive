@@ -1,0 +1,1 @@
+insert into public.product_subcategories (category_slug, name, position) values ('creator_business_tools','Film, Video & Production',7) on conflict do nothing;
