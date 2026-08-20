@@ -188,6 +188,12 @@ const BusinessSystemsRow = lazy(() =>
   })),
 );
 
+const CreatorBusinessToolsRow = lazy(() =>
+  import("@/components/marketplace/CreatorBusinessToolsRow").then((m) => ({
+    default: m.CreatorBusinessToolsRow,
+  })),
+);
+
 const AFFILIATE_REGISTRY: Record<string, () => React.ReactElement> = {
   vault_finds_row: () => (
     <Suspense fallback={null}>
@@ -257,6 +263,10 @@ function Home() {
 
       <Suspense fallback={null}>
         <BusinessSystemsRow />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <CreatorBusinessToolsRow />
       </Suspense>
 
       {/* --- Affiliate band (Vault Finds) --------------------------------- */}

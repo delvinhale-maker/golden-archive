@@ -24,6 +24,7 @@ import { Route as CartRouteImport } from './routes/cart'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ContentCreatorTemplatesRouteImport } from './routes/content-creator-templates'
 import { Route as CreatorAgreementRouteImport } from './routes/creator-agreement'
+import { Route as CreatorBusinessToolsRouteImport } from './routes/creator-business-tools'
 import { Route as CreatorDashboardRouteImport } from './routes/creator-dashboard'
 import { Route as CreatorEarningsRouteImport } from './routes/creator-earnings'
 import { Route as CreatorTermsRouteImport } from './routes/creator-terms'
@@ -183,6 +184,11 @@ const ContentCreatorTemplatesRoute = ContentCreatorTemplatesRouteImport.update({
 const CreatorAgreementRoute = CreatorAgreementRouteImport.update({
   id: '/creator-agreement',
   path: '/creator-agreement',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorBusinessToolsRoute = CreatorBusinessToolsRouteImport.update({
+  id: '/creator-business-tools',
+  path: '/creator-business-tools',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreatorDashboardRoute = CreatorDashboardRouteImport.update({
@@ -677,6 +683,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/content-creator-templates': typeof ContentCreatorTemplatesRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/creator-business-tools': typeof CreatorBusinessToolsRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
   '/creator-terms': typeof CreatorTermsRoute
@@ -778,6 +785,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/content-creator-templates': typeof ContentCreatorTemplatesRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/creator-business-tools': typeof CreatorBusinessToolsRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
   '/creator-terms': typeof CreatorTermsRoute
@@ -881,6 +889,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/content-creator-templates': typeof ContentCreatorTemplatesRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/creator-business-tools': typeof CreatorBusinessToolsRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
   '/creator-terms': typeof CreatorTermsRoute
@@ -985,6 +994,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/content-creator-templates'
     | '/creator-agreement'
+    | '/creator-business-tools'
     | '/creator-dashboard'
     | '/creator-earnings'
     | '/creator-terms'
@@ -1086,6 +1096,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/content-creator-templates'
     | '/creator-agreement'
+    | '/creator-business-tools'
     | '/creator-dashboard'
     | '/creator-earnings'
     | '/creator-terms'
@@ -1188,6 +1199,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/content-creator-templates'
     | '/creator-agreement'
+    | '/creator-business-tools'
     | '/creator-dashboard'
     | '/creator-earnings'
     | '/creator-terms'
@@ -1292,6 +1304,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   ContentCreatorTemplatesRoute: typeof ContentCreatorTemplatesRoute
   CreatorAgreementRoute: typeof CreatorAgreementRoute
+  CreatorBusinessToolsRoute: typeof CreatorBusinessToolsRoute
   CreatorDashboardRoute: typeof CreatorDashboardRoute
   CreatorEarningsRoute: typeof CreatorEarningsRoute
   CreatorTermsRoute: typeof CreatorTermsRoute
@@ -1444,6 +1457,13 @@ declare module '@tanstack/react-router' {
       path: '/creator-agreement'
       fullPath: '/creator-agreement'
       preLoaderRoute: typeof CreatorAgreementRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator-business-tools': {
+      id: '/creator-business-tools'
+      path: '/creator-business-tools'
+      fullPath: '/creator-business-tools'
+      preLoaderRoute: typeof CreatorBusinessToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/creator-dashboard': {
@@ -2202,6 +2222,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   ContentCreatorTemplatesRoute: ContentCreatorTemplatesRoute,
   CreatorAgreementRoute: CreatorAgreementRoute,
+  CreatorBusinessToolsRoute: CreatorBusinessToolsRoute,
   CreatorDashboardRoute: CreatorDashboardRoute,
   CreatorEarningsRoute: CreatorEarningsRoute,
   CreatorTermsRoute: CreatorTermsRoute,

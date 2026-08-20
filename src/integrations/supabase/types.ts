@@ -2703,6 +2703,7 @@ export type Database = {
         | "business_operating_systems"
         | "caption_templates"
         | "film_tv_creator_production"
+        | "creator_business_tools"
       product_license_type: "personal" | "commercial" | "extended"
       product_status: "draft" | "pending" | "approved" | "rejected"
     }
@@ -2863,6 +2864,7 @@ export const Constants = {
         "business_operating_systems",
         "caption_templates",
         "film_tv_creator_production",
+        "creator_business_tools",
       ],
       product_license_type: ["personal", "commercial", "extended"],
       product_status: ["draft", "pending", "approved", "rejected"],

@@ -7,6 +7,7 @@ const SHOP_LINKS: FooterLink[] = [
   { label: "Shop eBooks", to: "/products", search: { category: "eBooks" } },
   { label: "Bestsellers", to: "/products", search: { sort: "bestsellers" } },
   { label: "New Releases", to: "/products", search: { sort: "new" } },
+  { label: "Creator Business Tools", to: "/creator-business-tools" },
   {
     label: "Film, TV & Creator Production",
     to: "/collections/film-tv-creator-production",
