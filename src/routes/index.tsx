@@ -44,6 +44,7 @@ import {
   type Product,
 } from "@/lib/marketplace.functions";
 import { getHomepageLayout } from "@/lib/homepage-layout.functions";
+import { rotateHalfDay } from "@/lib/affiliate-rotation";
 import { BROWSE_CATEGORIES } from "@/lib/categories";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -417,13 +418,20 @@ function toHeroProduct(p: Product) {
 function FeaturedHero() {
   const { data, isFetching } = useSuspenseQuery(highlightsQ);
   const { data: featured } = useSuspenseQuery(featuredQ);
-  const hp = data.heroProduct;
+  const { data: newest } = useSuspenseQuery(newReleasesRowQ);
 
-  const dealsProducts = (featured ?? [])
-    .filter((p) => p.compareAtPrice && p.compareAtPrice > p.price)
-    .slice(0, 3)
-    .map(toHeroProduct);
-  const creatorProducts = (featured ?? []).slice(0, 3).map(toHeroProduct);
+  // Fresh rotation: the hero shows the latest releases, rotated every 12h so
+  // the trio changes without losing the "newest first" feel.
+  const newestPool = (newest ?? []) as Product[];
+  const rotatedNew = rotateHalfDay(newestPool, 0, Math.min(3, newestPool.length));
+  const hp = rotatedNew[0] ?? data.heroProduct;
+
+  const heroTrio = (rotatedNew.length ? rotatedNew : (featured ?? []).slice(0, 3)).map(
+    toHeroProduct,
+  );
+  const dealsProducts = heroTrio;
+  const creatorProducts = heroTrio;
+
 
   return (
     <div className="relative">
