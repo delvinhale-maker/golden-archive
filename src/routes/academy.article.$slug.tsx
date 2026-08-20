@@ -264,6 +264,10 @@ function ArticleDetail() {
           dangerouslySetInnerHTML={{ __html: renderMarkdown(article.body) }}
         />
 
+        {/* Cross-link: Business Systems department + featured system */}
+        <AcademyBusinessSystemsCallout article={article} />
+
+
         {/* Recommended Resources */}
         {products.length > 0 && (
           <section className="mt-16 rounded-2xl border border-[#B8860B]/30 bg-[#FDF9F0] p-6 md:p-8">
