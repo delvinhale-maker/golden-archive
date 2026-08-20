@@ -369,10 +369,11 @@ export function getCategoryDef(labelOrSlug?: string | null): CategoryDef | undef
 // and homepage category tiles. Keep this as the single source for nav chips.
 export const NAV_CATEGORIES = [
   "All",
-  "AI Prompt Packs",
   "eBooks",
   "Journals",
   "Planners",
+  "AI Prompt Packs",
+  "Business Systems",
   "Caption Templates",
   "Film & TV",
 
