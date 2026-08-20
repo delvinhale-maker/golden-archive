@@ -103,6 +103,7 @@ import { Route as AuthenticatedDashboardVariantsIdRouteImport } from './routes/_
 import { Route as ApiPublicAcademyReceiveArticleRouteImport } from './routes/api/public/academy/receive-article'
 import { Route as ApiPublicCronReleasePreordersRouteImport } from './routes/api/public/cron/release-preorders'
 import { Route as ApiPublicCronRotatePayoutKeysRouteImport } from './routes/api/public/cron/rotate-payout-keys'
+import { Route as ApiPublicCronSubscriberSequenceRouteImport } from './routes/api/public/cron/subscriber-sequence'
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
 import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/public/hooks/audit-covers'
 import { Route as ApiPublicHooksAutoReleaseReviewsRouteImport } from './routes/api/public/hooks/auto-release-reviews'
@@ -620,6 +621,12 @@ const ApiPublicCronRotatePayoutKeysRoute =
     path: '/api/public/cron/rotate-payout-keys',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronSubscriberSequenceRoute =
+  ApiPublicCronSubscriberSequenceRouteImport.update({
+    id: '/api/public/cron/subscriber-sequence',
+    path: '/api/public/cron/subscriber-sequence',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHealthCategoriesRoute =
   ApiPublicHealthCategoriesRouteImport.update({
     id: '/api/public/health/categories',
@@ -774,6 +781,7 @@ export interface FileRoutesByFullPath {
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
+  '/api/public/cron/subscriber-sequence': typeof ApiPublicCronSubscriberSequenceRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -876,6 +884,7 @@ export interface FileRoutesByTo {
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
+  '/api/public/cron/subscriber-sequence': typeof ApiPublicCronSubscriberSequenceRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -983,6 +992,7 @@ export interface FileRoutesById {
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
+  '/api/public/cron/subscriber-sequence': typeof ApiPublicCronSubscriberSequenceRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -1090,6 +1100,7 @@ export interface FileRouteTypes {
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/cron/rotate-payout-keys'
+    | '/api/public/cron/subscriber-sequence'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
@@ -1192,6 +1203,7 @@ export interface FileRouteTypes {
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/cron/rotate-payout-keys'
+    | '/api/public/cron/subscriber-sequence'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
@@ -1298,6 +1310,7 @@ export interface FileRouteTypes {
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/cron/rotate-payout-keys'
+    | '/api/public/cron/subscriber-sequence'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
     | '/api/public/hooks/auto-release-reviews'
@@ -1364,6 +1377,7 @@ export interface RootRouteChildren {
   ApiPublicAcademyReceiveArticleRoute: typeof ApiPublicAcademyReceiveArticleRoute
   ApiPublicCronReleasePreordersRoute: typeof ApiPublicCronReleasePreordersRoute
   ApiPublicCronRotatePayoutKeysRoute: typeof ApiPublicCronRotatePayoutKeysRoute
+  ApiPublicCronSubscriberSequenceRoute: typeof ApiPublicCronSubscriberSequenceRoute
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
   ApiPublicHooksAuditCoversRoute: typeof ApiPublicHooksAuditCoversRoute
   ApiPublicHooksAutoReleaseReviewsRoute: typeof ApiPublicHooksAutoReleaseReviewsRoute
@@ -2035,6 +2049,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronRotatePayoutKeysRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/subscriber-sequence': {
+      id: '/api/public/cron/subscriber-sequence'
+      path: '/api/public/cron/subscriber-sequence'
+      fullPath: '/api/public/cron/subscriber-sequence'
+      preLoaderRoute: typeof ApiPublicCronSubscriberSequenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/health/categories': {
       id: '/api/public/health/categories'
       path: '/api/public/health/categories'
@@ -2310,6 +2331,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAcademyReceiveArticleRoute: ApiPublicAcademyReceiveArticleRoute,
   ApiPublicCronReleasePreordersRoute: ApiPublicCronReleasePreordersRoute,
   ApiPublicCronRotatePayoutKeysRoute: ApiPublicCronRotatePayoutKeysRoute,
+  ApiPublicCronSubscriberSequenceRoute: ApiPublicCronSubscriberSequenceRoute,
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
   ApiPublicHooksAuditCoversRoute: ApiPublicHooksAuditCoversRoute,
   ApiPublicHooksAutoReleaseReviewsRoute: ApiPublicHooksAutoReleaseReviewsRoute,
