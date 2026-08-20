@@ -290,12 +290,11 @@ function CreatorBusinessToolsPage() {
               {cards.map((c) => (
                 <Link
                   key={c.name}
-                  to="/products"
-                  search={
-                    { category: CREATOR_TOOLS_LABEL, sub: c.name } as never
-                  }
+                  to="/creator-business-tools/$sub"
+                  params={{ sub: c.slug }}
                   className="group flex min-w-0 flex-col rounded-xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-gold/55 hover:bg-white/[0.06] focus-visible:border-gold focus-visible:outline-none"
                 >
+
                   <span
                     aria-hidden
                     className="flex h-11 w-11 items-center justify-center rounded-lg border border-gold/25 bg-gold/10"

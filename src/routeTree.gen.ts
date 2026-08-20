@@ -57,6 +57,7 @@ import { Route as ApiAiStudioStreamRouteImport } from './routes/api/ai-studio-st
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as CollectionsFilmTvCreatorProductionRouteImport } from './routes/collections.film-tv-creator-production'
 import { Route as CreatorBusinessToolsIndexRouteImport } from './routes/creator-business-tools.index'
+import { Route as CreatorBusinessToolsSubRouteImport } from './routes/creator-business-tools.$sub'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
@@ -354,6 +355,11 @@ const CreatorBusinessToolsIndexRoute =
     path: '/',
     getParentRoute: () => CreatorBusinessToolsRoute,
   } as any)
+const CreatorBusinessToolsSubRoute = CreatorBusinessToolsSubRouteImport.update({
+  id: '/$sub',
+  path: '/$sub',
+  getParentRoute: () => CreatorBusinessToolsRoute,
+} as any)
 const DownloadTokenRoute = DownloadTokenRouteImport.update({
   id: '/download/$token',
   path: '/download/$token',
@@ -721,6 +727,7 @@ export interface FileRoutesByFullPath {
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
+  '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -822,6 +829,7 @@ export interface FileRoutesByTo {
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
+  '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -928,6 +936,7 @@ export interface FileRoutesById {
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
+  '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -1034,6 +1043,7 @@ export interface FileRouteTypes {
     | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/collections/film-tv-creator-production'
+    | '/creator-business-tools/$sub'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1135,6 +1145,7 @@ export interface FileRouteTypes {
     | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/collections/film-tv-creator-production'
+    | '/creator-business-tools/$sub'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1240,6 +1251,7 @@ export interface FileRouteTypes {
     | '/api/ai-studio-stream'
     | '/checkout/return'
     | '/collections/film-tv-creator-production'
+    | '/creator-business-tools/$sub'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1699,6 +1711,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/creator-business-tools/'
       preLoaderRoute: typeof CreatorBusinessToolsIndexRouteImport
+      parentRoute: typeof CreatorBusinessToolsRoute
+    }
+    '/creator-business-tools/$sub': {
+      id: '/creator-business-tools/$sub'
+      path: '/$sub'
+      fullPath: '/creator-business-tools/$sub'
+      preLoaderRoute: typeof CreatorBusinessToolsSubRouteImport
       parentRoute: typeof CreatorBusinessToolsRoute
     }
     '/download/$token': {
@@ -2211,10 +2230,12 @@ const AccountRouteWithChildren =
   AccountRoute._addFileChildren(AccountRouteChildren)
 
 interface CreatorBusinessToolsRouteChildren {
+  CreatorBusinessToolsSubRoute: typeof CreatorBusinessToolsSubRoute
   CreatorBusinessToolsIndexRoute: typeof CreatorBusinessToolsIndexRoute
 }
 
 const CreatorBusinessToolsRouteChildren: CreatorBusinessToolsRouteChildren = {
+  CreatorBusinessToolsSubRoute: CreatorBusinessToolsSubRoute,
   CreatorBusinessToolsIndexRoute: CreatorBusinessToolsIndexRoute,
 }
 
