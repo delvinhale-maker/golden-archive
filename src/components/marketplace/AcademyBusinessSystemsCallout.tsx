@@ -19,14 +19,15 @@ const RELEVANT_KEYWORDS = [
   "operating system",
   "workflow",
   "standard operating procedure",
-  "sop",
   "operations",
   "productivity system",
   "marketing system",
-  "sales",
-  "client",
+  "sales process",
+  "sales pipeline",
+  "client onboarding",
+  "client management",
   "crm",
-  "lead",
+  "lead generation",
   "customer service",
   "dashboard",
   "prompt vault",
@@ -76,7 +77,11 @@ export function isBusinessSystemsRelevant(article: AcademyArticleLike): boolean 
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
-  return RELEVANT_KEYWORDS.some((k) => haystack.includes(k));
+  // Word-boundary match so generic substrings (e.g. "lead" inside "leader")
+  // never trigger an off-topic cross-link.
+  return RELEVANT_KEYWORDS.some((k) =>
+    new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(haystack),
+  );
 }
 
 /**
