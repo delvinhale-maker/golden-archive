@@ -282,6 +282,9 @@ const LABEL_ALIAS: Record<string, string> = {
   "Film & TV": "film_tv_creator_production",
   "Film, TV & Creator Production": "film_tv_creator_production",
   "Creator Production": "film_tv_creator_production",
+  "Business Systems": "business_operating_systems",
+  "Business Operating Systems": "business_operating_systems",
+  "Business OS": "business_operating_systems",
 };
 
 
