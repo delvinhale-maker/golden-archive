@@ -91,6 +91,30 @@ const FILTERS = ["All", ...CREATOR_TOOL_SUBS.map((s) => s.filter)] as const;
 
 function CreatorBusinessToolsPage() {
   const [filter, setFilter] = useState<string>("All");
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  function startSignup(e: React.FormEvent) {
+    e.preventDefault();
+    const clean = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) {
+      setEmailError("Please enter a valid email address.");
+      return;
+    }
+    setEmailError(null);
+    logCtaClick("creator_business_tools_email_capture");
+    try {
+      window.sessionStorage.setItem("av_prefill_email", clean);
+      window.sessionStorage.setItem(
+        "av_prefill_cta_source",
+        "creator_business_tools_email_capture",
+      );
+    } catch {
+      /* ignore */
+    }
+    void navigate({ to: "/sell-with-us" });
+  }
 
   const { data: managed } = useQuery(subcategoriesQuery);
   const liveSubs = new Set(
