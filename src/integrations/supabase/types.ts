@@ -2406,6 +2406,8 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          sequence_step2_sent_at: string | null
+          sequence_step3_sent_at: string | null
           source: string
           status: string
         }
@@ -2416,6 +2418,8 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          sequence_step2_sent_at?: string | null
+          sequence_step3_sent_at?: string | null
           source?: string
           status?: string
         }
@@ -2426,6 +2430,8 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          sequence_step2_sent_at?: string | null
+          sequence_step3_sent_at?: string | null
           source?: string
           status?: string
         }
