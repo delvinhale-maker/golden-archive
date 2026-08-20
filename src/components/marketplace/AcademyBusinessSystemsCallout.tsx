@@ -43,15 +43,11 @@ const RELEVANT_KEYWORDS = [
 ];
 
 const RELEVANT_CATEGORY_SLUGS = [
+  "entrepreneurship",
   "business",
   "business-growth",
-  "ai",
-  "ai-productivity",
-  "ai-and-productivity",
-  "productivity",
-  "marketing",
   "creator-business",
-  "leadership",
+  "marketing",
 ];
 
 export type AcademyArticleLike = {
