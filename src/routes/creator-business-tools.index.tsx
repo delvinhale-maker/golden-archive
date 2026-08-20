@@ -22,7 +22,7 @@ const SEO_TITLE =
 const SEO_DESC =
   "Shop professional creator business tools for media kits, brand partnerships, rate cards, campaign management, creator analytics, outreach, payments, and growth.";
 
-export const Route = createFileRoute("/creator-business-tools")({
+export const Route = createFileRoute("/creator-business-tools/")({
   head: () => ({
     meta: [
       { title: SEO_TITLE },
