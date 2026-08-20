@@ -24,6 +24,7 @@ import { Route as CartRouteImport } from './routes/cart'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ContentCreatorTemplatesRouteImport } from './routes/content-creator-templates'
 import { Route as CreatorAgreementRouteImport } from './routes/creator-agreement'
+import { Route as CreatorBusinessToolsRouteImport } from './routes/creator-business-tools'
 import { Route as CreatorDashboardRouteImport } from './routes/creator-dashboard'
 import { Route as CreatorEarningsRouteImport } from './routes/creator-earnings'
 import { Route as CreatorTermsRouteImport } from './routes/creator-terms'
@@ -186,6 +187,11 @@ const CreatorAgreementRoute = CreatorAgreementRouteImport.update({
   path: '/creator-agreement',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CreatorBusinessToolsRoute = CreatorBusinessToolsRouteImport.update({
+  id: '/creator-business-tools',
+  path: '/creator-business-tools',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CreatorDashboardRoute = CreatorDashboardRouteImport.update({
   id: '/creator-dashboard',
   path: '/creator-dashboard',
@@ -344,9 +350,9 @@ const CollectionsFilmTvCreatorProductionRoute =
   } as any)
 const CreatorBusinessToolsIndexRoute =
   CreatorBusinessToolsIndexRouteImport.update({
-    id: '/creator-business-tools/',
-    path: '/creator-business-tools/',
-    getParentRoute: () => rootRouteImport,
+    id: '/',
+    path: '/',
+    getParentRoute: () => CreatorBusinessToolsRoute,
   } as any)
 const DownloadTokenRoute = DownloadTokenRouteImport.update({
   id: '/download/$token',
@@ -684,6 +690,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/content-creator-templates': typeof ContentCreatorTemplatesRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/creator-business-tools': typeof CreatorBusinessToolsRouteWithChildren
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
   '/creator-terms': typeof CreatorTermsRoute
@@ -890,6 +897,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/content-creator-templates': typeof ContentCreatorTemplatesRoute
   '/creator-agreement': typeof CreatorAgreementRoute
+  '/creator-business-tools': typeof CreatorBusinessToolsRouteWithChildren
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
   '/creator-terms': typeof CreatorTermsRoute
@@ -995,6 +1003,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/content-creator-templates'
     | '/creator-agreement'
+    | '/creator-business-tools'
     | '/creator-dashboard'
     | '/creator-earnings'
     | '/creator-terms'
@@ -1200,6 +1209,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/content-creator-templates'
     | '/creator-agreement'
+    | '/creator-business-tools'
     | '/creator-dashboard'
     | '/creator-earnings'
     | '/creator-terms'
@@ -1305,6 +1315,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   ContentCreatorTemplatesRoute: typeof ContentCreatorTemplatesRoute
   CreatorAgreementRoute: typeof CreatorAgreementRoute
+  CreatorBusinessToolsRoute: typeof CreatorBusinessToolsRouteWithChildren
   CreatorDashboardRoute: typeof CreatorDashboardRoute
   CreatorEarningsRoute: typeof CreatorEarningsRoute
   CreatorTermsRoute: typeof CreatorTermsRoute
@@ -1336,7 +1347,6 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   StoreSlugRoute: typeof StoreSlugRoute
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
-  CreatorBusinessToolsIndexRoute: typeof CreatorBusinessToolsIndexRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicAcademyReceiveArticleRoute: typeof ApiPublicAcademyReceiveArticleRoute
@@ -1458,6 +1468,13 @@ declare module '@tanstack/react-router' {
       path: '/creator-agreement'
       fullPath: '/creator-agreement'
       preLoaderRoute: typeof CreatorAgreementRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator-business-tools': {
+      id: '/creator-business-tools'
+      path: '/creator-business-tools'
+      fullPath: '/creator-business-tools'
+      preLoaderRoute: typeof CreatorBusinessToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/creator-dashboard': {
@@ -1679,10 +1696,10 @@ declare module '@tanstack/react-router' {
     }
     '/creator-business-tools/': {
       id: '/creator-business-tools/'
-      path: '/creator-business-tools'
+      path: '/'
       fullPath: '/creator-business-tools/'
       preLoaderRoute: typeof CreatorBusinessToolsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof CreatorBusinessToolsRoute
     }
     '/download/$token': {
       id: '/download/$token'
@@ -2193,6 +2210,17 @@ const AccountRouteChildren: AccountRouteChildren = {
 const AccountRouteWithChildren =
   AccountRoute._addFileChildren(AccountRouteChildren)
 
+interface CreatorBusinessToolsRouteChildren {
+  CreatorBusinessToolsIndexRoute: typeof CreatorBusinessToolsIndexRoute
+}
+
+const CreatorBusinessToolsRouteChildren: CreatorBusinessToolsRouteChildren = {
+  CreatorBusinessToolsIndexRoute: CreatorBusinessToolsIndexRoute,
+}
+
+const CreatorBusinessToolsRouteWithChildren =
+  CreatorBusinessToolsRoute._addFileChildren(CreatorBusinessToolsRouteChildren)
+
 interface ProductsRouteChildren {
   ProductsIdRoute: typeof ProductsIdRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
@@ -2223,6 +2251,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   ContentCreatorTemplatesRoute: ContentCreatorTemplatesRoute,
   CreatorAgreementRoute: CreatorAgreementRoute,
+  CreatorBusinessToolsRoute: CreatorBusinessToolsRouteWithChildren,
   CreatorDashboardRoute: CreatorDashboardRoute,
   CreatorEarningsRoute: CreatorEarningsRoute,
   CreatorTermsRoute: CreatorTermsRoute,
@@ -2255,7 +2284,6 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   StoreSlugRoute: StoreSlugRoute,
   SubscribeConfirmRoute: SubscribeConfirmRoute,
-  CreatorBusinessToolsIndexRoute: CreatorBusinessToolsIndexRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicAcademyReceiveArticleRoute: ApiPublicAcademyReceiveArticleRoute,
