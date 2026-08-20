@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, Mail } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { CategoryLineIcon } from "@/components/marketplace/CategoryIcons";
 import { ProductCard } from "@/components/marketplace/ProductCard";
 import { getProducts } from "@/lib/marketplace.functions";
+import { logCtaClick } from "@/lib/cta-tracking";
 import { subcategoriesQuery } from "@/lib/subcategories";
 import {
   CREATOR_TOOLS_DESCRIPTION,
