@@ -124,14 +124,21 @@ export const CATEGORIES: CategoryDef[] = [
   },
   {
     slug: "business_operating_systems",
-    label: "Business Operating Systems",
+    label: "Business Systems",
     accent: "#1A2E4A",
     ink: "#FFFFFF",
     icon: "⚙️",
     blurb:
-      "Notion, ClickUp, and Airtable systems that run the whole business — hiring, ops, delivery, and finance.",
-    gradient: grad("#060B14", "#0F1D2F", "#1A2E4A"),
-    subs: ["Notion", "ClickUp", "Airtable", "EOS", "Agency", "Studio"],
+      "Ready-to-use digital systems combining workflows, prompts, dashboards, and implementation plans for real business functions.",
+    gradient: grad("#060B14", "#0F1D2F", "#2A2412"),
+    subs: [
+      "AI Business Systems",
+      "Creator Business Systems",
+      "Marketing Systems",
+      "Sales & Client Systems",
+      "Operations & Productivity Systems",
+      "Interactive Decision Tools",
+    ],
   },
   {
     slug: "prompt_packs",
