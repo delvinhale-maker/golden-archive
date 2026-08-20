@@ -403,6 +403,51 @@ function CreatorBusinessToolsPage() {
           </div>
         </section>
 
+        {/* Email capture → creator signup flow */}
+        <section className="border-b border-white/10 bg-[#080A11]">
+          <div className="mx-auto max-w-3xl px-4 py-12 text-center sm:px-6 md:py-16 lg:px-8">
+            <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-[10px] font-bold uppercase tracking-caps text-gold">
+              <Mail size={12} aria-hidden /> Creator access
+            </span>
+            <h2 className="mt-4 font-display text-2xl font-bold text-white md:text-3xl">
+              Get new Creator Business Tools first
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-white/70">
+              Enter your email to start creator signup and get the free
+              AurumVault Creator Starter Kit — plus early access to new tools.
+            </p>
+            <form
+              onSubmit={startSignup}
+              className="mx-auto mt-7 flex w-full max-w-md flex-col gap-3 sm:flex-row"
+              noValidate
+            >
+              <label htmlFor="cbt-email" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="cbt-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="flex-1 rounded-full border border-white/20 bg-white/[0.06] px-5 py-3 text-[14px] text-white placeholder-white/40 outline-none transition focus:border-gold"
+              />
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-[13px] font-bold uppercase tracking-caps text-navy transition hover:brightness-105"
+              >
+                Start Creator Signup <ArrowRight size={15} aria-hidden />
+              </button>
+            </form>
+            {emailError && (
+              <p role="alert" className="mt-3 text-[13px] text-red-300">
+                {emailError}
+              </p>
+            )}
+          </div>
+        </section>
+
         {/* Final CTA */}
         <section className="bg-gradient-to-r from-[#0B1020] via-[#141024] to-[#241E10]">
           <div className="mx-auto max-w-4xl px-4 py-14 text-center sm:px-6 md:py-18 lg:px-8">
