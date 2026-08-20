@@ -227,7 +227,7 @@ export const CATEGORY_ACCENT: Record<string, string> = {
   templates: "var(--accent-dusty)",
   business_templates: "var(--accent-dusty)",
   // Business systems / toolkits → Dusty Blue as neutral operator tone
-  business_operating_systems: "var(--accent-dusty)",
+  business_operating_systems: "var(--gold)",
   digital_toolkits: "var(--accent-dusty)",
   // Caption Templates → restrained gold (brand voice)
   caption_templates: "var(--gold)",
