@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getArticleBySlug } from "@/lib/academy.functions";
 import { ArticleCard, difficultyFor } from "./academy.index";
+import { AcademyBusinessSystemsCallout } from "@/components/marketplace/AcademyBusinessSystemsCallout";
 import { ChevronRight, Clock, ArrowRight, Share2, BookmarkPlus, BookmarkCheck, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -263,6 +264,10 @@ function ArticleDetail() {
           className="prose prose-lg mt-10 max-w-none prose-headings:font-serif prose-headings:text-ink prose-p:text-ink/80 prose-strong:text-ink prose-a:text-[#B8860B]"
           dangerouslySetInnerHTML={{ __html: renderMarkdown(article.body) }}
         />
+
+        {/* Cross-link: Business Systems department + featured system */}
+        <AcademyBusinessSystemsCallout article={article} />
+
 
         {/* Recommended Resources */}
         {products.length > 0 && (
