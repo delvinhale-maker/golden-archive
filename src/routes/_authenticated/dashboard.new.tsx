@@ -67,7 +67,7 @@ const CATEGORIES: { label: string; value: import("@/lib/product-types").ProductC
   { label: "AI Prompt Packs", value: "ai_prompt_packs" },
   { label: "Digital Journals", value: "printable_journals" },
   { label: "Children's Educational", value: "childrens_educational" },
-  { label: "Business Operating Systems", value: "business_operating_systems" },
+  { label: "Business Systems", value: "business_operating_systems" },
   { label: "Business Templates", value: "business_templates" },
   { label: "Audio", value: "audio" },
   { label: "Templates", value: "templates" },

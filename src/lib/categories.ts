@@ -124,14 +124,21 @@ export const CATEGORIES: CategoryDef[] = [
   },
   {
     slug: "business_operating_systems",
-    label: "Business Operating Systems",
+    label: "Business Systems",
     accent: "#1A2E4A",
     ink: "#FFFFFF",
     icon: "⚙️",
     blurb:
-      "Notion, ClickUp, and Airtable systems that run the whole business — hiring, ops, delivery, and finance.",
-    gradient: grad("#060B14", "#0F1D2F", "#1A2E4A"),
-    subs: ["Notion", "ClickUp", "Airtable", "EOS", "Agency", "Studio"],
+      "Ready-to-use digital systems combining workflows, prompts, dashboards, and implementation plans for real business functions.",
+    gradient: grad("#060B14", "#0F1D2F", "#2A2412"),
+    subs: [
+      "AI Business Systems",
+      "Creator Business Systems",
+      "Marketing Systems",
+      "Sales & Client Systems",
+      "Operations & Productivity Systems",
+      "Interactive Decision Tools",
+    ],
   },
   {
     slug: "prompt_packs",
@@ -220,7 +227,7 @@ export const CATEGORY_ACCENT: Record<string, string> = {
   templates: "var(--accent-dusty)",
   business_templates: "var(--accent-dusty)",
   // Business systems / toolkits → Dusty Blue as neutral operator tone
-  business_operating_systems: "var(--accent-dusty)",
+  business_operating_systems: "var(--gold)",
   digital_toolkits: "var(--accent-dusty)",
   // Caption Templates → restrained gold (brand voice)
   caption_templates: "var(--gold)",
@@ -275,6 +282,9 @@ const LABEL_ALIAS: Record<string, string> = {
   "Film & TV": "film_tv_creator_production",
   "Film, TV & Creator Production": "film_tv_creator_production",
   "Creator Production": "film_tv_creator_production",
+  "Business Systems": "business_operating_systems",
+  "Business Operating Systems": "business_operating_systems",
+  "Business OS": "business_operating_systems",
 };
 
 
@@ -308,6 +318,14 @@ export const SUBCATEGORIES: Record<string, string[]> = {
     "Music & Entertainment",
     "Pitching & Distribution",
     "AI Creator Tools",
+  ],
+  business_operating_systems: [
+    "AI Business Systems",
+    "Creator Business Systems",
+    "Marketing Systems",
+    "Sales & Client Systems",
+    "Operations & Productivity Systems",
+    "Interactive Decision Tools",
   ],
 
 };
@@ -351,10 +369,11 @@ export function getCategoryDef(labelOrSlug?: string | null): CategoryDef | undef
 // and homepage category tiles. Keep this as the single source for nav chips.
 export const NAV_CATEGORIES = [
   "All",
-  "AI Prompt Packs",
   "eBooks",
   "Journals",
   "Planners",
+  "AI Prompt Packs",
+  "Business Systems",
   "Caption Templates",
   "Film & TV",
 

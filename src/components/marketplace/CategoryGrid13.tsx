@@ -34,7 +34,7 @@ const CATEGORY_BLURBS: Record<string, string> = {
   digital_toolkits:
     "All-in-one bundles of templates, checklists, and prompts grouped by role and outcome.",
   business_operating_systems:
-    "Notion, ClickUp, and Airtable systems that run hiring, ops, delivery, and finance.",
+    "Complete systems — workflows, prompts, dashboards, and implementation plans — for marketing, sales, service, and operations.",
   prompt_packs:
     "Battle-tested prompt libraries for ChatGPT, Claude, and Gemini — for marketing, writing, ops, and research.",
   templates:
@@ -192,7 +192,6 @@ export function CategoryGrid13() {
           {CATEGORIES.filter(
             (c) =>
               ![
-                "business_operating_systems",
                 "bible_studies",
                 "digital_toolkits",
                 "budget_spreadsheets",

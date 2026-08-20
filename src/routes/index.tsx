@@ -182,6 +182,12 @@ const SECTION_REGISTRY: Record<string, () => React.ReactElement> = {
   ),
 };
 
+const BusinessSystemsRow = lazy(() =>
+  import("@/components/marketplace/BusinessSystemsRow").then((m) => ({
+    default: m.BusinessSystemsRow,
+  })),
+);
+
 const AFFILIATE_REGISTRY: Record<string, () => React.ReactElement> = {
   vault_finds_row: () => (
     <Suspense fallback={null}>
@@ -248,6 +254,10 @@ function Home() {
         const R = SECTION_REGISTRY[key];
         return R ? <div key={key}>{R()}</div> : null;
       })}
+
+      <Suspense fallback={null}>
+        <BusinessSystemsRow />
+      </Suspense>
 
       {/* --- Affiliate band (Vault Finds) --------------------------------- */}
       <AffiliateBandHeader />
