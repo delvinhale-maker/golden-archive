@@ -44,7 +44,12 @@ function FunnelPanel() {
 
   return (
     <section className="mt-6 rounded-xl border border-black/10 bg-white p-4">
-      <h2 className="text-sm font-bold text-navy">Conversion funnel</h2>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-sm font-bold text-navy">Conversion funnel</h2>
+        <Link to="/admin/founding-analytics" className="text-xs font-semibold text-navy underline">
+          Full analytics dashboard
+        </Link>
+      </div>
       {funnel.isLoading ? (
         <p className="mt-3 flex items-center gap-2 text-sm text-black/50">
           <Loader2 size={16} className="animate-spin" /> Measuring funnel…
