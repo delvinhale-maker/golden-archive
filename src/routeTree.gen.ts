@@ -69,6 +69,7 @@ import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAutoReleaseRouteImport } from './routes/_authenticated/admin.auto-release'
 import { Route as AuthenticatedAdminCommunityRouteImport } from './routes/_authenticated/admin.community'
+import { Route as AuthenticatedAdminCreatorAcquisitionRouteImport } from './routes/_authenticated/admin.creator-acquisition'
 import { Route as AuthenticatedAdminEarningsRouteImport } from './routes/_authenticated/admin.earnings'
 import { Route as AuthenticatedAdminErrorsRouteImport } from './routes/_authenticated/admin.errors'
 import { Route as AuthenticatedAdminHomepageRouteImport } from './routes/_authenticated/admin.homepage'
@@ -422,6 +423,12 @@ const AuthenticatedAdminCommunityRoute =
     path: '/admin/community',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminCreatorAcquisitionRoute =
+  AuthenticatedAdminCreatorAcquisitionRouteImport.update({
+    id: '/admin/creator-acquisition',
+    path: '/admin/creator-acquisition',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminEarningsRoute =
   AuthenticatedAdminEarningsRouteImport.update({
     id: '/admin/earnings',
@@ -767,6 +774,7 @@ export interface FileRoutesByFullPath {
   '/products/': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
+  '/admin/creator-acquisition': typeof AuthenticatedAdminCreatorAcquisitionRoute
   '/admin/earnings': typeof AuthenticatedAdminEarningsRoute
   '/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
@@ -873,6 +881,7 @@ export interface FileRoutesByTo {
   '/products': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
+  '/admin/creator-acquisition': typeof AuthenticatedAdminCreatorAcquisitionRoute
   '/admin/earnings': typeof AuthenticatedAdminEarningsRoute
   '/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
@@ -984,6 +993,7 @@ export interface FileRoutesById {
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/_authenticated/admin/community': typeof AuthenticatedAdminCommunityRoute
+  '/_authenticated/admin/creator-acquisition': typeof AuthenticatedAdminCreatorAcquisitionRoute
   '/_authenticated/admin/earnings': typeof AuthenticatedAdminEarningsRoute
   '/_authenticated/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/_authenticated/admin/homepage': typeof AuthenticatedAdminHomepageRoute
@@ -1095,6 +1105,7 @@ export interface FileRouteTypes {
     | '/products/'
     | '/admin/auto-release'
     | '/admin/community'
+    | '/admin/creator-acquisition'
     | '/admin/earnings'
     | '/admin/errors'
     | '/admin/homepage'
@@ -1201,6 +1212,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/admin/auto-release'
     | '/admin/community'
+    | '/admin/creator-acquisition'
     | '/admin/earnings'
     | '/admin/errors'
     | '/admin/homepage'
@@ -1311,6 +1323,7 @@ export interface FileRouteTypes {
     | '/products/'
     | '/_authenticated/admin/auto-release'
     | '/_authenticated/admin/community'
+    | '/_authenticated/admin/creator-acquisition'
     | '/_authenticated/admin/earnings'
     | '/_authenticated/admin/errors'
     | '/_authenticated/admin/homepage'
@@ -1852,6 +1865,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCommunityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/creator-acquisition': {
+      id: '/_authenticated/admin/creator-acquisition'
+      path: '/admin/creator-acquisition'
+      fullPath: '/admin/creator-acquisition'
+      preLoaderRoute: typeof AuthenticatedAdminCreatorAcquisitionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/earnings': {
       id: '/_authenticated/admin/earnings'
       path: '/admin/earnings'
@@ -2210,6 +2230,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReferRoute: typeof AuthenticatedReferRoute
   AuthenticatedAdminAutoReleaseRoute: typeof AuthenticatedAdminAutoReleaseRoute
   AuthenticatedAdminCommunityRoute: typeof AuthenticatedAdminCommunityRoute
+  AuthenticatedAdminCreatorAcquisitionRoute: typeof AuthenticatedAdminCreatorAcquisitionRoute
   AuthenticatedAdminEarningsRoute: typeof AuthenticatedAdminEarningsRoute
   AuthenticatedAdminErrorsRoute: typeof AuthenticatedAdminErrorsRoute
   AuthenticatedAdminHomepageRoute: typeof AuthenticatedAdminHomepageRoute
@@ -2247,6 +2268,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReferRoute: AuthenticatedReferRoute,
   AuthenticatedAdminAutoReleaseRoute: AuthenticatedAdminAutoReleaseRoute,
   AuthenticatedAdminCommunityRoute: AuthenticatedAdminCommunityRoute,
+  AuthenticatedAdminCreatorAcquisitionRoute:
+    AuthenticatedAdminCreatorAcquisitionRoute,
   AuthenticatedAdminEarningsRoute: AuthenticatedAdminEarningsRoute,
   AuthenticatedAdminErrorsRoute: AuthenticatedAdminErrorsRoute,
   AuthenticatedAdminHomepageRoute: AuthenticatedAdminHomepageRoute,
