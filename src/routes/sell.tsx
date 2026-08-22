@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { sendTransactionalEmail } from "@/lib/email/send";
 import {
   FOUNDING_CAMPAIGN,
+  FOUNDING_EVENTS,
   captureFoundingAttribution,
   clearStoredFoundingAttribution,
   getStoredFoundingAttribution,
@@ -154,6 +155,7 @@ function SellPage() {
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Application submitted. We'll review within 48 hours.");
+    if (attribution) logCtaClick(FOUNDING_EVENTS.applicationSubmitted);
     clearStoredFoundingAttribution();
     if (user.email) {
       sendTransactionalEmail({

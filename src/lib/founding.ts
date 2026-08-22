@@ -12,6 +12,7 @@ export const FOUNDING_APPLICATION_ROUTE = "/sell";
 export const FOUNDING_EVENTS = {
   viewed: "founding_100_viewed",
   applyClicked: "founding_100_apply_clicked",
+  applicationSubmitted: "founding_100_application_submitted",
   starterPackClicked: "founding_100_starter_pack_clicked",
   faqOpened: "founding_100_faq_opened",
   launchKitViewed: "founding_100_launch_kit_viewed",
