@@ -1,7 +1,7 @@
 import * as React from "react";
 import { render } from "react-email";
 import { TEMPLATES } from "@/lib/email-templates/registry";
-import { adminClient, redact } from "@/lib/starter-pack.server";
+import { adminClient, getOrCreateUnsubscribeToken, redact } from "@/lib/starter-pack.server";
 
 const SITE_NAME = "AurumVault";
 const SENDER_DOMAIN = "notify.www.aurumvault.store";
@@ -94,6 +94,7 @@ export async function runStarterPackNurture(): Promise<NurtureResult> {
           label: cfg.template,
           idempotency_key: `${cfg.template}-${row.id}`,
           queued_at: nowIso,
+          ...(unsubscribeToken ? { unsubscribe_token: unsubscribeToken } : {}),
         },
       });
 
