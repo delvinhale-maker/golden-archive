@@ -16,6 +16,8 @@ export type AccountOrder = {
     file_size_bytes: number | null;
     creator_name: string | null;
     download_token: string | null;
+    /** Set when the line came from a bundle purchase, for receipt labelling. */
+    bundle_name: string | null;
   }[];
 };
 
