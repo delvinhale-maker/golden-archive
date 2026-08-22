@@ -622,7 +622,17 @@ function StorefrontPage() {
       </nav>
 
       <main className="mx-auto max-w-6xl px-4 md:px-8 py-8">
-        {tab === "products" && <ProductsTab products={data.products} reviews={data.reviews} />}
+        {tab === "products" && (
+          <>
+            <CreatorFeaturedProducts
+              creatorUserId={data.creatorUserId}
+              products={featuredProducts}
+              accent={settings?.accent}
+              headline={settings?.headline ?? null}
+            />
+            <ProductsTab products={data.products} reviews={data.reviews} />
+          </>
+        )}
         {tab === "categories" && <CategoriesTab products={data.products} />}
         {tab === "bundles" && <BundlesTab bundles={data.bundles} products={data.products} />}
         {tab === "about" && <AboutTab data={data} />}
