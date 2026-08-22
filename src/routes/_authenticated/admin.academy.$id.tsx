@@ -27,7 +27,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import { pingSearchEngines } from "@/lib/sitemap-ping.functions";
+import { pingSearchEngines, notifySearchEngines } from "@/lib/sitemap-ping.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/academy/$id")({
   component: AdminAcademyEditor,
@@ -302,6 +302,12 @@ function AdminAcademyEditor() {
       void pingSearchEngines().then((r) => {
         console.info("[sitemap-ping]", r);
       });
+      // IndexNow: tell Bing & friends exactly which URLs changed.
+      void notifySearchEngines({
+        data: { paths: [`/academy/article/${a.slug}`, "/academy", "/"] },
+      })
+        .then((r) => console.info("[indexnow]", r))
+        .catch(() => {});
     }
     return true;
   };
