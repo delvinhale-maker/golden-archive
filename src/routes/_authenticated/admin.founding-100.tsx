@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ArrowLeft, Crown, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { getFoundingMetrics } from "@/lib/founding.functions";
+import { getFoundingFunnel, getFoundingMetrics } from "@/lib/founding.functions";
 import {
   PROSPECT_STATUSES,
   deleteCreatorProspect,
