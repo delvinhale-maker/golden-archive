@@ -15,6 +15,10 @@ import {
   X,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { acceptIntoFounding100 } from "@/lib/founding.functions";
+import { FoundingCreatorBadge } from "@/components/marketplace/FoundingCreatorBadge";
+import { FOUNDING_COHORT_SIZE } from "@/lib/founding";
 
 type AppStatus = "pending" | "under_review" | "info_requested" | "approved" | "rejected";
 
@@ -70,6 +74,10 @@ export function CreatorApplicationsBoard() {
   const [creators, setCreators] = useState<CreatorRow[]>([]);
   const [openApp, setOpenApp] = useState<App | null>(null);
   const [loading, setLoading] = useState(true);
+  const [founding, setFounding] = useState<Record<string, number>>({});
+  const [acceptingFounding, setAcceptingFounding] = useState<string | null>(null);
+  const acceptFounding = useServerFn(acceptIntoFounding100);
+  const foundingCount = Object.keys(founding).length;
 
   async function refresh() {
     setLoading(true);
@@ -79,6 +87,15 @@ export function CreatorApplicationsBoard() {
       .order("created_at", { ascending: false });
     const all = (appData ?? []) as unknown as App[];
     setApps(all);
+
+    const { data: foundingRows } = await supabase
+      .from("founding_creators")
+      .select("user_id, founding_number");
+    const foundingMap: Record<string, number> = {};
+    (foundingRows ?? []).forEach((r: { user_id: string; founding_number: number }) => {
+      foundingMap[r.user_id] = r.founding_number;
+    });
+    setFounding(foundingMap);
 
     const userIds = Array.from(new Set(all.map((a) => a.user_id)));
     if (userIds.length) {
@@ -259,6 +276,29 @@ export function CreatorApplicationsBoard() {
     }
   }
 
+  async function acceptFoundingCreator(a: App) {
+    if (founding[a.user_id]) return;
+    if (
+      !window.confirm(
+        `Accept ${a.brand_name} into the Founding 100? The founding number is assigned permanently.`,
+      )
+    )
+      return;
+    setAcceptingFounding(a.id);
+    try {
+      const res = await acceptFounding({ data: { applicationId: a.id } });
+      toast.success(
+        `${a.brand_name} is Founding Creator #${String(res.foundingNumber).padStart(3, "0")}` +
+          (res.emailQueued ? " · welcome email queued" : " · welcome email not sent"),
+      );
+      await refresh();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not accept into the Founding 100");
+    } finally {
+      setAcceptingFounding(null);
+    }
+  }
+
   const byStatus = useMemo(() => {
     const m: Record<AppStatus, App[]> = {
       pending: [],
@@ -360,7 +400,9 @@ export function CreatorApplicationsBoard() {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-xl text-navy">Approved creators</h2>
-          <span className="text-xs text-mute">{creators.length} total</span>
+          <span className="text-xs text-mute">
+            {creators.length} total · Founding 100: {foundingCount}/{FOUNDING_COHORT_SIZE}
+          </span>
         </div>
         {creators.length === 0 ? (
           <p className="text-sm text-mute">No approved creators yet.</p>
@@ -371,6 +413,7 @@ export function CreatorApplicationsBoard() {
                 <tr>
                   <th className="text-left px-4 py-2 font-medium">Creator</th>
                   <th className="text-left px-4 py-2 font-medium">Storefront</th>
+                  <th className="text-left px-4 py-2 font-medium">Founding 100</th>
                   <th className="text-right px-4 py-2 font-medium">Products</th>
                   <th className="text-right px-4 py-2 font-medium">Pending</th>
                   <th className="text-right px-4 py-2 font-medium">Paid out</th>
@@ -395,6 +438,21 @@ export function CreatorApplicationsBoard() {
                         </Link>
                       ) : (
                         <span className="text-xs text-mute">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {founding[c.app.user_id] ? (
+                        <FoundingCreatorBadge foundingNumber={founding[c.app.user_id]} />
+                      ) : foundingCount >= FOUNDING_COHORT_SIZE ? (
+                        <span className="text-[11px] text-mute">Cohort full</span>
+                      ) : (
+                        <button
+                          onClick={() => void acceptFoundingCreator(c.app)}
+                          disabled={acceptingFounding === c.app.id}
+                          className="rounded-full border border-gold/50 px-2.5 py-1 text-[11px] font-semibold text-navy hover:bg-gold/10 disabled:opacity-50"
+                        >
+                          {acceptingFounding === c.app.id ? "Accepting…" : "Accept into Founding 100"}
+                        </button>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">
