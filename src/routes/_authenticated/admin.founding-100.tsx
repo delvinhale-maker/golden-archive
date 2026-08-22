@@ -146,6 +146,8 @@ function FoundingCommandCenter() {
             />
           </div>
 
+          <FunnelPanel />
+
           <section className="mt-6 rounded-xl border border-black/10 bg-white p-4">
             <h2 className="text-sm font-bold text-navy">Latest founding creators</h2>
             {m.acceptedRecent.length === 0 ? (
