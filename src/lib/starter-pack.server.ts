@@ -157,13 +157,6 @@ export async function sendStarterPackEmail(
       return { sent: false, reason: "enqueue_failed" };
     }
 
-    await supabase.from("email_send_log").insert({
-      message_id: messageId,
-      template_name: DELIVERY_TEMPLATE,
-      recipient_email: args.email,
-      status: "queued",
-    });
-
     return { sent: true, messageId };
   } catch (e) {
     console.error("Starter pack send failed", { email: redact(args.email) });
