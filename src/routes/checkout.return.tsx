@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { useCart } from "@/hooks/use-av-store";
 import { getOrderTokensBySession } from "@/lib/payments.functions";
+import { PostPurchaseRecommendations } from "@/components/marketplace/PostPurchaseRecommendations";
 
 export const Route = createFileRoute("/checkout/return")({
   validateSearch: (search: Record<string, unknown>): { session_id?: string } => ({
@@ -22,7 +23,7 @@ type OrderView =
   | { status: "missing_session" }
   | {
       status: "ready";
-      items: { title: string; token: string | null }[];
+      items: { title: string; token: string | null; productId: string | null }[];
       amountCents?: number | null;
       currency?: string | null;
     };
@@ -56,7 +57,11 @@ function CheckoutReturn() {
         if ("ok" in res && res.ok) {
           setView({
             status: "ready",
-            items: res.items.map((i) => ({ title: i.title, token: i.token })),
+            items: res.items.map((i) => ({
+              title: i.title,
+              token: i.token,
+              productId: i.productId ?? null,
+            })),
             amountCents: res.amountCents,
             currency: res.currency,
           });
@@ -249,6 +254,12 @@ function CheckoutReturn() {
             Keep shopping
           </Link>
         </motion.div>
+
+        {view.status === "ready" && (
+          <PostPurchaseRecommendations
+            productId={view.items.find((i) => i.productId)?.productId ?? null}
+          />
+        )}
       </div>
     </MarketShell>
   );
