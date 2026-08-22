@@ -84,6 +84,47 @@ async function isOptedOut(supabase: SupabaseClient, email: string): Promise<bool
   return Boolean(data);
 }
 
+function randomToken(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
+ * Returns the recipient's stable one-click unsubscribe token, creating one on
+ * first send. The mail platform requires it on every send so it can attach the
+ * compliant List-Unsubscribe header.
+ */
+export async function getOrCreateUnsubscribeToken(
+  supabase: SupabaseClient,
+  email: string,
+): Promise<string | null> {
+  try {
+    const { data: existing } = await supabase
+      .from("email_unsubscribe_tokens")
+      .select("token")
+      .eq("email", email)
+      .maybeSingle();
+    if (existing?.token) return existing.token as string;
+
+    await supabase
+      .from("email_unsubscribe_tokens")
+      .upsert({ token: randomToken(), email }, { onConflict: "email", ignoreDuplicates: true });
+
+    const { data: stored } = await supabase
+      .from("email_unsubscribe_tokens")
+      .select("token")
+      .eq("email", email)
+      .maybeSingle();
+    return (stored?.token as string) ?? null;
+  } catch {
+    console.error("Unsubscribe token lookup failed", { email: redact(email) });
+    return null;
+  }
+}
+
 export type SendOutcome =
   | { sent: true; messageId: string }
   | { sent: false; reason: "opted_out" | "template" | "enqueue_failed" | "error" };
