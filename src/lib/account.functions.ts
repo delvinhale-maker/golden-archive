@@ -41,7 +41,7 @@ export const getMyOrders = createServerFn({ method: "GET" })
     const { data: items } = await supabaseAdmin
       .from("order_items")
       .select(
-        "id,order_id,product_id,product_title,unit_amount_cents,marketplace_products(cover_url,file_path,file_size_bytes,creator_name)",
+        "id,order_id,product_id,product_title,unit_amount_cents,bundle_name,marketplace_products(cover_url,file_path,file_size_bytes,creator_name)",
       )
       .in("order_id", orderIds);
 
@@ -79,6 +79,7 @@ export const getMyOrders = createServerFn({ method: "GET" })
             file_size_bytes: mp?.file_size_bytes ?? null,
             creator_name: mp?.creator_name ?? null,
             download_token: tokenByItem.get(i.id) ?? null,
+            bundle_name: (i as { bundle_name?: string | null }).bundle_name ?? null,
           };
         }),
     }));
