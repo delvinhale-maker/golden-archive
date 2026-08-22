@@ -2,30 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-const attributionSchema = {
-  utmSource: z.string().trim().max(120).optional(),
-  utmMedium: z.string().trim().max(120).optional(),
-  utmCampaign: z.string().trim().max(160).optional(),
-  utmContent: z.string().trim().max(160).optional(),
-  utmTerm: z.string().trim().max(160).optional(),
-  referringUrl: z.string().trim().max(500).optional(),
-  landingPage: z.string().trim().max(500).optional(),
-};
-
-const submitSchema = z.object({
-  firstName: z.string().trim().min(1, "Please enter your first name").max(80),
-  email: z.string().trim().min(3).max(255).email(),
-  marketingConsent: z.boolean().optional().default(false),
-  /** Honeypot — bots that autofill it get a silent fake success. */
-  company: z.string().max(200).optional().default(""),
-  /** Milliseconds spent on the form; sub-second fills are automated. */
-  elapsedMs: z.number().int().min(0).max(86_400_000).optional().default(0),
-  ...attributionSchema,
-});
-
-const MIN_FILL_MS = 1200;
-const MAX_PER_HOUR = 5;
+import {
+  MAX_PER_HOUR,
+  looksAutomated,
+  starterPackSubmitSchema,
+} from "@/lib/starter-pack-validation";
 
 /** SHA-256 of the caller IP — we never store a raw address. */
 async function callerFingerprint(): Promise<string | null> {
