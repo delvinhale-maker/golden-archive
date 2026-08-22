@@ -81,12 +81,12 @@ export const Route = createFileRoute("/products/$id")({
         ? `“${t}” is currently being reviewed or has been unpublished on AurumVault. Check back soon or browse other premium digital products.`
         : "This product is currently being reviewed or has been unpublished on AurumVault. Check back soon or browse other premium digital products.";
     } else if (p) {
-      baseTitle = `${p.title} | AurumVault — Gold Standard Digital Commerce`;
+      baseTitle = `${p.title} | AurumVault`;
       rawDesc = p.description?.trim()
         ? p.description.replace(/\s+/g, " ").trim()
         : "A premium digital resource from a verified AurumVault creator.";
     } else {
-      baseTitle = "Product | AurumVault — Gold Standard Digital Commerce";
+      baseTitle = "Digital Product | AurumVault";
       rawDesc = "A premium digital resource from a verified AurumVault creator.";
     }
     const desc = rawDesc.length > 160 ? `${rawDesc.slice(0, 157)}…` : rawDesc;
@@ -105,7 +105,7 @@ export const Route = createFileRoute("/products/$id")({
     const previewImage = image ?? FALLBACK_IMAGE;
     const imageAlt = p?.title
       ? `Cover for ${p.title} on AurumVault`
-      : "AurumVault — Gold Standard Digital Commerce";
+      : "AurumVault | Digital Product Marketplace for Creators";
 
     const meta: Array<Record<string, string>> = [
       { title: baseTitle },

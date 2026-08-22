@@ -84,7 +84,7 @@ export const Route = createFileRoute("/products/")({
     ),
   head: () => ({
     meta: [
-      { title: "Browse the Vault | AurumVault — Gold Standard Digital Commerce" },
+      { title: "Digital Products | AurumVault Marketplace" },
       {
         name: "description",
         content:
