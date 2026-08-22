@@ -317,6 +317,12 @@ function BookshelfPage() {
         {canPublish && (
           <div className="flex items-center gap-2 flex-wrap">
             <Link
+              to="/dashboard/launch-kit"
+              className="inline-flex items-center gap-2 rounded-full font-medium px-4 py-2.5 bg-white border border-ink/15 text-navy hover:border-gold/40"
+            >
+              <Crown size={16} /> Launch Kit
+            </Link>
+            <Link
               to="/dashboard/storefront"
               className="inline-flex items-center gap-2 rounded-full font-medium px-4 py-2.5 bg-white border border-ink/15 text-navy hover:border-gold/40"
             >

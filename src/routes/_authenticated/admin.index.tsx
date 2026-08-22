@@ -156,6 +156,7 @@ function AdminPage() {
           <Link to="/admin/errors" className="text-sm text-white/70 hover:text-white">Errors</Link>
           <Link to="/admin/lead-analytics" className="text-sm text-white/70 hover:text-white">Lead analytics</Link>
           <Link to="/admin/creator-acquisition" className="text-sm text-white/70 hover:text-white">Creator acquisition</Link>
+          <Link to="/admin/founding-100" className="text-sm text-white/70 hover:text-white">Founding 100</Link>
           <Link to="/admin/import" className="text-sm text-white/70 hover:text-white">Import</Link>
           <Link to="/admin/verify-pdf" className="text-sm text-white/70 hover:text-white">Verify PDF</Link>
           <Link to="/admin/homepage" className="text-sm text-gold hover:text-white">Homepage Layout</Link>
