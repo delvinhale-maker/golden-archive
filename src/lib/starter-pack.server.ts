@@ -98,10 +98,12 @@ function randomToken(): string {
  * compliant List-Unsubscribe header.
  */
 export async function getOrCreateUnsubscribeToken(
-  supabase: SupabaseClient,
+  _supabase: SupabaseClient,
   email: string,
 ): Promise<string | null> {
   try {
+    // Token rows are service-role only, so always use the admin client here.
+    const supabase = adminClient();
     const { data: existing } = await supabase
       .from("email_unsubscribe_tokens")
       .select("token")
