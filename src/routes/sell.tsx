@@ -7,6 +7,12 @@ import { AVLogo } from "@/components/marketplace/AVLogo";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
 import { sendTransactionalEmail } from "@/lib/email/send";
+import {
+  FOUNDING_CAMPAIGN,
+  captureFoundingAttribution,
+  clearStoredFoundingAttribution,
+  getStoredFoundingAttribution,
+} from "@/lib/founding";
 
 export const Route = createFileRoute("/sell")({
   component: SellPage,
@@ -84,6 +90,15 @@ function SellPage() {
       .then(({ data }) => setExisting(data as { status: string } | null));
   }, [user]);
 
+  // Keep campaign attribution when an applicant lands here straight from a
+  // campaign link instead of the landing page.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("campaign") === FOUNDING_CAMPAIGN && !getStoredFoundingAttribution()) {
+      captureFoundingAttribution();
+    }
+  }, []);
+
   const progress = useMemo(() => (step / 4) * 100, [step]);
 
   function validateStep(n: number): boolean {
@@ -113,6 +128,8 @@ function SellPage() {
     if (!validateStep(4)) return;
     setBusy(true);
     const socialLinks = { instagram, twitter, youtube };
+    // Founding 100 / campaign attribution captured on the landing page.
+    const attribution = getStoredFoundingAttribution();
     const { error } = await supabase.from("seller_applications").insert({
       user_id: user.id,
       brand_name: brandName,
@@ -124,10 +141,20 @@ function SellPage() {
       categories: categories.length ? categories : null,
       price_range: priceRange || null,
       social_links: socialLinks,
+      campaign: attribution?.campaign ?? null,
+      campaign_source: attribution?.campaignSource ?? null,
+      utm_source: attribution?.utmSource ?? null,
+      utm_medium: attribution?.utmMedium ?? null,
+      utm_campaign: attribution?.utmCampaign ?? null,
+      utm_content: attribution?.utmContent ?? null,
+      utm_term: attribution?.utmTerm ?? null,
+      referring_url: attribution?.referringUrl ?? null,
     });
+
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Application submitted. We'll review within 48 hours.");
+    clearStoredFoundingAttribution();
     if (user.email) {
       sendTransactionalEmail({
         templateName: "seller-application-received",

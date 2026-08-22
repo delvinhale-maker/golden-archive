@@ -30,6 +30,7 @@ import { Route as CreatorEarningsRouteImport } from './routes/creator-earnings'
 import { Route as CreatorStarterPackRouteImport } from './routes/creator-starter-pack'
 import { Route as CreatorTermsRouteImport } from './routes/creator-terms'
 import { Route as CreatorsRouteImport } from './routes/creators'
+import { Route as Founding100RouteImport } from './routes/founding-100'
 import { Route as GiftCardsRouteImport } from './routes/gift-cards'
 import { Route as KingdomPicksRouteImport } from './routes/kingdom-picks'
 import { Route as LibraryRouteImport } from './routes/library'
@@ -72,6 +73,7 @@ import { Route as AuthenticatedAdminCommunityRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminCreatorAcquisitionRouteImport } from './routes/_authenticated/admin.creator-acquisition'
 import { Route as AuthenticatedAdminEarningsRouteImport } from './routes/_authenticated/admin.earnings'
 import { Route as AuthenticatedAdminErrorsRouteImport } from './routes/_authenticated/admin.errors'
+import { Route as AuthenticatedAdminFounding100RouteImport } from './routes/_authenticated/admin.founding-100'
 import { Route as AuthenticatedAdminHomepageRouteImport } from './routes/_authenticated/admin.homepage'
 import { Route as AuthenticatedAdminImportRouteImport } from './routes/_authenticated/admin.import'
 import { Route as AuthenticatedAdminLeadAnalyticsRouteImport } from './routes/_authenticated/admin.lead-analytics'
@@ -89,6 +91,7 @@ import { Route as AuthenticatedDashboardCreatorReferralsRouteImport } from './ro
 import { Route as AuthenticatedDashboardEarnRouteImport } from './routes/_authenticated/dashboard.earn'
 import { Route as AuthenticatedDashboardHelpRouteImport } from './routes/_authenticated/dashboard.help'
 import { Route as AuthenticatedDashboardKingdomPicksRouteImport } from './routes/_authenticated/dashboard.kingdom-picks'
+import { Route as AuthenticatedDashboardLaunchKitRouteImport } from './routes/_authenticated/dashboard.launch-kit'
 import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authenticated/dashboard.new'
 import { Route as AuthenticatedDashboardPayoutsRouteImport } from './routes/_authenticated/dashboard.payouts'
 import { Route as AuthenticatedDashboardStorefrontRouteImport } from './routes/_authenticated/dashboard.storefront'
@@ -221,6 +224,11 @@ const CreatorTermsRoute = CreatorTermsRouteImport.update({
 const CreatorsRoute = CreatorsRouteImport.update({
   id: '/creators',
   path: '/creators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Founding100Route = Founding100RouteImport.update({
+  id: '/founding-100',
+  path: '/founding-100',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GiftCardsRoute = GiftCardsRouteImport.update({
@@ -441,6 +449,12 @@ const AuthenticatedAdminErrorsRoute =
     path: '/admin/errors',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminFounding100Route =
+  AuthenticatedAdminFounding100RouteImport.update({
+    id: '/admin/founding-100',
+    path: '/admin/founding-100',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminHomepageRoute =
   AuthenticatedAdminHomepageRouteImport.update({
     id: '/admin/homepage',
@@ -541,6 +555,12 @@ const AuthenticatedDashboardKingdomPicksRoute =
   AuthenticatedDashboardKingdomPicksRouteImport.update({
     id: '/dashboard/kingdom-picks',
     path: '/dashboard/kingdom-picks',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardLaunchKitRoute =
+  AuthenticatedDashboardLaunchKitRouteImport.update({
+    id: '/dashboard/launch-kit',
+    path: '/dashboard/launch-kit',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedDashboardNewRoute =
@@ -736,6 +756,7 @@ export interface FileRoutesByFullPath {
   '/creator-starter-pack': typeof CreatorStarterPackRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
+  '/founding-100': typeof Founding100Route
   '/gift-cards': typeof GiftCardsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
@@ -777,6 +798,7 @@ export interface FileRoutesByFullPath {
   '/admin/creator-acquisition': typeof AuthenticatedAdminCreatorAcquisitionRoute
   '/admin/earnings': typeof AuthenticatedAdminEarningsRoute
   '/admin/errors': typeof AuthenticatedAdminErrorsRoute
+  '/admin/founding-100': typeof AuthenticatedAdminFounding100Route
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
   '/admin/lead-analytics': typeof AuthenticatedAdminLeadAnalyticsRoute
@@ -793,6 +815,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
+  '/dashboard/launch-kit': typeof AuthenticatedDashboardLaunchKitRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
@@ -844,6 +867,7 @@ export interface FileRoutesByTo {
   '/creator-starter-pack': typeof CreatorStarterPackRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
+  '/founding-100': typeof Founding100Route
   '/gift-cards': typeof GiftCardsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
@@ -884,6 +908,7 @@ export interface FileRoutesByTo {
   '/admin/creator-acquisition': typeof AuthenticatedAdminCreatorAcquisitionRoute
   '/admin/earnings': typeof AuthenticatedAdminEarningsRoute
   '/admin/errors': typeof AuthenticatedAdminErrorsRoute
+  '/admin/founding-100': typeof AuthenticatedAdminFounding100Route
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
   '/admin/lead-analytics': typeof AuthenticatedAdminLeadAnalyticsRoute
@@ -900,6 +925,7 @@ export interface FileRoutesByTo {
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
+  '/dashboard/launch-kit': typeof AuthenticatedDashboardLaunchKitRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
@@ -955,6 +981,7 @@ export interface FileRoutesById {
   '/creator-starter-pack': typeof CreatorStarterPackRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
+  '/founding-100': typeof Founding100Route
   '/gift-cards': typeof GiftCardsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
@@ -996,6 +1023,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/creator-acquisition': typeof AuthenticatedAdminCreatorAcquisitionRoute
   '/_authenticated/admin/earnings': typeof AuthenticatedAdminEarningsRoute
   '/_authenticated/admin/errors': typeof AuthenticatedAdminErrorsRoute
+  '/_authenticated/admin/founding-100': typeof AuthenticatedAdminFounding100Route
   '/_authenticated/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/_authenticated/admin/import': typeof AuthenticatedAdminImportRoute
   '/_authenticated/admin/lead-analytics': typeof AuthenticatedAdminLeadAnalyticsRoute
@@ -1012,6 +1040,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
   '/_authenticated/dashboard/help': typeof AuthenticatedDashboardHelpRoute
   '/_authenticated/dashboard/kingdom-picks': typeof AuthenticatedDashboardKingdomPicksRoute
+  '/_authenticated/dashboard/launch-kit': typeof AuthenticatedDashboardLaunchKitRoute
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/_authenticated/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/_authenticated/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
@@ -1067,6 +1096,7 @@ export interface FileRouteTypes {
     | '/creator-starter-pack'
     | '/creator-terms'
     | '/creators'
+    | '/founding-100'
     | '/gift-cards'
     | '/kingdom-picks'
     | '/library'
@@ -1108,6 +1138,7 @@ export interface FileRouteTypes {
     | '/admin/creator-acquisition'
     | '/admin/earnings'
     | '/admin/errors'
+    | '/admin/founding-100'
     | '/admin/homepage'
     | '/admin/import'
     | '/admin/lead-analytics'
@@ -1124,6 +1155,7 @@ export interface FileRouteTypes {
     | '/dashboard/earn'
     | '/dashboard/help'
     | '/dashboard/kingdom-picks'
+    | '/dashboard/launch-kit'
     | '/dashboard/new'
     | '/dashboard/payouts'
     | '/dashboard/storefront'
@@ -1175,6 +1207,7 @@ export interface FileRouteTypes {
     | '/creator-starter-pack'
     | '/creator-terms'
     | '/creators'
+    | '/founding-100'
     | '/gift-cards'
     | '/kingdom-picks'
     | '/library'
@@ -1215,6 +1248,7 @@ export interface FileRouteTypes {
     | '/admin/creator-acquisition'
     | '/admin/earnings'
     | '/admin/errors'
+    | '/admin/founding-100'
     | '/admin/homepage'
     | '/admin/import'
     | '/admin/lead-analytics'
@@ -1231,6 +1265,7 @@ export interface FileRouteTypes {
     | '/dashboard/earn'
     | '/dashboard/help'
     | '/dashboard/kingdom-picks'
+    | '/dashboard/launch-kit'
     | '/dashboard/new'
     | '/dashboard/payouts'
     | '/dashboard/storefront'
@@ -1285,6 +1320,7 @@ export interface FileRouteTypes {
     | '/creator-starter-pack'
     | '/creator-terms'
     | '/creators'
+    | '/founding-100'
     | '/gift-cards'
     | '/kingdom-picks'
     | '/library'
@@ -1326,6 +1362,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/creator-acquisition'
     | '/_authenticated/admin/earnings'
     | '/_authenticated/admin/errors'
+    | '/_authenticated/admin/founding-100'
     | '/_authenticated/admin/homepage'
     | '/_authenticated/admin/import'
     | '/_authenticated/admin/lead-analytics'
@@ -1342,6 +1379,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/earn'
     | '/_authenticated/dashboard/help'
     | '/_authenticated/dashboard/kingdom-picks'
+    | '/_authenticated/dashboard/launch-kit'
     | '/_authenticated/dashboard/new'
     | '/_authenticated/dashboard/payouts'
     | '/_authenticated/dashboard/storefront'
@@ -1397,6 +1435,7 @@ export interface RootRouteChildren {
   CreatorStarterPackRoute: typeof CreatorStarterPackRoute
   CreatorTermsRoute: typeof CreatorTermsRoute
   CreatorsRoute: typeof CreatorsRoute
+  Founding100Route: typeof Founding100Route
   GiftCardsRoute: typeof GiftCardsRoute
   KingdomPicksRoute: typeof KingdomPicksRoute
   LibraryRoute: typeof LibraryRoute
@@ -1590,6 +1629,13 @@ declare module '@tanstack/react-router' {
       path: '/creators'
       fullPath: '/creators'
       preLoaderRoute: typeof CreatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/founding-100': {
+      id: '/founding-100'
+      path: '/founding-100'
+      fullPath: '/founding-100'
+      preLoaderRoute: typeof Founding100RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/gift-cards': {
@@ -1886,6 +1932,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminErrorsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/founding-100': {
+      id: '/_authenticated/admin/founding-100'
+      path: '/admin/founding-100'
+      fullPath: '/admin/founding-100'
+      preLoaderRoute: typeof AuthenticatedAdminFounding100RouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/homepage': {
       id: '/_authenticated/admin/homepage'
       path: '/admin/homepage'
@@ -2003,6 +2056,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard/kingdom-picks'
       fullPath: '/dashboard/kingdom-picks'
       preLoaderRoute: typeof AuthenticatedDashboardKingdomPicksRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/launch-kit': {
+      id: '/_authenticated/dashboard/launch-kit'
+      path: '/dashboard/launch-kit'
+      fullPath: '/dashboard/launch-kit'
+      preLoaderRoute: typeof AuthenticatedDashboardLaunchKitRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard/new': {
@@ -2233,6 +2293,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminCreatorAcquisitionRoute: typeof AuthenticatedAdminCreatorAcquisitionRoute
   AuthenticatedAdminEarningsRoute: typeof AuthenticatedAdminEarningsRoute
   AuthenticatedAdminErrorsRoute: typeof AuthenticatedAdminErrorsRoute
+  AuthenticatedAdminFounding100Route: typeof AuthenticatedAdminFounding100Route
   AuthenticatedAdminHomepageRoute: typeof AuthenticatedAdminHomepageRoute
   AuthenticatedAdminImportRoute: typeof AuthenticatedAdminImportRoute
   AuthenticatedAdminLeadAnalyticsRoute: typeof AuthenticatedAdminLeadAnalyticsRoute
@@ -2249,6 +2310,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardEarnRoute: typeof AuthenticatedDashboardEarnRoute
   AuthenticatedDashboardHelpRoute: typeof AuthenticatedDashboardHelpRoute
   AuthenticatedDashboardKingdomPicksRoute: typeof AuthenticatedDashboardKingdomPicksRoute
+  AuthenticatedDashboardLaunchKitRoute: typeof AuthenticatedDashboardLaunchKitRoute
   AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
   AuthenticatedDashboardPayoutsRoute: typeof AuthenticatedDashboardPayoutsRoute
   AuthenticatedDashboardStorefrontRoute: typeof AuthenticatedDashboardStorefrontRoute
@@ -2272,6 +2334,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAdminCreatorAcquisitionRoute,
   AuthenticatedAdminEarningsRoute: AuthenticatedAdminEarningsRoute,
   AuthenticatedAdminErrorsRoute: AuthenticatedAdminErrorsRoute,
+  AuthenticatedAdminFounding100Route: AuthenticatedAdminFounding100Route,
   AuthenticatedAdminHomepageRoute: AuthenticatedAdminHomepageRoute,
   AuthenticatedAdminImportRoute: AuthenticatedAdminImportRoute,
   AuthenticatedAdminLeadAnalyticsRoute: AuthenticatedAdminLeadAnalyticsRoute,
@@ -2290,6 +2353,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardHelpRoute: AuthenticatedDashboardHelpRoute,
   AuthenticatedDashboardKingdomPicksRoute:
     AuthenticatedDashboardKingdomPicksRoute,
+  AuthenticatedDashboardLaunchKitRoute: AuthenticatedDashboardLaunchKitRoute,
   AuthenticatedDashboardNewRoute: AuthenticatedDashboardNewRoute,
   AuthenticatedDashboardPayoutsRoute: AuthenticatedDashboardPayoutsRoute,
   AuthenticatedDashboardStorefrontRoute: AuthenticatedDashboardStorefrontRoute,
@@ -2384,6 +2448,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreatorStarterPackRoute: CreatorStarterPackRoute,
   CreatorTermsRoute: CreatorTermsRoute,
   CreatorsRoute: CreatorsRoute,
+  Founding100Route: Founding100Route,
   GiftCardsRoute: GiftCardsRoute,
   KingdomPicksRoute: KingdomPicksRoute,
   LibraryRoute: LibraryRoute,

@@ -672,6 +672,51 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_activation: {
+        Row: {
+          approved_at: string | null
+          created_at: string
+          first_product_approved_at: string | null
+          first_product_published_at: string | null
+          first_product_started_at: string | null
+          first_product_submitted_at: string | null
+          first_sale_at: string | null
+          nudge_first_product_sent_at: string | null
+          nudge_profile_sent_at: string | null
+          profile_completed_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          created_at?: string
+          first_product_approved_at?: string | null
+          first_product_published_at?: string | null
+          first_product_started_at?: string | null
+          first_product_submitted_at?: string | null
+          first_sale_at?: string | null
+          nudge_first_product_sent_at?: string | null
+          nudge_profile_sent_at?: string | null
+          profile_completed_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          created_at?: string
+          first_product_approved_at?: string | null
+          first_product_published_at?: string | null
+          first_product_started_at?: string | null
+          first_product_submitted_at?: string | null
+          first_sale_at?: string | null
+          nudge_first_product_sent_at?: string | null
+          nudge_profile_sent_at?: string | null
+          profile_completed_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       creator_affiliate_programs: {
         Row: {
           commission_rate_pct: number
@@ -1130,6 +1175,54 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_prospects: {
+        Row: {
+          audience_size: number | null
+          contact_email: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          last_contacted_at: string | null
+          name: string
+          niche: string | null
+          notes: string | null
+          platform: string | null
+          profile_url: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          audience_size?: number | null
+          contact_email?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_contacted_at?: string | null
+          name: string
+          niche?: string | null
+          notes?: string | null
+          platform?: string | null
+          profile_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          audience_size?: number | null
+          contact_email?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_contacted_at?: string | null
+          name?: string
+          niche?: string | null
+          notes?: string | null
+          platform?: string | null
+          profile_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       creator_referrals: {
         Row: {
           active: boolean
@@ -1396,6 +1489,57 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      founding_creators: {
+        Row: {
+          accepted_at: string
+          accepted_by: string | null
+          campaign_source: string | null
+          created_at: string
+          founding_number: number
+          id: string
+          lead_id: string | null
+          seller_application_id: string | null
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string
+          accepted_by?: string | null
+          campaign_source?: string | null
+          created_at?: string
+          founding_number: number
+          id?: string
+          lead_id?: string | null
+          seller_application_id?: string | null
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string
+          accepted_by?: string | null
+          campaign_source?: string | null
+          created_at?: string
+          founding_number?: number
+          id?: string
+          lead_id?: string | null
+          seller_application_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "founding_creators_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "creator_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "founding_creators_seller_application_id_fkey"
+            columns: ["seller_application_id"]
+            isOneToOne: false
+            referencedRelation: "seller_applications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       homepage_layout: {
         Row: {
@@ -2323,10 +2467,13 @@ export type Database = {
           applicant_email: string | null
           brand_name: string
           brand_slug: string | null
+          campaign: string | null
+          campaign_source: string | null
           categories: string[] | null
           country: string | null
           cover_url: string | null
           created_at: string
+          creator_lead_id: string | null
           credentials: string[] | null
           extended_bio: string | null
           featured_media_url: string | null
@@ -2335,11 +2482,17 @@ export type Database = {
           price_range: string | null
           product_types: string | null
           reapply_after: string | null
+          referring_url: string | null
           reviewed_at: string | null
           social_links: Json | null
           status: Database["public"]["Enums"]["application_status"]
           story: string | null
           user_id: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
           website: string | null
         }
         Insert: {
@@ -2348,10 +2501,13 @@ export type Database = {
           applicant_email?: string | null
           brand_name: string
           brand_slug?: string | null
+          campaign?: string | null
+          campaign_source?: string | null
           categories?: string[] | null
           country?: string | null
           cover_url?: string | null
           created_at?: string
+          creator_lead_id?: string | null
           credentials?: string[] | null
           extended_bio?: string | null
           featured_media_url?: string | null
@@ -2360,11 +2516,17 @@ export type Database = {
           price_range?: string | null
           product_types?: string | null
           reapply_after?: string | null
+          referring_url?: string | null
           reviewed_at?: string | null
           social_links?: Json | null
           status?: Database["public"]["Enums"]["application_status"]
           story?: string | null
           user_id: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           website?: string | null
         }
         Update: {
@@ -2373,10 +2535,13 @@ export type Database = {
           applicant_email?: string | null
           brand_name?: string
           brand_slug?: string | null
+          campaign?: string | null
+          campaign_source?: string | null
           categories?: string[] | null
           country?: string | null
           cover_url?: string | null
           created_at?: string
+          creator_lead_id?: string | null
           credentials?: string[] | null
           extended_bio?: string | null
           featured_media_url?: string | null
@@ -2385,14 +2550,28 @@ export type Database = {
           price_range?: string | null
           product_types?: string | null
           reapply_after?: string | null
+          referring_url?: string | null
           reviewed_at?: string | null
           social_links?: Json | null
           status?: Database["public"]["Enums"]["application_status"]
           story?: string | null
           user_id?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "seller_applications_creator_lead_id_fkey"
+            columns: ["creator_lead_id"]
+            isOneToOne: false
+            referencedRelation: "creator_leads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       seller_balances: {
         Row: {
@@ -2663,6 +2842,16 @@ export type Database = {
       admin_rename_subcategory: {
         Args: { _category_slug: string; _new_name: string; _old_name: string }
         Returns: undefined
+      }
+      assign_founding_creator: {
+        Args: {
+          _accepted_by?: string
+          _application_id?: string
+          _campaign_source?: string
+          _lead_id?: string
+          _user_id: string
+        }
+        Returns: number
       }
       brand_slugify: { Args: { _name: string }; Returns: string }
       check_creator_lead_rate_limit: {

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
 import { categoryDisplay, PRODUCT_TYPES, PRODUCT_TYPE_ORDER, type ProductTypeKey } from "@/lib/product-types";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Crown } from "lucide-react";
 import {
   BookOpen,
   Plus,
@@ -316,6 +316,12 @@ function BookshelfPage() {
         </div>
         {canPublish && (
           <div className="flex items-center gap-2 flex-wrap">
+            <Link
+              to="/dashboard/launch-kit"
+              className="inline-flex items-center gap-2 rounded-full font-medium px-4 py-2.5 bg-white border border-ink/15 text-navy hover:border-gold/40"
+            >
+              <Crown size={16} /> Launch Kit
+            </Link>
             <Link
               to="/dashboard/storefront"
               className="inline-flex items-center gap-2 rounded-full font-medium px-4 py-2.5 bg-white border border-ink/15 text-navy hover:border-gold/40"

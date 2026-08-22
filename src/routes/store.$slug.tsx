@@ -21,6 +21,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase as supaBrowser } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { StorefrontBadgeRow } from "@/components/marketplace/StorefrontBadgeRow";
+import { StorefrontFoundingBadge } from "@/components/marketplace/StorefrontFoundingBadge";
 
 // ---- Types ----
 type Product = {
@@ -456,6 +457,7 @@ function StorefrontPage() {
                 ))}
               </div>
             ) : null}
+            <StorefrontFoundingBadge sellerId={data.creatorUserId} className="mt-3" />
             <StorefrontBadgeRow sellerId={data.creatorUserId} className="mt-3" />
           </div>
 
