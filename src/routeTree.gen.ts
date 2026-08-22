@@ -63,6 +63,7 @@ import { Route as CollectionsFilmTvCreatorProductionRouteImport } from './routes
 import { Route as CreatorBusinessToolsIndexRouteImport } from './routes/creator-business-tools.index'
 import { Route as CreatorBusinessToolsSubRouteImport } from './routes/creator-business-tools.$sub'
 import { Route as CreatorStarterPackThankYouRouteImport } from './routes/creator-starter-pack_.thank-you'
+import { Route as CreatorSlugRouteImport } from './routes/creator.$slug'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
@@ -399,6 +400,11 @@ const CreatorStarterPackThankYouRoute =
     path: '/creator-starter-pack/thank-you',
     getParentRoute: () => rootRouteImport,
   } as any)
+const CreatorSlugRoute = CreatorSlugRouteImport.update({
+  id: '/creator/$slug',
+  path: '/creator/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DownloadTokenRoute = DownloadTokenRouteImport.update({
   id: '/download/$token',
   path: '/download/$token',
@@ -819,6 +825,7 @@ export interface FileRoutesByFullPath {
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
   '/creator-starter-pack/thank-you': typeof CreatorStarterPackThankYouRoute
+  '/creator/$slug': typeof CreatorSlugRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -934,6 +941,7 @@ export interface FileRoutesByTo {
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
   '/creator-starter-pack/thank-you': typeof CreatorStarterPackThankYouRoute
+  '/creator/$slug': typeof CreatorSlugRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -1054,6 +1062,7 @@ export interface FileRoutesById {
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
   '/creator-starter-pack_/thank-you': typeof CreatorStarterPackThankYouRoute
+  '/creator/$slug': typeof CreatorSlugRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -1174,6 +1183,7 @@ export interface FileRouteTypes {
     | '/collections/film-tv-creator-production'
     | '/creator-business-tools/$sub'
     | '/creator-starter-pack/thank-you'
+    | '/creator/$slug'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1289,6 +1299,7 @@ export interface FileRouteTypes {
     | '/collections/film-tv-creator-production'
     | '/creator-business-tools/$sub'
     | '/creator-starter-pack/thank-you'
+    | '/creator/$slug'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1408,6 +1419,7 @@ export interface FileRouteTypes {
     | '/collections/film-tv-creator-production'
     | '/creator-business-tools/$sub'
     | '/creator-starter-pack_/thank-you'
+    | '/creator/$slug'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1524,6 +1536,7 @@ export interface RootRouteChildren {
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   CollectionsFilmTvCreatorProductionRoute: typeof CollectionsFilmTvCreatorProductionRoute
   CreatorStarterPackThankYouRoute: typeof CreatorStarterPackThankYouRoute
+  CreatorSlugRoute: typeof CreatorSlugRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   StoreSlugRoute: typeof StoreSlugRoute
@@ -1925,6 +1938,13 @@ declare module '@tanstack/react-router' {
       path: '/creator-starter-pack/thank-you'
       fullPath: '/creator-starter-pack/thank-you'
       preLoaderRoute: typeof CreatorStarterPackThankYouRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator/$slug': {
+      id: '/creator/$slug'
+      path: '/creator/$slug'
+      fullPath: '/creator/$slug'
+      preLoaderRoute: typeof CreatorSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/download/$token': {
@@ -2582,6 +2602,7 @@ const rootRouteChildren: RootRouteChildren = {
   CollectionsFilmTvCreatorProductionRoute:
     CollectionsFilmTvCreatorProductionRoute,
   CreatorStarterPackThankYouRoute: CreatorStarterPackThankYouRoute,
+  CreatorSlugRoute: CreatorSlugRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   StoreSlugRoute: StoreSlugRoute,
