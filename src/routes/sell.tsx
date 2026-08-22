@@ -7,6 +7,12 @@ import { AVLogo } from "@/components/marketplace/AVLogo";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
 import { sendTransactionalEmail } from "@/lib/email/send";
+import {
+  FOUNDING_CAMPAIGN,
+  captureFoundingAttribution,
+  clearStoredFoundingAttribution,
+  getStoredFoundingAttribution,
+} from "@/lib/founding";
 
 export const Route = createFileRoute("/sell")({
   component: SellPage,
@@ -84,6 +90,15 @@ function SellPage() {
       .then(({ data }) => setExisting(data as { status: string } | null));
   }, [user]);
 
+  // Keep campaign attribution when an applicant lands here straight from a
+  // campaign link instead of the landing page.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("campaign") === FOUNDING_CAMPAIGN && !getStoredFoundingAttribution()) {
+      captureFoundingAttribution();
+    }
+  }, []);
+
   const progress = useMemo(() => (step / 4) * 100, [step]);
 
   function validateStep(n: number): boolean {
@@ -139,6 +154,7 @@ function SellPage() {
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Application submitted. We'll review within 48 hours.");
+    clearStoredFoundingAttribution();
     if (user.email) {
       sendTransactionalEmail({
         templateName: "seller-application-received",
