@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BrandIntro } from "@/components/marketplace/BrandIntro";
+
 import { motion } from "framer-motion";
 import { useSuspenseQuery, queryOptions, useQueryClient, useQueryErrorResetBoundary, useIsFetching } from "@tanstack/react-query";
 import { Suspense, lazy, type ReactElement } from "react";
@@ -120,28 +122,29 @@ export const Route = createFileRoute("/")({
 
   head: () => ({
     meta: [
-      { title: "AurumVault — Sell Digital Products, eBooks, AI Prompt Packs, Journals & Financial Planners" },
+      { title: "AurumVault | Digital Product Marketplace for Creators" },
       {
         name: "description",
         content:
-          "AurumVault is a premium digital marketplace where creators sell ebooks, AI prompt packs, journals, planners, templates, and digital business resources with instant delivery.",
+          "AurumVault is a premium digital marketplace for creators, entrepreneurs, and businesses to discover and sell eBooks, planners, templates, creator tools, AI resources, and interactive digital products.",
       },
-      { property: "og:title", content: "AurumVault — Sell Digital Products, eBooks, AI Prompt Packs, Journals & Financial Planners" },
+      { property: "og:title", content: "AurumVault | Digital Product Marketplace for Creators" },
       {
         property: "og:description",
         content:
-          "AurumVault is a premium digital marketplace where creators sell ebooks, AI prompt packs, journals, planners, templates, and digital business resources with instant delivery.",
+          "A premium digital marketplace for eBooks, planners, templates, creator tools, AI resources, and interactive business systems — with instant delivery.",
       },
       { property: "og:url", content: "https://www.aurumvault.store/" },
-      { name: "twitter:title", content: "AurumVault — Sell Digital Products, eBooks, AI Prompt Packs, Journals & Financial Planners" },
+      { name: "twitter:title", content: "AurumVault | Digital Product Marketplace for Creators" },
       {
         name: "twitter:description",
         content:
-          "AurumVault is a premium digital marketplace where creators sell ebooks, AI prompt packs, journals, planners, templates, and digital business resources with instant delivery.",
+          "A premium digital marketplace for eBooks, planners, templates, creator tools, AI resources, and interactive business systems — with instant delivery.",
       },
     ],
   links: [{ rel: "canonical", href: "https://www.aurumvault.store/" }],
   }),
+
 
   component: Home,
 });
@@ -265,7 +268,9 @@ function Home() {
       <Suspense fallback={null}>
         <FeaturedCollections />
       </Suspense>
+      <BrandIntro />
       <TrustBar />
+
       <RefreshHighlightsBar />
       <ContinueBrowsingRow />
 

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AVLogo } from "@/components/marketplace/AVLogo";
 import { ArrowLeft, ShieldCheck, Pencil, CheckCircle2, XCircle, Search, Save, X, Upload, FileText } from "lucide-react";
+import { notifySearchEngines } from "@/lib/sitemap-ping.functions";
 import { toast } from "sonner";
 import { ProductPreviewsManager } from "@/components/admin/ProductPreviewsManager";
 
@@ -84,6 +85,11 @@ function AdminProductsPage() {
     const { error } = await supabase.from("marketplace_products").update(patch).eq("id", p.id);
     if (error) return toast.error(error.message);
     toast.success(`"${p.title}" → ${status}`);
+    // IndexNow: submit newly published products, and re-submit when a listing
+    // is pulled so search engines drop it from the index.
+    void notifySearchEngines({ data: { paths: [`/products/${p.id}`, "/products"] } })
+      .then((r) => console.info("[indexnow]", r))
+      .catch(() => {});
     refresh();
   }
 
@@ -101,6 +107,11 @@ function AdminProductsPage() {
       .in("id", stale.map((p) => p.id));
     if (error) return toast.error(error.message);
     toast.success(`Released ${stale.length} product(s).`);
+    void notifySearchEngines({
+      data: { paths: [...stale.map((p) => `/products/${p.id}`), "/products", "/"] },
+    })
+      .then((r) => console.info("[indexnow]", r))
+      .catch(() => {});
     refresh();
   }
 

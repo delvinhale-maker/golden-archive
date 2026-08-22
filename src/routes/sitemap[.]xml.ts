@@ -25,14 +25,37 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/", changefreq: "daily", priority: "1.0" },
           { path: "/products", changefreq: "daily", priority: "0.9" },
           { path: "/academy", changefreq: "daily", priority: "0.9" },
-          { path: "/search", changefreq: "weekly", priority: "0.6" },
-          { path: "/sell", changefreq: "monthly", priority: "0.7" },
+          { path: "/bundles", changefreq: "weekly", priority: "0.8" },
+          // Brand / entity pages
+          { path: "/about", changefreq: "monthly", priority: "0.8" },
+          { path: "/about/trust", changefreq: "monthly", priority: "0.8" },
+          { path: "/contact", changefreq: "monthly", priority: "0.5" },
           { path: "/support", changefreq: "monthly", priority: "0.5" },
+          // Category / collection landing pages
+          { path: "/creator-business-tools", changefreq: "weekly", priority: "0.8" },
+          { path: "/business-systems", changefreq: "weekly", priority: "0.8" },
+          { path: "/content-creator-templates", changefreq: "weekly", priority: "0.8" },
+          { path: "/caption-templates", changefreq: "weekly", priority: "0.7" },
+          { path: "/collections/film-tv-creator-production", changefreq: "weekly", priority: "0.7" },
+          { path: "/kingdom-picks", changefreq: "weekly", priority: "0.6" },
+          { path: "/vault", changefreq: "weekly", priority: "0.6" },
+          // Creator acquisition
+          { path: "/sell", changefreq: "monthly", priority: "0.7" },
+          { path: "/sell-with-us", changefreq: "monthly", priority: "0.6" },
+          { path: "/become-a-creator", changefreq: "monthly", priority: "0.7" },
+          { path: "/creator-earnings", changefreq: "monthly", priority: "0.6" },
+          { path: "/creator-starter-pack", changefreq: "monthly", priority: "0.6" },
+          { path: "/founding-100", changefreq: "monthly", priority: "0.6" },
+          { path: "/affiliates", changefreq: "monthly", priority: "0.5" },
+          // Policies
           { path: "/terms", changefreq: "yearly", priority: "0.3" },
           { path: "/privacy", changefreq: "yearly", priority: "0.3" },
+          { path: "/refunds", changefreq: "yearly", priority: "0.3" },
+          { path: "/affiliate-disclosure", changefreq: "yearly", priority: "0.3" },
           { path: "/creator-agreement", changefreq: "yearly", priority: "0.3" },
-          { path: "/auth", changefreq: "yearly", priority: "0.3" },
+          { path: "/creator-terms", changefreq: "yearly", priority: "0.3" },
         ];
+
 
         // Pull every published, approved product directly from the public Data API
         // using the publishable key. Narrow `TO anon` SELECT policy on

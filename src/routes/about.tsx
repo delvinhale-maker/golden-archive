@@ -2,27 +2,44 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ShieldCheck, Sparkles, HeartHandshake, Crown } from "lucide-react";
 
+const SITE_URL = "https://www.aurumvault.store";
+const ABOUT_URL = `${SITE_URL}/about`;
+const ABOUT_TITLE = "About AurumVault | Digital Marketplace for Creators";
+const ABOUT_DESC =
+  "AurumVault is a premium digital-product marketplace at AurumVault.store where creators, entrepreneurs and businesses buy and sell eBooks, planners, journals, templates, AI prompt packs and business systems. Creators keep 85%.";
+
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About AurumVault — The Gold Standard Digital Marketplace" },
-      {
-        name: "description",
-        content:
-          "AurumVault is a curated marketplace for purpose-driven digital products — ebooks, journals, AI prompt packs, and planners — from independent, Kingdom-minded creators. Learn our mission, story, and how we pay creators 85%.",
-      },
-      { property: "og:title", content: "About AurumVault" },
-      {
-        property: "og:description",
-        content:
-          "A curated marketplace for purpose-driven digital products. Creators keep 85%. Every title reviewed for quality before it goes live.",
-      },
+      { title: ABOUT_TITLE },
+      { name: "description", content: ABOUT_DESC },
+      { property: "og:title", content: ABOUT_TITLE },
+      { property: "og:description", content: ABOUT_DESC },
       { property: "og:type", content: "website" },
-      { rel: "canonical", href: "https://www.aurumvault.store/about" } as never,
+      { property: "og:url", content: ABOUT_URL },
+      { name: "twitter:title", content: ABOUT_TITLE },
+      { name: "twitter:description", content: ABOUT_DESC },
+    ],
+    links: [{ rel: "canonical", href: ABOUT_URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          "@id": `${ABOUT_URL}#webpage`,
+          url: ABOUT_URL,
+          name: ABOUT_TITLE,
+          description: ABOUT_DESC,
+          isPartOf: { "@id": `${SITE_URL}/#website` },
+          about: { "@id": `${SITE_URL}/#organization` },
+        }),
+      },
     ],
   }),
   component: AboutPage,
 });
+
 
 function AboutPage() {
   return (
@@ -32,15 +49,49 @@ function AboutPage() {
           About
         </p>
         <h1 className="mt-2 font-display text-4xl text-navy md:text-5xl">
-          The gold standard for digital products.
+          About AurumVault — the gold standard for digital products.
         </h1>
         <p className="mt-6 text-lg leading-relaxed text-ink/80">
-          AurumVault is a curated digital marketplace for ebooks, journals, AI
-          prompt packs, and planners built by independent creators who treat
-          their craft as a calling. We exist to make it easy to find work
-          that's actually worth your time — and to make it possible for the
-          people who make that work to earn a real living from it.
+          AurumVault is a digital-product marketplace at{" "}
+          <strong className="font-semibold text-navy">AurumVault.store</strong>{" "}
+          that connects creators, entrepreneurs and businesses with premium
+          digital resources — and gives eligible creators a platform for selling
+          their own digital products. Some people search for us as “Aurum Vault”;
+          it's the same marketplace.
         </p>
+        <p className="mt-4 leading-relaxed text-ink/80">
+          You'll find eBooks, interactive planners, journals, templates, AI
+          prompt packs, media kits, marketing resources and complete{" "}
+          <Link
+            to="/business-systems"
+            className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink"
+          >
+            business operating systems
+          </Link>{" "}
+          across the{" "}
+          <Link
+            to="/products"
+            className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink"
+          >
+            digital product marketplace
+          </Link>
+          , plus{" "}
+          <Link
+            to="/creator-business-tools"
+            className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink"
+          >
+            creator business resources
+          </Link>{" "}
+          and free education in the{" "}
+          <Link
+            to="/academy"
+            className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink"
+          >
+            AurumVault Academy
+          </Link>
+          . Everything is delivered instantly as a download.
+        </p>
+
 
         <section className="mt-12">
           <h2 className="font-display text-2xl text-navy">Our mission</h2>
@@ -117,7 +168,61 @@ function AboutPage() {
           </Link>
         </section>
 
+        <section className="mt-12">
+          <h2 className="font-display text-2xl text-navy">
+            AurumVault questions, answered
+          </h2>
+          <dl className="mt-4 space-y-5">
+            <Faq q="What is AurumVault?">
+              AurumVault is a premium digital-product marketplace and
+              creator-commerce platform at AurumVault.store. Buyers get instant
+              downloads; approved creators get a storefront and keep 85% of each
+              sale.
+            </Faq>
+            <Faq q="What can I buy on AurumVault?">
+              eBooks, interactive planners, journals, templates, AI prompt packs,
+              media kits, marketing resources, financial planners and full
+              business operating systems.
+            </Faq>
+            <Faq q="Can creators sell digital products on AurumVault?">
+              Yes. Apply through Sell on AurumVault. Listings are reviewed before
+              release, and creators keep 85% of every sale.
+            </Faq>
+            <Faq q="What is the official AurumVault website?">
+              https://www.aurumvault.store — that's our only official storefront.
+              See the Trust Center for how to spot official AurumVault
+              communications.
+            </Faq>
+            <Faq q="How are digital products delivered?">
+              Instantly. After payment we email a receipt plus a secure download
+              link, and your purchases stay in your library when you're signed in.
+            </Faq>
+            <Faq q="How do I contact AurumVault?">
+              Email support@aurumvault.tech or use the contact page. We reply
+              within 24 hours, Monday through Friday.
+            </Faq>
+          </dl>
+          <p className="mt-6 text-sm text-ink/70">
+            More on policies, payments and customer protection in the{" "}
+            <Link
+              to="/about/trust"
+              className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink"
+            >
+              AurumVault Trust Center
+            </Link>
+            , or read the{" "}
+            <Link
+              to="/support"
+              className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink"
+            >
+              creator FAQ
+            </Link>
+            .
+          </p>
+        </section>
+
         <section className="mt-10 rounded-2xl border border-ink/10 bg-white p-6 md:p-8">
+
           <p className="font-display text-xl text-navy">Get in touch</p>
           <p className="mt-2 text-sm text-ink/70">
             Questions, feedback, or press inquiries? Visit our{" "}
@@ -155,6 +260,15 @@ function Stat({ label, value }: { label: string; value: string }) {
       <div className="mt-1 text-xs uppercase tracking-caps text-mute">
         {label}
       </div>
+    </div>
+  );
+}
+
+function Faq({ q, children }: { q: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-ink/10 bg-white p-5">
+      <dt className="font-display text-lg text-navy">{q}</dt>
+      <dd className="mt-1 text-sm leading-relaxed text-ink/75">{children}</dd>
     </div>
   );
 }

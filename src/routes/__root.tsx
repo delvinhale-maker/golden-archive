@@ -91,17 +91,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "keywords",
         content:
-          "digital products, ebooks, Kingdom resources, faith-based books, purpose-driven, AurumVault",
+          "AurumVault, Aurum Vault, digital product marketplace, digital products for creators, ebooks, planners, templates, AI prompt packs, creator business tools",
       },
-      { title: "AurumVault — Gold Standard Digital Commerce" },
+      { title: "AurumVault | Digital Product Marketplace for Creators" },
       {
         name: "description",
         content:
-          "Discover premium eBooks, AI prompt packs, journals, and financial planners from purpose-driven creators on AurumVault.",
+          "AurumVault (Aurum Vault) is a premium digital marketplace at AurumVault.store for eBooks, planners, journals, templates, AI prompt packs, and creator business tools.",
       },
       { property: "og:site_name", content: "AurumVault" },
       { property: "og:type", content: "website" },
-      { property: "og:title", content: "AurumVault — Gold Standard Digital Commerce" },
+      { property: "og:title", content: "AurumVault | Digital Product Marketplace for Creators" },
       {
         property: "og:description",
         content:
@@ -114,7 +114,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image:alt", content: "AurumVault AV monogram — gold interlocking A and V mark." },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@AurumVault" },
-      { name: "twitter:title", content: "AurumVault — Gold Standard Digital Commerce" },
+      { name: "twitter:title", content: "AurumVault | Digital Product Marketplace for Creators" },
       {
         name: "twitter:description",
         content:
@@ -145,7 +145,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               "@type": "Organization",
               "@id": "https://www.aurumvault.store/#organization",
               name: "AurumVault",
-              alternateName: "Aurum Vault",
+              alternateName: ["Aurum Vault", "AurumVault.store"],
+              description:
+                "AurumVault is a premium digital-product marketplace and creator-commerce platform where creators, entrepreneurs and businesses buy and sell eBooks, planners, journals, templates, AI prompt packs, media kits and business operating systems.",
               url: "https://www.aurumvault.store",
               logo: {
                 "@type": "ImageObject",
@@ -175,8 +177,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               "@id": "https://www.aurumvault.store/#website",
               url: "https://www.aurumvault.store",
               name: "AurumVault",
+              alternateName: "Aurum Vault",
               description:
-                "Premium digital marketplace for eBooks, AI prompt packs, journals, and financial planners.",
+                "Premium digital-product marketplace for eBooks, planners, journals, templates, AI prompt packs, and creator business tools.",
               publisher: { "@id": "https://www.aurumvault.store/#organization" },
               potentialAction: {
                 "@type": "SearchAction",

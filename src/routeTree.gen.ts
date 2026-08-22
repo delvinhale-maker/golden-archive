@@ -40,7 +40,6 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as RefundsRouteImport } from './routes/refunds'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SellRouteImport } from './routes/sell'
 import { Route as SellWithUsRouteImport } from './routes/sell-with-us'
@@ -52,6 +51,7 @@ import { Route as VaultRouteImport } from './routes/vault'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AuthenticatedReferRouteImport } from './routes/_authenticated/refer'
 import { Route as ABrandSlugRouteImport } from './routes/a.$brandSlug'
+import { Route as AboutTrustRouteImport } from './routes/about_.trust'
 import { Route as AcademyIndexRouteImport } from './routes/academy.index'
 import { Route as AcademyCategoryRouteImport } from './routes/academy.$category'
 import { Route as AccountSettingsRouteImport } from './routes/account.settings'
@@ -281,11 +281,6 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
-  id: '/robots.txt',
-  path: '/robots.txt',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -339,6 +334,11 @@ const AuthenticatedReferRoute = AuthenticatedReferRouteImport.update({
 const ABrandSlugRoute = ABrandSlugRouteImport.update({
   id: '/a/$brandSlug',
   path: '/a/$brandSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutTrustRoute = AboutTrustRouteImport.update({
+  id: '/about_/trust',
+  path: '/about/trust',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AcademyIndexRoute = AcademyIndexRouteImport.update({
@@ -799,7 +799,6 @@ export interface FileRoutesByFullPath {
   '/products': typeof ProductsRouteWithChildren
   '/refunds': typeof RefundsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/sell-with-us': typeof SellWithUsRoute
@@ -811,6 +810,7 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
+  '/about/trust': typeof AboutTrustRoute
   '/academy/$category': typeof AcademyCategoryRoute
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
@@ -914,7 +914,6 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/refunds': typeof RefundsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/sell-with-us': typeof SellWithUsRoute
@@ -926,6 +925,7 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
+  '/about/trust': typeof AboutTrustRoute
   '/academy/$category': typeof AcademyCategoryRoute
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
@@ -1034,7 +1034,6 @@ export interface FileRoutesById {
   '/products': typeof ProductsRouteWithChildren
   '/refunds': typeof RefundsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/sell-with-us': typeof SellWithUsRoute
@@ -1046,6 +1045,7 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/_authenticated/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
+  '/about_/trust': typeof AboutTrustRoute
   '/academy/$category': typeof AcademyCategoryRoute
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
@@ -1154,7 +1154,6 @@ export interface FileRouteTypes {
     | '/products'
     | '/refunds'
     | '/reset-password'
-    | '/robots.txt'
     | '/search'
     | '/sell'
     | '/sell-with-us'
@@ -1166,6 +1165,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/refer'
     | '/a/$brandSlug'
+    | '/about/trust'
     | '/academy/$category'
     | '/account/settings'
     | '/api/ai-studio-stream'
@@ -1269,7 +1269,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refunds'
     | '/reset-password'
-    | '/robots.txt'
     | '/search'
     | '/sell'
     | '/sell-with-us'
@@ -1281,6 +1280,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/refer'
     | '/a/$brandSlug'
+    | '/about/trust'
     | '/academy/$category'
     | '/account/settings'
     | '/api/ai-studio-stream'
@@ -1388,7 +1388,6 @@ export interface FileRouteTypes {
     | '/products'
     | '/refunds'
     | '/reset-password'
-    | '/robots.txt'
     | '/search'
     | '/sell'
     | '/sell-with-us'
@@ -1400,6 +1399,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/_authenticated/refer'
     | '/a/$brandSlug'
+    | '/about_/trust'
     | '/academy/$category'
     | '/account/settings'
     | '/api/ai-studio-stream'
@@ -1508,7 +1508,6 @@ export interface RootRouteChildren {
   ProductsRoute: typeof ProductsRouteWithChildren
   RefundsRoute: typeof RefundsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  RobotsDottxtRoute: typeof RobotsDottxtRoute
   SearchRoute: typeof SearchRoute
   SellRoute: typeof SellRoute
   SellWithUsRoute: typeof SellWithUsRoute
@@ -1519,6 +1518,7 @@ export interface RootRouteChildren {
   VaultRoute: typeof VaultRoute
   WishlistRoute: typeof WishlistRoute
   ABrandSlugRoute: typeof ABrandSlugRoute
+  AboutTrustRoute: typeof AboutTrustRoute
   ApiAiStudioStreamRoute: typeof ApiAiStudioStreamRoute
   BundlesSlugRoute: typeof BundlesSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -1766,13 +1766,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/robots.txt': {
-      id: '/robots.txt'
-      path: '/robots.txt'
-      fullPath: '/robots.txt'
-      preLoaderRoute: typeof RobotsDottxtRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -1848,6 +1841,13 @@ declare module '@tanstack/react-router' {
       path: '/a/$brandSlug'
       fullPath: '/a/$brandSlug'
       preLoaderRoute: typeof ABrandSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about_/trust': {
+      id: '/about_/trust'
+      path: '/about/trust'
+      fullPath: '/about/trust'
+      preLoaderRoute: typeof AboutTrustRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/academy/': {
@@ -2565,7 +2565,6 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsRoute: ProductsRouteWithChildren,
   RefundsRoute: RefundsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  RobotsDottxtRoute: RobotsDottxtRoute,
   SearchRoute: SearchRoute,
   SellRoute: SellRoute,
   SellWithUsRoute: SellWithUsRoute,
@@ -2576,6 +2575,7 @@ const rootRouteChildren: RootRouteChildren = {
   VaultRoute: VaultRoute,
   WishlistRoute: WishlistRoute,
   ABrandSlugRoute: ABrandSlugRoute,
+  AboutTrustRoute: AboutTrustRoute,
   ApiAiStudioStreamRoute: ApiAiStudioStreamRoute,
   BundlesSlugRoute: BundlesSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
