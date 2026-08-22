@@ -167,6 +167,8 @@ export async function sendStarterPackEmail(
       metadata: args.leadId ? { lead_id: args.leadId } : null,
     });
 
+    const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, args.email);
+
     const { error } = await supabase.rpc("enqueue_email", {
       queue_name: "transactional_emails",
       payload: {
