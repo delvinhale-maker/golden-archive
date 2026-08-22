@@ -183,6 +183,7 @@ export async function sendStarterPackEmail(
         // double-submitted form in the same second stays a single email.
         idempotency_key: `starter-pack-${args.email}-${nowIso.slice(0, 16)}`,
         queued_at: nowIso,
+        ...(unsubscribeToken ? { unsubscribe_token: unsubscribeToken } : {}),
       },
     });
 
