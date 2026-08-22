@@ -5,6 +5,7 @@ import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { cartLineKey, useCart } from "@/hooks/use-av-store";
 import { CartEditionSelect } from "@/components/marketplace/CartEditionSelect";
+import { CartBundleUpsell } from "@/components/marketplace/CartBundleUpsell";
 
 import { StripeEmbeddedCartCheckout } from "@/components/StripeEmbeddedCheckout";
 import { RouteErrorFallback } from "@/components/RouteErrorFallback";
@@ -161,6 +162,7 @@ function CartPage() {
 
             {/* Summary */}
             <aside className="space-y-4 lg:sticky lg:top-32 lg:self-start">
+              <CartBundleUpsell items={cart.items} />
               <div className="rounded-xl border border-line bg-white p-5">
                 <h2 className="font-display text-lg font-bold text-ink">Order Summary</h2>
                 <div className="mt-4 space-y-2 text-sm">

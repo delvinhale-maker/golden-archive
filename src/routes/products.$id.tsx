@@ -35,6 +35,7 @@ import { ImageZoom } from "@/components/marketplace/ImageZoom";
 import { TrustBadges, KingdomGuarantee, FormatSelector } from "@/components/marketplace/TrustBadges";
 import { ReviewsSection } from "@/components/marketplace/ReviewsSection";
 import { QASection } from "@/components/marketplace/QASection";
+import { BundleAndSave } from "@/components/marketplace/BundleAndSave";
 import { FrequentlyBoughtTogether } from "@/components/marketplace/FrequentlyBoughtTogether";
 import { ShareButtons, ReportIssueLink } from "@/components/marketplace/ShareButtons";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
@@ -735,6 +736,7 @@ function ProductPage() {
         />
 
         <FrequentlyBoughtTogether product={product} />
+        <BundleAndSave productId={product.id} />
 
         <ReviewsSection
           productId={product.id}
