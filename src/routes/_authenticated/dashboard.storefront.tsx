@@ -4,7 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
 import { toast } from "sonner";
-import { ArrowLeft, ExternalLink, Upload, Plus, Trash2, Package } from "lucide-react";
+import { ArrowLeft, ExternalLink, Upload, Plus, Trash2, Package, Sparkles, BarChart3 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { CreatorStorefrontShare } from "@/components/marketplace/CreatorStorefrontShare";
+import { getMyStorefrontSettings, saveMyStorefrontSettings } from "@/lib/storefront.functions";
+import {
+  ACCENT_CLASSES,
+  MAX_FEATURED_PRODUCTS,
+  STOREFRONT_ACCENTS,
+  type StorefrontAccent,
+} from "@/lib/storefront";
 
 export const Route = createFileRoute("/_authenticated/dashboard/storefront")({
   component: StorefrontManager,
@@ -186,6 +196,12 @@ function StorefrontManager() {
             View storefront <ExternalLink size={13} />
           </Link>
         )}
+        <Link
+          to="/dashboard/analytics"
+          className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-4 py-2 text-sm text-navy hover:bg-paper"
+        >
+          <BarChart3 size={13} /> Analytics
+        </Link>
       </div>
 
       {/* Cover */}
@@ -263,6 +279,18 @@ function StorefrontManager() {
           </button>
         </div>
       </section>
+
+      {/* Identity & merchandising */}
+      <StorefrontMerchandising products={products} />
+
+      {/* Share & QR */}
+      {app.brand_slug && (
+        <CreatorStorefrontShare
+          path={`/creator/${app.brand_slug}`}
+          brandName={app.brand_slug}
+          creatorUserId={user!.id}
+        />
+      )}
 
       {/* Bundles */}
       <BundleManager
