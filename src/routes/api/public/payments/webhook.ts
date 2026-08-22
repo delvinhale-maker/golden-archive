@@ -322,7 +322,7 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
  * member products with largest-remainder rounding so the cents sum exactly,
  * and each product gets its own order line, download token and payout credit.
  */
-async function handleBundleCheckoutCompleted(session: any, env: StripeEnv) {
+export async function handleBundleCheckoutCompleted(session: any, env: StripeEnv) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { allocateBundlePrices } = await import("@/lib/bundles");
 
