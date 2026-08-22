@@ -281,6 +281,12 @@ function ProductPage() {
   }
 
   const product = result.product;
+  // Demo/fallback listings use synthetic creator ids (`c_3`); only real seller
+  // uuids get storefront attribution and the "more from" rack.
+  const isRealSeller =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      product.creator.id ?? "",
+    );
   const wishlist = useWishlist();
   const cart = useCart();
   const liked = wishlist.has(product.id);
