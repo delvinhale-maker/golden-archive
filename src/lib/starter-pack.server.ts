@@ -176,7 +176,7 @@ export async function sendStarterPackEmail(
  */
 export async function captureStarterPackLead(input: CaptureInput): Promise<CaptureResult> {
   const supabase = adminClient();
-  const email = normalizeEmail(input.email);
+  const email = normalizeLeadEmail(input.email);
   const firstName = sanitizeHeaderValue(input.firstName).slice(0, 80);
   const nowIso = new Date().toISOString();
 
