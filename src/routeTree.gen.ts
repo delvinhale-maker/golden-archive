@@ -74,6 +74,7 @@ import { Route as AuthenticatedAdminCreatorAcquisitionRouteImport } from './rout
 import { Route as AuthenticatedAdminEarningsRouteImport } from './routes/_authenticated/admin.earnings'
 import { Route as AuthenticatedAdminErrorsRouteImport } from './routes/_authenticated/admin.errors'
 import { Route as AuthenticatedAdminFounding100RouteImport } from './routes/_authenticated/admin.founding-100'
+import { Route as AuthenticatedAdminFoundingAnalyticsRouteImport } from './routes/_authenticated/admin.founding-analytics'
 import { Route as AuthenticatedAdminHomepageRouteImport } from './routes/_authenticated/admin.homepage'
 import { Route as AuthenticatedAdminImportRouteImport } from './routes/_authenticated/admin.import'
 import { Route as AuthenticatedAdminLeadAnalyticsRouteImport } from './routes/_authenticated/admin.lead-analytics'
@@ -455,6 +456,12 @@ const AuthenticatedAdminFounding100Route =
     path: '/admin/founding-100',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminFoundingAnalyticsRoute =
+  AuthenticatedAdminFoundingAnalyticsRouteImport.update({
+    id: '/admin/founding-analytics',
+    path: '/admin/founding-analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminHomepageRoute =
   AuthenticatedAdminHomepageRouteImport.update({
     id: '/admin/homepage',
@@ -799,6 +806,7 @@ export interface FileRoutesByFullPath {
   '/admin/earnings': typeof AuthenticatedAdminEarningsRoute
   '/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/admin/founding-100': typeof AuthenticatedAdminFounding100Route
+  '/admin/founding-analytics': typeof AuthenticatedAdminFoundingAnalyticsRoute
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
   '/admin/lead-analytics': typeof AuthenticatedAdminLeadAnalyticsRoute
@@ -909,6 +917,7 @@ export interface FileRoutesByTo {
   '/admin/earnings': typeof AuthenticatedAdminEarningsRoute
   '/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/admin/founding-100': typeof AuthenticatedAdminFounding100Route
+  '/admin/founding-analytics': typeof AuthenticatedAdminFoundingAnalyticsRoute
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
   '/admin/lead-analytics': typeof AuthenticatedAdminLeadAnalyticsRoute
@@ -1024,6 +1033,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/earnings': typeof AuthenticatedAdminEarningsRoute
   '/_authenticated/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/_authenticated/admin/founding-100': typeof AuthenticatedAdminFounding100Route
+  '/_authenticated/admin/founding-analytics': typeof AuthenticatedAdminFoundingAnalyticsRoute
   '/_authenticated/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/_authenticated/admin/import': typeof AuthenticatedAdminImportRoute
   '/_authenticated/admin/lead-analytics': typeof AuthenticatedAdminLeadAnalyticsRoute
@@ -1139,6 +1149,7 @@ export interface FileRouteTypes {
     | '/admin/earnings'
     | '/admin/errors'
     | '/admin/founding-100'
+    | '/admin/founding-analytics'
     | '/admin/homepage'
     | '/admin/import'
     | '/admin/lead-analytics'
@@ -1249,6 +1260,7 @@ export interface FileRouteTypes {
     | '/admin/earnings'
     | '/admin/errors'
     | '/admin/founding-100'
+    | '/admin/founding-analytics'
     | '/admin/homepage'
     | '/admin/import'
     | '/admin/lead-analytics'
@@ -1363,6 +1375,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/earnings'
     | '/_authenticated/admin/errors'
     | '/_authenticated/admin/founding-100'
+    | '/_authenticated/admin/founding-analytics'
     | '/_authenticated/admin/homepage'
     | '/_authenticated/admin/import'
     | '/_authenticated/admin/lead-analytics'
@@ -1939,6 +1952,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFounding100RouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/founding-analytics': {
+      id: '/_authenticated/admin/founding-analytics'
+      path: '/admin/founding-analytics'
+      fullPath: '/admin/founding-analytics'
+      preLoaderRoute: typeof AuthenticatedAdminFoundingAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/homepage': {
       id: '/_authenticated/admin/homepage'
       path: '/admin/homepage'
@@ -2294,6 +2314,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminEarningsRoute: typeof AuthenticatedAdminEarningsRoute
   AuthenticatedAdminErrorsRoute: typeof AuthenticatedAdminErrorsRoute
   AuthenticatedAdminFounding100Route: typeof AuthenticatedAdminFounding100Route
+  AuthenticatedAdminFoundingAnalyticsRoute: typeof AuthenticatedAdminFoundingAnalyticsRoute
   AuthenticatedAdminHomepageRoute: typeof AuthenticatedAdminHomepageRoute
   AuthenticatedAdminImportRoute: typeof AuthenticatedAdminImportRoute
   AuthenticatedAdminLeadAnalyticsRoute: typeof AuthenticatedAdminLeadAnalyticsRoute
@@ -2335,6 +2356,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminEarningsRoute: AuthenticatedAdminEarningsRoute,
   AuthenticatedAdminErrorsRoute: AuthenticatedAdminErrorsRoute,
   AuthenticatedAdminFounding100Route: AuthenticatedAdminFounding100Route,
+  AuthenticatedAdminFoundingAnalyticsRoute:
+    AuthenticatedAdminFoundingAnalyticsRoute,
   AuthenticatedAdminHomepageRoute: AuthenticatedAdminHomepageRoute,
   AuthenticatedAdminImportRoute: AuthenticatedAdminImportRoute,
   AuthenticatedAdminLeadAnalyticsRoute: AuthenticatedAdminLeadAnalyticsRoute,
