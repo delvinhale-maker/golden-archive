@@ -1289,6 +1289,72 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_storefront_events: {
+        Row: {
+          created_at: string
+          creator_user_id: string
+          id: string
+          kind: string
+          product_id: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          created_at?: string
+          creator_user_id: string
+          id?: string
+          kind: string
+          product_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          created_at?: string
+          creator_user_id?: string
+          id?: string
+          kind?: string
+          product_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
+      creator_storefront_settings: {
+        Row: {
+          accent: string
+          created_at: string
+          featured_bundle_id: string | null
+          featured_product_ids: string[]
+          headline: string | null
+          logo_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accent?: string
+          created_at?: string
+          featured_bundle_id?: string | null
+          featured_product_ids?: string[]
+          headline?: string | null
+          logo_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accent?: string
+          created_at?: string
+          featured_bundle_id?: string | null
+          featured_product_ids?: string[]
+          headline?: string | null
+          logo_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       creator_tax_forms: {
         Row: {
           admin_note: string | null
@@ -3062,6 +3128,7 @@ export type Database = {
         }
         Returns: number
       }
+      brand_slug_normalize: { Args: { _v: string }; Returns: string }
       brand_slugify: { Args: { _name: string }; Returns: string }
       check_creator_lead_rate_limit: {
         Args: { _ip_hash: string; _max_per_hour?: number }
