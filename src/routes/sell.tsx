@@ -113,6 +113,8 @@ function SellPage() {
     if (!validateStep(4)) return;
     setBusy(true);
     const socialLinks = { instagram, twitter, youtube };
+    // Founding 100 / campaign attribution captured on the landing page.
+    const attribution = getStoredFoundingAttribution();
     const { error } = await supabase.from("seller_applications").insert({
       user_id: user.id,
       brand_name: brandName,
@@ -124,7 +126,16 @@ function SellPage() {
       categories: categories.length ? categories : null,
       price_range: priceRange || null,
       social_links: socialLinks,
+      campaign: attribution?.campaign ?? null,
+      campaign_source: attribution?.campaignSource ?? null,
+      utm_source: attribution?.utmSource ?? null,
+      utm_medium: attribution?.utmMedium ?? null,
+      utm_campaign: attribution?.utmCampaign ?? null,
+      utm_content: attribution?.utmContent ?? null,
+      utm_term: attribution?.utmTerm ?? null,
+      referring_url: attribution?.referringUrl ?? null,
     });
+
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Application submitted. We'll review within 48 hours.");
