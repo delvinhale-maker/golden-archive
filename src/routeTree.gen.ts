@@ -71,6 +71,7 @@ import { Route as StoreSlugRouteImport } from './routes/store.$slug'
 import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAutoReleaseRouteImport } from './routes/_authenticated/admin.auto-release'
+import { Route as AuthenticatedAdminBundlesRouteImport } from './routes/_authenticated/admin.bundles'
 import { Route as AuthenticatedAdminCommunityRouteImport } from './routes/_authenticated/admin.community'
 import { Route as AuthenticatedAdminCreatorAcquisitionRouteImport } from './routes/_authenticated/admin.creator-acquisition'
 import { Route as AuthenticatedAdminEarningsRouteImport } from './routes/_authenticated/admin.earnings'
@@ -80,6 +81,7 @@ import { Route as AuthenticatedAdminFoundingAnalyticsRouteImport } from './route
 import { Route as AuthenticatedAdminHomepageRouteImport } from './routes/_authenticated/admin.homepage'
 import { Route as AuthenticatedAdminImportRouteImport } from './routes/_authenticated/admin.import'
 import { Route as AuthenticatedAdminLeadAnalyticsRouteImport } from './routes/_authenticated/admin.lead-analytics'
+import { Route as AuthenticatedAdminMerchandisingRouteImport } from './routes/_authenticated/admin.merchandising'
 import { Route as AuthenticatedAdminMessagesRouteImport } from './routes/_authenticated/admin.messages'
 import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin.payouts'
 import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authenticated/admin.products'
@@ -438,6 +440,12 @@ const AuthenticatedAdminAutoReleaseRoute =
     path: '/admin/auto-release',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminBundlesRoute =
+  AuthenticatedAdminBundlesRouteImport.update({
+    id: '/admin/bundles',
+    path: '/admin/bundles',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminCommunityRoute =
   AuthenticatedAdminCommunityRouteImport.update({
     id: '/admin/community',
@@ -490,6 +498,12 @@ const AuthenticatedAdminLeadAnalyticsRoute =
   AuthenticatedAdminLeadAnalyticsRouteImport.update({
     id: '/admin/lead-analytics',
     path: '/admin/lead-analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminMerchandisingRoute =
+  AuthenticatedAdminMerchandisingRouteImport.update({
+    id: '/admin/merchandising',
+    path: '/admin/merchandising',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminMessagesRoute =
@@ -815,6 +829,7 @@ export interface FileRoutesByFullPath {
   '/creator-business-tools/': typeof CreatorBusinessToolsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
+  '/admin/bundles': typeof AuthenticatedAdminBundlesRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/admin/creator-acquisition': typeof AuthenticatedAdminCreatorAcquisitionRoute
   '/admin/earnings': typeof AuthenticatedAdminEarningsRoute
@@ -824,6 +839,7 @@ export interface FileRoutesByFullPath {
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
   '/admin/lead-analytics': typeof AuthenticatedAdminLeadAnalyticsRoute
+  '/admin/merchandising': typeof AuthenticatedAdminMerchandisingRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
@@ -928,6 +944,7 @@ export interface FileRoutesByTo {
   '/creator-business-tools': typeof CreatorBusinessToolsIndexRoute
   '/products': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
+  '/admin/bundles': typeof AuthenticatedAdminBundlesRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/admin/creator-acquisition': typeof AuthenticatedAdminCreatorAcquisitionRoute
   '/admin/earnings': typeof AuthenticatedAdminEarningsRoute
@@ -937,6 +954,7 @@ export interface FileRoutesByTo {
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
   '/admin/lead-analytics': typeof AuthenticatedAdminLeadAnalyticsRoute
+  '/admin/merchandising': typeof AuthenticatedAdminMerchandisingRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
@@ -1046,6 +1064,7 @@ export interface FileRoutesById {
   '/creator-business-tools/': typeof CreatorBusinessToolsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
+  '/_authenticated/admin/bundles': typeof AuthenticatedAdminBundlesRoute
   '/_authenticated/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/_authenticated/admin/creator-acquisition': typeof AuthenticatedAdminCreatorAcquisitionRoute
   '/_authenticated/admin/earnings': typeof AuthenticatedAdminEarningsRoute
@@ -1055,6 +1074,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/_authenticated/admin/import': typeof AuthenticatedAdminImportRoute
   '/_authenticated/admin/lead-analytics': typeof AuthenticatedAdminLeadAnalyticsRoute
+  '/_authenticated/admin/merchandising': typeof AuthenticatedAdminMerchandisingRoute
   '/_authenticated/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/_authenticated/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
@@ -1164,6 +1184,7 @@ export interface FileRouteTypes {
     | '/creator-business-tools/'
     | '/products/'
     | '/admin/auto-release'
+    | '/admin/bundles'
     | '/admin/community'
     | '/admin/creator-acquisition'
     | '/admin/earnings'
@@ -1173,6 +1194,7 @@ export interface FileRouteTypes {
     | '/admin/homepage'
     | '/admin/import'
     | '/admin/lead-analytics'
+    | '/admin/merchandising'
     | '/admin/messages'
     | '/admin/payouts'
     | '/admin/products'
@@ -1277,6 +1299,7 @@ export interface FileRouteTypes {
     | '/creator-business-tools'
     | '/products'
     | '/admin/auto-release'
+    | '/admin/bundles'
     | '/admin/community'
     | '/admin/creator-acquisition'
     | '/admin/earnings'
@@ -1286,6 +1309,7 @@ export interface FileRouteTypes {
     | '/admin/homepage'
     | '/admin/import'
     | '/admin/lead-analytics'
+    | '/admin/merchandising'
     | '/admin/messages'
     | '/admin/payouts'
     | '/admin/products'
@@ -1394,6 +1418,7 @@ export interface FileRouteTypes {
     | '/creator-business-tools/'
     | '/products/'
     | '/_authenticated/admin/auto-release'
+    | '/_authenticated/admin/bundles'
     | '/_authenticated/admin/community'
     | '/_authenticated/admin/creator-acquisition'
     | '/_authenticated/admin/earnings'
@@ -1403,6 +1428,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/homepage'
     | '/_authenticated/admin/import'
     | '/_authenticated/admin/lead-analytics'
+    | '/_authenticated/admin/merchandising'
     | '/_authenticated/admin/messages'
     | '/_authenticated/admin/payouts'
     | '/_authenticated/admin/products'
@@ -1957,6 +1983,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAutoReleaseRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/bundles': {
+      id: '/_authenticated/admin/bundles'
+      path: '/admin/bundles'
+      fullPath: '/admin/bundles'
+      preLoaderRoute: typeof AuthenticatedAdminBundlesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/community': {
       id: '/_authenticated/admin/community'
       path: '/admin/community'
@@ -2018,6 +2051,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/lead-analytics'
       fullPath: '/admin/lead-analytics'
       preLoaderRoute: typeof AuthenticatedAdminLeadAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/merchandising': {
+      id: '/_authenticated/admin/merchandising'
+      path: '/admin/merchandising'
+      fullPath: '/admin/merchandising'
+      preLoaderRoute: typeof AuthenticatedAdminMerchandisingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/messages': {
@@ -2349,6 +2389,7 @@ const AuthenticatedAdminHealthCoversRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedReferRoute: typeof AuthenticatedReferRoute
   AuthenticatedAdminAutoReleaseRoute: typeof AuthenticatedAdminAutoReleaseRoute
+  AuthenticatedAdminBundlesRoute: typeof AuthenticatedAdminBundlesRoute
   AuthenticatedAdminCommunityRoute: typeof AuthenticatedAdminCommunityRoute
   AuthenticatedAdminCreatorAcquisitionRoute: typeof AuthenticatedAdminCreatorAcquisitionRoute
   AuthenticatedAdminEarningsRoute: typeof AuthenticatedAdminEarningsRoute
@@ -2358,6 +2399,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminHomepageRoute: typeof AuthenticatedAdminHomepageRoute
   AuthenticatedAdminImportRoute: typeof AuthenticatedAdminImportRoute
   AuthenticatedAdminLeadAnalyticsRoute: typeof AuthenticatedAdminLeadAnalyticsRoute
+  AuthenticatedAdminMerchandisingRoute: typeof AuthenticatedAdminMerchandisingRoute
   AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
   AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
   AuthenticatedAdminProductsRoute: typeof AuthenticatedAdminProductsRoute
@@ -2390,6 +2432,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReferRoute: AuthenticatedReferRoute,
   AuthenticatedAdminAutoReleaseRoute: AuthenticatedAdminAutoReleaseRoute,
+  AuthenticatedAdminBundlesRoute: AuthenticatedAdminBundlesRoute,
   AuthenticatedAdminCommunityRoute: AuthenticatedAdminCommunityRoute,
   AuthenticatedAdminCreatorAcquisitionRoute:
     AuthenticatedAdminCreatorAcquisitionRoute,
@@ -2401,6 +2444,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminHomepageRoute: AuthenticatedAdminHomepageRoute,
   AuthenticatedAdminImportRoute: AuthenticatedAdminImportRoute,
   AuthenticatedAdminLeadAnalyticsRoute: AuthenticatedAdminLeadAnalyticsRoute,
+  AuthenticatedAdminMerchandisingRoute: AuthenticatedAdminMerchandisingRoute,
   AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
   AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
   AuthenticatedAdminProductsRoute: AuthenticatedAdminProductsRoute,
