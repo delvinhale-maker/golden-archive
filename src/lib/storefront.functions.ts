@@ -254,31 +254,39 @@ export const getMyStorefrontAnalytics = createServerFn({ method: "GET" })
     );
     const productIds = [...titles.keys()];
 
-    const { data: items } = productIds.length
-      ? await supabase
-          .from("order_items")
-          .select("product_id, quantity, unit_price_cents, order_id, created_at")
-          .in("product_id", productIds)
-          .gte("created_at", since)
-          .limit(20000)
-      : { data: [] as any[] };
+    // order_items already stores the authoritative split per line, so gross,
+    // creator earnings, and the AurumVault fee are read, never re-derived.
+    const { data: items } = await supabase
+      .from("order_items")
+      .select("product_id, unit_amount_cents, seller_amount_cents, platform_fee_cents, order_id, created_at")
+      .eq("seller_id", userId)
+      .gte("created_at", since)
+      .limit(20000);
 
     let grossCents = 0;
+    let earnedCents = 0;
+    let feeCents = 0;
     let units = 0;
     const orderIds = new Set<string>();
-    const perProduct = new Map<string, { units: number; grossCents: number }>();
+    const perProduct = new Map<string, { units: number; grossCents: number; earnedCents: number }>();
 
     for (const row of (items ?? []) as any[]) {
-      const qty = Number(row.quantity ?? 1) || 1;
-      const gross = Number(row.unit_price_cents ?? 0) * qty;
+      const gross = Number(row.unit_amount_cents ?? 0);
+      const earned = Number(row.seller_amount_cents ?? 0);
+      const fee = Number(row.platform_fee_cents ?? Math.max(gross - earned, 0));
       grossCents += gross;
-      units += qty;
+      earnedCents += earned;
+      feeCents += fee;
+      units += 1;
       if (row.order_id) orderIds.add(row.order_id as string);
-      const entry = perProduct.get(row.product_id as string) ?? { units: 0, grossCents: 0 };
-      entry.units += qty;
+      const key = (row.product_id as string) ?? "unknown";
+      const entry = perProduct.get(key) ?? { units: 0, grossCents: 0, earnedCents: 0 };
+      entry.units += 1;
       entry.grossCents += gross;
-      perProduct.set(row.product_id as string, entry);
+      entry.earnedCents += earned;
+      perProduct.set(key, entry);
     }
+
 
     let storefrontViews = 0;
     let productClicks = 0;
