@@ -18,6 +18,8 @@ import {
   type PremiumCardCategory,
   type PremiumCardBadge,
 } from "./PremiumProductCard";
+import { ProductCreatorPanel } from "./ProductCreatorPanel";
+import { MoreFromCreator } from "./MoreFromCreator";
 
 const NAVY = "#1B2A4A";
 const NAVY_DEEP = "#11192E";
@@ -264,6 +266,7 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
     price,
     compareAtPrice,
     creator,
+    sellerId,
     related = [],
     onAddToCart,
     onWishlist,
