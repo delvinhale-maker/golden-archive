@@ -2,27 +2,44 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ShieldCheck, Sparkles, HeartHandshake, Crown } from "lucide-react";
 
+const SITE_URL = "https://www.aurumvault.store";
+const ABOUT_URL = `${SITE_URL}/about`;
+const ABOUT_TITLE = "About AurumVault | Digital Marketplace for Creators";
+const ABOUT_DESC =
+  "AurumVault is a premium digital-product marketplace at AurumVault.store where creators, entrepreneurs and businesses buy and sell eBooks, planners, journals, templates, AI prompt packs and business systems. Creators keep 85%.";
+
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About AurumVault — The Gold Standard Digital Marketplace" },
-      {
-        name: "description",
-        content:
-          "AurumVault is a curated marketplace for purpose-driven digital products — ebooks, journals, AI prompt packs, and planners — from independent, Kingdom-minded creators. Learn our mission, story, and how we pay creators 85%.",
-      },
-      { property: "og:title", content: "About AurumVault" },
-      {
-        property: "og:description",
-        content:
-          "A curated marketplace for purpose-driven digital products. Creators keep 85%. Every title reviewed for quality before it goes live.",
-      },
+      { title: ABOUT_TITLE },
+      { name: "description", content: ABOUT_DESC },
+      { property: "og:title", content: ABOUT_TITLE },
+      { property: "og:description", content: ABOUT_DESC },
       { property: "og:type", content: "website" },
-      { rel: "canonical", href: "https://www.aurumvault.store/about" } as never,
+      { property: "og:url", content: ABOUT_URL },
+      { name: "twitter:title", content: ABOUT_TITLE },
+      { name: "twitter:description", content: ABOUT_DESC },
+    ],
+    links: [{ rel: "canonical", href: ABOUT_URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          "@id": `${ABOUT_URL}#webpage`,
+          url: ABOUT_URL,
+          name: ABOUT_TITLE,
+          description: ABOUT_DESC,
+          isPartOf: { "@id": `${SITE_URL}/#website` },
+          about: { "@id": `${SITE_URL}/#organization` },
+        }),
+      },
     ],
   }),
   component: AboutPage,
 });
+
 
 function AboutPage() {
   return (
