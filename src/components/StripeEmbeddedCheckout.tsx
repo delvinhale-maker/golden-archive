@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
-import { createProductCheckout, createCartCheckout } from "@/lib/payments.functions";
+import {
+  createProductCheckout,
+  createCartCheckout,
+  createBundleCheckout,
+} from "@/lib/payments.functions";
 import { getStoredRef } from "@/lib/referral";
 import type { CartItem } from "@/hooks/use-av-store";
 import { AlertCircle, Loader2 } from "lucide-react";
@@ -161,3 +165,32 @@ export function StripeEmbeddedCartCheckout({ items, promoCode, returnUrl }: Cart
   return <CheckoutFrame fetchClientSecret={fetchClientSecret} />;
 }
 
+
+interface BundleProps {
+  bundleId: string;
+  returnUrl?: string;
+}
+
+/**
+ * Bundle checkout. Only the bundle id crosses the wire — the server re-reads
+ * price, membership and schedule, so the browser can't influence what is charged.
+ */
+export function StripeEmbeddedBundleCheckout({ bundleId, returnUrl }: BundleProps) {
+  const fetchClientSecret = async (): Promise<string> => {
+    const result = await createBundleCheckout({
+      data: {
+        bundleId,
+        returnUrl:
+          returnUrl ??
+          `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
+        environment: getStripeEnvironment(),
+        referralCode: getStoredRef() ?? undefined,
+      },
+    });
+    if ("error" in result) throw new Error(result.error);
+    if (!result.clientSecret) throw new Error("Stripe did not return a client secret");
+    return result.clientSecret;
+  };
+
+  return <CheckoutFrame fetchClientSecret={fetchClientSecret} />;
+}

@@ -728,3 +728,151 @@ export const getDownloadInfo = createServerFn({ method: "GET" })
     return result;
   });
 
+
+/**
+ * Bundle checkout. The browser only supplies a bundle id — price, membership,
+ * eligibility, schedule and single-creator safety are all re-read server-side
+ * so a tampered client can never buy a bundle at its own price. Promo codes do
+ * not stack on bundles: the bundle discount IS the offer.
+ */
+export const createBundleCheckout = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      bundleId: string;
+      returnUrl: string;
+      environment: StripeEnv;
+      referralCode?: string;
+      promoCode?: string;
+    }) => {
+      if (!UUID_RE.test(data.bundleId)) throw new Error("Invalid bundleId");
+      if (data.environment !== "sandbox" && data.environment !== "live") {
+        throw new Error("Invalid environment");
+      }
+      if (data.referralCode && !/^[A-Z0-9]{6,16}$/.test(data.referralCode.toUpperCase())) {
+        delete data.referralCode;
+      }
+      return data;
+    },
+  )
+  .handler(async ({ data }): Promise<CheckoutResult> => {
+    try {
+      const supabase = createClient<Database>(
+        process.env.SUPABASE_URL!,
+        process.env.SUPABASE_PUBLISHABLE_KEY!,
+        { auth: { persistSession: false, autoRefreshToken: false, storage: undefined } },
+      );
+
+      const { data: bundle } = await (supabase as any)
+        .from("marketplace_bundles")
+        .select("id,name,slug,short_description,price_cents,status,start_at,end_at")
+        .eq("id", data.bundleId)
+        .eq("status", "active")
+        .maybeSingle();
+      if (!bundle) return { error: "This bundle is no longer available" };
+
+      const now = Date.now();
+      if (bundle.start_at && new Date(bundle.start_at).getTime() > now) {
+        return { error: "This bundle has not launched yet" };
+      }
+      if (bundle.end_at && new Date(bundle.end_at).getTime() <= now) {
+        return { error: "This bundle offer has ended" };
+      }
+
+      const { data: itemRows } = await (supabase as any)
+        .from("marketplace_bundle_items")
+        .select("product_id,position")
+        .eq("bundle_id", bundle.id)
+        .order("position", { ascending: true });
+      const memberIds = ((itemRows ?? []) as any[]).map((i) => i.product_id);
+      if (memberIds.length < 2) return { error: "This bundle is not complete" };
+
+      const { data: prods } = await supabase
+        .from("marketplace_products")
+        .select("id,title,price_cents,seller_id,status,published")
+        .in("id", memberIds);
+      const members = ((prods ?? []) as any[]).filter(
+        (p) => p.status === "approved" && p.published,
+      );
+      if (members.length !== memberIds.length) {
+        return { error: "One of the bundled products is unavailable right now" };
+      }
+      const sellers = Array.from(new Set(members.map((p) => p.seller_id)));
+      if (sellers.length > 1) {
+        return { error: "This bundle cannot be purchased" };
+      }
+
+      const unitAmount = bundle.price_cents;
+      if (!Number.isInteger(unitAmount) || unitAmount < 50) {
+        return { error: "This bundle is mispriced" };
+      }
+
+      const stripe = createStripeClient(data.environment);
+      const taxMode = await detectTaxMode(stripe, data.environment);
+
+      const includedTitles = members.map((p) => p.title).join(", ").slice(0, 480);
+      const sessionParams = applyTaxMode(
+        {
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                product_data: {
+                  name: bundle.name,
+                  tax_code: "txcd_10000000",
+                  description: (bundle.short_description ?? `Includes: ${includedTitles}`).slice(
+                    0,
+                    500,
+                  ),
+                },
+                unit_amount: unitAmount,
+                tax_behavior: "exclusive",
+              },
+              quantity: 1,
+            },
+          ],
+          mode: "payment",
+          ui_mode: "embedded_page",
+          return_url: data.returnUrl,
+          payment_intent_data: { description: `Bundle · ${bundle.name}` },
+          metadata: {
+            bundle_id: bundle.id,
+            bundle_name: bundle.name.slice(0, 200),
+            bundle_product_ids: memberIds.join(",").slice(0, 500),
+            seller_id: sellers[0],
+            environment: data.environment,
+            tax_mode: taxMode,
+            unit_amount_cents: String(unitAmount),
+            ...(data.referralCode ? { referral_code: data.referralCode.toUpperCase() } : {}),
+          },
+        },
+        taxMode,
+      );
+
+      assertTaxModeInvariant(sessionParams, taxMode);
+      let session;
+      try {
+        session = await stripe.checkout.sessions.create(sessionParams as any);
+      } catch (err) {
+        if (isAutomaticTaxConfigError(err)) {
+          const fallback = stripTaxFields(sessionParams);
+          (fallback as any).metadata = { ...(fallback as any).metadata, tax_mode: "none" };
+          session = await stripe.checkout.sessions.create(fallback as any);
+        } else {
+          console.error("[stripe] createBundleCheckout: sessions.create failed", {
+            stripe: extractStripeIds(err),
+            session_shape: summarizeSessionShape(sessionParams),
+            tax_mode: taxMode,
+          });
+          throw err;
+        }
+      }
+
+      return { clientSecret: session.client_secret ?? "" };
+    } catch (error) {
+      console.error("[stripe] createBundleCheckout failed", {
+        stripe: extractStripeIds(error),
+        message: (error as Error)?.message,
+      });
+      return { error: getStripeErrorMessage(error) };
+    }
+  });

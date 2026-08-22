@@ -181,7 +181,18 @@ const SECTION_REGISTRY: Record<string, () => React.ReactElement> = {
       <AcademyLatestRow />
     </Suspense>
   ),
+  curated_bundles: () => (
+    <Suspense fallback={null}>
+      <CuratedBundlesRow />
+    </Suspense>
+  ),
 };
+
+const CuratedBundlesRow = lazy(() =>
+  import("@/components/marketplace/CuratedBundlesRow").then((m) => ({
+    default: m.CuratedBundlesRow,
+  })),
+);
 
 const BusinessSystemsRow = lazy(() =>
   import("@/components/marketplace/BusinessSystemsRow").then((m) => ({
@@ -219,6 +230,7 @@ const DEFAULT_SECTION_ORDER = [
   "academy_latest",
   "category_grid",
   "featured_products",
+  "curated_bundles",
 ];
 const DEFAULT_AFFILIATE_ORDER = [
   "vault_finds_row",
