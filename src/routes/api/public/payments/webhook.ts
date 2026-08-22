@@ -316,6 +316,227 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   }
 }
 
+/**
+ * Fulfil a bundle purchase. The bundle is re-read from the database (never
+ * trusted from metadata alone), the charged total is allocated pro-rata across
+ * member products with largest-remainder rounding so the cents sum exactly,
+ * and each product gets its own order line, download token and payout credit.
+ */
+async function handleBundleCheckoutCompleted(session: any, env: StripeEnv) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { allocateBundlePrices } = await import("@/lib/bundles");
+
+  const bundleId: string = session.metadata.bundle_id;
+  const buyerEmail: string =
+    session.customer_details?.email ?? session.customer_email ?? "";
+  if (!buyerEmail) {
+    console.error("Bundle checkout missing buyer email", session.id);
+    return;
+  }
+
+  const { data: bundle } = await (supabaseAdmin as any)
+    .from("marketplace_bundles")
+    .select("id,name,price_cents")
+    .eq("id", bundleId)
+    .maybeSingle();
+  if (!bundle) {
+    console.error("Bundle not found for webhook", bundleId);
+    return;
+  }
+
+  const { data: itemRows } = await (supabaseAdmin as any)
+    .from("marketplace_bundle_items")
+    .select("product_id,position")
+    .eq("bundle_id", bundleId)
+    .order("position", { ascending: true });
+  const memberIds = ((itemRows ?? []) as any[]).map((i) => i.product_id);
+  if (!memberIds.length) {
+    console.error("Bundle has no items", bundleId);
+    return;
+  }
+
+  const { data: prodRows } = await supabaseAdmin
+    .from("marketplace_products")
+    .select("id,title,price_cents,seller_id,is_preorder,released_at")
+    .in("id", memberIds);
+  const byId = new Map(((prodRows ?? []) as any[]).map((p) => [p.id, p]));
+  const members = memberIds.map((id: string) => byId.get(id)).filter(Boolean) as any[];
+  if (!members.length) {
+    console.error("Bundle products missing", bundleId);
+    return;
+  }
+
+  const referralCode: string | undefined = session.metadata?.referral_code;
+  let referrerUserId: string | null = null;
+  if (referralCode) {
+    try {
+      const { resolveReferralCode } = await import("@/lib/referrals.functions");
+      referrerUserId = await resolveReferralCode(referralCode, null);
+    } catch (e) {
+      console.error("Failed to resolve referral code", e);
+    }
+  }
+
+  const chargedTotal = Number(session.amount_total ?? bundle.price_cents);
+  const { data: order, error: orderErr } = await supabaseAdmin
+    .from("orders")
+    .insert({
+      buyer_email: buyerEmail,
+      stripe_session_id: session.id,
+      stripe_payment_intent: session.payment_intent ?? null,
+      amount_cents: chargedTotal,
+      currency: session.currency ?? "usd",
+      status: "paid",
+      environment: env,
+      referral_code: referralCode ?? null,
+      referrer_user_id: referrerUserId,
+    } as any)
+    .select("id")
+    .single();
+  if (orderErr || !order) {
+    console.error("Failed to insert bundle order", orderErr);
+    return;
+  }
+
+  if (referrerUserId) {
+    try {
+      await (supabaseAdmin as any)
+        .from("referrals")
+        .update({ first_order_id: order.id, first_order_at: new Date().toISOString() })
+        .eq("referrer_user_id", referrerUserId)
+        .is("first_order_id", null);
+    } catch (e) {
+      console.error("Failed to backfill referral first_order", e);
+    }
+  }
+
+  // Allocate the bundle price (not the taxed grand total) across members.
+  const allocationBase = Math.min(bundle.price_cents, chargedTotal);
+  const allocated = allocateBundlePrices(
+    allocationBase,
+    members.map((p) => p.price_cents),
+  );
+
+  const deliveries: { title: string; downloadUrl: string }[] = [];
+  const receiptItems: { title: string; amountFormatted: string }[] = [];
+  const sellerCredits = new Map<string, number>();
+
+  for (let i = 0; i < members.length; i++) {
+    const p = members[i]!;
+    const unit = allocated[i] ?? 0;
+    if (unit <= 0) continue;
+    const fee = Math.round((unit * PLATFORM_FEE_PCT) / 100);
+    const sellerAmount = unit - fee;
+    const isPreorder = !!p.is_preorder && !p.released_at;
+
+    const { data: line, error: lineErr } = await supabaseAdmin
+      .from("order_items")
+      .insert({
+        order_id: order.id,
+        product_id: p.id,
+        seller_id: p.seller_id,
+        product_title: p.title,
+        unit_amount_cents: unit,
+        platform_fee_cents: fee,
+        seller_amount_cents: sellerAmount,
+        is_preorder_at_purchase: isPreorder,
+        bundle_id: bundle.id,
+        bundle_name: bundle.name,
+      } as any)
+      .select("id")
+      .single();
+    if (lineErr || !line) {
+      console.error("Failed to insert bundle order item", lineErr);
+      continue;
+    }
+
+    const token = generateToken();
+    await supabaseAdmin.from("order_downloads").insert({
+      order_item_id: line.id,
+      token,
+    });
+
+    sellerCredits.set(p.seller_id, (sellerCredits.get(p.seller_id) ?? 0) + sellerAmount);
+    receiptItems.push({ title: p.title, amountFormatted: `$${(unit / 100).toFixed(2)}` });
+    if (!isPreorder) {
+      deliveries.push({ title: p.title, downloadUrl: `${PUBLIC_BASE_URL}/download/${token}` });
+    }
+
+    if (referralCode) {
+      try {
+        const { resolveAffiliateForOrderItem } = await import("@/lib/creator-affiliate.server");
+        const aff = await resolveAffiliateForOrderItem(referralCode, p.seller_id);
+        if (aff) {
+          await supabaseAdmin.from("affiliate_commissions" as any).insert({
+            order_id: order.id,
+            order_item_id: line.id,
+            creator_id: aff.creator_id,
+            affiliate_user_id: aff.affiliate_user_id,
+            referral_code: aff.referral_code,
+            sale_amount_cents: unit,
+            commission_rate_pct: aff.commission_rate_pct,
+            commission_cents: Math.round((unit * aff.commission_rate_pct) / 100),
+            status: "pending",
+          } as any);
+        }
+      } catch (e) {
+        console.error("Failed to record affiliate commission", e);
+      }
+    }
+  }
+
+  for (const [sellerId, amount] of sellerCredits) {
+    const { data: bal } = await supabaseAdmin
+      .from("seller_balances")
+      .select("pending_cents")
+      .eq("seller_id", sellerId)
+      .maybeSingle();
+    if (bal) {
+      await supabaseAdmin
+        .from("seller_balances")
+        .update({ pending_cents: Number(bal.pending_cents) + amount })
+        .eq("seller_id", sellerId);
+    } else {
+      await supabaseAdmin
+        .from("seller_balances")
+        .insert({ seller_id: sellerId, pending_cents: amount });
+    }
+  }
+
+  // Merchandising analytics: one purchase event per bundle order.
+  try {
+    await (supabaseAdmin as any).from("merch_events").insert({
+      kind: "purchase",
+      surface: "bundle_page",
+      bundle_id: bundle.id,
+      order_id: order.id,
+      amount_cents: chargedTotal,
+    });
+  } catch (e) {
+    console.warn("Failed to log bundle purchase event", e);
+  }
+
+  const totalFormatted = `$${(chargedTotal / 100).toFixed(2)}`;
+  await enqueueOrderConfirmationEmail({
+    to: buyerEmail,
+    items: [{ title: `Bundle: ${bundle.name}`, amountFormatted: totalFormatted }, ...receiptItems],
+    totalFormatted,
+    orderId: order.id,
+    isPreorder: false,
+  });
+
+  if (deliveries.length) {
+    await enqueueDeliveryEmail({
+      to: buyerEmail,
+      items: deliveries,
+      totalFormatted,
+      orderId: order.id,
+    });
+  }
+}
+
+
+
 async function enqueueOrderConfirmationEmail(args: {
   to: string;
   items: { title: string; amountFormatted: string }[];
