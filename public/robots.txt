@@ -1,11 +1,38 @@
+# AurumVault — https://www.aurumvault.store
+# Public marketplace, Academy, creator storefronts and brand pages are crawlable.
+# Private, transactional and internal-state routes are excluded below. Access
+# control is enforced by authentication + RLS; robots.txt is only a crawl hint.
+
 User-agent: *
 Allow: /
+
+# Authenticated / private areas
 Disallow: /admin
 Disallow: /dashboard
+Disallow: /creator-dashboard
 Disallow: /account
+Disallow: /library
 Disallow: /wishlist
-Disallow: /download/
 Disallow: /auth
+Disallow: /reset-password
+
+# Transactional + delivery routes
+Disallow: /cart
+Disallow: /checkout
+Disallow: /download/
+Disallow: /unsubscribe
+Disallow: /subscribe/confirm
+
+# Internal search results and API/internal endpoints
+Disallow: /search
+Disallow: /api/
 Disallow: /lovable/
+
+# Faceted / sorted duplicates of the catalogue (canonical points at the
+# clean category URL; the un-parameterised pages stay crawlable).
+Disallow: /*?sort=
+Disallow: /*?page=
+Disallow: /*?price=
+Disallow: /*?utm_
 
 Sitemap: https://www.aurumvault.store/sitemap.xml

@@ -34,3 +34,26 @@ export const pingSearchEngines = createServerFn({ method: "POST" }).handler(
     return results;
   },
 );
+
+/**
+ * Notify search engines that specific public URLs changed (IndexNow) and that
+ * the sitemap should be re-read. Call this only on meaningful publish /
+ * update / unpublish events — never on every render.
+ *
+ * Never throws: IndexNow problems must not break publishing workflows.
+ * Failures are logged server-side (`[indexnow] ...`) and reported in the
+ * return value so callers can surface them if useful.
+ */
+export const notifySearchEngines = createServerFn({ method: "POST" })
+  .inputValidator((data: { paths: string[] }) => ({
+    paths: Array.isArray(data?.paths)
+      ? data.paths.filter((p) => typeof p === "string").slice(0, 100)
+      : [],
+  }))
+  .handler(async ({ data }) => {
+    const { submitToIndexNow } = await import("./indexnow.server");
+    const indexnow = await submitToIndexNow(
+      data.paths.length ? data.paths : ["/"],
+    );
+    return { indexnow };
+  });
