@@ -80,6 +80,23 @@ export const acceptIntoFounding100 = createServerFn({ method: "POST" })
     return acceptFoundingCreator({ applicationId: data.applicationId, acceptedBy: context.userId });
   });
 
+/**
+ * Admin-only end-to-end funnel: visitor → starter pack → application →
+ * approval → first product → first sale. Every stage is counted from records.
+ */
+export const getFoundingFunnel = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Forbidden");
+    const { adminClient } = await import("@/lib/starter-pack.server");
+    const { computeFoundingFunnel } = await import("@/lib/founding-funnel.server");
+    return computeFoundingFunnel(adminClient());
+  });
+
 export type FoundingMetrics = {
   accepted: number;
   remaining: number;
