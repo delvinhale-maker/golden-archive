@@ -61,14 +61,8 @@ export function redact(email: string): string {
   return l && d ? `${l[0]}***@${d}` : "***";
 }
 
-export function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
+export { normalizeLeadEmail as normalizeEmail } from "@/lib/starter-pack-validation";
 
-/** Strips CR/LF so nothing a visitor types can inject an email header. */
-function sanitizeHeaderValue(value: string): string {
-  return value.replace(/[\r\n\t]+/g, " ").trim();
-}
 
 export function adminClient(): SupabaseClient {
   const url = process.env.SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL;
