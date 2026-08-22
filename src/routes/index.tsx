@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BrandIntro } from "@/components/marketplace/BrandIntro";
+
 import { motion } from "framer-motion";
 import { useSuspenseQuery, queryOptions, useQueryClient, useQueryErrorResetBoundary, useIsFetching } from "@tanstack/react-query";
 import { Suspense, lazy, type ReactElement } from "react";
