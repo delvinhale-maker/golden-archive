@@ -27,6 +27,7 @@ import { Route as CreatorAgreementRouteImport } from './routes/creator-agreement
 import { Route as CreatorBusinessToolsRouteImport } from './routes/creator-business-tools'
 import { Route as CreatorDashboardRouteImport } from './routes/creator-dashboard'
 import { Route as CreatorEarningsRouteImport } from './routes/creator-earnings'
+import { Route as CreatorStarterPackRouteImport } from './routes/creator-starter-pack'
 import { Route as CreatorTermsRouteImport } from './routes/creator-terms'
 import { Route as CreatorsRouteImport } from './routes/creators'
 import { Route as GiftCardsRouteImport } from './routes/gift-cards'
@@ -58,6 +59,7 @@ import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as CollectionsFilmTvCreatorProductionRouteImport } from './routes/collections.film-tv-creator-production'
 import { Route as CreatorBusinessToolsIndexRouteImport } from './routes/creator-business-tools.index'
 import { Route as CreatorBusinessToolsSubRouteImport } from './routes/creator-business-tools.$sub'
+import { Route as CreatorStarterPackThankYouRouteImport } from './routes/creator-starter-pack_.thank-you'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
@@ -67,6 +69,7 @@ import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAutoReleaseRouteImport } from './routes/_authenticated/admin.auto-release'
 import { Route as AuthenticatedAdminCommunityRouteImport } from './routes/_authenticated/admin.community'
+import { Route as AuthenticatedAdminCreatorAcquisitionRouteImport } from './routes/_authenticated/admin.creator-acquisition'
 import { Route as AuthenticatedAdminEarningsRouteImport } from './routes/_authenticated/admin.earnings'
 import { Route as AuthenticatedAdminErrorsRouteImport } from './routes/_authenticated/admin.errors'
 import { Route as AuthenticatedAdminHomepageRouteImport } from './routes/_authenticated/admin.homepage'
@@ -103,6 +106,7 @@ import { Route as AuthenticatedDashboardVariantsIdRouteImport } from './routes/_
 import { Route as ApiPublicAcademyReceiveArticleRouteImport } from './routes/api/public/academy/receive-article'
 import { Route as ApiPublicCronReleasePreordersRouteImport } from './routes/api/public/cron/release-preorders'
 import { Route as ApiPublicCronRotatePayoutKeysRouteImport } from './routes/api/public/cron/rotate-payout-keys'
+import { Route as ApiPublicCronStarterPackNurtureRouteImport } from './routes/api/public/cron/starter-pack-nurture'
 import { Route as ApiPublicCronSubscriberSequenceRouteImport } from './routes/api/public/cron/subscriber-sequence'
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
 import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/public/hooks/audit-covers'
@@ -202,6 +206,11 @@ const CreatorDashboardRoute = CreatorDashboardRouteImport.update({
 const CreatorEarningsRoute = CreatorEarningsRouteImport.update({
   id: '/creator-earnings',
   path: '/creator-earnings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorStarterPackRoute = CreatorStarterPackRouteImport.update({
+  id: '/creator-starter-pack',
+  path: '/creator-starter-pack',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreatorTermsRoute = CreatorTermsRouteImport.update({
@@ -361,6 +370,12 @@ const CreatorBusinessToolsSubRoute = CreatorBusinessToolsSubRouteImport.update({
   path: '/$sub',
   getParentRoute: () => CreatorBusinessToolsRoute,
 } as any)
+const CreatorStarterPackThankYouRoute =
+  CreatorStarterPackThankYouRouteImport.update({
+    id: '/creator-starter-pack_/thank-you',
+    path: '/creator-starter-pack/thank-you',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DownloadTokenRoute = DownloadTokenRouteImport.update({
   id: '/download/$token',
   path: '/download/$token',
@@ -406,6 +421,12 @@ const AuthenticatedAdminCommunityRoute =
   AuthenticatedAdminCommunityRouteImport.update({
     id: '/admin/community',
     path: '/admin/community',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminCreatorAcquisitionRoute =
+  AuthenticatedAdminCreatorAcquisitionRouteImport.update({
+    id: '/admin/creator-acquisition',
+    path: '/admin/creator-acquisition',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminEarningsRoute =
@@ -621,6 +642,12 @@ const ApiPublicCronRotatePayoutKeysRoute =
     path: '/api/public/cron/rotate-payout-keys',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronStarterPackNurtureRoute =
+  ApiPublicCronStarterPackNurtureRouteImport.update({
+    id: '/api/public/cron/starter-pack-nurture',
+    path: '/api/public/cron/starter-pack-nurture',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCronSubscriberSequenceRoute =
   ApiPublicCronSubscriberSequenceRouteImport.update({
     id: '/api/public/cron/subscriber-sequence',
@@ -706,6 +733,7 @@ export interface FileRoutesByFullPath {
   '/creator-business-tools': typeof CreatorBusinessToolsRouteWithChildren
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
+  '/creator-starter-pack': typeof CreatorStarterPackRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
   '/gift-cards': typeof GiftCardsRoute
@@ -735,6 +763,7 @@ export interface FileRoutesByFullPath {
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
+  '/creator-starter-pack/thank-you': typeof CreatorStarterPackThankYouRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -745,6 +774,7 @@ export interface FileRoutesByFullPath {
   '/products/': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
+  '/admin/creator-acquisition': typeof AuthenticatedAdminCreatorAcquisitionRoute
   '/admin/earnings': typeof AuthenticatedAdminEarningsRoute
   '/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
@@ -781,6 +811,7 @@ export interface FileRoutesByFullPath {
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
+  '/api/public/cron/starter-pack-nurture': typeof ApiPublicCronStarterPackNurtureRoute
   '/api/public/cron/subscriber-sequence': typeof ApiPublicCronSubscriberSequenceRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
@@ -810,6 +841,7 @@ export interface FileRoutesByTo {
   '/creator-agreement': typeof CreatorAgreementRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
+  '/creator-starter-pack': typeof CreatorStarterPackRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
   '/gift-cards': typeof GiftCardsRoute
@@ -838,6 +870,7 @@ export interface FileRoutesByTo {
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
+  '/creator-starter-pack/thank-you': typeof CreatorStarterPackThankYouRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -848,6 +881,7 @@ export interface FileRoutesByTo {
   '/products': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
+  '/admin/creator-acquisition': typeof AuthenticatedAdminCreatorAcquisitionRoute
   '/admin/earnings': typeof AuthenticatedAdminEarningsRoute
   '/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
@@ -884,6 +918,7 @@ export interface FileRoutesByTo {
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
+  '/api/public/cron/starter-pack-nurture': typeof ApiPublicCronStarterPackNurtureRoute
   '/api/public/cron/subscriber-sequence': typeof ApiPublicCronSubscriberSequenceRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
@@ -917,6 +952,7 @@ export interface FileRoutesById {
   '/creator-business-tools': typeof CreatorBusinessToolsRouteWithChildren
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
+  '/creator-starter-pack': typeof CreatorStarterPackRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
   '/gift-cards': typeof GiftCardsRoute
@@ -946,6 +982,7 @@ export interface FileRoutesById {
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
+  '/creator-starter-pack_/thank-you': typeof CreatorStarterPackThankYouRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -956,6 +993,7 @@ export interface FileRoutesById {
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/_authenticated/admin/community': typeof AuthenticatedAdminCommunityRoute
+  '/_authenticated/admin/creator-acquisition': typeof AuthenticatedAdminCreatorAcquisitionRoute
   '/_authenticated/admin/earnings': typeof AuthenticatedAdminEarningsRoute
   '/_authenticated/admin/errors': typeof AuthenticatedAdminErrorsRoute
   '/_authenticated/admin/homepage': typeof AuthenticatedAdminHomepageRoute
@@ -992,6 +1030,7 @@ export interface FileRoutesById {
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
+  '/api/public/cron/starter-pack-nurture': typeof ApiPublicCronStarterPackNurtureRoute
   '/api/public/cron/subscriber-sequence': typeof ApiPublicCronSubscriberSequenceRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
@@ -1025,6 +1064,7 @@ export interface FileRouteTypes {
     | '/creator-business-tools'
     | '/creator-dashboard'
     | '/creator-earnings'
+    | '/creator-starter-pack'
     | '/creator-terms'
     | '/creators'
     | '/gift-cards'
@@ -1054,6 +1094,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/collections/film-tv-creator-production'
     | '/creator-business-tools/$sub'
+    | '/creator-starter-pack/thank-you'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1064,6 +1105,7 @@ export interface FileRouteTypes {
     | '/products/'
     | '/admin/auto-release'
     | '/admin/community'
+    | '/admin/creator-acquisition'
     | '/admin/earnings'
     | '/admin/errors'
     | '/admin/homepage'
@@ -1100,6 +1142,7 @@ export interface FileRouteTypes {
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/cron/rotate-payout-keys'
+    | '/api/public/cron/starter-pack-nurture'
     | '/api/public/cron/subscriber-sequence'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
@@ -1129,6 +1172,7 @@ export interface FileRouteTypes {
     | '/creator-agreement'
     | '/creator-dashboard'
     | '/creator-earnings'
+    | '/creator-starter-pack'
     | '/creator-terms'
     | '/creators'
     | '/gift-cards'
@@ -1157,6 +1201,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/collections/film-tv-creator-production'
     | '/creator-business-tools/$sub'
+    | '/creator-starter-pack/thank-you'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1167,6 +1212,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/admin/auto-release'
     | '/admin/community'
+    | '/admin/creator-acquisition'
     | '/admin/earnings'
     | '/admin/errors'
     | '/admin/homepage'
@@ -1203,6 +1249,7 @@ export interface FileRouteTypes {
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/cron/rotate-payout-keys'
+    | '/api/public/cron/starter-pack-nurture'
     | '/api/public/cron/subscriber-sequence'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
@@ -1235,6 +1282,7 @@ export interface FileRouteTypes {
     | '/creator-business-tools'
     | '/creator-dashboard'
     | '/creator-earnings'
+    | '/creator-starter-pack'
     | '/creator-terms'
     | '/creators'
     | '/gift-cards'
@@ -1264,6 +1312,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/collections/film-tv-creator-production'
     | '/creator-business-tools/$sub'
+    | '/creator-starter-pack_/thank-you'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1274,6 +1323,7 @@ export interface FileRouteTypes {
     | '/products/'
     | '/_authenticated/admin/auto-release'
     | '/_authenticated/admin/community'
+    | '/_authenticated/admin/creator-acquisition'
     | '/_authenticated/admin/earnings'
     | '/_authenticated/admin/errors'
     | '/_authenticated/admin/homepage'
@@ -1310,6 +1360,7 @@ export interface FileRouteTypes {
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/cron/rotate-payout-keys'
+    | '/api/public/cron/starter-pack-nurture'
     | '/api/public/cron/subscriber-sequence'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
@@ -1343,6 +1394,7 @@ export interface RootRouteChildren {
   CreatorBusinessToolsRoute: typeof CreatorBusinessToolsRouteWithChildren
   CreatorDashboardRoute: typeof CreatorDashboardRoute
   CreatorEarningsRoute: typeof CreatorEarningsRoute
+  CreatorStarterPackRoute: typeof CreatorStarterPackRoute
   CreatorTermsRoute: typeof CreatorTermsRoute
   CreatorsRoute: typeof CreatorsRoute
   GiftCardsRoute: typeof GiftCardsRoute
@@ -1368,6 +1420,7 @@ export interface RootRouteChildren {
   ApiAiStudioStreamRoute: typeof ApiAiStudioStreamRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   CollectionsFilmTvCreatorProductionRoute: typeof CollectionsFilmTvCreatorProductionRoute
+  CreatorStarterPackThankYouRoute: typeof CreatorStarterPackThankYouRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   StoreSlugRoute: typeof StoreSlugRoute
@@ -1377,6 +1430,7 @@ export interface RootRouteChildren {
   ApiPublicAcademyReceiveArticleRoute: typeof ApiPublicAcademyReceiveArticleRoute
   ApiPublicCronReleasePreordersRoute: typeof ApiPublicCronReleasePreordersRoute
   ApiPublicCronRotatePayoutKeysRoute: typeof ApiPublicCronRotatePayoutKeysRoute
+  ApiPublicCronStarterPackNurtureRoute: typeof ApiPublicCronStarterPackNurtureRoute
   ApiPublicCronSubscriberSequenceRoute: typeof ApiPublicCronSubscriberSequenceRoute
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
   ApiPublicHooksAuditCoversRoute: typeof ApiPublicHooksAuditCoversRoute
@@ -1515,6 +1569,13 @@ declare module '@tanstack/react-router' {
       path: '/creator-earnings'
       fullPath: '/creator-earnings'
       preLoaderRoute: typeof CreatorEarningsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator-starter-pack': {
+      id: '/creator-starter-pack'
+      path: '/creator-starter-pack'
+      fullPath: '/creator-starter-pack'
+      preLoaderRoute: typeof CreatorStarterPackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/creator-terms': {
@@ -1734,6 +1795,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreatorBusinessToolsSubRouteImport
       parentRoute: typeof CreatorBusinessToolsRoute
     }
+    '/creator-starter-pack_/thank-you': {
+      id: '/creator-starter-pack_/thank-you'
+      path: '/creator-starter-pack/thank-you'
+      fullPath: '/creator-starter-pack/thank-you'
+      preLoaderRoute: typeof CreatorStarterPackThankYouRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/download/$token': {
       id: '/download/$token'
       path: '/download/$token'
@@ -1795,6 +1863,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/community'
       fullPath: '/admin/community'
       preLoaderRoute: typeof AuthenticatedAdminCommunityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/creator-acquisition': {
+      id: '/_authenticated/admin/creator-acquisition'
+      path: '/admin/creator-acquisition'
+      fullPath: '/admin/creator-acquisition'
+      preLoaderRoute: typeof AuthenticatedAdminCreatorAcquisitionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/earnings': {
@@ -2049,6 +2124,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronRotatePayoutKeysRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/starter-pack-nurture': {
+      id: '/api/public/cron/starter-pack-nurture'
+      path: '/api/public/cron/starter-pack-nurture'
+      fullPath: '/api/public/cron/starter-pack-nurture'
+      preLoaderRoute: typeof ApiPublicCronStarterPackNurtureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/subscriber-sequence': {
       id: '/api/public/cron/subscriber-sequence'
       path: '/api/public/cron/subscriber-sequence'
@@ -2148,6 +2230,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReferRoute: typeof AuthenticatedReferRoute
   AuthenticatedAdminAutoReleaseRoute: typeof AuthenticatedAdminAutoReleaseRoute
   AuthenticatedAdminCommunityRoute: typeof AuthenticatedAdminCommunityRoute
+  AuthenticatedAdminCreatorAcquisitionRoute: typeof AuthenticatedAdminCreatorAcquisitionRoute
   AuthenticatedAdminEarningsRoute: typeof AuthenticatedAdminEarningsRoute
   AuthenticatedAdminErrorsRoute: typeof AuthenticatedAdminErrorsRoute
   AuthenticatedAdminHomepageRoute: typeof AuthenticatedAdminHomepageRoute
@@ -2185,6 +2268,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReferRoute: AuthenticatedReferRoute,
   AuthenticatedAdminAutoReleaseRoute: AuthenticatedAdminAutoReleaseRoute,
   AuthenticatedAdminCommunityRoute: AuthenticatedAdminCommunityRoute,
+  AuthenticatedAdminCreatorAcquisitionRoute:
+    AuthenticatedAdminCreatorAcquisitionRoute,
   AuthenticatedAdminEarningsRoute: AuthenticatedAdminEarningsRoute,
   AuthenticatedAdminErrorsRoute: AuthenticatedAdminErrorsRoute,
   AuthenticatedAdminHomepageRoute: AuthenticatedAdminHomepageRoute,
@@ -2296,6 +2381,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreatorBusinessToolsRoute: CreatorBusinessToolsRouteWithChildren,
   CreatorDashboardRoute: CreatorDashboardRoute,
   CreatorEarningsRoute: CreatorEarningsRoute,
+  CreatorStarterPackRoute: CreatorStarterPackRoute,
   CreatorTermsRoute: CreatorTermsRoute,
   CreatorsRoute: CreatorsRoute,
   GiftCardsRoute: GiftCardsRoute,
@@ -2322,6 +2408,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutReturnRoute: CheckoutReturnRoute,
   CollectionsFilmTvCreatorProductionRoute:
     CollectionsFilmTvCreatorProductionRoute,
+  CreatorStarterPackThankYouRoute: CreatorStarterPackThankYouRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   StoreSlugRoute: StoreSlugRoute,
@@ -2331,6 +2418,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAcademyReceiveArticleRoute: ApiPublicAcademyReceiveArticleRoute,
   ApiPublicCronReleasePreordersRoute: ApiPublicCronReleasePreordersRoute,
   ApiPublicCronRotatePayoutKeysRoute: ApiPublicCronRotatePayoutKeysRoute,
+  ApiPublicCronStarterPackNurtureRoute: ApiPublicCronStarterPackNurtureRoute,
   ApiPublicCronSubscriberSequenceRoute: ApiPublicCronSubscriberSequenceRoute,
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
   ApiPublicHooksAuditCoversRoute: ApiPublicHooksAuditCoversRoute,
