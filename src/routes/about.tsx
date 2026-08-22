@@ -49,15 +49,49 @@ function AboutPage() {
           About
         </p>
         <h1 className="mt-2 font-display text-4xl text-navy md:text-5xl">
-          The gold standard for digital products.
+          About AurumVault — the gold standard for digital products.
         </h1>
         <p className="mt-6 text-lg leading-relaxed text-ink/80">
-          AurumVault is a curated digital marketplace for ebooks, journals, AI
-          prompt packs, and planners built by independent creators who treat
-          their craft as a calling. We exist to make it easy to find work
-          that's actually worth your time — and to make it possible for the
-          people who make that work to earn a real living from it.
+          AurumVault is a digital-product marketplace at{" "}
+          <strong className="font-semibold text-navy">AurumVault.store</strong>{" "}
+          that connects creators, entrepreneurs and businesses with premium
+          digital resources — and gives eligible creators a platform for selling
+          their own digital products. Some people search for us as “Aurum Vault”;
+          it's the same marketplace.
         </p>
+        <p className="mt-4 leading-relaxed text-ink/80">
+          You'll find eBooks, interactive planners, journals, templates, AI
+          prompt packs, media kits, marketing resources and complete{" "}
+          <Link
+            to="/business-systems"
+            className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink"
+          >
+            business operating systems
+          </Link>{" "}
+          across the{" "}
+          <Link
+            to="/products"
+            className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink"
+          >
+            digital product marketplace
+          </Link>
+          , plus{" "}
+          <Link
+            to="/creator-business-tools"
+            className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink"
+          >
+            creator business resources
+          </Link>{" "}
+          and free education in the{" "}
+          <Link
+            to="/academy"
+            className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink"
+          >
+            AurumVault Academy
+          </Link>
+          . Everything is delivered instantly as a download.
+        </p>
+
 
         <section className="mt-12">
           <h2 className="font-display text-2xl text-navy">Our mission</h2>
