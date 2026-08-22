@@ -92,6 +92,7 @@ import { Route as AuthenticatedAdminVerifyPdfRouteImport } from './routes/_authe
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedDashboardAffiliateRouteImport } from './routes/_authenticated/dashboard.affiliate'
 import { Route as AuthenticatedDashboardAiStudioRouteImport } from './routes/_authenticated/dashboard.ai-studio'
+import { Route as AuthenticatedDashboardAnalyticsRouteImport } from './routes/_authenticated/dashboard.analytics'
 import { Route as AuthenticatedDashboardCommunityRouteImport } from './routes/_authenticated/dashboard.community'
 import { Route as AuthenticatedDashboardCreatorReferralsRouteImport } from './routes/_authenticated/dashboard.creator-referrals'
 import { Route as AuthenticatedDashboardEarnRouteImport } from './routes/_authenticated/dashboard.earn'
@@ -566,6 +567,12 @@ const AuthenticatedDashboardAiStudioRoute =
     path: '/dashboard/ai-studio',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardAnalyticsRoute =
+  AuthenticatedDashboardAnalyticsRouteImport.update({
+    id: '/dashboard/analytics',
+    path: '/dashboard/analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardCommunityRoute =
   AuthenticatedDashboardCommunityRouteImport.update({
     id: '/dashboard/community',
@@ -855,6 +862,7 @@ export interface FileRoutesByFullPath {
   '/admin/verify-pdf': typeof AuthenticatedAdminVerifyPdfRoute
   '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
+  '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
   '/dashboard/creator-referrals': typeof AuthenticatedDashboardCreatorReferralsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
@@ -971,6 +979,7 @@ export interface FileRoutesByTo {
   '/admin/verify-pdf': typeof AuthenticatedAdminVerifyPdfRoute
   '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
+  '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
   '/dashboard/creator-referrals': typeof AuthenticatedDashboardCreatorReferralsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
@@ -1092,6 +1101,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/verify-pdf': typeof AuthenticatedAdminVerifyPdfRoute
   '/_authenticated/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/_authenticated/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
+  '/_authenticated/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/_authenticated/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
   '/_authenticated/dashboard/creator-referrals': typeof AuthenticatedDashboardCreatorReferralsRoute
   '/_authenticated/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
@@ -1213,6 +1223,7 @@ export interface FileRouteTypes {
     | '/admin/verify-pdf'
     | '/dashboard/affiliate'
     | '/dashboard/ai-studio'
+    | '/dashboard/analytics'
     | '/dashboard/community'
     | '/dashboard/creator-referrals'
     | '/dashboard/earn'
@@ -1329,6 +1340,7 @@ export interface FileRouteTypes {
     | '/admin/verify-pdf'
     | '/dashboard/affiliate'
     | '/dashboard/ai-studio'
+    | '/dashboard/analytics'
     | '/dashboard/community'
     | '/dashboard/creator-referrals'
     | '/dashboard/earn'
@@ -1449,6 +1461,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/verify-pdf'
     | '/_authenticated/dashboard/affiliate'
     | '/_authenticated/dashboard/ai-studio'
+    | '/_authenticated/dashboard/analytics'
     | '/_authenticated/dashboard/community'
     | '/_authenticated/dashboard/creator-referrals'
     | '/_authenticated/dashboard/earn'
@@ -2143,6 +2156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardAiStudioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/analytics': {
+      id: '/_authenticated/dashboard/analytics'
+      path: '/dashboard/analytics'
+      fullPath: '/dashboard/analytics'
+      preLoaderRoute: typeof AuthenticatedDashboardAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/community': {
       id: '/_authenticated/dashboard/community'
       path: '/dashboard/community'
@@ -2428,6 +2448,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminVerifyPdfRoute: typeof AuthenticatedAdminVerifyPdfRoute
   AuthenticatedDashboardAffiliateRoute: typeof AuthenticatedDashboardAffiliateRoute
   AuthenticatedDashboardAiStudioRoute: typeof AuthenticatedDashboardAiStudioRoute
+  AuthenticatedDashboardAnalyticsRoute: typeof AuthenticatedDashboardAnalyticsRoute
   AuthenticatedDashboardCommunityRoute: typeof AuthenticatedDashboardCommunityRoute
   AuthenticatedDashboardCreatorReferralsRoute: typeof AuthenticatedDashboardCreatorReferralsRoute
   AuthenticatedDashboardEarnRoute: typeof AuthenticatedDashboardEarnRoute
@@ -2473,6 +2494,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminVerifyPdfRoute: AuthenticatedAdminVerifyPdfRoute,
   AuthenticatedDashboardAffiliateRoute: AuthenticatedDashboardAffiliateRoute,
   AuthenticatedDashboardAiStudioRoute: AuthenticatedDashboardAiStudioRoute,
+  AuthenticatedDashboardAnalyticsRoute: AuthenticatedDashboardAnalyticsRoute,
   AuthenticatedDashboardCommunityRoute: AuthenticatedDashboardCommunityRoute,
   AuthenticatedDashboardCreatorReferralsRoute:
     AuthenticatedDashboardCreatorReferralsRoute,
