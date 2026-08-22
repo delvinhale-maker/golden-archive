@@ -293,6 +293,7 @@ function LibraryCard({
           )}
           <p className="mt-1 text-[11px] text-mute">
             Purchased {formatDate(item.purchasedAt)}
+            {item.bundle_name ? ` · from ${item.bundle_name}` : ""}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider">
             <span className="rounded-full bg-navy px-2 py-0.5 text-gold">
