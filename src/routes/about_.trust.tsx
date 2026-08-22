@@ -18,7 +18,7 @@ const TITLE =
 const DESCRIPTION =
   "How AurumVault protects buyers and creators: the official AurumVault.store domain, secure payments, instant digital delivery, refund and privacy policies, creator standards, and how to reach support.";
 
-export const Route = createFileRoute("/about/trust")({
+export const Route = createFileRoute("/about_/trust")({
   head: () => ({
     meta: [
       { title: TITLE },

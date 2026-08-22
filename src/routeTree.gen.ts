@@ -51,6 +51,7 @@ import { Route as VaultRouteImport } from './routes/vault'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AuthenticatedReferRouteImport } from './routes/_authenticated/refer'
 import { Route as ABrandSlugRouteImport } from './routes/a.$brandSlug'
+import { Route as AboutTrustRouteImport } from './routes/about_.trust'
 import { Route as AcademyIndexRouteImport } from './routes/academy.index'
 import { Route as AcademyCategoryRouteImport } from './routes/academy.$category'
 import { Route as AccountSettingsRouteImport } from './routes/account.settings'
@@ -333,6 +334,11 @@ const AuthenticatedReferRoute = AuthenticatedReferRouteImport.update({
 const ABrandSlugRoute = ABrandSlugRouteImport.update({
   id: '/a/$brandSlug',
   path: '/a/$brandSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutTrustRoute = AboutTrustRouteImport.update({
+  id: '/about_/trust',
+  path: '/about/trust',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AcademyIndexRoute = AcademyIndexRouteImport.update({
@@ -804,6 +810,7 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
+  '/about/trust': typeof AboutTrustRoute
   '/academy/$category': typeof AcademyCategoryRoute
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
@@ -918,6 +925,7 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
+  '/about/trust': typeof AboutTrustRoute
   '/academy/$category': typeof AcademyCategoryRoute
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
@@ -1037,6 +1045,7 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/_authenticated/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
+  '/about_/trust': typeof AboutTrustRoute
   '/academy/$category': typeof AcademyCategoryRoute
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
@@ -1156,6 +1165,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/refer'
     | '/a/$brandSlug'
+    | '/about/trust'
     | '/academy/$category'
     | '/account/settings'
     | '/api/ai-studio-stream'
@@ -1270,6 +1280,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/refer'
     | '/a/$brandSlug'
+    | '/about/trust'
     | '/academy/$category'
     | '/account/settings'
     | '/api/ai-studio-stream'
@@ -1388,6 +1399,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/_authenticated/refer'
     | '/a/$brandSlug'
+    | '/about_/trust'
     | '/academy/$category'
     | '/account/settings'
     | '/api/ai-studio-stream'
@@ -1506,6 +1518,7 @@ export interface RootRouteChildren {
   VaultRoute: typeof VaultRoute
   WishlistRoute: typeof WishlistRoute
   ABrandSlugRoute: typeof ABrandSlugRoute
+  AboutTrustRoute: typeof AboutTrustRoute
   ApiAiStudioStreamRoute: typeof ApiAiStudioStreamRoute
   BundlesSlugRoute: typeof BundlesSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -1828,6 +1841,13 @@ declare module '@tanstack/react-router' {
       path: '/a/$brandSlug'
       fullPath: '/a/$brandSlug'
       preLoaderRoute: typeof ABrandSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about_/trust': {
+      id: '/about_/trust'
+      path: '/about/trust'
+      fullPath: '/about/trust'
+      preLoaderRoute: typeof AboutTrustRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/academy/': {
@@ -2555,6 +2575,7 @@ const rootRouteChildren: RootRouteChildren = {
   VaultRoute: VaultRoute,
   WishlistRoute: WishlistRoute,
   ABrandSlugRoute: ABrandSlugRoute,
+  AboutTrustRoute: AboutTrustRoute,
   ApiAiStudioStreamRoute: ApiAiStudioStreamRoute,
   BundlesSlugRoute: BundlesSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
