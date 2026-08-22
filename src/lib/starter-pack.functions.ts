@@ -8,41 +8,20 @@ import {
   starterPackSubmitSchema,
 } from "@/lib/starter-pack-validation";
 
-/** SHA-256 of the caller IP — we never store a raw address. */
-async function callerFingerprint(): Promise<string | null> {
-  let headers: Headers;
-  try {
-    headers = getRequest().headers;
-  } catch {
-    return null;
-  }
-  const ip =
-    headers.get("cf-connecting-ip") ||
-    headers.get("x-real-ip") ||
-    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    null;
-  if (!ip) return null;
-  const buf = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(`starter-pack:${ip}`),
-  );
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
 /**
  * Public Starter Pack lead capture. No auth: anonymous visitors submit here and
  * only here — the leads table itself is not readable or writable from a browser.
  */
 export const submitStarterPackLead = createServerFn({ method: "POST" })
-  .inputValidator((data) => submitSchema.parse(data))
+  .inputValidator((data) => starterPackSubmitSchema.parse(data))
   .handler(async ({ data }) => {
-    if (data.company.trim().length > 0 || data.elapsedMs < MIN_FILL_MS) {
+    if (looksAutomated(data)) {
       return { ok: true as const, duplicate: false, emailQueued: false, bot: true };
     }
 
-    const { captureStarterPackLead, adminClient } = await import("@/lib/starter-pack.server");
+    const { captureStarterPackLead, adminClient, callerFingerprint } = await import(
+      "@/lib/starter-pack.server"
+    );
 
     const ipHash = await callerFingerprint();
     if (ipHash) {
