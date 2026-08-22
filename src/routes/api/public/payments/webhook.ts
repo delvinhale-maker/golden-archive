@@ -39,6 +39,17 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     return;
   }
 
+  // Cart checkouts carry `cart: "true"` and a comma-separated `product_ids`
+  // list instead of a single `product_id`. Without this branch they fell
+  // through to the single-product path and were dropped (no order, no
+  // download links) even though Stripe took the payment.
+  if (session.metadata?.cart === "true" && !session.metadata?.product_id) {
+    await handleCartCheckoutCompleted(session, env);
+    return;
+  }
+
+
+
 
 
   const productId: string | undefined = session.metadata?.product_id;
