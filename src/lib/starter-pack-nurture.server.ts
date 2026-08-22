@@ -78,6 +78,8 @@ export async function runStarterPackNurture(): Promise<NurtureResult> {
         metadata: { lead_id: row.id },
       });
 
+      const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, email);
+
       const { error: enqErr } = await supabase.rpc("enqueue_email", {
         queue_name: "transactional_emails",
         payload: {
