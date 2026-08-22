@@ -247,7 +247,11 @@ export function MarketHeader() {
           backgroundColor: "var(--scheme-bg)",
         }}
       >
-        <div className="mx-auto flex h-10 max-w-7xl items-center gap-1 overflow-x-auto px-8">
+        <div
+          className={`mx-auto flex h-10 max-w-7xl items-center gap-1 px-8 ${
+            openSubs ? "overflow-visible" : "overflow-x-auto"
+          }`}
+        >
           {CATEGORIES.map((c) => {
             const active = activeCat === c || (c === "All" && pathname === "/");
             const subs = subsFor(c);
