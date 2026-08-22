@@ -120,7 +120,9 @@ export async function sendStarterPackEmail(
       message_id: messageId,
       template_name: DELIVERY_TEMPLATE,
       recipient_email: args.email,
-      status: "requested",
+      // "pending" = requested/queued. Only the queue processor and provider
+      // webhooks may advance a row to sent/bounced/complained.
+      status: "pending",
       metadata: args.leadId ? { lead_id: args.leadId } : null,
     });
 
