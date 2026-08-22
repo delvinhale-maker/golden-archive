@@ -416,9 +416,12 @@ export function HeroCarousel({
                 {slide.kicker}
               </div>
             )}
-            <h1 className="mt-6 font-display text-5xl leading-[1.02] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[80px]">
+            {/* Presentational headline — the page-level <h1> lives in BrandIntro
+                so the homepage has one stable, brand-identifying heading. */}
+            <p className="mt-6 font-display text-5xl leading-[1.02] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[80px]">
               {slide.title}
-            </h1>
+            </p>
+
             <p className="mt-8 max-w-xl text-lg leading-relaxed text-white/75 md:text-xl">
               {slide.body}
             </p>
