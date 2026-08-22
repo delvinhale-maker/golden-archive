@@ -263,3 +263,12 @@ function Stat({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+function Faq({ q, children }: { q: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-ink/10 bg-white p-5">
+      <dt className="font-display text-lg text-navy">{q}</dt>
+      <dd className="mt-1 text-sm leading-relaxed text-ink/75">{children}</dd>
+    </div>
+  );
+}
