@@ -63,6 +63,7 @@ import { Route as CollectionsFilmTvCreatorProductionRouteImport } from './routes
 import { Route as CreatorBusinessToolsIndexRouteImport } from './routes/creator-business-tools.index'
 import { Route as CreatorBusinessToolsSubRouteImport } from './routes/creator-business-tools.$sub'
 import { Route as CreatorStarterPackThankYouRouteImport } from './routes/creator-starter-pack_.thank-you'
+import { Route as CreatorSlugRouteImport } from './routes/creator.$slug'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
@@ -91,6 +92,7 @@ import { Route as AuthenticatedAdminVerifyPdfRouteImport } from './routes/_authe
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedDashboardAffiliateRouteImport } from './routes/_authenticated/dashboard.affiliate'
 import { Route as AuthenticatedDashboardAiStudioRouteImport } from './routes/_authenticated/dashboard.ai-studio'
+import { Route as AuthenticatedDashboardAnalyticsRouteImport } from './routes/_authenticated/dashboard.analytics'
 import { Route as AuthenticatedDashboardCommunityRouteImport } from './routes/_authenticated/dashboard.community'
 import { Route as AuthenticatedDashboardCreatorReferralsRouteImport } from './routes/_authenticated/dashboard.creator-referrals'
 import { Route as AuthenticatedDashboardEarnRouteImport } from './routes/_authenticated/dashboard.earn'
@@ -399,6 +401,11 @@ const CreatorStarterPackThankYouRoute =
     path: '/creator-starter-pack/thank-you',
     getParentRoute: () => rootRouteImport,
   } as any)
+const CreatorSlugRoute = CreatorSlugRouteImport.update({
+  id: '/creator/$slug',
+  path: '/creator/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DownloadTokenRoute = DownloadTokenRouteImport.update({
   id: '/download/$token',
   path: '/download/$token',
@@ -558,6 +565,12 @@ const AuthenticatedDashboardAiStudioRoute =
   AuthenticatedDashboardAiStudioRouteImport.update({
     id: '/dashboard/ai-studio',
     path: '/dashboard/ai-studio',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardAnalyticsRoute =
+  AuthenticatedDashboardAnalyticsRouteImport.update({
+    id: '/dashboard/analytics',
+    path: '/dashboard/analytics',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedDashboardCommunityRoute =
@@ -819,6 +832,7 @@ export interface FileRoutesByFullPath {
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
   '/creator-starter-pack/thank-you': typeof CreatorStarterPackThankYouRoute
+  '/creator/$slug': typeof CreatorSlugRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -848,6 +862,7 @@ export interface FileRoutesByFullPath {
   '/admin/verify-pdf': typeof AuthenticatedAdminVerifyPdfRoute
   '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
+  '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
   '/dashboard/creator-referrals': typeof AuthenticatedDashboardCreatorReferralsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
@@ -934,6 +949,7 @@ export interface FileRoutesByTo {
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
   '/creator-starter-pack/thank-you': typeof CreatorStarterPackThankYouRoute
+  '/creator/$slug': typeof CreatorSlugRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -963,6 +979,7 @@ export interface FileRoutesByTo {
   '/admin/verify-pdf': typeof AuthenticatedAdminVerifyPdfRoute
   '/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
+  '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
   '/dashboard/creator-referrals': typeof AuthenticatedDashboardCreatorReferralsRoute
   '/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
@@ -1054,6 +1071,7 @@ export interface FileRoutesById {
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
   '/creator-starter-pack_/thank-you': typeof CreatorStarterPackThankYouRoute
+  '/creator/$slug': typeof CreatorSlugRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
@@ -1083,6 +1101,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/verify-pdf': typeof AuthenticatedAdminVerifyPdfRoute
   '/_authenticated/dashboard/affiliate': typeof AuthenticatedDashboardAffiliateRoute
   '/_authenticated/dashboard/ai-studio': typeof AuthenticatedDashboardAiStudioRoute
+  '/_authenticated/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/_authenticated/dashboard/community': typeof AuthenticatedDashboardCommunityRoute
   '/_authenticated/dashboard/creator-referrals': typeof AuthenticatedDashboardCreatorReferralsRoute
   '/_authenticated/dashboard/earn': typeof AuthenticatedDashboardEarnRoute
@@ -1174,6 +1193,7 @@ export interface FileRouteTypes {
     | '/collections/film-tv-creator-production'
     | '/creator-business-tools/$sub'
     | '/creator-starter-pack/thank-you'
+    | '/creator/$slug'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1203,6 +1223,7 @@ export interface FileRouteTypes {
     | '/admin/verify-pdf'
     | '/dashboard/affiliate'
     | '/dashboard/ai-studio'
+    | '/dashboard/analytics'
     | '/dashboard/community'
     | '/dashboard/creator-referrals'
     | '/dashboard/earn'
@@ -1289,6 +1310,7 @@ export interface FileRouteTypes {
     | '/collections/film-tv-creator-production'
     | '/creator-business-tools/$sub'
     | '/creator-starter-pack/thank-you'
+    | '/creator/$slug'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1318,6 +1340,7 @@ export interface FileRouteTypes {
     | '/admin/verify-pdf'
     | '/dashboard/affiliate'
     | '/dashboard/ai-studio'
+    | '/dashboard/analytics'
     | '/dashboard/community'
     | '/dashboard/creator-referrals'
     | '/dashboard/earn'
@@ -1408,6 +1431,7 @@ export interface FileRouteTypes {
     | '/collections/film-tv-creator-production'
     | '/creator-business-tools/$sub'
     | '/creator-starter-pack_/thank-you'
+    | '/creator/$slug'
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
@@ -1437,6 +1461,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/verify-pdf'
     | '/_authenticated/dashboard/affiliate'
     | '/_authenticated/dashboard/ai-studio'
+    | '/_authenticated/dashboard/analytics'
     | '/_authenticated/dashboard/community'
     | '/_authenticated/dashboard/creator-referrals'
     | '/_authenticated/dashboard/earn'
@@ -1524,6 +1549,7 @@ export interface RootRouteChildren {
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   CollectionsFilmTvCreatorProductionRoute: typeof CollectionsFilmTvCreatorProductionRoute
   CreatorStarterPackThankYouRoute: typeof CreatorStarterPackThankYouRoute
+  CreatorSlugRoute: typeof CreatorSlugRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   StoreSlugRoute: typeof StoreSlugRoute
@@ -1927,6 +1953,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreatorStarterPackThankYouRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/creator/$slug': {
+      id: '/creator/$slug'
+      path: '/creator/$slug'
+      fullPath: '/creator/$slug'
+      preLoaderRoute: typeof CreatorSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/download/$token': {
       id: '/download/$token'
       path: '/download/$token'
@@ -2121,6 +2154,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard/ai-studio'
       fullPath: '/dashboard/ai-studio'
       preLoaderRoute: typeof AuthenticatedDashboardAiStudioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/analytics': {
+      id: '/_authenticated/dashboard/analytics'
+      path: '/dashboard/analytics'
+      fullPath: '/dashboard/analytics'
+      preLoaderRoute: typeof AuthenticatedDashboardAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard/community': {
@@ -2408,6 +2448,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminVerifyPdfRoute: typeof AuthenticatedAdminVerifyPdfRoute
   AuthenticatedDashboardAffiliateRoute: typeof AuthenticatedDashboardAffiliateRoute
   AuthenticatedDashboardAiStudioRoute: typeof AuthenticatedDashboardAiStudioRoute
+  AuthenticatedDashboardAnalyticsRoute: typeof AuthenticatedDashboardAnalyticsRoute
   AuthenticatedDashboardCommunityRoute: typeof AuthenticatedDashboardCommunityRoute
   AuthenticatedDashboardCreatorReferralsRoute: typeof AuthenticatedDashboardCreatorReferralsRoute
   AuthenticatedDashboardEarnRoute: typeof AuthenticatedDashboardEarnRoute
@@ -2453,6 +2494,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminVerifyPdfRoute: AuthenticatedAdminVerifyPdfRoute,
   AuthenticatedDashboardAffiliateRoute: AuthenticatedDashboardAffiliateRoute,
   AuthenticatedDashboardAiStudioRoute: AuthenticatedDashboardAiStudioRoute,
+  AuthenticatedDashboardAnalyticsRoute: AuthenticatedDashboardAnalyticsRoute,
   AuthenticatedDashboardCommunityRoute: AuthenticatedDashboardCommunityRoute,
   AuthenticatedDashboardCreatorReferralsRoute:
     AuthenticatedDashboardCreatorReferralsRoute,
@@ -2582,6 +2624,7 @@ const rootRouteChildren: RootRouteChildren = {
   CollectionsFilmTvCreatorProductionRoute:
     CollectionsFilmTvCreatorProductionRoute,
   CreatorStarterPackThankYouRoute: CreatorStarterPackThankYouRoute,
+  CreatorSlugRoute: CreatorSlugRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   StoreSlugRoute: StoreSlugRoute,

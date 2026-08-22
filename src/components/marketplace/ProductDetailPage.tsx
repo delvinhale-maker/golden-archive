@@ -18,6 +18,8 @@ import {
   type PremiumCardCategory,
   type PremiumCardBadge,
 } from "./PremiumProductCard";
+import { ProductCreatorPanel } from "./ProductCreatorPanel";
+import { MoreFromCreator } from "./MoreFromCreator";
 
 const NAVY = "#1B2A4A";
 const NAVY_DEEP = "#11192E";
@@ -60,6 +62,8 @@ export interface ProductDetailPageProps {
   price: number;
   compareAtPrice?: number;
   creator: Creator;
+  /** Marketplace seller id; enables storefront attribution + "more from" rack. */
+  sellerId?: string;
   related?: RelatedProduct[];
   onAddToCart?: () => void;
   onWishlist?: () => void;
@@ -262,6 +266,7 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
     price,
     compareAtPrice,
     creator,
+    sellerId,
     related = [],
     onAddToCart,
     onWishlist,
@@ -504,10 +509,17 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
               </ul>
             )}
             {tab === "creator" && (
-              <CreatorCard creator={creator} onViewStore={onViewStore} />
+              <>
+                <CreatorCard creator={creator} onViewStore={onViewStore} />
+                {sellerId ? <ProductCreatorPanel sellerId={sellerId} /> : null}
+              </>
             )}
           </div>
         </div>
+
+        {sellerId ? (
+          <MoreFromCreator sellerId={sellerId} excludeProductId={productId} brandName={creator.name} />
+        ) : null}
 
         {/* Related */}
         {related.length > 0 && (

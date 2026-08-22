@@ -22,6 +22,11 @@ import { supabase as supaBrowser } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { StorefrontBadgeRow } from "@/components/marketplace/StorefrontBadgeRow";
 import { StorefrontFoundingBadge } from "@/components/marketplace/StorefrontFoundingBadge";
+import { CreatorFeaturedProducts } from "@/components/marketplace/CreatorFeaturedProducts";
+import { getStorefrontSettings } from "@/lib/storefront.functions";
+import { trackStorefront } from "@/lib/storefront-track";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 
 // ---- Types ----
 type Product = {
@@ -286,6 +291,25 @@ function StorefrontPage() {
   const [userId, setUserId] = useState<string | null>(null);
 
   const [busy, setBusy] = useState(false);
+
+  const fetchSettings = useServerFn(getStorefrontSettings);
+  const { data: settings } = useQuery({
+    queryKey: ["storefront-settings", data.creatorUserId],
+    queryFn: () => fetchSettings({ data: { userId: data.creatorUserId } }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const featuredProducts = useMemo(() => {
+    const ids = settings?.featuredProductIds ?? [];
+    if (!ids.length) return [];
+    const byId = new Map(data.products.map((p) => [p.id, p]));
+    return ids.map((id) => byId.get(id)).filter((p): p is Product => Boolean(p));
+  }, [settings?.featuredProductIds, data.products]);
+
+  // Attribution ping for the creator's own analytics (no visitor identifiers).
+  useEffect(() => {
+    trackStorefront("storefront_view", data.creatorUserId);
+  }, [data.creatorUserId]);
 
   useEffect(() => {
     let mounted = true;
@@ -598,7 +622,17 @@ function StorefrontPage() {
       </nav>
 
       <main className="mx-auto max-w-6xl px-4 md:px-8 py-8">
-        {tab === "products" && <ProductsTab products={data.products} reviews={data.reviews} />}
+        {tab === "products" && (
+          <>
+            <CreatorFeaturedProducts
+              creatorUserId={data.creatorUserId}
+              products={featuredProducts}
+              accent={settings?.accent}
+              headline={settings?.headline ?? null}
+            />
+            <ProductsTab products={data.products} reviews={data.reviews} />
+          </>
+        )}
         {tab === "categories" && <CategoriesTab products={data.products} />}
         {tab === "bundles" && <BundlesTab bundles={data.bundles} products={data.products} />}
         {tab === "about" && <AboutTab data={data} />}

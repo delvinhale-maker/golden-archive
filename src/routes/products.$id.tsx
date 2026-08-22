@@ -35,6 +35,8 @@ import { ImageZoom } from "@/components/marketplace/ImageZoom";
 import { TrustBadges, KingdomGuarantee, FormatSelector } from "@/components/marketplace/TrustBadges";
 import { ReviewsSection } from "@/components/marketplace/ReviewsSection";
 import { QASection } from "@/components/marketplace/QASection";
+import { ProductCreatorPanel } from "@/components/marketplace/ProductCreatorPanel";
+import { MoreFromCreator } from "@/components/marketplace/MoreFromCreator";
 import { BundleAndSave } from "@/components/marketplace/BundleAndSave";
 import { FrequentlyBoughtTogether } from "@/components/marketplace/FrequentlyBoughtTogether";
 import { ShareButtons, ReportIssueLink } from "@/components/marketplace/ShareButtons";
@@ -279,6 +281,12 @@ function ProductPage() {
   }
 
   const product = result.product;
+  // Demo/fallback listings use synthetic creator ids (`c_3`); only real seller
+  // uuids get storefront attribution and the "more from" rack.
+  const isRealSeller =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      product.creator.id ?? "",
+    );
   const wishlist = useWishlist();
   const cart = useCart();
   const liked = wishlist.has(product.id);
@@ -719,33 +727,34 @@ function ProductPage() {
 
 
             {/* Creator card */}
-            <div className="mt-5 flex items-start gap-4 rounded-lg bg-[#f9fafb] p-5">
-              {product.creator.avatar && (
-                <img
-                  src={product.creator.avatar}
-                  alt={product.creator.name}
-                  className="h-12 w-12 rounded-full object-cover"
-                />
-              )}
-              <div className="flex-1">
-                <div className="flex items-center gap-2 text-sm font-bold text-ink">
-                  {product.creator.name}
+            {isRealSeller ? (
+              <ProductCreatorPanel sellerId={product.creator.id} />
+            ) : (
+              <div className="mt-5 flex items-start gap-4 rounded-lg bg-[#f9fafb] p-5">
+                {product.creator.avatar && (
+                  <img
+                    src={product.creator.avatar}
+                    alt={product.creator.name}
+                    className="h-12 w-12 rounded-full object-cover"
+                  />
+                )}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 text-sm font-bold text-ink">
+                    {product.creator.name}
+                  </div>
+                  <p className="mt-1 text-xs text-mute">
+                    Creator on AurumVault. Building purpose-driven resources for operators and
+                    leaders.
+                  </p>
                 </div>
-                <p className="mt-1 text-xs text-mute">
-                  Creator on AurumVault. Building purpose-driven
-                  resources for operators and leaders.
-                </p>
-                <button className="mt-2 text-xs font-semibold text-gold-ink hover:underline">
-                  Visit store →
+                <button
+                  aria-label="Share"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-mute hover:text-ink"
+                >
+                  <Share2 size={14} />
                 </button>
               </div>
-              <button
-                aria-label="Share"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-mute hover:text-ink"
-              >
-                <Share2 size={14} />
-              </button>
-            </div>
+            )}
           </div>
         </div>
 
@@ -753,6 +762,14 @@ function ProductPage() {
           title={product.title}
           url={`${SITE_URL}/products/${product.id}`}
         />
+
+        {isRealSeller ? (
+          <MoreFromCreator
+            sellerId={product.creator.id}
+            excludeProductId={product.id}
+            brandName={product.creator.name}
+          />
+        ) : null}
 
         <FrequentlyBoughtTogether product={product} />
         <BundleAndSave productId={product.id} />

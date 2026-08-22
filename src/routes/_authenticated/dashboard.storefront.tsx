@@ -4,7 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
 import { toast } from "sonner";
-import { ArrowLeft, ExternalLink, Upload, Plus, Trash2, Package } from "lucide-react";
+import { ArrowLeft, ExternalLink, Upload, Plus, Trash2, Package, Sparkles, BarChart3 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { CreatorStorefrontShare } from "@/components/marketplace/CreatorStorefrontShare";
+import { getMyStorefrontSettings, saveMyStorefrontSettings } from "@/lib/storefront.functions";
+import {
+  ACCENT_CLASSES,
+  MAX_FEATURED_PRODUCTS,
+  STOREFRONT_ACCENTS,
+  type StorefrontAccent,
+} from "@/lib/storefront";
 
 export const Route = createFileRoute("/_authenticated/dashboard/storefront")({
   component: StorefrontManager,
@@ -186,6 +196,12 @@ function StorefrontManager() {
             View storefront <ExternalLink size={13} />
           </Link>
         )}
+        <Link
+          to="/dashboard/analytics"
+          className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-4 py-2 text-sm text-navy hover:bg-paper"
+        >
+          <BarChart3 size={13} /> Analytics
+        </Link>
       </div>
 
       {/* Cover */}
@@ -263,6 +279,18 @@ function StorefrontManager() {
           </button>
         </div>
       </section>
+
+      {/* Identity & merchandising */}
+      <StorefrontMerchandising products={products} />
+
+      {/* Share & QR */}
+      {app.brand_slug && (
+        <CreatorStorefrontShare
+          path={`/creator/${app.brand_slug}`}
+          brandName={app.brand_slug}
+          creatorUserId={user!.id}
+        />
+      )}
 
       {/* Bundles */}
       <BundleManager
@@ -509,6 +537,148 @@ function BundleManager({
           </div>
         ))}
       </div>
+    </section>
+  );
+}
+
+/**
+ * Storefront identity + merchandising: headline, accent, and creator-selected
+ * featured products. Server validates ownership of every featured product id.
+ */
+function StorefrontMerchandising({ products }: { products: Product[] }) {
+  const fetchSettings = useServerFn(getMyStorefrontSettings);
+  const saveSettings = useServerFn(saveMyStorefrontSettings);
+
+  const [headline, setHeadline] = useState<string | null>(null);
+  const [accent, setAccent] = useState<StorefrontAccent>("gold");
+  const [featured, setFeatured] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  const { isLoading } = useQuery({
+    queryKey: ["my-storefront-settings"],
+    queryFn: async () => {
+      const s = await fetchSettings({});
+      setHeadline(s.headline ?? "");
+      setAccent(s.accent);
+      setFeatured(s.featuredProductIds);
+      return s;
+    },
+  });
+
+  const toggleFeatured = (id: string) => {
+    setFeatured((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= MAX_FEATURED_PRODUCTS) {
+        toast.error(`You can feature up to ${MAX_FEATURED_PRODUCTS} products`);
+        return prev;
+      }
+      return [...prev, id];
+    });
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const saved = await saveSettings({
+        data: {
+          headline: headline?.trim() ? headline.trim() : null,
+          accent,
+          featuredProductIds: featured,
+        },
+      });
+      setFeatured(saved.featuredProductIds);
+      toast.success("Storefront branding saved");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't save branding");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <section className="mt-6 rounded-2xl border border-ink/10 bg-white p-5 space-y-4">
+      <h2 className="font-display text-xl text-navy inline-flex items-center gap-2">
+        <Sparkles size={18} /> Identity & creator picks
+      </h2>
+
+      {isLoading ? (
+        <p className="text-sm text-mute">Loading…</p>
+      ) : (
+        <>
+          <Field label="Storefront headline (shown under your name)">
+            <input
+              value={headline ?? ""}
+              maxLength={90}
+              onChange={(e) => setHeadline(e.target.value)}
+              className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm"
+              placeholder="Systems and templates for faith-driven founders"
+            />
+          </Field>
+
+          <div>
+            <p className="mb-2 text-sm font-medium text-navy">Accent colour</p>
+            <div className="flex flex-wrap gap-2">
+              {STOREFRONT_ACCENTS.map((a) => (
+                <button
+                  key={a}
+                  type="button"
+                  onClick={() => setAccent(a)}
+                  aria-pressed={accent === a}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${
+                    accent === a
+                      ? `${ACCENT_CLASSES[a].border} bg-paper text-navy`
+                      : "border-ink/15 text-mute"
+                  }`}
+                >
+                  <span className={`h-3 w-3 rounded-full ${ACCENT_CLASSES[a].bg}`} />
+                  {ACCENT_CLASSES[a].label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-2 text-sm font-medium text-navy">
+              Featured products{" "}
+              <span className="font-normal text-mute">
+                ({featured.length}/{MAX_FEATURED_PRODUCTS})
+              </span>
+            </p>
+            <div className="max-h-56 divide-y divide-ink/5 overflow-y-auto rounded-lg border border-ink/10">
+              {products.length === 0 && (
+                <p className="p-3 text-sm text-mute">No live products yet.</p>
+              )}
+              {products.map((p) => (
+                <label
+                  key={p.id}
+                  className="flex cursor-pointer items-center gap-3 p-2.5 hover:bg-paper"
+                >
+                  <input
+                    type="checkbox"
+                    checked={featured.includes(p.id)}
+                    onChange={() => toggleFeatured(p.id)}
+                  />
+                  <div
+                    className="h-9 w-9 rounded bg-navy/5 bg-cover bg-center"
+                    style={p.cover_url ? { backgroundImage: `url(${p.cover_url})` } : undefined}
+                  />
+                  <span className="line-clamp-1 flex-1 text-sm text-navy">{p.title}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={save}
+              disabled={saving}
+              className="rounded-lg bg-gold px-5 py-2.5 text-sm font-medium text-navy disabled:opacity-50"
+            >
+              {saving ? "Saving…" : "Save branding"}
+            </button>
+          </div>
+        </>
+      )}
     </section>
   );
 }
