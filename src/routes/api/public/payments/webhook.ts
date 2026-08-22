@@ -39,6 +39,17 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     return;
   }
 
+  // Cart checkouts carry `cart: "true"` and a comma-separated `product_ids`
+  // list instead of a single `product_id`. Without this branch they fell
+  // through to the single-product path and were dropped (no order, no
+  // download links) even though Stripe took the payment.
+  if (session.metadata?.cart === "true" && !session.metadata?.product_id) {
+    await handleCartCheckoutCompleted(session, env);
+    return;
+  }
+
+
+
 
 
   const productId: string | undefined = session.metadata?.product_id;
@@ -537,6 +548,223 @@ export async function handleBundleCheckoutCompleted(session: any, env: StripeEnv
 
 
 
+
+/**
+ * Fulfil a multi-item cart checkout. Product ids come from session metadata
+ * (`product_ids`), prices are read back from Stripe's line items so the
+ * charged amount (after promo codes) is what we record, and every product gets
+ * its own order line, download token, payout credit and delivery link.
+ */
+export async function handleCartCheckoutCompleted(session: any, env: StripeEnv) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  const buyerEmail: string =
+    session.customer_details?.email ?? session.customer_email ?? "";
+  const productIds: string[] = String(session.metadata?.product_ids ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (!buyerEmail || !productIds.length) {
+    console.error("Cart checkout missing email or product_ids", session.id);
+    return;
+  }
+
+  const { data: prodRows } = await supabaseAdmin
+    .from("marketplace_products")
+    .select("id,title,price_cents,seller_id,is_preorder,released_at")
+    .in("id", productIds);
+  const byId = new Map(((prodRows ?? []) as any[]).map((p) => [p.id, p]));
+  const products = productIds.map((id) => byId.get(id)).filter(Boolean) as any[];
+  if (!products.length) {
+    console.error("Cart products not found", session.id, productIds);
+    return;
+  }
+
+  // Pull the charged line items so promo-adjusted amounts are recorded.
+  const lines: { description: string; unit: number; qty: number }[] = [];
+  try {
+    const { createStripeClient } = await import("@/lib/stripe.server");
+    const stripe = createStripeClient(env);
+    const li = await stripe.checkout.sessions.listLineItems(session.id, { limit: 100 });
+    for (const l of li.data) {
+      const qty = l.quantity ?? 1;
+      const subtotal = (l.amount_subtotal ?? l.amount_total ?? 0) as number;
+      lines.push({
+        description: String(l.description ?? ""),
+        unit: qty > 0 ? Math.round(subtotal / qty) : subtotal,
+        qty,
+      });
+    }
+  } catch (e) {
+    console.error("Failed to read cart line items, falling back to catalog prices", e);
+  }
+
+  const used = new Set<number>();
+  const matchLine = (title: string) => {
+    const t = title.toLowerCase();
+    for (let i = 0; i < lines.length; i++) {
+      if (used.has(i)) continue;
+      const d = lines[i]!.description.toLowerCase();
+      if (d === t || d.startsWith(t)) {
+        used.add(i);
+        return lines[i]!;
+      }
+    }
+    return undefined;
+  };
+
+  const chargedTotal = Number(session.amount_total ?? 0);
+  const referralCode: string | undefined = session.metadata?.referral_code;
+  let referrerUserId: string | null = null;
+  if (referralCode) {
+    try {
+      const { resolveReferralCode } = await import("@/lib/referrals.functions");
+      referrerUserId = await resolveReferralCode(referralCode, null);
+    } catch (e) {
+      console.error("Failed to resolve referral code", e);
+    }
+  }
+
+  const { data: order, error: orderErr } = await supabaseAdmin
+    .from("orders")
+    .insert({
+      buyer_email: buyerEmail,
+      stripe_session_id: session.id,
+      stripe_payment_intent: session.payment_intent ?? null,
+      amount_cents: chargedTotal,
+      currency: session.currency ?? "usd",
+      status: "paid",
+      environment: env,
+      referral_code: referralCode ?? null,
+      referrer_user_id: referrerUserId,
+    } as any)
+    .select("id")
+    .single();
+  if (orderErr || !order) {
+    console.error("Failed to insert cart order", orderErr);
+    return;
+  }
+
+  if (referrerUserId) {
+    try {
+      await (supabaseAdmin as any)
+        .from("referrals")
+        .update({ first_order_id: order.id, first_order_at: new Date().toISOString() })
+        .eq("referrer_user_id", referrerUserId)
+        .is("first_order_id", null);
+    } catch (e) {
+      console.error("Failed to backfill referral first_order", e);
+    }
+  }
+
+  const deliveries: { title: string; downloadUrl: string }[] = [];
+  const receiptItems: { title: string; amountFormatted: string }[] = [];
+  const sellerCredits = new Map<string, number>();
+
+  for (const p of products) {
+    const line = matchLine(p.title);
+    const unit = line?.unit && line.unit > 0 ? line.unit : p.price_cents;
+    const qty = line?.qty ?? 1;
+    const fee = Math.round((unit * PLATFORM_FEE_PCT) / 100);
+    const sellerAmount = unit - fee;
+    const isPreorder = !!p.is_preorder && !p.released_at;
+
+    for (let n = 0; n < qty; n++) {
+      const { data: item, error: itemErr } = await supabaseAdmin
+        .from("order_items")
+        .insert({
+          order_id: order.id,
+          product_id: p.id,
+          seller_id: p.seller_id,
+          product_title: p.title,
+          unit_amount_cents: unit,
+          platform_fee_cents: fee,
+          seller_amount_cents: sellerAmount,
+          is_preorder_at_purchase: isPreorder,
+        } as any)
+        .select("id")
+        .single();
+      if (itemErr || !item) {
+        console.error("Failed to insert cart order item", itemErr);
+        continue;
+      }
+
+      const token = generateToken();
+      await supabaseAdmin.from("order_downloads").insert({
+        order_item_id: item.id,
+        token,
+      });
+
+      sellerCredits.set(p.seller_id, (sellerCredits.get(p.seller_id) ?? 0) + sellerAmount);
+      receiptItems.push({ title: p.title, amountFormatted: `$${(unit / 100).toFixed(2)}` });
+      if (!isPreorder) {
+        deliveries.push({
+          title: p.title,
+          downloadUrl: `${PUBLIC_BASE_URL}/download/${token}`,
+        });
+      }
+
+      if (referralCode) {
+        try {
+          const { resolveAffiliateForOrderItem } = await import("@/lib/creator-affiliate.server");
+          const aff = await resolveAffiliateForOrderItem(referralCode, p.seller_id);
+          if (aff) {
+            await supabaseAdmin.from("affiliate_commissions" as any).insert({
+              order_id: order.id,
+              order_item_id: item.id,
+              creator_id: aff.creator_id,
+              affiliate_user_id: aff.affiliate_user_id,
+              referral_code: aff.referral_code,
+              sale_amount_cents: unit,
+              commission_rate_pct: aff.commission_rate_pct,
+              commission_cents: Math.round((unit * aff.commission_rate_pct) / 100),
+              status: "pending",
+            } as any);
+          }
+        } catch (e) {
+          console.error("Failed to record affiliate commission", e);
+        }
+      }
+    }
+  }
+
+  for (const [sellerId, amount] of sellerCredits) {
+    const { data: bal } = await supabaseAdmin
+      .from("seller_balances")
+      .select("pending_cents")
+      .eq("seller_id", sellerId)
+      .maybeSingle();
+    if (bal) {
+      await supabaseAdmin
+        .from("seller_balances")
+        .update({ pending_cents: Number(bal.pending_cents) + amount })
+        .eq("seller_id", sellerId);
+    } else {
+      await supabaseAdmin
+        .from("seller_balances")
+        .insert({ seller_id: sellerId, pending_cents: amount });
+    }
+  }
+
+  const totalFormatted = `$${(chargedTotal / 100).toFixed(2)}`;
+  await enqueueOrderConfirmationEmail({
+    to: buyerEmail,
+    items: receiptItems,
+    totalFormatted,
+    orderId: order.id,
+    isPreorder: false,
+  });
+  if (deliveries.length) {
+    await enqueueDeliveryEmail({
+      to: buyerEmail,
+      items: deliveries,
+      totalFormatted,
+      orderId: order.id,
+    });
+  }
+}
+
 async function enqueueOrderConfirmationEmail(args: {
   to: string;
   items: { title: string; amountFormatted: string }[];
@@ -544,6 +772,7 @@ async function enqueueOrderConfirmationEmail(args: {
   orderId: string;
   isPreorder: boolean;
 }) {
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const template = TEMPLATES["order-confirmation"];
   if (!template) {
