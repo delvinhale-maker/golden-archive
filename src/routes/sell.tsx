@@ -7,6 +7,7 @@ import { AVLogo } from "@/components/marketplace/AVLogo";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
 import { sendTransactionalEmail } from "@/lib/email/send";
+import { logCtaClick } from "@/lib/cta-tracking";
 import {
   FOUNDING_CAMPAIGN,
   FOUNDING_EVENTS,
