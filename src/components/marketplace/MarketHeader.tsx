@@ -276,7 +276,7 @@ export function MarketHeader() {
                     )}
                   </button>
                   {openSubs === c && (
-                    <div className="absolute left-0 top-10 z-50 w-64 overflow-hidden rounded-md border border-white/10 bg-navy py-1 shadow-xl">
+                    <div className="absolute left-0 top-10 z-50 max-h-[70vh] w-64 overflow-y-auto overscroll-contain rounded-md border border-white/10 bg-navy py-1 shadow-xl">
                       <button
                         onClick={() => {
                           goCategory(c);
