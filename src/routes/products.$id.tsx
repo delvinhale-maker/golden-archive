@@ -195,6 +195,25 @@ export const Route = createFileRoute("/products/$id")({
         type: "application/ld+json",
         children: JSON.stringify(productLd),
       });
+
+      // Breadcrumb mirrors real navigation: Home → Digital Products → product.
+      scripts.push({
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "AurumVault", item: `${SITE_URL}/` },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Digital Products",
+              item: `${SITE_URL}/products`,
+            },
+            { "@type": "ListItem", position: 3, name: p.title, item: url },
+          ],
+        }),
+      });
     }
 
     return {
