@@ -40,7 +40,6 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as RefundsRouteImport } from './routes/refunds'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SellRouteImport } from './routes/sell'
 import { Route as SellWithUsRouteImport } from './routes/sell-with-us'
@@ -279,11 +278,6 @@ const RefundsRoute = RefundsRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
-  id: '/robots.txt',
-  path: '/robots.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -799,7 +793,6 @@ export interface FileRoutesByFullPath {
   '/products': typeof ProductsRouteWithChildren
   '/refunds': typeof RefundsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/sell-with-us': typeof SellWithUsRoute
@@ -914,7 +907,6 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/refunds': typeof RefundsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/sell-with-us': typeof SellWithUsRoute
@@ -1034,7 +1026,6 @@ export interface FileRoutesById {
   '/products': typeof ProductsRouteWithChildren
   '/refunds': typeof RefundsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/sell-with-us': typeof SellWithUsRoute
@@ -1154,7 +1145,6 @@ export interface FileRouteTypes {
     | '/products'
     | '/refunds'
     | '/reset-password'
-    | '/robots.txt'
     | '/search'
     | '/sell'
     | '/sell-with-us'
@@ -1269,7 +1259,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refunds'
     | '/reset-password'
-    | '/robots.txt'
     | '/search'
     | '/sell'
     | '/sell-with-us'
@@ -1388,7 +1377,6 @@ export interface FileRouteTypes {
     | '/products'
     | '/refunds'
     | '/reset-password'
-    | '/robots.txt'
     | '/search'
     | '/sell'
     | '/sell-with-us'
@@ -1508,7 +1496,6 @@ export interface RootRouteChildren {
   ProductsRoute: typeof ProductsRouteWithChildren
   RefundsRoute: typeof RefundsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  RobotsDottxtRoute: typeof RobotsDottxtRoute
   SearchRoute: typeof SearchRoute
   SellRoute: typeof SellRoute
   SellWithUsRoute: typeof SellWithUsRoute
@@ -1764,13 +1751,6 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/robots.txt': {
-      id: '/robots.txt'
-      path: '/robots.txt'
-      fullPath: '/robots.txt'
-      preLoaderRoute: typeof RobotsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -2565,7 +2545,6 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsRoute: ProductsRouteWithChildren,
   RefundsRoute: RefundsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  RobotsDottxtRoute: RobotsDottxtRoute,
   SearchRoute: SearchRoute,
   SellRoute: SellRoute,
   SellWithUsRoute: SellWithUsRoute,
