@@ -440,7 +440,6 @@ export function MarketHeader() {
                 CREATORS
               </div>
               {[
-                { to: "/creators", label: "Browse Creators" },
                 { to: "/become-a-creator", label: "Become a Creator" },
                 { to: "/creator-dashboard", label: "Creator Dashboard" },
               ].map((it) => (
@@ -549,7 +548,6 @@ function CreatorsMenu() {
     return () => document.removeEventListener("mousedown", onDown);
   }, []);
   const items: { to: string; label: string }[] = [
-    { to: "/creators", label: "Browse Creators" },
     { to: "/become-a-creator", label: "Become a Creator" },
     { to: "/creator-dashboard", label: "Creator Dashboard" },
   ];

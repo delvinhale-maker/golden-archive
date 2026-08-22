@@ -24,7 +24,6 @@ const COMPANY_LINKS: FooterLink[] = [
 
 const CREATOR_LINKS: FooterLink[] = [
   { label: "Sell on AurumVault", to: "/sell" },
-  { label: "Browse Creators", to: "/creators" },
   { label: "Become a Creator", to: "/become-a-creator" },
   { label: "Creator Agreement", to: "/creator-agreement" },
   { label: "Creator FAQ", to: "/support" },
