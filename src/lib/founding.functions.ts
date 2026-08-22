@@ -91,7 +91,7 @@ export type FoundingMetrics = {
   applyClicks: number;
   pageViews: number;
   prospects: { status: string; count: number }[];
-  accepatedRecent: { foundingNumber: number; brandName: string | null; acceptedAt: string }[];
+  acceptedRecent: { foundingNumber: number; brandName: string | null; acceptedAt: string }[];
 };
 
 /** Admin-only Founding 100 command-center metrics. */
@@ -150,7 +150,7 @@ export const getFoundingMetrics = createServerFn({ method: "GET" })
       prospects: [...prospectTally.entries()]
         .map(([status, count]) => ({ status, count }))
         .sort((a, b) => b.count - a.count),
-      accepatedRecent: cohort.slice(0, 25).map((c: any) => ({
+      acceptedRecent: cohort.slice(0, 25).map((c: any) => ({
         foundingNumber: c.founding_number,
         brandName: c.seller_application_id ? brandById.get(c.seller_application_id) ?? null : null,
         acceptedAt: c.accepted_at,
