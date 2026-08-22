@@ -8,7 +8,6 @@ import {
   filterOwnedProductIds,
   normalizeAccent,
   safeExternalUrl,
-  splitGross,
 } from "@/lib/storefront";
 import type {
   CreatorPublicCard,
@@ -252,7 +251,6 @@ export const getMyStorefrontAnalytics = createServerFn({ method: "GET" })
     const titles = new Map<string, string>(
       (products ?? []).map((p) => [p.id as string, p.title as string]),
     );
-    const productIds = [...titles.keys()];
 
     // order_items already stores the authoritative split per line, so gross,
     // creator earnings, and the AurumVault fee are read, never re-derived.
