@@ -41,8 +41,11 @@ export function MarketFooter() {
         <div className="md:col-span-2">
           <AVLogo size={56} />
           <p className="mt-5 max-w-sm text-sm text-white/70">
-            Premium Digital Resources. Delivered Instantly.
+            AurumVault is a premium digital marketplace for creators,
+            entrepreneurs, and businesses. Premium Digital Resources. Delivered
+            Instantly.
           </p>
+
         </div>
         <FooterCol title="Marketplace" links={SHOP_LINKS} />
         <FooterCol title="Creators" links={CREATOR_LINKS} />
