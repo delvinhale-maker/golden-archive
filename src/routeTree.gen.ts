@@ -30,6 +30,7 @@ import { Route as CreatorEarningsRouteImport } from './routes/creator-earnings'
 import { Route as CreatorStarterPackRouteImport } from './routes/creator-starter-pack'
 import { Route as CreatorTermsRouteImport } from './routes/creator-terms'
 import { Route as CreatorsRouteImport } from './routes/creators'
+import { Route as Founding100RouteImport } from './routes/founding-100'
 import { Route as GiftCardsRouteImport } from './routes/gift-cards'
 import { Route as KingdomPicksRouteImport } from './routes/kingdom-picks'
 import { Route as LibraryRouteImport } from './routes/library'
@@ -221,6 +222,11 @@ const CreatorTermsRoute = CreatorTermsRouteImport.update({
 const CreatorsRoute = CreatorsRouteImport.update({
   id: '/creators',
   path: '/creators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Founding100Route = Founding100RouteImport.update({
+  id: '/founding-100',
+  path: '/founding-100',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GiftCardsRoute = GiftCardsRouteImport.update({
@@ -736,6 +742,7 @@ export interface FileRoutesByFullPath {
   '/creator-starter-pack': typeof CreatorStarterPackRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
+  '/founding-100': typeof Founding100Route
   '/gift-cards': typeof GiftCardsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
@@ -844,6 +851,7 @@ export interface FileRoutesByTo {
   '/creator-starter-pack': typeof CreatorStarterPackRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
+  '/founding-100': typeof Founding100Route
   '/gift-cards': typeof GiftCardsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
@@ -955,6 +963,7 @@ export interface FileRoutesById {
   '/creator-starter-pack': typeof CreatorStarterPackRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
+  '/founding-100': typeof Founding100Route
   '/gift-cards': typeof GiftCardsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
@@ -1067,6 +1076,7 @@ export interface FileRouteTypes {
     | '/creator-starter-pack'
     | '/creator-terms'
     | '/creators'
+    | '/founding-100'
     | '/gift-cards'
     | '/kingdom-picks'
     | '/library'
@@ -1175,6 +1185,7 @@ export interface FileRouteTypes {
     | '/creator-starter-pack'
     | '/creator-terms'
     | '/creators'
+    | '/founding-100'
     | '/gift-cards'
     | '/kingdom-picks'
     | '/library'
@@ -1285,6 +1296,7 @@ export interface FileRouteTypes {
     | '/creator-starter-pack'
     | '/creator-terms'
     | '/creators'
+    | '/founding-100'
     | '/gift-cards'
     | '/kingdom-picks'
     | '/library'
@@ -1397,6 +1409,7 @@ export interface RootRouteChildren {
   CreatorStarterPackRoute: typeof CreatorStarterPackRoute
   CreatorTermsRoute: typeof CreatorTermsRoute
   CreatorsRoute: typeof CreatorsRoute
+  Founding100Route: typeof Founding100Route
   GiftCardsRoute: typeof GiftCardsRoute
   KingdomPicksRoute: typeof KingdomPicksRoute
   LibraryRoute: typeof LibraryRoute
@@ -1590,6 +1603,13 @@ declare module '@tanstack/react-router' {
       path: '/creators'
       fullPath: '/creators'
       preLoaderRoute: typeof CreatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/founding-100': {
+      id: '/founding-100'
+      path: '/founding-100'
+      fullPath: '/founding-100'
+      preLoaderRoute: typeof Founding100RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/gift-cards': {
@@ -2384,6 +2404,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreatorStarterPackRoute: CreatorStarterPackRoute,
   CreatorTermsRoute: CreatorTermsRoute,
   CreatorsRoute: CreatorsRoute,
+  Founding100Route: Founding100Route,
   GiftCardsRoute: GiftCardsRoute,
   KingdomPicksRoute: KingdomPicksRoute,
   LibraryRoute: LibraryRoute,
