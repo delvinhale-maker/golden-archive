@@ -166,6 +166,14 @@ function SellPage() {
         templateData: { brandName },
       }).catch((err) => console.error("Email send failed", err));
     }
+    // Notify the AurumVault team inbox about the new application (best-effort).
+    import("@/lib/creator-leads.functions")
+      .then(({ notifyAdminOfSellerApplication }) =>
+        notifyAdminOfSellerApplication({
+          data: { brandName, categories },
+        }),
+      )
+      .catch((err) => console.error("Application admin alert failed", err));
     // Attribute this new creator to a referrer if a ?cref=CODE was captured.
     try {
       const [{ getStoredCreatorRef, clearStoredCreatorRef }, { attachCreatorReferral }] =

@@ -47,6 +47,21 @@ export const submitStarterPackLead = createServerFn({ method: "POST" })
       landingPage: data.landingPage ?? null,
     });
 
+    // Team notification is best-effort — a delivery problem must not fail capture.
+    try {
+      const { sendCreatorLeadAdminAlert } = await import("@/lib/creator-lead-email.server");
+      await sendCreatorLeadAdminAlert({
+        email: data.email.toLowerCase(),
+        productType: "Creator Starter Pack",
+        followerCount: 0,
+        ctaSource: data.utmSource
+          ? `creator-starter-pack (${data.utmSource})`
+          : "creator-starter-pack",
+      });
+    } catch (e) {
+      console.error("Starter pack admin alert failed", e);
+    }
+
     return { ...result, bot: false as const };
   });
 
