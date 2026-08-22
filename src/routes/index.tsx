@@ -266,7 +266,9 @@ function Home() {
       <Suspense fallback={null}>
         <FeaturedCollections />
       </Suspense>
+      <BrandIntro />
       <TrustBar />
+
       <RefreshHighlightsBar />
       <ContinueBrowsingRow />
 
