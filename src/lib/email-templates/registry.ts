@@ -15,6 +15,11 @@ import { template as creatorSignupConfirmation } from './creator-signup-confirma
 import { template as creatorLeadAdminAlert } from './creator-lead-admin-alert'
 import { template as subscriberSequence2 } from './subscriber-sequence-2'
 import { template as subscriberSequence3 } from './subscriber-sequence-3'
+import { template as creatorStarterPackDelivery } from './creator-starter-pack-delivery'
+import { template as creatorNurture2 } from './creator-nurture-2'
+import { template as creatorNurture3 } from './creator-nurture-3'
+import { template as creatorNurture4 } from './creator-nurture-4'
+import { template as creatorNurture5 } from './creator-nurture-5'
 
 export interface TemplateEntry {
   component: ComponentType<any>
@@ -42,4 +47,9 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'creator-lead-admin-alert': creatorLeadAdminAlert,
   'subscriber-sequence-2': subscriberSequence2,
   'subscriber-sequence-3': subscriberSequence3,
+  'creator-starter-pack-delivery': creatorStarterPackDelivery,
+  'creator-nurture-2': creatorNurture2,
+  'creator-nurture-3': creatorNurture3,
+  'creator-nurture-4': creatorNurture4,
+  'creator-nurture-5': creatorNurture5,
 }

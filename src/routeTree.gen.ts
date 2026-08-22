@@ -103,6 +103,7 @@ import { Route as AuthenticatedDashboardVariantsIdRouteImport } from './routes/_
 import { Route as ApiPublicAcademyReceiveArticleRouteImport } from './routes/api/public/academy/receive-article'
 import { Route as ApiPublicCronReleasePreordersRouteImport } from './routes/api/public/cron/release-preorders'
 import { Route as ApiPublicCronRotatePayoutKeysRouteImport } from './routes/api/public/cron/rotate-payout-keys'
+import { Route as ApiPublicCronStarterPackNurtureRouteImport } from './routes/api/public/cron/starter-pack-nurture'
 import { Route as ApiPublicCronSubscriberSequenceRouteImport } from './routes/api/public/cron/subscriber-sequence'
 import { Route as ApiPublicHealthCategoriesRouteImport } from './routes/api/public/health/categories'
 import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/public/hooks/audit-covers'
@@ -621,6 +622,12 @@ const ApiPublicCronRotatePayoutKeysRoute =
     path: '/api/public/cron/rotate-payout-keys',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronStarterPackNurtureRoute =
+  ApiPublicCronStarterPackNurtureRouteImport.update({
+    id: '/api/public/cron/starter-pack-nurture',
+    path: '/api/public/cron/starter-pack-nurture',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCronSubscriberSequenceRoute =
   ApiPublicCronSubscriberSequenceRouteImport.update({
     id: '/api/public/cron/subscriber-sequence',
@@ -781,6 +788,7 @@ export interface FileRoutesByFullPath {
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
+  '/api/public/cron/starter-pack-nurture': typeof ApiPublicCronStarterPackNurtureRoute
   '/api/public/cron/subscriber-sequence': typeof ApiPublicCronSubscriberSequenceRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
@@ -884,6 +892,7 @@ export interface FileRoutesByTo {
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
+  '/api/public/cron/starter-pack-nurture': typeof ApiPublicCronStarterPackNurtureRoute
   '/api/public/cron/subscriber-sequence': typeof ApiPublicCronSubscriberSequenceRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
@@ -992,6 +1001,7 @@ export interface FileRoutesById {
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
   '/api/public/cron/rotate-payout-keys': typeof ApiPublicCronRotatePayoutKeysRoute
+  '/api/public/cron/starter-pack-nurture': typeof ApiPublicCronStarterPackNurtureRoute
   '/api/public/cron/subscriber-sequence': typeof ApiPublicCronSubscriberSequenceRoute
   '/api/public/health/categories': typeof ApiPublicHealthCategoriesRoute
   '/api/public/hooks/audit-covers': typeof ApiPublicHooksAuditCoversRoute
@@ -1100,6 +1110,7 @@ export interface FileRouteTypes {
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/cron/rotate-payout-keys'
+    | '/api/public/cron/starter-pack-nurture'
     | '/api/public/cron/subscriber-sequence'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
@@ -1203,6 +1214,7 @@ export interface FileRouteTypes {
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/cron/rotate-payout-keys'
+    | '/api/public/cron/starter-pack-nurture'
     | '/api/public/cron/subscriber-sequence'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
@@ -1310,6 +1322,7 @@ export interface FileRouteTypes {
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
     | '/api/public/cron/rotate-payout-keys'
+    | '/api/public/cron/starter-pack-nurture'
     | '/api/public/cron/subscriber-sequence'
     | '/api/public/health/categories'
     | '/api/public/hooks/audit-covers'
@@ -1377,6 +1390,7 @@ export interface RootRouteChildren {
   ApiPublicAcademyReceiveArticleRoute: typeof ApiPublicAcademyReceiveArticleRoute
   ApiPublicCronReleasePreordersRoute: typeof ApiPublicCronReleasePreordersRoute
   ApiPublicCronRotatePayoutKeysRoute: typeof ApiPublicCronRotatePayoutKeysRoute
+  ApiPublicCronStarterPackNurtureRoute: typeof ApiPublicCronStarterPackNurtureRoute
   ApiPublicCronSubscriberSequenceRoute: typeof ApiPublicCronSubscriberSequenceRoute
   ApiPublicHealthCategoriesRoute: typeof ApiPublicHealthCategoriesRoute
   ApiPublicHooksAuditCoversRoute: typeof ApiPublicHooksAuditCoversRoute
@@ -2049,6 +2063,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronRotatePayoutKeysRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/starter-pack-nurture': {
+      id: '/api/public/cron/starter-pack-nurture'
+      path: '/api/public/cron/starter-pack-nurture'
+      fullPath: '/api/public/cron/starter-pack-nurture'
+      preLoaderRoute: typeof ApiPublicCronStarterPackNurtureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/subscriber-sequence': {
       id: '/api/public/cron/subscriber-sequence'
       path: '/api/public/cron/subscriber-sequence'
@@ -2331,6 +2352,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAcademyReceiveArticleRoute: ApiPublicAcademyReceiveArticleRoute,
   ApiPublicCronReleasePreordersRoute: ApiPublicCronReleasePreordersRoute,
   ApiPublicCronRotatePayoutKeysRoute: ApiPublicCronRotatePayoutKeysRoute,
+  ApiPublicCronStarterPackNurtureRoute: ApiPublicCronStarterPackNurtureRoute,
   ApiPublicCronSubscriberSequenceRoute: ApiPublicCronSubscriberSequenceRoute,
   ApiPublicHealthCategoriesRoute: ApiPublicHealthCategoriesRoute,
   ApiPublicHooksAuditCoversRoute: ApiPublicHooksAuditCoversRoute,

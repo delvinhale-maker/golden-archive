@@ -992,30 +992,116 @@ export type Database = {
       }
       creator_leads: {
         Row: {
+          acquisition_type: string
+          application_submitted_at: string | null
+          consent_at: string | null
+          consent_source: string | null
+          converted_to_creator_at: string | null
           created_at: string
           cta_source: string | null
           email: string
+          first_name: string | null
           follower_count: number
           id: string
+          landing_page: string | null
+          last_send_status: string | null
+          lead_status: string
+          marketing_consent: boolean
+          normalized_email: string | null
+          nurture_step2_sent_at: string | null
+          nurture_step3_sent_at: string | null
+          nurture_step4_sent_at: string | null
+          nurture_step5_sent_at: string | null
           product_type: string
+          referring_url: string | null
+          seller_application_id: string | null
+          starter_pack_last_sent_at: string | null
+          starter_pack_requested_at: string | null
+          starter_pack_send_count: number
+          updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
         }
         Insert: {
+          acquisition_type?: string
+          application_submitted_at?: string | null
+          consent_at?: string | null
+          consent_source?: string | null
+          converted_to_creator_at?: string | null
           created_at?: string
           cta_source?: string | null
           email: string
+          first_name?: string | null
           follower_count?: number
           id?: string
-          product_type: string
+          landing_page?: string | null
+          last_send_status?: string | null
+          lead_status?: string
+          marketing_consent?: boolean
+          normalized_email?: string | null
+          nurture_step2_sent_at?: string | null
+          nurture_step3_sent_at?: string | null
+          nurture_step4_sent_at?: string | null
+          nurture_step5_sent_at?: string | null
+          product_type?: string
+          referring_url?: string | null
+          seller_application_id?: string | null
+          starter_pack_last_sent_at?: string | null
+          starter_pack_requested_at?: string | null
+          starter_pack_send_count?: number
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Update: {
+          acquisition_type?: string
+          application_submitted_at?: string | null
+          consent_at?: string | null
+          consent_source?: string | null
+          converted_to_creator_at?: string | null
           created_at?: string
           cta_source?: string | null
           email?: string
+          first_name?: string | null
           follower_count?: number
           id?: string
+          landing_page?: string | null
+          last_send_status?: string | null
+          lead_status?: string
+          marketing_consent?: boolean
+          normalized_email?: string | null
+          nurture_step2_sent_at?: string | null
+          nurture_step3_sent_at?: string | null
+          nurture_step4_sent_at?: string | null
+          nurture_step5_sent_at?: string | null
           product_type?: string
+          referring_url?: string | null
+          seller_application_id?: string | null
+          starter_pack_last_sent_at?: string | null
+          starter_pack_requested_at?: string | null
+          starter_pack_send_count?: number
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "creator_leads_seller_application_id_fkey"
+            columns: ["seller_application_id"]
+            isOneToOne: false
+            referencedRelation: "seller_applications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       creator_payout_methods: {
         Row: {
