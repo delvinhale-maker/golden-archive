@@ -303,8 +303,6 @@ export const getMyStorefrontAnalytics = createServerFn({ method: "GET" })
       }
     }
 
-    const money = splitGross(grossCents);
-
     return {
       rangeDays: data.days,
       storefrontViews,
@@ -312,15 +310,18 @@ export const getMyStorefrontAnalytics = createServerFn({ method: "GET" })
       shares,
       orders: orderIds.size,
       units,
-      ...money,
+      grossCents,
+      creatorEarningsCents: earnedCents,
+      platformFeeCents: feeCents,
       topProducts: [...perProduct.entries()]
         .map(([id, v]) => ({
           productId: id,
           title: titles.get(id) ?? "Untitled",
           units: v.units,
           grossCents: v.grossCents,
-          creatorEarningsCents: splitGross(v.grossCents).creatorEarningsCents,
+          creatorEarningsCents: v.earnedCents,
         }))
+
         .sort((a, b) => b.grossCents - a.grossCents)
         .slice(0, 8),
       trafficSources: [...sources.entries()]
