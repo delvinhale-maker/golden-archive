@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ArrowLeft, Crown, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { getFoundingMetrics } from "@/lib/founding.functions";
+import { getFoundingFunnel, getFoundingMetrics } from "@/lib/founding.functions";
 import {
   PROSPECT_STATUSES,
   deleteCreatorProspect,
@@ -32,6 +32,58 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
       <div className="mt-1 text-2xl font-bold text-navy">{value}</div>
       {hint ? <div className="mt-1 text-[11px] text-black/45">{hint}</div> : null}
     </div>
+  );
+}
+
+/** Visitor → starter pack → application → approval → first product → first sale. */
+function FunnelPanel() {
+  const fetchFunnel = useServerFn(getFoundingFunnel);
+  const funnel = useQuery({ queryKey: ["founding-funnel"], queryFn: () => fetchFunnel() });
+  const data = funnel.data;
+  const top = data?.stages[0]?.count ?? 0;
+
+  return (
+    <section className="mt-6 rounded-xl border border-black/10 bg-white p-4">
+      <h2 className="text-sm font-bold text-navy">Conversion funnel</h2>
+      {funnel.isLoading ? (
+        <p className="mt-3 flex items-center gap-2 text-sm text-black/50">
+          <Loader2 size={16} className="animate-spin" /> Measuring funnel…
+        </p>
+      ) : !data ? (
+        <p className="mt-3 text-sm text-black/50">Funnel data unavailable.</p>
+      ) : (
+        <>
+          <ul className="mt-3 space-y-2">
+            {data.stages.map((s) => (
+              <li key={s.key}>
+                <div className="flex items-baseline justify-between gap-3 text-sm">
+                  <span className="text-black/70">{s.label}</span>
+                  <span className="font-semibold text-navy">
+                    {s.count}
+                    {s.fromPrevPct !== null ? (
+                      <span className="ml-2 text-[11px] font-normal text-black/45">
+                        {s.fromPrevPct}% of previous
+                      </span>
+                    ) : null}
+                  </span>
+                </div>
+                <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-black/5">
+                  <div
+                    className="h-full rounded-full bg-navy"
+                    style={{ width: `${top > 0 ? Math.min(100, (s.count / top) * 100) : 0}%` }}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-[11px] text-black/45">
+            Counted from click events, leads, applications, cohort rows, published products and
+            order items. Milestones synced for {data.activationSynced} creator
+            {data.activationSynced === 1 ? "" : "s"}.
+          </p>
+        </>
+      )}
+    </section>
   );
 }
 
@@ -145,6 +197,8 @@ function FoundingCommandCenter() {
               value={m.applyClicks > 0 ? `${Math.round((m.campaignApplications / m.applyClicks) * 100)}%` : "—"}
             />
           </div>
+
+          <FunnelPanel />
 
           <section className="mt-6 rounded-xl border border-black/10 bg-white p-4">
             <h2 className="text-sm font-bold text-navy">Latest founding creators</h2>

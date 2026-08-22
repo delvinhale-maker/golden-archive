@@ -52,7 +52,19 @@ export async function queueTemplateEmail(
       metadata: args.metadata ?? null,
     });
 
+    // The mail platform rejects sends without a one-click unsubscribe token,
+    // so this is a hard requirement rather than an optional field.
     const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, args.to);
+    if (!unsubscribeToken) {
+      await supabase.from("email_send_log").insert({
+        message_id: messageId,
+        template_name: args.template,
+        recipient_email: args.to,
+        status: "failed",
+        error_message: "missing_unsubscribe_token",
+      });
+      return { sent: false, reason: "missing_unsubscribe_token" };
+    }
 
     const { error } = await supabase.rpc("enqueue_email", {
       queue_name: "transactional_emails",
