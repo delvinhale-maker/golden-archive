@@ -32,6 +32,15 @@ export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     return;
   }
 
+  // Bundle purchases are fulfilled as one order line per included product so
+  // downloads, payouts, refunds and reporting stay per-product accurate.
+  if (session.metadata?.bundle_id) {
+    await handleBundleCheckoutCompleted(session, env);
+    return;
+  }
+
+
+
   const productId: string | undefined = session.metadata?.product_id;
   const sellerId: string | undefined = session.metadata?.seller_id;
   const buyerEmail: string =
