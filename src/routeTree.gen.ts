@@ -57,6 +57,7 @@ import { Route as AcademyCategoryRouteImport } from './routes/academy.$category'
 import { Route as AccountSettingsRouteImport } from './routes/account.settings'
 import { Route as ApiAiStudioStreamRouteImport } from './routes/api/ai-studio-stream'
 import { Route as BundlesIndexRouteImport } from './routes/bundles.index'
+import { Route as BundlesSlugRouteImport } from './routes/bundles.$slug'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as CollectionsFilmTvCreatorProductionRouteImport } from './routes/collections.film-tv-creator-production'
 import { Route as CreatorBusinessToolsIndexRouteImport } from './routes/creator-business-tools.index'
@@ -361,6 +362,11 @@ const ApiAiStudioStreamRoute = ApiAiStudioStreamRouteImport.update({
 const BundlesIndexRoute = BundlesIndexRouteImport.update({
   id: '/bundles/',
   path: '/bundles/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BundlesSlugRoute = BundlesSlugRouteImport.update({
+  id: '/bundles/$slug',
+  path: '/bundles/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
@@ -794,6 +800,7 @@ export interface FileRoutesByFullPath {
   '/academy/$category': typeof AcademyCategoryRoute
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
+  '/bundles/$slug': typeof BundlesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
@@ -906,6 +913,7 @@ export interface FileRoutesByTo {
   '/academy/$category': typeof AcademyCategoryRoute
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
+  '/bundles/$slug': typeof BundlesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
@@ -1023,6 +1031,7 @@ export interface FileRoutesById {
   '/academy/$category': typeof AcademyCategoryRoute
   '/account/settings': typeof AccountSettingsRoute
   '/api/ai-studio-stream': typeof ApiAiStudioStreamRoute
+  '/bundles/$slug': typeof BundlesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/film-tv-creator-production': typeof CollectionsFilmTvCreatorProductionRoute
   '/creator-business-tools/$sub': typeof CreatorBusinessToolsSubRoute
@@ -1140,6 +1149,7 @@ export interface FileRouteTypes {
     | '/academy/$category'
     | '/account/settings'
     | '/api/ai-studio-stream'
+    | '/bundles/$slug'
     | '/checkout/return'
     | '/collections/film-tv-creator-production'
     | '/creator-business-tools/$sub'
@@ -1252,6 +1262,7 @@ export interface FileRouteTypes {
     | '/academy/$category'
     | '/account/settings'
     | '/api/ai-studio-stream'
+    | '/bundles/$slug'
     | '/checkout/return'
     | '/collections/film-tv-creator-production'
     | '/creator-business-tools/$sub'
@@ -1368,6 +1379,7 @@ export interface FileRouteTypes {
     | '/academy/$category'
     | '/account/settings'
     | '/api/ai-studio-stream'
+    | '/bundles/$slug'
     | '/checkout/return'
     | '/collections/film-tv-creator-production'
     | '/creator-business-tools/$sub'
@@ -1482,6 +1494,7 @@ export interface RootRouteChildren {
   WishlistRoute: typeof WishlistRoute
   ABrandSlugRoute: typeof ABrandSlugRoute
   ApiAiStudioStreamRoute: typeof ApiAiStudioStreamRoute
+  BundlesSlugRoute: typeof BundlesSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   CollectionsFilmTvCreatorProductionRoute: typeof CollectionsFilmTvCreatorProductionRoute
   CreatorStarterPackThankYouRoute: typeof CreatorStarterPackThankYouRoute
@@ -1844,6 +1857,13 @@ declare module '@tanstack/react-router' {
       path: '/bundles'
       fullPath: '/bundles/'
       preLoaderRoute: typeof BundlesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bundles/$slug': {
+      id: '/bundles/$slug'
+      path: '/bundles/$slug'
+      fullPath: '/bundles/$slug'
+      preLoaderRoute: typeof BundlesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout/return': {
@@ -2513,6 +2533,7 @@ const rootRouteChildren: RootRouteChildren = {
   WishlistRoute: WishlistRoute,
   ABrandSlugRoute: ABrandSlugRoute,
   ApiAiStudioStreamRoute: ApiAiStudioStreamRoute,
+  BundlesSlugRoute: BundlesSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   CollectionsFilmTvCreatorProductionRoute:
     CollectionsFilmTvCreatorProductionRoute,
