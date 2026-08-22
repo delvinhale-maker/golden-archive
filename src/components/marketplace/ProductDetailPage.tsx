@@ -60,6 +60,8 @@ export interface ProductDetailPageProps {
   price: number;
   compareAtPrice?: number;
   creator: Creator;
+  /** Marketplace seller id; enables storefront attribution + "more from" rack. */
+  sellerId?: string;
   related?: RelatedProduct[];
   onAddToCart?: () => void;
   onWishlist?: () => void;
@@ -504,10 +506,17 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
               </ul>
             )}
             {tab === "creator" && (
-              <CreatorCard creator={creator} onViewStore={onViewStore} />
+              <>
+                <CreatorCard creator={creator} onViewStore={onViewStore} />
+                {sellerId ? <ProductCreatorPanel sellerId={sellerId} /> : null}
+              </>
             )}
           </div>
         </div>
+
+        {sellerId ? (
+          <MoreFromCreator sellerId={sellerId} excludeProductId={productId} brandName={creator.name} />
+        ) : null}
 
         {/* Related */}
         {related.length > 0 && (
