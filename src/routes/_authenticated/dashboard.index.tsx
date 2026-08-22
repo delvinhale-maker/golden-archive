@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
 import { categoryDisplay, PRODUCT_TYPES, PRODUCT_TYPE_ORDER, type ProductTypeKey } from "@/lib/product-types";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Crown } from "lucide-react";
 import {
   BookOpen,
   Plus,
