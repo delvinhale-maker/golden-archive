@@ -74,7 +74,7 @@ export async function runStarterPackNurture(): Promise<NurtureResult> {
         message_id: messageId,
         template_name: cfg.template,
         recipient_email: email,
-        status: "requested",
+        status: "pending",
         metadata: { lead_id: row.id },
       });
 
