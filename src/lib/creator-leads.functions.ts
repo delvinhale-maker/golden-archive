@@ -3,6 +3,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const leadSchema = z.object({
   email: z.string().trim().min(3).max(255).email(),
@@ -157,4 +158,30 @@ export const resendCreatorStarterKit = createServerFn({ method: "POST" })
     }
 
     return { ok: true };
+  });
+
+/**
+ * Notifies the AurumVault team that a signed-in creator submitted a seller
+ * application. Auth-gated (only real applicants can trigger it) and
+ * best-effort: never fails the application flow.
+ */
+export const notifyAdminOfSellerApplication = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { brandName?: string; categories?: string[] } | undefined) => ({
+    brandName: (input?.brandName ?? "").toString().trim().slice(0, 120),
+    categories: (input?.categories ?? []).slice(0, 10).map((c) => String(c).slice(0, 60)),
+  }))
+  .handler(async ({ context, data }) => {
+    const email = (context.claims?.email as string | undefined) ?? null;
+    if (!email) return { ok: false as const };
+    const { sendCreatorLeadAdminAlert } = await import("@/lib/creator-lead-email.server");
+    await sendCreatorLeadAdminAlert({
+      email,
+      productType: data.categories.length
+        ? `Seller application — ${data.categories.join(", ")}`
+        : "Seller application",
+      followerCount: 0,
+      ctaSource: data.brandName ? `sell (${data.brandName})` : "sell",
+    });
+    return { ok: true as const };
   });
