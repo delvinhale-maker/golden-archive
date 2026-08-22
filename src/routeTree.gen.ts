@@ -27,6 +27,7 @@ import { Route as CreatorAgreementRouteImport } from './routes/creator-agreement
 import { Route as CreatorBusinessToolsRouteImport } from './routes/creator-business-tools'
 import { Route as CreatorDashboardRouteImport } from './routes/creator-dashboard'
 import { Route as CreatorEarningsRouteImport } from './routes/creator-earnings'
+import { Route as CreatorStarterPackRouteImport } from './routes/creator-starter-pack'
 import { Route as CreatorTermsRouteImport } from './routes/creator-terms'
 import { Route as CreatorsRouteImport } from './routes/creators'
 import { Route as GiftCardsRouteImport } from './routes/gift-cards'
@@ -203,6 +204,11 @@ const CreatorDashboardRoute = CreatorDashboardRouteImport.update({
 const CreatorEarningsRoute = CreatorEarningsRouteImport.update({
   id: '/creator-earnings',
   path: '/creator-earnings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorStarterPackRoute = CreatorStarterPackRouteImport.update({
+  id: '/creator-starter-pack',
+  path: '/creator-starter-pack',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreatorTermsRoute = CreatorTermsRouteImport.update({
@@ -713,6 +719,7 @@ export interface FileRoutesByFullPath {
   '/creator-business-tools': typeof CreatorBusinessToolsRouteWithChildren
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
+  '/creator-starter-pack': typeof CreatorStarterPackRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
   '/gift-cards': typeof GiftCardsRoute
@@ -818,6 +825,7 @@ export interface FileRoutesByTo {
   '/creator-agreement': typeof CreatorAgreementRoute
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
+  '/creator-starter-pack': typeof CreatorStarterPackRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
   '/gift-cards': typeof GiftCardsRoute
@@ -926,6 +934,7 @@ export interface FileRoutesById {
   '/creator-business-tools': typeof CreatorBusinessToolsRouteWithChildren
   '/creator-dashboard': typeof CreatorDashboardRoute
   '/creator-earnings': typeof CreatorEarningsRoute
+  '/creator-starter-pack': typeof CreatorStarterPackRoute
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
   '/gift-cards': typeof GiftCardsRoute
@@ -1035,6 +1044,7 @@ export interface FileRouteTypes {
     | '/creator-business-tools'
     | '/creator-dashboard'
     | '/creator-earnings'
+    | '/creator-starter-pack'
     | '/creator-terms'
     | '/creators'
     | '/gift-cards'
@@ -1140,6 +1150,7 @@ export interface FileRouteTypes {
     | '/creator-agreement'
     | '/creator-dashboard'
     | '/creator-earnings'
+    | '/creator-starter-pack'
     | '/creator-terms'
     | '/creators'
     | '/gift-cards'
@@ -1247,6 +1258,7 @@ export interface FileRouteTypes {
     | '/creator-business-tools'
     | '/creator-dashboard'
     | '/creator-earnings'
+    | '/creator-starter-pack'
     | '/creator-terms'
     | '/creators'
     | '/gift-cards'
@@ -1356,6 +1368,7 @@ export interface RootRouteChildren {
   CreatorBusinessToolsRoute: typeof CreatorBusinessToolsRouteWithChildren
   CreatorDashboardRoute: typeof CreatorDashboardRoute
   CreatorEarningsRoute: typeof CreatorEarningsRoute
+  CreatorStarterPackRoute: typeof CreatorStarterPackRoute
   CreatorTermsRoute: typeof CreatorTermsRoute
   CreatorsRoute: typeof CreatorsRoute
   GiftCardsRoute: typeof GiftCardsRoute
@@ -1529,6 +1542,13 @@ declare module '@tanstack/react-router' {
       path: '/creator-earnings'
       fullPath: '/creator-earnings'
       preLoaderRoute: typeof CreatorEarningsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator-starter-pack': {
+      id: '/creator-starter-pack'
+      path: '/creator-starter-pack'
+      fullPath: '/creator-starter-pack'
+      preLoaderRoute: typeof CreatorStarterPackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/creator-terms': {
@@ -2317,6 +2337,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreatorBusinessToolsRoute: CreatorBusinessToolsRouteWithChildren,
   CreatorDashboardRoute: CreatorDashboardRoute,
   CreatorEarningsRoute: CreatorEarningsRoute,
+  CreatorStarterPackRoute: CreatorStarterPackRoute,
   CreatorTermsRoute: CreatorTermsRoute,
   CreatorsRoute: CreatorsRoute,
   GiftCardsRoute: GiftCardsRoute,
