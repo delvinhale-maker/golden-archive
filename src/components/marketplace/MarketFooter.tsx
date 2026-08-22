@@ -17,10 +17,13 @@ const SHOP_LINKS: FooterLink[] = [
 ];
 
 const COMPANY_LINKS: FooterLink[] = [
-  { label: "About", to: "/about" },
+  { label: "About AurumVault", to: "/about" },
+  { label: "Trust Center", to: "/about/trust" },
+  { label: "AurumVault Academy", to: "/academy" },
   { label: "Contact", to: "/contact" },
   { label: "Support", to: "/support" },
 ];
+
 
 const CREATOR_LINKS: FooterLink[] = [
   { label: "Sell on AurumVault", to: "/sell" },
