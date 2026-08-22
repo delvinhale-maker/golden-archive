@@ -1,8 +1,30 @@
 import * as React from "react";
 import { render } from "react-email";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { getRequest } from "@tanstack/react-start/server";
 import { TEMPLATES } from "@/lib/email-templates/registry";
 import { STARTER_PACK_URL } from "@/lib/starter-pack";
+import { normalizeLeadEmail, sanitizeHeaderValue } from "@/lib/starter-pack-validation";
+
+/** SHA-256 of the caller IP — we never store a raw address. */
+export async function callerFingerprint(): Promise<string | null> {
+  let headers: Headers;
+  try {
+    headers = getRequest().headers;
+  } catch {
+    return null;
+  }
+  const ip =
+    headers.get("cf-connecting-ip") ||
+    headers.get("x-real-ip") ||
+    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    null;
+  if (!ip) return null;
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`starter-pack:${ip}`));
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 const SITE_NAME = "AurumVault";
 const SENDER_DOMAIN = "notify.www.aurumvault.store";
