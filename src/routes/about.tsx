@@ -168,7 +168,61 @@ function AboutPage() {
           </Link>
         </section>
 
+        <section className="mt-12">
+          <h2 className="font-display text-2xl text-navy">
+            AurumVault questions, answered
+          </h2>
+          <dl className="mt-4 space-y-5">
+            <Faq q="What is AurumVault?">
+              AurumVault is a premium digital-product marketplace and
+              creator-commerce platform at AurumVault.store. Buyers get instant
+              downloads; approved creators get a storefront and keep 85% of each
+              sale.
+            </Faq>
+            <Faq q="What can I buy on AurumVault?">
+              eBooks, interactive planners, journals, templates, AI prompt packs,
+              media kits, marketing resources, financial planners and full
+              business operating systems.
+            </Faq>
+            <Faq q="Can creators sell digital products on AurumVault?">
+              Yes. Apply through Sell on AurumVault. Listings are reviewed before
+              release, and creators keep 85% of every sale.
+            </Faq>
+            <Faq q="What is the official AurumVault website?">
+              https://www.aurumvault.store — that's our only official storefront.
+              See the Trust Center for how to spot official AurumVault
+              communications.
+            </Faq>
+            <Faq q="How are digital products delivered?">
+              Instantly. After payment we email a receipt plus a secure download
+              link, and your purchases stay in your library when you're signed in.
+            </Faq>
+            <Faq q="How do I contact AurumVault?">
+              Email support@aurumvault.tech or use the contact page. We reply
+              within 24 hours, Monday through Friday.
+            </Faq>
+          </dl>
+          <p className="mt-6 text-sm text-ink/70">
+            More on policies, payments and customer protection in the{" "}
+            <Link
+              to="/about/trust"
+              className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink"
+            >
+              AurumVault Trust Center
+            </Link>
+            , or read the{" "}
+            <Link
+              to="/support"
+              className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink"
+            >
+              creator FAQ
+            </Link>
+            .
+          </p>
+        </section>
+
         <section className="mt-10 rounded-2xl border border-ink/10 bg-white p-6 md:p-8">
+
           <p className="font-display text-xl text-navy">Get in touch</p>
           <p className="mt-2 text-sm text-ink/70">
             Questions, feedback, or press inquiries? Visit our{" "}
