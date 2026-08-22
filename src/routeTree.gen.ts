@@ -56,6 +56,7 @@ import { Route as AcademyIndexRouteImport } from './routes/academy.index'
 import { Route as AcademyCategoryRouteImport } from './routes/academy.$category'
 import { Route as AccountSettingsRouteImport } from './routes/account.settings'
 import { Route as ApiAiStudioStreamRouteImport } from './routes/api/ai-studio-stream'
+import { Route as BundlesIndexRouteImport } from './routes/bundles.index'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as CollectionsFilmTvCreatorProductionRouteImport } from './routes/collections.film-tv-creator-production'
 import { Route as CreatorBusinessToolsIndexRouteImport } from './routes/creator-business-tools.index'
@@ -355,6 +356,11 @@ const AccountSettingsRoute = AccountSettingsRouteImport.update({
 const ApiAiStudioStreamRoute = ApiAiStudioStreamRouteImport.update({
   id: '/api/ai-studio-stream',
   path: '/api/ai-studio-stream',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BundlesIndexRoute = BundlesIndexRouteImport.update({
+  id: '/bundles/',
+  path: '/bundles/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
@@ -798,6 +804,7 @@ export interface FileRoutesByFullPath {
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/academy/': typeof AcademyIndexRoute
+  '/bundles/': typeof BundlesIndexRoute
   '/creator-business-tools/': typeof CreatorBusinessToolsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
@@ -909,6 +916,7 @@ export interface FileRoutesByTo {
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/academy': typeof AcademyIndexRoute
+  '/bundles': typeof BundlesIndexRoute
   '/creator-business-tools': typeof CreatorBusinessToolsIndexRoute
   '/products': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
@@ -1025,6 +1033,7 @@ export interface FileRoutesById {
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/academy/': typeof AcademyIndexRoute
+  '/bundles/': typeof BundlesIndexRoute
   '/creator-business-tools/': typeof CreatorBusinessToolsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
@@ -1141,6 +1150,7 @@ export interface FileRouteTypes {
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/academy/'
+    | '/bundles/'
     | '/creator-business-tools/'
     | '/products/'
     | '/admin/auto-release'
@@ -1252,6 +1262,7 @@ export interface FileRouteTypes {
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/academy'
+    | '/bundles'
     | '/creator-business-tools'
     | '/products'
     | '/admin/auto-release'
@@ -1367,6 +1378,7 @@ export interface FileRouteTypes {
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/academy/'
+    | '/bundles/'
     | '/creator-business-tools/'
     | '/products/'
     | '/_authenticated/admin/auto-release'
@@ -1477,6 +1489,7 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   StoreSlugRoute: typeof StoreSlugRoute
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
+  BundlesIndexRoute: typeof BundlesIndexRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicAcademyReceiveArticleRoute: typeof ApiPublicAcademyReceiveArticleRoute
@@ -1824,6 +1837,13 @@ declare module '@tanstack/react-router' {
       path: '/api/ai-studio-stream'
       fullPath: '/api/ai-studio-stream'
       preLoaderRoute: typeof ApiAiStudioStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bundles/': {
+      id: '/bundles/'
+      path: '/bundles'
+      fullPath: '/bundles/'
+      preLoaderRoute: typeof BundlesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout/return': {
@@ -2501,6 +2521,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   StoreSlugRoute: StoreSlugRoute,
   SubscribeConfirmRoute: SubscribeConfirmRoute,
+  BundlesIndexRoute: BundlesIndexRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicAcademyReceiveArticleRoute: ApiPublicAcademyReceiveArticleRoute,
