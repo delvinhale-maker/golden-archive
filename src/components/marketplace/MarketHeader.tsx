@@ -247,7 +247,11 @@ export function MarketHeader() {
           backgroundColor: "var(--scheme-bg)",
         }}
       >
-        <div className="mx-auto flex h-10 max-w-7xl items-center gap-1 overflow-x-auto px-8">
+        <div
+          className={`mx-auto flex h-10 max-w-7xl items-center gap-1 px-8 ${
+            openSubs ? "overflow-visible" : "overflow-x-auto"
+          }`}
+        >
           {CATEGORIES.map((c) => {
             const active = activeCat === c || (c === "All" && pathname === "/");
             const subs = subsFor(c);
@@ -272,7 +276,7 @@ export function MarketHeader() {
                     )}
                   </button>
                   {openSubs === c && (
-                    <div className="absolute left-0 top-10 z-50 w-64 overflow-hidden rounded-md border border-white/10 bg-navy py-1 shadow-xl">
+                    <div className="absolute left-0 top-10 z-50 max-h-[70vh] w-64 overflow-y-auto overscroll-contain rounded-md border border-white/10 bg-navy py-1 shadow-xl">
                       <button
                         onClick={() => {
                           goCategory(c);
