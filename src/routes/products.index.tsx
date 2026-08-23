@@ -13,6 +13,12 @@ import { getProducts, type Product } from "@/lib/marketplace.functions";
 import { CategoryHero } from "@/components/marketplace/CategoryHero";
 import { getCategoryTheme } from "@/lib/category-theme";
 import { CATEGORIES as CATEGORY_DEFS, slugToLabel, getCategoryDef, hasStructuredSubs } from "@/lib/categories";
+import {
+  PRODUCT_TYPE_BY_SLUG,
+  PRODUCT_TYPE_FILTER_ORDER,
+  orderedFilterCategories,
+  resolveProductType,
+} from "@/lib/taxonomy";
 
 const searchSchema = z.object({
   category: z.string().optional(),
@@ -22,6 +28,8 @@ const searchSchema = z.object({
   maxPrice: z.number().optional(),
   rating: z.number().optional(),
   sub: z.string().optional(),
+  /** LEVEL 3 taxonomy filter — product_type slug. */
+  type: z.string().optional(),
   page: z.number().int().optional(),
   pageSize: z.number().int().optional(),
 });
@@ -39,7 +47,12 @@ const HIDDEN_CATEGORY_SLUGS = new Set([
   "childrens_educational",
   "templates",
 ]);
-const CATEGORIES = CATEGORY_DEFS.filter((c) => !HIDDEN_CATEGORY_SLUGS.has(c.slug)).map((c) => c.label);
+const CATEGORIES = orderedFilterCategories(
+  CATEGORY_DEFS.filter((c) => !HIDDEN_CATEGORY_SLUGS.has(c.slug)).map((c) => c.label),
+);
+const PRODUCT_TYPE_FILTERS = PRODUCT_TYPE_FILTER_ORDER.map((s) => PRODUCT_TYPE_BY_SLUG[s]).filter(
+  Boolean,
+);
 
 const SORTS = [
   { v: "featured", l: "Featured" },
@@ -392,6 +405,50 @@ function SidebarFilters({
   const rating = search.rating ?? 0;
   return (
     <div className="space-y-7 rounded-lg border border-line bg-white p-5">
+      <FilterBlock title="Category">
+        <div className="space-y-1">
+          {CATEGORIES.map((c) => {
+            const checked = search.category === c;
+            return (
+              <label
+                key={c}
+                className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-ink"
+              >
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 shrink-0 accent-[var(--gold)]"
+                  checked={checked}
+                  onChange={() => onUpdate({ category: checked ? undefined : c })}
+                />
+                <span className="min-w-0 break-words">{c}</span>
+              </label>
+            );
+          })}
+        </div>
+      </FilterBlock>
+
+      <FilterBlock title="Product Type">
+        <div className="space-y-1">
+          {PRODUCT_TYPE_FILTERS.map((t) => {
+            const checked = search.type === t.slug;
+            return (
+              <label
+                key={t.slug}
+                className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-ink"
+              >
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 shrink-0 accent-[var(--gold)]"
+                  checked={checked}
+                  onChange={() => onUpdate({ type: checked ? undefined : t.slug })}
+                />
+                <span className="min-w-0 break-words">{t.filter}</span>
+              </label>
+            );
+          })}
+        </div>
+      </FilterBlock>
+
       <FilterBlock title="Price Range">
         <input
           type="range"
@@ -408,36 +465,14 @@ function SidebarFilters({
         </div>
       </FilterBlock>
 
-      <FilterBlock title="Category">
-        <div className="space-y-2">
-          {CATEGORIES.map((c) => {
-            const checked = search.category === c;
-            return (
-              <label
-                key={c}
-                className="flex cursor-pointer items-center gap-2 text-sm text-ink"
-              >
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 accent-[var(--gold)]"
-                  checked={checked}
-                  onChange={() =>
-                    onUpdate({ category: checked ? undefined : c })
-                  }
-                />
-                {c}
-              </label>
-            );
-          })}
-        </div>
-      </FilterBlock>
-
       <FilterBlock title="Minimum Rating">
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map((r) => (
             <button
               key={r}
               type="button"
+              aria-label={`${r} stars and up`}
+              className="flex h-11 w-11 items-center justify-center"
               onClick={() => onUpdate({ rating: rating === r ? undefined : r })}
             >
               <Star
@@ -552,6 +587,16 @@ function applyClientFilters(
   if (typeof s.minPrice === "number") out = out.filter((p) => p.price >= s.minPrice!);
   if (typeof s.rating === "number" && s.rating > 0) {
     out = out.filter((p) => (p.rating ?? 0) >= s.rating!);
+  }
+  if (s.type) {
+    out = out.filter(
+      (p) =>
+        resolveProductType({
+          product_type: p.productType,
+          category: p.category,
+          subcategory: p.subcategory,
+        })?.slug === s.type,
+    );
   }
   if (s.sub) {
     if (hasStructuredSubs(s.category)) {

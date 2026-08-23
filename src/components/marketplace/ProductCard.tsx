@@ -7,6 +7,7 @@ import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { useOwnsProduct } from "@/hooks/use-owned-products";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { categoryDisplay } from "@/lib/product-types";
+import { resolveProductType } from "@/lib/taxonomy";
 import { accentFor } from "@/lib/categories";
 import {
   CREATOR_SYSTEM_BADGE,
@@ -125,6 +126,20 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         </Link>
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[12px] text-mute">
           <span>{product.creator.name}</span>
+          {(() => {
+            const t = resolveProductType({
+              product_type: product.productType,
+              category: product.category,
+              subcategory: product.subcategory,
+            });
+            if (!t) return null;
+            return (
+              <>
+                <span aria-hidden>·</span>
+                <span>{t.label}</span>
+              </>
+            );
+          })()}
         </div>
 
         {product.reviewCount > 0 && (

@@ -1743,6 +1743,7 @@ export type Database = {
           cover_url: string | null
           created_at: string
           creator_name: string | null
+          delivery_contents: string[]
           description: string
           featured: boolean
           file_path: string | null
@@ -1756,6 +1757,8 @@ export type Database = {
           preorder_note: string | null
           preview_pages: number[]
           price_cents: number
+          primary_bundle_file_id: string | null
+          product_type: string | null
           published: boolean
           rejected_reason: string | null
           release_date: string | null
@@ -1783,6 +1786,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           creator_name?: string | null
+          delivery_contents?: string[]
           description: string
           featured?: boolean
           file_path?: string | null
@@ -1796,6 +1800,8 @@ export type Database = {
           preorder_note?: string | null
           preview_pages?: number[]
           price_cents: number
+          primary_bundle_file_id?: string | null
+          product_type?: string | null
           published?: boolean
           rejected_reason?: string | null
           release_date?: string | null
@@ -1823,6 +1829,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           creator_name?: string | null
+          delivery_contents?: string[]
           description?: string
           featured?: boolean
           file_path?: string | null
@@ -1836,6 +1843,8 @@ export type Database = {
           preorder_note?: string | null
           preview_pages?: number[]
           price_cents?: number
+          primary_bundle_file_id?: string | null
+          product_type?: string | null
           published?: boolean
           rejected_reason?: string | null
           release_date?: string | null
@@ -1848,7 +1857,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_products_primary_bundle_file_fk"
+            columns: ["primary_bundle_file_id"]
+            isOneToOne: false
+            referencedRelation: "product_download_files"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       merch_events: {
         Row: {
