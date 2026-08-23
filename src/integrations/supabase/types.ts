@@ -2207,6 +2207,56 @@ export type Database = {
           },
         ]
       }
+      product_download_files: {
+        Row: {
+          created_at: string
+          file_path: string
+          file_size_bytes: number | null
+          format: string | null
+          id: string
+          is_primary: boolean
+          label: string
+          product_id: string
+          seller_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          file_size_bytes?: number | null
+          format?: string | null
+          id?: string
+          is_primary?: boolean
+          label: string
+          product_id: string
+          seller_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          file_size_bytes?: number | null
+          format?: string | null
+          id?: string
+          is_primary?: boolean
+          label?: string
+          product_id?: string
+          seller_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_download_files_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_order_bumps: {
         Row: {
           bump_product_id: string
