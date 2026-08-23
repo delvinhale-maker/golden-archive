@@ -195,10 +195,78 @@ export const Route = createFileRoute("/products/$id")({
         }));
       }
 
+      // --- Taxonomy + bundle contents for search engines -------------------
+      const typeDef = resolveProductType({
+        product_type: p.productType,
+        category: p.category,
+        subcategory: p.subcategory ?? null,
+      });
+      const typeLabel = typeDef?.label ?? null;
+      const contents = (p.deliveryContents ?? []).filter(Boolean);
+
+      productLd.category = p.subcategory
+        ? `${p.category} / ${p.subcategory}`
+        : p.category;
+      if (typeLabel) {
+        productLd.additionalType = "https://schema.org/DigitalDocument";
+        const props = Array.isArray(productLd.additionalProperty)
+          ? (productLd.additionalProperty as unknown[])
+          : [];
+        productLd.additionalProperty = [
+          { "@type": "PropertyValue", name: "Product Type", value: typeLabel },
+          ...(contents.length > 0
+            ? [
+                {
+                  "@type": "PropertyValue",
+                  name: "Delivery Contents",
+                  value: contents.join(", "),
+                },
+              ]
+            : []),
+          ...props,
+        ];
+      }
+      if (contents.length > 0) {
+        productLd.isRelatedTo = contents.map((c) => ({
+          "@type": "DigitalDocument",
+          name: c,
+          encodingFormat: c,
+        }));
+      }
+
       scripts.push({
         type: "application/ld+json",
         children: JSON.stringify(productLd),
       });
+
+      // OfferCatalog describes what the single purchase delivers, so engines
+      // understand bundle contents rather than guessing from the description.
+      if (contents.length > 0) {
+        scripts.push({
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "OfferCatalog",
+            name: `${p.title} — what's included`,
+            url,
+            numberOfItems: contents.length,
+            itemListElement: contents.map((c, i) => ({
+              "@type": "Offer",
+              position: i + 1,
+              url,
+              priceCurrency: "USD",
+              price: Number(p.price).toFixed(2),
+              itemOffered: {
+                "@type": "DigitalDocument",
+                name: typeLabel ? `${c} · ${typeLabel}` : c,
+                encodingFormat: c,
+                isPartOf: { "@type": "Product", name: p.title, url },
+              },
+            })),
+          }),
+        });
+      }
+
 
       // Breadcrumb mirrors real navigation: Home → Digital Products → product.
       scripts.push({

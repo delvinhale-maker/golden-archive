@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { BookOpen, Crown, Download, FileArchive, Loader2, Search as SearchIcon } from "lucide-react";
+import { BookOpen, ChevronDown, Crown, Download, FileArchive, Loader2, Search as SearchIcon } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getMyOrders, type AccountOrder } from "@/lib/account.functions";
 import { getDownloadInfo } from "@/lib/payments.functions";
@@ -359,6 +359,7 @@ function LibraryCard({
 function LibraryDeliveryFiles({ productId, token }: { productId: string; token: string }) {
   const fetchFile = useServerFn(getDeliveryFileDownload);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [showIndividual, setShowIndividual] = useState(false);
   const filesQ = useQuery({
     queryKey: ["library", "delivery-files", productId],
     queryFn: async () => {
@@ -421,38 +422,56 @@ function LibraryDeliveryFiles({ productId, token }: { productId: string; token: 
       )}
       {rest.length > 0 && (
         <>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-mute">
-            {primary ? `Individual files (${rest.length})` : `Included files (${rest.length})`}
-          </p>
-          <ul className="mt-2 space-y-1.5">
-            {rest.map((f) => (
-              <li key={f.id} className="flex items-center gap-2">
-                <FileArchive size={14} className="shrink-0 text-gold-ink" />
-                <span className="min-w-0 flex-1 truncate text-xs text-ink">
-                  {deliveryDisplayName(f)}
-                </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-mute">
-                  {f.format?.toUpperCase() || deliveryFormatLabel(f.file_path)}
-                  {formatDeliveryBytes(f.file_size_bytes) ? ` · ${formatDeliveryBytes(f.file_size_bytes)}` : ""}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => void grab(f)}
-                  disabled={busyId === f.id}
-                  className="inline-flex items-center gap-1 rounded-full border border-navy px-2.5 py-1 text-[11px] font-bold text-navy hover:bg-navy hover:text-white disabled:opacity-60"
-                >
-                  {busyId === f.id ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <Download size={12} />
-                  )}
-                  Get
-                </button>
-              </li>
-            ))}
-          </ul>
+          {primary ? (
+            <button
+              type="button"
+              onClick={() => setShowIndividual((v) => !v)}
+              aria-expanded={showIndividual}
+              className="flex w-full items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-wider text-mute hover:text-navy"
+            >
+              <span>Download individual files ({rest.length})</span>
+              <ChevronDown
+                size={14}
+                className={`shrink-0 transition-transform ${showIndividual ? "rotate-180" : ""}`}
+              />
+            </button>
+          ) : (
+            <p className="text-[11px] font-bold uppercase tracking-wider text-mute">
+              Included files ({rest.length})
+            </p>
+          )}
+          {(!primary || showIndividual) && (
+            <ul className="mt-2 space-y-1.5">
+              {rest.map((f) => (
+                <li key={f.id} className="flex items-center gap-2">
+                  <FileArchive size={14} className="shrink-0 text-gold-ink" />
+                  <span className="min-w-0 flex-1 truncate text-xs text-ink">
+                    {deliveryDisplayName(f)}
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-mute">
+                    {f.format?.toUpperCase() || deliveryFormatLabel(f.file_path)}
+                    {formatDeliveryBytes(f.file_size_bytes) ? ` · ${formatDeliveryBytes(f.file_size_bytes)}` : ""}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void grab(f)}
+                    disabled={busyId === f.id}
+                    className="inline-flex items-center gap-1 rounded-full border border-navy px-2.5 py-1 text-[11px] font-bold text-navy hover:bg-navy hover:text-white disabled:opacity-60"
+                  >
+                    {busyId === f.id ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Download size={12} />
+                    )}
+                    Get
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </>
       )}
+
     </div>
   );
 }
