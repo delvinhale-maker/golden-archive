@@ -18,6 +18,7 @@ import { isListPriceValid } from "@/lib/publish-validation";
 import { PublishSuccessScreen as SuccessScreen } from "@/components/marketplace/PublishSuccessScreen";
 import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewer";
 import { PreviewPagePicker } from "@/components/marketplace/PreviewPagePicker";
+import { ProductDeliveryFilesManager } from "@/components/marketplace/ProductDeliveryFilesManager";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 import { getProductType, getProductTypeKeyByCategory, categoryDisplay, isProductTypeKey, type ProductTypeKey } from "@/lib/product-types";
 
@@ -1318,6 +1319,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
               productTypeKey={productTypeKey}
               previewPages={previewPages}
               setPreviewPages={setPreviewPages}
+              deliveryProductId={editingId ?? null}
+              deliverySellerId={user?.id ?? null}
             />
 
           )}
@@ -1626,6 +1629,8 @@ function StepContent(p: {
   productTypeKey?: ProductTypeKey;
   previewPages: number[];
   setPreviewPages: (next: number[]) => void;
+  deliveryProductId?: string | null;
+  deliverySellerId?: string | null;
 }) {
   const coverDone = !!p.uploadedCoverUrl && !p.coverUploading && !p.coverUploadError;
   const fileDone = !!p.uploadedFilePath && !p.fileUploading && !p.fileUploadError;
@@ -1705,6 +1710,22 @@ function StepContent(p: {
           </div>
         )}
       </div>
+
+      {/* Digital delivery files — extra downloads bundled with this title */}
+      {p.deliveryProductId && p.deliverySellerId ? (
+        <div>
+          <h3 className="font-display text-lg text-navy mb-1">Digital delivery files</h3>
+          <p className="text-xs text-mute mb-3">
+            Optional. Add a ZIP bundle and/or the individual files buyers receive
+            (worksheets, spreadsheets, audio). ZIP is only a delivery format — your
+            product still lists in its normal category.
+          </p>
+          <ProductDeliveryFilesManager
+            productId={p.deliveryProductId}
+            sellerId={p.deliverySellerId}
+          />
+        </div>
+      ) : null}
 
       {/* Preview page picker — appears once a manuscript is present */}
       <div>
