@@ -94,17 +94,29 @@ describe.skipIf(!live)("delivery security · RLS", () => {
     } as never);
     expect(ins.error).not.toBeNull();
 
-    const upd = await anon!
+    // RLS makes writes affect zero rows rather than erroring; assert nothing
+    // in the manifest actually changed.
+    const before = await admin!
+      .from("product_download_files")
+      .select("id,file_path")
+      .order("id")
+      .limit(50);
+
+    await anon!
       .from("product_download_files")
       .update({ file_path: "attack.zip" } as never)
       .neq("id", "00000000-0000-0000-0000-000000000000");
-    expect(upd.error ?? upd.data).not.toBeNull();
-
-    const del = await anon!
+    await anon!
       .from("product_download_files")
       .delete()
       .neq("id", "00000000-0000-0000-0000-000000000000");
-    expect(del.error ?? del.data).not.toBeNull();
+
+    const after = await admin!
+      .from("product_download_files")
+      .select("id,file_path")
+      .order("id")
+      .limit(50);
+    expect(after.data).toEqual(before.data);
   });
 
   it("anonymous callers cannot read download tokens or orders", async () => {
