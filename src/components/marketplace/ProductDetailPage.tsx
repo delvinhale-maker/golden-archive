@@ -485,7 +485,9 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
               </div>
             )}
             {tab === "included" && (
-              <ul className="max-w-2xl space-y-3">
+              <>
+              <ProductIncludedFiles productId={productId} />
+              <ul className="mt-8 max-w-2xl space-y-3">
                 {(whatsIncluded.length
                   ? whatsIncluded
                   : [
