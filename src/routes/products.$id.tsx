@@ -44,7 +44,9 @@ import { FrequentlyBoughtTogether } from "@/components/marketplace/FrequentlyBou
 import { ShareButtons, ReportIssueLink } from "@/components/marketplace/ShareButtons";
 import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { useOwnsProduct } from "@/hooks/use-owned-products";
-import { getProduct, type Product, type ProductDetailResult } from "@/lib/marketplace.functions";
+import { getProduct, relatedProductsQuery, type Product, type ProductDetailResult } from "@/lib/marketplace.functions";
+import { getCreatorPublicCard, getMoreFromCreator } from "@/lib/storefront.functions";
+import { buildFallbackProductDescription } from "@/lib/product-seo";
 import { listPublicVariants, type ProductVariant } from "@/lib/product-variants.functions";
 import { VariantPicker, type SelectedVariant } from "@/components/marketplace/VariantPicker";
 import { OrderBumps } from "@/components/marketplace/OrderBumps";
@@ -65,9 +67,39 @@ const productQ = (id: string) =>
 
 const SITE_URL = "https://www.aurumvault.store";
 
+const SELLER_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const Route = createFileRoute("/products/$id")({
-  loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(productQ(params.id)),
+  loader: async ({ context, params }) => {
+    const result = await context.queryClient.ensureQueryData(productQ(params.id));
+    // Prefetch related-product data server-side so ProductCreatorPanel,
+    // MoreFromCreator, and FrequentlyBoughtTogether render from cache in the
+    // initial SSR HTML instead of only after client hydration. Skipped for
+    // unpublished/notFound results, and the creator/storefront queries are
+    // skipped for non-real-seller (demo/mock) products, matching exactly
+    // which queries the components themselves would otherwise fire.
+    if (result.kind === "published") {
+      const { product } = result;
+      const sellerId = product.creator.id;
+      const isRealSeller = SELLER_UUID_RE.test(sellerId ?? "");
+      await Promise.all([
+        context.queryClient.ensureQueryData(relatedProductsQuery(product.category)),
+        ...(isRealSeller
+          ? [
+              context.queryClient.ensureQueryData({
+                queryKey: ["creator-public-card", sellerId],
+                queryFn: () => getCreatorPublicCard({ data: { sellerId } }),
+              }),
+              context.queryClient.ensureQueryData({
+                queryKey: ["more-from-creator", sellerId, product.id ?? null],
+                queryFn: () => getMoreFromCreator({ data: { sellerId, excludeProductId: product.id } }),
+              }),
+            ]
+          : []),
+      ]);
+    }
+    return result;
+  },
   head: ({ params, loaderData }) => {
     const res = loaderData as ProductDetailResult | undefined;
     const p = res?.kind === "published" ? res.product : undefined;
@@ -88,10 +120,15 @@ export const Route = createFileRoute("/products/$id")({
       baseTitle = `${p.title} | AurumVault`;
       rawDesc = p.description?.trim()
         ? p.description.replace(/\s+/g, " ").trim()
-        : "A premium digital resource from a verified AurumVault creator.";
+        : buildFallbackProductDescription({
+            title: p.title,
+            category: p.category,
+            creatorName: p.creator.name,
+            isAurumVaultOwned: p.creator.isAurumVaultOwned,
+          });
     } else {
       baseTitle = "Digital Product | AurumVault";
-      rawDesc = "A premium digital resource from a verified AurumVault creator.";
+      rawDesc = buildFallbackProductDescription({ title: "" });
     }
     const desc = rawDesc.length > 160 ? `${rawDesc.slice(0, 157)}…` : rawDesc;
 
@@ -602,9 +639,6 @@ function ProductPage() {
               <div className="flex items-center gap-2 text-sm font-semibold text-ink">
                 {product.creator.name}
               </div>
-              <button className="text-sm font-semibold text-gold-ink hover:underline">
-                View Store →
-              </button>
             </div>
 
             {product.reviewCount > 0 ? (
