@@ -18,7 +18,12 @@ import { getMyOrders } from "@/lib/account.functions";
 import { RouteErrorFallback } from "@/components/RouteErrorFallback";
 
 export const Route = createFileRoute("/account")({
-  head: () => ({ meta: [{ title: "Your Account — AurumVault" }] }),
+  head: () => ({
+    meta: [
+      { title: "Your Account — AurumVault" },
+      { name: "robots", content: "noindex, follow" },
+    ],
+  }),
   component: AccountPage,
   errorComponent: ({ error, reset }) => (
     <RouteErrorFallback error={error} reset={reset} title="Your account isn't loading" />

@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import type { Product } from "@/lib/marketplace.functions";
+import { fetchCreatorInfoMap, type Product, type PublicCreatorRef } from "@/lib/marketplace.functions";
 import { slugToLabel } from "@/lib/categories";
 
 function serverSupabase() {
@@ -24,7 +24,7 @@ type Row = {
   created_at: string;
 };
 
-function toProduct(r: Row, sponsored = false): Product {
+function toProduct(r: Row, sponsored = false, creator?: PublicCreatorRef): Product {
   const cat = slugToLabel(r.category);
   const compareAt =
     r.compare_at_price_cents != null && r.compare_at_price_cents > r.price_cents
@@ -43,7 +43,9 @@ function toProduct(r: Row, sponsored = false): Product {
         ? r.cover_url
         : `av:${cat}:0`,
     bestseller: sponsored,
-    creator: { id: r.seller_id, name: "AurumVault", verified: true },
+    // Safe fallback mirrors dbRowToProduct's — fails to a generic, unverified
+    // label rather than claiming a creator that wasn't actually looked up.
+    creator: creator ?? { id: r.seller_id, name: "AurumVault", verified: false, isAurumVaultOwned: true },
   };
 }
 
@@ -134,16 +136,21 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
         return { newReleases: [], recommended: [], sponsored: [], diagnostics: emptyDiag() };
       }
 
+      // One batched lookup covering every seller across all three rows —
+      // avoids fetching creator identity once per product.
+      const creators = await fetchCreatorInfoMap(supa, rows.map((r) => r.seller_id));
+      const withCreator = (r: Row, sponsored = false) => toProduct(r, sponsored, creators.get(r.seller_id));
+
       // Rotate the full catalog daily so every product cycles through the rows.
-      const allProducts = rotateDaily(rows.map((r) => toProduct(r)), 0);
+      const allProducts = rotateDaily(rows.map((r) => withCreator(r)), 0);
 
       // Just Dropped: strictly newest first (rows are already created_at desc).
-      const newReleases = rows.map((r) => toProduct(r)).slice(0, 8);
+      const newReleases = rows.map((r) => withCreator(r)).slice(0, 8);
       const newReleasesSource: RowSource = newReleases.length > 0 ? "specific" : "empty";
 
       // Sponsored: featured=true, rotated daily; fallback to full catalog rotation.
       const sponsoredSpecific = rotateDaily(
-        rows.filter((r) => r.featured === true).map((r) => toProduct(r, true)),
+        rows.filter((r) => r.featured === true).map((r) => withCreator(r, true)),
         2,
       );
       const sponsored = (sponsoredSpecific.length > 0 ? sponsoredSpecific : allProducts).slice(0, 8);
@@ -165,8 +172,8 @@ export const getHomeRows = createServerFn({ method: "GET" }).handler(
       const recommended = hasPurchaseHistory
         ? [...rows]
             .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
-            .map((r) => toProduct(r))
-        : rotateDaily(rows.map((r) => toProduct(r)), 3);
+            .map((r) => withCreator(r))
+        : rotateDaily(rows.map((r) => withCreator(r)), 3);
       const recommendedFinal = recommended.slice(0, 8);
       const recommendedSource: RowSource = hasPurchaseHistory
         ? "specific"
@@ -230,7 +237,9 @@ export const getProductsByIds = createServerFn({ method: "GET" })
         .eq("status", "approved")
         .eq("published", true);
 
-      const byId = new Map(((rows ?? []) as Row[]).map((r) => [r.id, toProduct(r)]));
+      const idRows = (rows ?? []) as Row[];
+      const creators = await fetchCreatorInfoMap(supa, idRows.map((r) => r.seller_id));
+      const byId = new Map(idRows.map((r) => [r.id, toProduct(r, false, creators.get(r.seller_id))]));
       const ordered = data.ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
       return await attachRatings(supa, ordered);
     } catch {

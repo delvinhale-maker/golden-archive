@@ -15,6 +15,7 @@ export const Route = createFileRoute("/a/$brandSlug")({
         name: "description",
         content: `Join ${params.brandSlug}'s affiliate program on AurumVault and earn commission on every sale you refer.`,
       },
+      { name: "robots", content: "noindex, follow" },
     ],
   }),
 });

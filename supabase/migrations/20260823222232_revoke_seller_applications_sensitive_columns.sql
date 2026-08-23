@@ -1,0 +1,51 @@
+-- Seller-application privacy fix.
+--
+-- Prior migration 20260710152511 re-granted SELECT on
+-- (applicant_email, admin_notes, admin_feedback, reapply_after) to the
+-- `authenticated` role. That grant was broad by necessity of *how* it was
+-- applied: Postgres column privileges are per-role, not per-condition, so
+-- there is no way to grant these columns "only to authenticated users who
+-- also pass has_role(admin)" — a column grant to `authenticated` applies to
+-- every logged-in user. Combined with the pre-existing, intentional
+-- "Public can view approved storefronts" row policy (status='approved' AND
+-- brand_slug IS NOT NULL, TO anon, authenticated), this meant any logged-in
+-- user could read another approved creator's applicant_email, admin_notes,
+-- admin_feedback, and reapply_after — none of which are needed by any
+-- public-facing query (creator directory, storefront, product creator
+-- mapping, leaderboard, spotlights all select only public fields).
+--
+-- The actual reason for the 20260710152511 grant was that the admin review
+-- UI (admin.index.tsx, CreatorApplicationsBoard.tsx) read these columns via
+-- the client-side, publishable-key `authenticated` role rather than a
+-- service-role server function. That read path has been moved to a new
+-- admin-gated server function (getSellerApplicationsForAdmin, in
+-- src/lib/admin-seller-applications.functions.ts), which authenticates the
+-- caller, verifies admin role, and only then reads with the service-role
+-- client — never exposing these columns to a non-admin `authenticated`
+-- request.
+--
+-- This is orthogonal to the seller_applications_guard_admin_fields_trg
+-- trigger (added 20260729123629) — that trigger guards which columns a
+-- non-admin UPDATE may touch; this migration is about SELECT/read exposure
+-- and doesn't change write behavior at all.
+--
+-- No creator-facing (owner) UI currently reads applicant_email,
+-- admin_feedback, or reapply_after for the applicant's own row, so no
+-- owner-scoped read path is added here — see the accompanying audit.
+-- admin_notes remains admin-only by default, per existing business logic
+-- (only ever referenced in admin components).
+--
+-- service_role keeps full access (GRANT ALL, from the base migration, and
+-- explicitly reaffirmed for these columns in 20260710152435) — unaffected.
+-- anon never had these columns granted — unaffected.
+-- All other seller_applications columns (brand_name, brand_slug, pitch,
+-- product_types, website, country, social_links, categories, price_range,
+-- cover_url, extended_bio, story, credentials, featured_media_url, status,
+-- created_at, reviewed_at, and the newer campaign/utm/lead-attribution
+-- columns) are untouched — public creator surfaces, storefront pages, the
+-- creator directory, leaderboard, and spotlights all keep working exactly
+-- as before.
+
+REVOKE SELECT (applicant_email, admin_notes, admin_feedback, reapply_after)
+  ON public.seller_applications
+  FROM authenticated;

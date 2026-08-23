@@ -11,7 +11,12 @@ import { listWishlist, removeWishlist } from "@/lib/wishlist.functions";
 import { RouteErrorFallback } from "@/components/RouteErrorFallback";
 
 export const Route = createFileRoute("/wishlist")({
-  head: () => ({ meta: [{ title: "Your Wishlist — AurumVault" }] }),
+  head: () => ({
+    meta: [
+      { title: "Your Wishlist — AurumVault" },
+      { name: "robots", content: "noindex, follow" },
+    ],
+  }),
   component: WishlistPage,
   errorComponent: ({ error, reset }) => (
     <RouteErrorFallback error={error} reset={reset} title="Wishlist isn't loading" />

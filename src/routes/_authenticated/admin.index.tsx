@@ -12,12 +12,17 @@ import { AIReviewBadge } from "@/components/marketplace/AIReviewBadge";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { runSlugIntegrityCheck, listSlugIntegrityAlerts } from "@/lib/slug-integrity.functions";
 import { CreatorApplicationsBoard } from "@/components/admin/CreatorApplicationsBoard";
+import { getSellerApplicationsForAdmin, type AdminSellerApplication } from "@/lib/admin-seller-applications.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminPage,
 });
 
-type App = { id: string; user_id: string; brand_name: string; pitch: string; product_types: string | null; status: string; created_at: string; applicant_email: string | null };
+// applicant_email (and the rest of AdminSellerApplication's sensitive
+// fields) is no longer readable via the client `authenticated` role — this
+// page reads it through the admin-gated getSellerApplicationsForAdmin()
+// server function instead. See the seller_applications RLS/grant migration.
+type App = AdminSellerApplication;
 type AIIssue = { severity: "low" | "medium" | "high"; area: string; message: string };
 type Prod = {
   id: string; seller_id: string; title: string; description: string; category: string;
@@ -31,6 +36,7 @@ function AdminPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const runReview = useServerFn(reviewProduct);
+  const fetchSellerApplications = useServerFn(getSellerApplicationsForAdmin);
   const [apps, setApps] = useState<App[]>([]);
   const [prods, setProds] = useState<Prod[]>([]);
   const [tab, setTab] = useState<"products" | "applications">("products");
@@ -62,11 +68,14 @@ function AdminPage() {
   }, [loading, user, navigate]);
 
   async function refresh() {
-    const [{ data: a }, { data: p }] = await Promise.all([
-      supabase.from("seller_applications").select("*").eq("status", "pending").order("created_at"),
+    const [allApps, { data: p }] = await Promise.all([
+      fetchSellerApplications(),
       supabase.from("marketplace_products").select("*").eq("status", "pending").order("created_at"),
     ]);
-    setApps((a ?? []) as App[]);
+    const pending = allApps
+      .filter((a) => a.status === "pending")
+      .sort((a, b) => a.created_at.localeCompare(b.created_at));
+    setApps(pending);
     setProds((p ?? []) as unknown as Prod[]);
   }
 

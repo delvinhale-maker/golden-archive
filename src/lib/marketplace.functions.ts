@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { queryOptions } from "@tanstack/react-query";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
@@ -57,7 +58,7 @@ export function parseWhatsIncluded(adminNotes?: string | null): string[] | undef
 }
 
 
-function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
+function dbRowToProduct(r: DbProductRow): Product {
   const catLabel = slugToLabel(r.category);
   const compareAt =
     r.compare_at_price_cents != null && r.compare_at_price_cents > r.price_cents
@@ -83,7 +84,11 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
         ? r.cover_url
         : `av:${catLabel}:0`,
     bestseller: false,
-    creator: { id: r.seller_id, name: sellerName, verified: true },
+    // Safe pre-join default — every caller must run this through
+    // applyCreatorInfo() to get real creator identity. If that's ever
+    // skipped, this fails safe (generic label, no storefront link) rather
+    // than fails open (claiming a verified creator that was never checked).
+    creator: { id: r.seller_id, name: "AurumVault", verified: false, isAurumVaultOwned: true },
     description: r.description ?? undefined,
     included,
     aiReviewStatus: (r.ai_review_status as Product["aiReviewStatus"]) ?? null,
@@ -137,6 +142,80 @@ function applyAggregates(
   });
 }
 
+/**
+ * Batched creator-identity lookup for a set of seller (auth.users) ids —
+ * one query against seller_applications, one against profiles, regardless
+ * of how many products/sellers are involved (no N+1). Only requests the
+ * specific columns needed; never selects admin_notes, admin_feedback,
+ * applicant_email, or any other internal/application field — see the
+ * seller_applications privacy-fix migration for why that matters.
+ *
+ * A seller only gets real name/slug/avatar when their storefront is
+ * actually public (status='approved' AND brand_slug set) — matches the
+ * same eligibility the /store/$slug route itself requires. Everyone else
+ * (no application at all, or pending/rejected/unslugged) maps to the same
+ * safe "AurumVault" generic identity; `isAurumVaultOwned` distinguishes
+ * "no application exists" from "application exists but isn't public yet"
+ * for future use, even though both render identically today.
+ */
+export async function fetchCreatorInfoMap(
+  supa: ReturnType<typeof serverSupabase>,
+  sellerIds: string[],
+): Promise<Map<string, PublicCreatorRef>> {
+  const map = new Map<string, PublicCreatorRef>();
+  const uniqueIds = [...new Set(sellerIds)];
+  if (uniqueIds.length === 0) return map;
+
+  const [appsRes, profilesRes] = await Promise.all([
+    supa
+      .from("seller_applications")
+      .select("user_id,brand_name,brand_slug,status")
+      .in("user_id", uniqueIds),
+    supa
+      .from("profiles")
+      .select("id,avatar_url")
+      .in("id", uniqueIds),
+  ]);
+
+  const avatarByUser = new Map<string, string | null>();
+  for (const row of (profilesRes.data ?? []) as Array<{ id: string; avatar_url: string | null }>) {
+    avatarByUser.set(row.id, row.avatar_url);
+  }
+
+  for (const row of (appsRes.data ?? []) as Array<{
+    user_id: string;
+    brand_name: string;
+    brand_slug: string | null;
+    status: string;
+  }>) {
+    const eligible = row.status === "approved" && !!row.brand_slug;
+    map.set(row.user_id, {
+      id: row.user_id,
+      name: eligible ? row.brand_name : "AurumVault",
+      slug: eligible ? row.brand_slug! : undefined,
+      avatar: eligible ? avatarByUser.get(row.user_id) ?? undefined : undefined,
+      verified: eligible,
+      isAurumVaultOwned: false,
+    });
+  }
+
+  for (const id of uniqueIds) {
+    if (!map.has(id)) {
+      map.set(id, { id, name: "AurumVault", verified: false, isAurumVaultOwned: true });
+    }
+  }
+
+  return map;
+}
+
+function applyCreatorInfo(products: Product[], creators: Map<string, PublicCreatorRef>): Product[] {
+  return products.map((p) => {
+    const info = creators.get(p.creator.id);
+    if (!info) return p;
+    return { ...p, creator: info };
+  });
+}
+
 async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Promise<Product[]> {
   try {
     const supa = serverSupabase();
@@ -179,8 +258,12 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
     const { data, error } = await query;
     if (error || !data) return [];
     const products = (data as DbProductRow[]).map((r) => dbRowToProduct(r));
-    const agg = await fetchReviewAggregates(supa, products.map((p) => p.id));
-    return applyAggregates(products, agg);
+    const sellerIds = products.map((p) => p.creator.id);
+    const [agg, creators] = await Promise.all([
+      fetchReviewAggregates(supa, products.map((p) => p.id)),
+      fetchCreatorInfoMap(supa, sellerIds),
+    ]);
+    return applyCreatorInfo(applyAggregates(products, agg), creators);
   } catch {
     return [];
   }
@@ -197,6 +280,27 @@ export type Creator = {
   bio?: string;
 };
 
+/**
+ * Minimal public creator identity exposed on a Product card (home rows,
+ * browse grid, search results). Distinct from ProductCreatorPanel/
+ * MoreFromCreator's dedicated per-seller lookups (storefront.functions.ts)
+ * — this is a batched, no-N+1 lookup for surfaces rendering many products
+ * at once. Only real, intentionally-public fields — no email, legal name,
+ * payout data, or application notes. `slug` is present only when the
+ * storefront is actually eligible to be public (approved
+ * seller_application + brand_slug set).
+ */
+export type PublicCreatorRef = {
+  id: string;
+  name: string;
+  verified: boolean;
+  avatar?: string;
+  slug?: string;
+  /** True when no seller_application exists for this seller at all — the
+   * product is platform inventory, not a pending/rejected creator. */
+  isAurumVaultOwned: boolean;
+};
+
 export type Product = {
   id: string;
   title: string;
@@ -209,7 +313,7 @@ export type Product = {
   image: string;
   images?: string[];
   bestseller?: boolean;
-  creator: { id: string; name: string; verified: boolean; avatar?: string };
+  creator: PublicCreatorRef;
   description?: string;
   included?: string[];
   aiReviewStatus?: "pass" | "warn" | "fail" | "pending" | null;
@@ -468,11 +572,14 @@ function mockProduct(absoluteIndex: number, category?: string): Product {
     // stable placeholder string so consumers that read product.image still work.
     image: `av:${cat}:${absoluteIndex}`,
     bestseller: absoluteIndex % 4 === 0,
+    // mockProduct/mockProductsAcross/mockProductsForCategory are unreachable
+    // (no live caller) — kept as-is, just typed to match PublicCreatorRef.
     creator: {
       id: `c_${creatorIdx}`,
       name: CREATOR_NAMES[creatorIdx][0],
       verified: true,
       avatar: `https://i.pravatar.cc/80?img=${(creatorIdx * 7) + 1}`,
+      isAurumVaultOwned: true, // CREATOR_NAMES currently has a single "AurumVault" entry
     },
     description:
       "A premium, purpose-driven resource curated for operators who want to build with intention. Includes worksheets, audio reflections, and a printable companion.",
@@ -554,6 +661,20 @@ export const getProducts = createServerFn({ method: "GET" })
     };
   });
 
+/**
+ * Shared query for "products in this category" — backs FrequentlyBoughtTogether
+ * on the product detail page. Keyed only by category so the route loader
+ * prefetch and the component share one cached fetch instead of firing it
+ * twice. fetchDbProducts already scopes to status=approved &&
+ * published=true, so results are eligibility-filtered for free.
+ */
+export const relatedProductsQuery = (category: string) =>
+  queryOptions({
+    queryKey: ["mp", "products", "related", category],
+    queryFn: () => getProducts({ data: { category, page: 1 } }),
+    staleTime: 60_000,
+  });
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const getProduct = createServerFn({ method: "GET" })
@@ -576,8 +697,11 @@ export const getProduct = createServerFn({ method: "GET" })
       return { kind: "unpublished", title: row.title } as ProductDetailResult;
     }
     const product = dbRowToProduct(row as DbProductRow);
-    const agg = await fetchReviewAggregates(supabaseAdmin, [product.id]);
-    const enriched = applyAggregates([product], agg)[0];
+    const [agg, creators] = await Promise.all([
+      fetchReviewAggregates(supabaseAdmin, [product.id]),
+      fetchCreatorInfoMap(supabaseAdmin, [product.creator.id]),
+    ]);
+    const enriched = applyCreatorInfo(applyAggregates([product], agg), creators)[0];
 
     // Fetch up to 20 recent reviews for JSON-LD + build a 1..5 rating breakdown.
     const breakdown: ProductRatingBreakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
@@ -658,8 +782,11 @@ export const getHomeHighlights = createServerFn({ method: "GET" }).handler(
         ? dbRowToProduct(heroRes.data as DbProductRow)
         : null;
       if (heroProduct) {
-        const agg = await fetchReviewAggregates(supa, [heroProduct.id]);
-        heroProduct = applyAggregates([heroProduct], agg)[0];
+        const [agg, creators] = await Promise.all([
+          fetchReviewAggregates(supa, [heroProduct.id]),
+          fetchCreatorInfoMap(supa, [heroProduct.creator.id]),
+        ]);
+        heroProduct = applyCreatorInfo(applyAggregates([heroProduct], agg), creators)[0];
       }
       return {
         heroProduct,

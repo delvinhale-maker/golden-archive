@@ -37,7 +37,11 @@ const PUBLISH_STEP_ACCENTS: Record<1 | 2 | 3 | 4, string> = {
 };
 
 // (legacy localStorage draft key removed — drafts now live in the database)
-const DESC_MIN = 50;
+// Pre-existing floor, kept as the effective minimum when editing a listing
+// created before the bar was raised — see `effectiveDescMin` below. Don't
+// retroactively block saves on legacy descriptions that were valid when written.
+const LEGACY_DESC_MIN = 50;
+const DESC_MIN = 140;
 const DESC_MAX = 1900;
 const DESC_WARN = 1800;
 
@@ -850,10 +854,14 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
 
   const descLen = description.length;
   const descTrimLen = description.trim().length;
+  // Editing a listing published before the higher bar was introduced falls
+  // back to the old floor, so an unrelated edit (price, cover, etc.) isn't
+  // blocked by a description that was valid when it was written.
+  const effectiveDescMin = isEditing ? LEGACY_DESC_MIN : DESC_MIN;
   const step1Valid =
     !!title.trim() &&
     !!author.trim() &&
-    descTrimLen >= DESC_MIN &&
+    descTrimLen >= effectiveDescMin &&
     descLen <= DESC_MAX;
   const hasCover = (!!cover && !coverError && !!coverDims) || (!cover && !!existingCoverUrl);
   const hasFile = (!!file && !fileError) || (!file && !!existingFilePath);
@@ -866,7 +874,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
 
   function next() {
     if (step === 1 && !step1Valid) {
-      if (descTrimLen < DESC_MIN) return toast.error(`Description needs at least ${DESC_MIN} characters.`);
+      if (descTrimLen < effectiveDescMin) return toast.error(`Description needs at least ${effectiveDescMin} characters.`);
       if (descLen > DESC_MAX) return toast.error(`Description exceeds ${DESC_MAX} characters.`);
       return toast.error("Fill all required fields.");
     }
@@ -904,8 +912,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       { id: "title", label: "Title not empty", ok: !!title.trim(), gotoStep: 1 as StepNum },
       {
         id: "description",
-        label: `Description ≥ ${DESC_MIN} characters & ≤ ${DESC_MAX}`,
-        ok: descTrimLen >= DESC_MIN && descLen <= DESC_MAX,
+        label: `Description ≥ ${effectiveDescMin} characters & ≤ ${DESC_MAX}`,
+        ok: descTrimLen >= effectiveDescMin && descLen <= DESC_MAX,
         gotoStep: 1 as StepNum,
       },
       {
@@ -916,7 +924,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       },
     ];
     return items;
-  }, [hasCover, coverError, hasFile, fileError, title, descTrimLen, descLen, price]);
+  }, [hasCover, coverError, hasFile, fileError, title, descTrimLen, descLen, price, effectiveDescMin]);
   const checklistPass = checklist.every((c) => c.ok);
 
 
@@ -1321,7 +1329,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
               whatsIncluded={whatsIncluded} setWhatsIncluded={setWhatsIncluded}
               isEbook={typeCfg.isEbook}
               productLabel={typeCfg.label}
-              description={description} setDescription={setDescription}
+              description={description} setDescription={setDescription} descMin={effectiveDescMin}
               language={language} setLanguage={setLanguage}
               category={category} setCategory={setCategory}
               subcategory={subcategory} setSubcategory={setSubcategory}
@@ -1541,7 +1549,7 @@ function StepDetails(p: {
   whatsIncluded: string; setWhatsIncluded: (v: string) => void;
   isEbook: boolean;
   productLabel?: string;
-  description: string; setDescription: (v: string) => void;
+  description: string; setDescription: (v: string) => void; descMin: number;
   language: string; setLanguage: (v: string) => void;
   category: typeof CATEGORIES[number]["value"]; setCategory: (v: typeof CATEGORIES[number]["value"]) => void;
   subcategory: string | null; setSubcategory: (v: string | null) => void;
@@ -1571,6 +1579,9 @@ function StepDetails(p: {
         </Field>
       </div>
       <Field label="Description *">
+        <p className="mb-2 text-xs text-mute">
+          Cover who it's for, the problem it solves, what's included, and how it's used — specific, real descriptions rank and convert better than generic ones.
+        </p>
         <textarea
           rows={6}
           className="inp"
@@ -1579,7 +1590,7 @@ function StepDetails(p: {
           onChange={(e) => p.setDescription(e.target.value.slice(0, DESC_MAX))}
           placeholder={p.isEbook ? "What's in this book? Who is it for?" : `What's in this ${(p.productLabel ?? "product").toLowerCase()}? Who is it for?`}
         />
-        <DescriptionCounter value={p.description} />
+        <DescriptionCounter value={p.description} min={p.descMin} />
       </Field>
 
       {!p.isEbook && (
@@ -2501,20 +2512,20 @@ function CoverLightbox({ src, fileName, onClose }: { src: string; fileName?: str
 }
 
 /* ---------- Description live counter ---------- */
-function DescriptionCounter({ value }: { value: string }) {
+function DescriptionCounter({ value, min }: { value: string; min: number }) {
   const len = value.length;
   const trimmed = value.trim().length;
-  const tooShort = trimmed > 0 && trimmed < DESC_MIN;
+  const tooShort = trimmed > 0 && trimmed < min;
   const warn = len >= DESC_WARN && len < DESC_MAX;
   const max = len >= DESC_MAX;
   const color = max ? "text-red-600" : warn ? "text-amber-700" : tooShort ? "text-amber-700" : "text-mute";
   return (
     <div className="mt-1 flex items-center justify-between text-xs">
       <span className={color}>
-        {tooShort && <>{DESC_MIN - trimmed} more characters needed (min {DESC_MIN}).</>}
+        {tooShort && <>{min - trimmed} more characters needed (min {min}).</>}
         {!tooShort && warn && <>Approaching limit.</>}
         {!tooShort && max && <>Maximum reached — please shorten before publishing.</>}
-        {!tooShort && !warn && !max && <>Min {DESC_MIN} · Max {DESC_MAX} characters.</>}
+        {!tooShort && !warn && !max && <>Min {min} · Max {DESC_MAX} characters.</>}
       </span>
       <span className={`tabular-nums ${color}`}>{len} / {DESC_MAX}</span>
     </div>

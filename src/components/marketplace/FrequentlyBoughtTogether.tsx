@@ -1,36 +1,26 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Plus, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { ProductCover } from "./ProductCover";
-import { getProducts, type Product } from "@/lib/marketplace.functions";
+import { relatedProductsQuery, type Product } from "@/lib/marketplace.functions";
 import { useCart } from "@/hooks/use-av-store";
 
 export function FrequentlyBoughtTogether({ product }: { product: Product }) {
-  const [partners, setPartners] = useState<Product[]>([]);
+  // Backed by the same query key the route loader prefetches server-side,
+  // so this resolves from cache (no client refetch, no loading flash) and
+  // its partner links are present in the initial SSR HTML.
+  const { data } = useQuery(relatedProductsQuery(product.category));
+  const partners = (data?.items ?? []).filter((p) => p.id !== product.id).slice(0, 2);
+  // Absence of an explicit entry means "picked" — every item defaults to
+  // selected without needing an effect to seed initial state.
   const [picked, setPicked] = useState<Record<string, boolean>>({});
   const cart = useCart();
-
-  useEffect(() => {
-    let active = true;
-    getProducts({ data: { category: product.category, page: 1 } })
-      .then((res) => {
-        if (!active) return;
-        const others = res.items.filter((p) => p.id !== product.id).slice(0, 2);
-        setPartners(others);
-        const init: Record<string, boolean> = { [product.id]: true };
-        for (const p of others) init[p.id] = true;
-        setPicked(init);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [product.id, product.category]);
 
   if (partners.length === 0) return null;
 
   const all = [product, ...partners];
-  const selected = all.filter((p) => picked[p.id]);
+  const selected = all.filter((p) => picked[p.id] ?? true);
   const total = selected.reduce((s, p) => s + Number(p.price), 0);
 
   const addAll = () => {
@@ -81,7 +71,7 @@ export function FrequentlyBoughtTogether({ product }: { product: Product }) {
                 <div className="flex items-start gap-2">
                   <input
                     type="checkbox"
-                    checked={!!picked[p.id]}
+                    checked={picked[p.id] ?? true}
                     onChange={(e) =>
                       setPicked((prev) => ({ ...prev, [p.id]: e.target.checked }))
                     }
