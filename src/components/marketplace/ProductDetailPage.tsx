@@ -20,6 +20,7 @@ import {
 } from "./PremiumProductCard";
 import { ProductCreatorPanel } from "./ProductCreatorPanel";
 import { MoreFromCreator } from "./MoreFromCreator";
+import { ProductIncludedFiles } from "./ProductIncludedFiles";
 
 const NAVY = "#1B2A4A";
 const NAVY_DEEP = "#11192E";
@@ -485,7 +486,9 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
               </div>
             )}
             {tab === "included" && (
-              <ul className="max-w-2xl space-y-3">
+              <>
+              <ProductIncludedFiles productId={productId} />
+              <ul className="mt-8 max-w-2xl space-y-3">
                 {(whatsIncluded.length
                   ? whatsIncluded
                   : [
@@ -507,6 +510,7 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
                   </li>
                 ))}
               </ul>
+              </>
             )}
             {tab === "creator" && (
               <>

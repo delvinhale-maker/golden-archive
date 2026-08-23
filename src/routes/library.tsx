@@ -3,11 +3,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { BookOpen, Crown, Download, Loader2, Search as SearchIcon } from "lucide-react";
+import { BookOpen, Crown, Download, FileArchive, Loader2, Search as SearchIcon } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getMyOrders, type AccountOrder } from "@/lib/account.functions";
 import { getDownloadInfo } from "@/lib/payments.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { getDeliveryFileDownload } from "@/lib/product-delivery.functions";
+import {
+  type DeliveryFile,
+  displayName as deliveryDisplayName,
+  formatBytes as formatDeliveryBytes,
+  formatLabel as deliveryFormatLabel,
+  sortDeliveryFiles,
+} from "@/lib/product-delivery";
 
 export const Route = createFileRoute("/library")({
   ssr: false,
@@ -306,6 +314,10 @@ function LibraryCard({
             )}
           </div>
 
+          {hasToken && (
+            <LibraryDeliveryFiles productId={item.product_id} token={item.download_token!} />
+          )}
+
           <div className="mt-auto flex flex-wrap gap-2 pt-3">
             {hasToken ? (
               <>
@@ -337,6 +349,83 @@ function LibraryCard({
         </div>
       </div>
     </li>
+  );
+}
+
+/**
+ * Extra delivery files bundled with a purchase (ZIP bundle, worksheets, audio).
+ * Each file is fetched through a signed, buyer-verified URL.
+ */
+function LibraryDeliveryFiles({ productId, token }: { productId: string; token: string }) {
+  const fetchFile = useServerFn(getDeliveryFileDownload);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const filesQ = useQuery({
+    queryKey: ["library", "delivery-files", productId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_download_files" as any)
+        .select("id,product_id,seller_id,label,file_path,file_size_bytes,format,is_primary,sort_order")
+        .eq("product_id", productId);
+      if (error) throw error;
+      return sortDeliveryFiles((data ?? []) as unknown as DeliveryFile[]);
+    },
+    staleTime: 60_000,
+  });
+
+  const files = filesQ.data ?? [];
+  if (files.length === 0) return null;
+
+  async function grab(f: DeliveryFile) {
+    setBusyId(f.id);
+    const t = toast.loading(`Preparing "${deliveryDisplayName(f)}"…`);
+    try {
+      const res = await fetchFile({ data: { token, fileId: f.id } });
+      if ("error" in res) {
+        toast.error(res.error ?? "Download unavailable", { id: t });
+        return;
+      }
+      toast.success("Download ready", { id: t });
+      window.location.href = res.url;
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Download failed", { id: t });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <div className="mt-3 rounded-xl border border-line bg-muted/40 p-3">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-mute">
+        Included files ({files.length})
+      </p>
+      <ul className="mt-2 space-y-1.5">
+        {files.map((f) => (
+          <li key={f.id} className="flex items-center gap-2">
+            <FileArchive size={14} className="shrink-0 text-gold-ink" />
+            <span className="min-w-0 flex-1 truncate text-xs text-ink">
+              {deliveryDisplayName(f)}
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-mute">
+              {f.format?.toUpperCase() || deliveryFormatLabel(f.file_path)}
+              {formatDeliveryBytes(f.file_size_bytes) ? ` · ${formatDeliveryBytes(f.file_size_bytes)}` : ""}
+            </span>
+            <button
+              type="button"
+              onClick={() => void grab(f)}
+              disabled={busyId === f.id}
+              className="inline-flex items-center gap-1 rounded-full border border-navy px-2.5 py-1 text-[11px] font-bold text-navy hover:bg-navy hover:text-white disabled:opacity-60"
+            >
+              {busyId === f.id ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                <Download size={12} />
+              )}
+              Get
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
