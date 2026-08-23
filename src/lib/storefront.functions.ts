@@ -119,6 +119,70 @@ export const saveMyStorefrontSettings = createServerFn({ method: "POST" })
   });
 
 /**
+ * Save the creator's own storefront-profile fields on seller_applications
+ * (cover_url, extended_bio, story, credentials, featured_media_url).
+ *
+ * seller_applications has no owner-scoped RLS UPDATE policy — only
+ * `apps_admin_all` (admin-only) permits UPDATE. That's intentional: the table
+ * also holds review/moderation state, the columns locked down by the seller-
+ * application privacy migration, and campaign-attribution columns (campaign,
+ * utm_*, creator_lead_id) that a creator must never be able to write. Rather
+ * than adding a broad owner
+ * UPDATE policy — which would require every future column added to this
+ * table to be remembered and added to a trigger blocklist, or it becomes
+ * silently owner-writable — this goes through the service-role client with
+ * an explicit field whitelist, exactly like `saveMyStorefrontSettings`
+ * above re-derives product ownership server-side instead of trusting the
+ * client. Ownership and approval status are both re-derived from the
+ * authenticated context, never from client input, so a direct Supabase
+ * request from a creator's own session still hits RLS and is rejected —
+ * only this function's service-role write can succeed, and only for the
+ * caller's own approved row.
+ */
+export const saveMyStorefrontProfile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        coverUrl: z.string().max(500).nullable().optional(),
+        extendedBio: z.string().max(4000).nullable().optional(),
+        story: z.string().max(4000).nullable().optional(),
+        credentials: z.array(z.string().max(200)).max(20).nullable().optional(),
+        featuredMediaUrl: z.string().max(500).nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: app } = await supabaseAdmin
+      .from("seller_applications")
+      .select("id, status")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (!app || (app as any).status !== "approved") throw new Error("forbidden");
+
+    const patch: Record<string, unknown> = {};
+    if (data.coverUrl !== undefined) patch.cover_url = safeExternalUrl(data.coverUrl);
+    if (data.extendedBio !== undefined) patch.extended_bio = data.extendedBio?.trim() || null;
+    if (data.story !== undefined) patch.story = data.story?.trim() || null;
+    if (data.credentials !== undefined) {
+      const creds = (data.credentials ?? []).map((c) => c.trim()).filter(Boolean);
+      patch.credentials = creds.length ? creds : null;
+    }
+    if (data.featuredMediaUrl !== undefined) patch.featured_media_url = safeExternalUrl(data.featuredMediaUrl);
+
+    if (!Object.keys(patch).length) return { ok: true };
+
+    const { error } = await (supabaseAdmin.from("seller_applications") as any)
+      .update(patch)
+      .eq("id", (app as any).id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/**
  * Public, fire-and-forget attribution ping. Stores no visitor identifiers —
  * only which creator surface was seen and which campaign referred it.
  */

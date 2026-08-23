@@ -8,7 +8,11 @@ import { ArrowLeft, ExternalLink, Upload, Plus, Trash2, Package, Sparkles, BarCh
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { CreatorStorefrontShare } from "@/components/marketplace/CreatorStorefrontShare";
-import { getMyStorefrontSettings, saveMyStorefrontSettings } from "@/lib/storefront.functions";
+import {
+  getMyStorefrontSettings,
+  saveMyStorefrontProfile,
+  saveMyStorefrontSettings,
+} from "@/lib/storefront.functions";
 import {
   ACCENT_CLASSES,
   MAX_FEATURED_PRODUCTS,
@@ -44,6 +48,7 @@ type Bundle = {
 
 function StorefrontManager() {
   const { user } = useAuth();
+  const saveProfileFn = useServerFn(saveMyStorefrontProfile);
   const [app, setApp] = useState<App | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [bundles, setBundles] = useState<Bundle[]>([]);
@@ -114,10 +119,7 @@ function StorefrontManager() {
         .upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from("creator-covers").getPublicUrl(path);
-      const { error } = await (supabase.from("seller_applications") as any)
-        .update({ cover_url: pub.publicUrl })
-        .eq("id", app!.id);
-      if (error) throw error;
+      await saveProfileFn({ data: { coverUrl: pub.publicUrl } });
       setApp({ ...app!, cover_url: pub.publicUrl });
       toast.success("Cover updated");
     } catch (e: any) {
@@ -134,17 +136,21 @@ function StorefrontManager() {
       .split("\n")
       .map((s) => s.trim())
       .filter(Boolean);
-    const { error } = await (supabase.from("seller_applications") as any)
-      .update({
-        extended_bio: extendedBio || null,
-        story: story || null,
-        credentials: creds.length ? creds : null,
-        featured_media_url: featuredMediaUrl || null,
-      })
-      .eq("id", app.id);
-    setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Storefront updated");
+    try {
+      await saveProfileFn({
+        data: {
+          extendedBio: extendedBio || null,
+          story: story || null,
+          credentials: creds.length ? creds : null,
+          featuredMediaUrl: featuredMediaUrl || null,
+        },
+      });
+      toast.success("Storefront updated");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't save storefront");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
