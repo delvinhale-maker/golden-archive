@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { BookOpen, Crown, Download, FileArchive, Loader2, Search as SearchIcon } from "lucide-react";
+import { BookOpen, ChevronDown, Crown, Download, FileArchive, Loader2, Search as SearchIcon } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getMyOrders, type AccountOrder } from "@/lib/account.functions";
 import { getDownloadInfo } from "@/lib/payments.functions";
@@ -359,6 +359,7 @@ function LibraryCard({
 function LibraryDeliveryFiles({ productId, token }: { productId: string; token: string }) {
   const fetchFile = useServerFn(getDeliveryFileDownload);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [showIndividual, setShowIndividual] = useState(false);
   const filesQ = useQuery({
     queryKey: ["library", "delivery-files", productId],
     queryFn: async () => {
