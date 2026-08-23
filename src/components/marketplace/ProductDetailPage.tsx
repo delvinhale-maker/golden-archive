@@ -20,6 +20,7 @@ import {
 } from "./PremiumProductCard";
 import { ProductCreatorPanel } from "./ProductCreatorPanel";
 import { MoreFromCreator } from "./MoreFromCreator";
+import { ProductIncludedFiles } from "./ProductIncludedFiles";
 
 const NAVY = "#1B2A4A";
 const NAVY_DEEP = "#11192E";
