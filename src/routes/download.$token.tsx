@@ -7,7 +7,12 @@ import { getDownloadInfo, getReadInfo } from "@/lib/payments.functions";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/download/$token")({
-  head: () => ({ meta: [{ title: "Your download · AurumVault" }] }),
+  head: () => ({
+    meta: [
+      { title: "Your download · AurumVault" },
+      { name: "robots", content: "noindex, follow" },
+    ],
+  }),
   component: DownloadPage,
 });
 

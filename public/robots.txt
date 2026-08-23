@@ -12,6 +12,7 @@ Disallow: /dashboard
 Disallow: /creator-dashboard
 Disallow: /account
 Disallow: /library
+Disallow: /refer
 Disallow: /wishlist
 Disallow: /auth
 Disallow: /reset-password

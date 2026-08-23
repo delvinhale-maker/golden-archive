@@ -26,6 +26,7 @@ export const Route = createFileRoute("/kingdom-picks")({
           "Resources we trust and recommend for your Kingdom journey. Affiliate-supported.",
       },
     ],
+    links: [{ rel: "canonical", href: "https://www.aurumvault.store/kingdom-picks" }],
   }),
   component: KingdomPicksPage,
 });
