@@ -7,6 +7,7 @@ import { ArrowLeft, ShieldCheck, Pencil, CheckCircle2, XCircle, Search, Save, X,
 import { notifySearchEngines } from "@/lib/sitemap-ping.functions";
 import { toast } from "sonner";
 import { ProductPreviewsManager } from "@/components/admin/ProductPreviewsManager";
+import { ProductDeliveryFilesManager } from "@/components/marketplace/ProductDeliveryFilesManager";
 
 export const Route = createFileRoute("/_authenticated/admin/products")({
   component: AdminProductsPage,
