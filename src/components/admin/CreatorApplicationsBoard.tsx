@@ -19,6 +19,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { acceptIntoFounding100 } from "@/lib/founding.functions";
 import { FoundingCreatorBadge } from "@/components/marketplace/FoundingCreatorBadge";
 import { FOUNDING_COHORT_SIZE } from "@/lib/founding";
+import { getSellerApplicationsForAdmin } from "@/lib/admin-seller-applications.functions";
 
 type AppStatus = "pending" | "under_review" | "info_requested" | "approved" | "rejected";
 
@@ -77,15 +78,17 @@ export function CreatorApplicationsBoard() {
   const [founding, setFounding] = useState<Record<string, number>>({});
   const [acceptingFounding, setAcceptingFounding] = useState<string | null>(null);
   const acceptFounding = useServerFn(acceptIntoFounding100);
+  const fetchSellerApplications = useServerFn(getSellerApplicationsForAdmin);
   const foundingCount = Object.keys(founding).length;
 
   async function refresh() {
     setLoading(true);
-    const { data: appData } = await supabase
-      .from("seller_applications")
-      .select("*")
-      .order("created_at", { ascending: false });
-    const all = (appData ?? []) as unknown as App[];
+    // admin_notes/admin_feedback/applicant_email/reapply_after are no
+    // longer readable via the client `authenticated` role — this reads
+    // through the admin-gated getSellerApplicationsForAdmin() server
+    // function instead. Already ordered created_at desc.
+    const appData = await fetchSellerApplications();
+    const all = appData as unknown as App[];
     setApps(all);
 
     const { data: foundingRows } = await supabase
