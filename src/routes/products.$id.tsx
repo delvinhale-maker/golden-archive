@@ -197,7 +197,7 @@ export const Route = createFileRoute("/products/$id")({
 
       // --- Taxonomy + bundle contents for search engines -------------------
       const typeDef = resolveProductType({
-        productType: p.productType,
+        product_type: p.productType,
         category: p.category,
         subcategory: p.subcategory ?? null,
       });
