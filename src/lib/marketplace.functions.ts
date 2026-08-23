@@ -37,6 +37,8 @@ type DbProductRow = {
   admin_notes?: string | null;
   file_path?: string | null;
   preview_pages?: number[] | null;
+  product_type?: string | null;
+  delivery_contents?: string[] | null;
 };
 
 export function parseWhatsIncluded(adminNotes?: string | null): string[] | undefined {
@@ -91,6 +93,8 @@ function dbRowToProduct(r: DbProductRow, sellerName = "AurumVault"): Product {
     preorderNote: r.preorder_note ?? null,
     previewPages: Array.isArray(r.preview_pages) ? r.preview_pages : [],
     fileExt: (r.file_path ?? "").split(".").pop()?.toLowerCase() ?? null,
+    productType: r.product_type ?? null,
+    deliveryContents: Array.isArray(r.delivery_contents) ? r.delivery_contents : [],
   };
 }
 
@@ -138,7 +142,9 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
     const supa = serverSupabase();
     let query = supa
       .from("marketplace_products")
-      .select("id,title,category,subcategory,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at")
+      .select(
+        "id,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at",
+      )
       .eq("status", "approved")
       .eq("published", true)
       .order("created_at", { ascending: false });
@@ -155,7 +161,21 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
         slug as Database["public"]["Enums"]["product_category"],
       );
     }
-    if (opts.q) query = query.ilike("title", `%${opts.q}%`);
+    if (opts.q) {
+      // Search across title, description and both lower taxonomy levels so
+      // shoppers do not need exact taxonomy wording ("interactive decision
+      // tool" finds the Business Systems products tagged as such).
+      const term = opts.q.replace(/[%,()]/g, " ").trim();
+      const slugTerm = term.toLowerCase().replace(/[\s/&-]+/g, "_");
+      const filters = [
+        `title.ilike.%${term}%`,
+        `description.ilike.%${term}%`,
+        `subcategory.ilike.%${term}%`,
+        `product_type.ilike.%${term}%`,
+        `product_type.ilike.%${slugTerm}%`,
+      ];
+      query = query.or(filters.join(","));
+    }
     const { data, error } = await query;
     if (error || !data) return [];
     const products = (data as DbProductRow[]).map((r) => dbRowToProduct(r));
@@ -201,6 +221,10 @@ export type Product = {
   previewPages?: number[];
   /** Lowercase file extension (`pdf` / `docx` / `epub`), or null when unknown. */
   fileExt?: string | null;
+  /** LEVEL 3 taxonomy — how the customer uses the product (see src/lib/taxonomy.ts). */
+  productType?: string | null;
+  /** What the buyer receives (formats/assets) — descriptive, not taxonomy. */
+  deliveryContents?: string[];
 };
 
 export type ProductReviewSnippet = {
@@ -542,7 +566,7 @@ export const getProduct = createServerFn({ method: "GET" })
     const { data: row } = await supabaseAdmin
       .from("marketplace_products")
       .select(
-        "id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages",
+        "id,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages",
       )
       .eq("id", data.id)
       .maybeSingle();

@@ -393,38 +393,66 @@ function LibraryDeliveryFiles({ productId, token }: { productId: string; token: 
     }
   }
 
+  // The designated primary bundle gets the headline CTA; everything else is
+  // listed underneath as individual files. Never labelled "Download ZIP".
+  const primary =
+    files.find((f) => f.is_primary) ??
+    (files.length > 1
+      ? files.find((f) => (f.format ?? "").toLowerCase() === "zip") ?? null
+      : null);
+  const rest = primary ? files.filter((f) => f.id !== primary.id) : files;
+
   return (
     <div className="mt-3 rounded-xl border border-line bg-muted/40 p-3">
-      <p className="text-[11px] font-bold uppercase tracking-wider text-mute">
-        Included files ({files.length})
-      </p>
-      <ul className="mt-2 space-y-1.5">
-        {files.map((f) => (
-          <li key={f.id} className="flex items-center gap-2">
-            <FileArchive size={14} className="shrink-0 text-gold-ink" />
-            <span className="min-w-0 flex-1 truncate text-xs text-ink">
-              {deliveryDisplayName(f)}
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-mute">
-              {f.format?.toUpperCase() || deliveryFormatLabel(f.file_path)}
-              {formatDeliveryBytes(f.file_size_bytes) ? ` · ${formatDeliveryBytes(f.file_size_bytes)}` : ""}
-            </span>
-            <button
-              type="button"
-              onClick={() => void grab(f)}
-              disabled={busyId === f.id}
-              className="inline-flex items-center gap-1 rounded-full border border-navy px-2.5 py-1 text-[11px] font-bold text-navy hover:bg-navy hover:text-white disabled:opacity-60"
-            >
-              {busyId === f.id ? (
-                <Loader2 size={12} className="animate-spin" />
-              ) : (
-                <Download size={12} />
-              )}
-              Get
-            </button>
-          </li>
-        ))}
-      </ul>
+      {primary && (
+        <button
+          type="button"
+          onClick={() => void grab(primary)}
+          disabled={busyId === primary.id}
+          className="mb-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-navy px-4 py-2.5 text-xs font-bold uppercase tracking-caps text-gold disabled:opacity-60"
+        >
+          {busyId === primary.id ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <Download size={14} />
+          )}
+          Download Complete Bundle
+        </button>
+      )}
+      {rest.length > 0 && (
+        <>
+          <p className="text-[11px] font-bold uppercase tracking-wider text-mute">
+            {primary ? `Individual files (${rest.length})` : `Included files (${rest.length})`}
+          </p>
+          <ul className="mt-2 space-y-1.5">
+            {rest.map((f) => (
+              <li key={f.id} className="flex items-center gap-2">
+                <FileArchive size={14} className="shrink-0 text-gold-ink" />
+                <span className="min-w-0 flex-1 truncate text-xs text-ink">
+                  {deliveryDisplayName(f)}
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-mute">
+                  {f.format?.toUpperCase() || deliveryFormatLabel(f.file_path)}
+                  {formatDeliveryBytes(f.file_size_bytes) ? ` · ${formatDeliveryBytes(f.file_size_bytes)}` : ""}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void grab(f)}
+                  disabled={busyId === f.id}
+                  className="inline-flex items-center gap-1 rounded-full border border-navy px-2.5 py-1 text-[11px] font-bold text-navy hover:bg-navy hover:text-white disabled:opacity-60"
+                >
+                  {busyId === f.id ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <Download size={12} />
+                  )}
+                  Get
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
 }

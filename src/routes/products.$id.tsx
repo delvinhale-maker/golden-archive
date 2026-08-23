@@ -1,4 +1,6 @@
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
+import { ProductTaxonomyMeta } from "@/components/marketplace/ProductTaxonomyMeta";
+import { isCompleteSystemType, resolveProductType } from "@/lib/taxonomy";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -513,6 +515,14 @@ function ProductPage() {
               {product.title}
             </h1>
 
+            <ProductTaxonomyMeta
+              productId={product.id}
+              productType={product.productType}
+              category={product.category}
+              subcategory={product.subcategory}
+              deliveryContents={product.deliveryContents}
+            />
+
             <div className="mt-4 flex items-center gap-3">
               {product.creator.avatar && (
                 <img
@@ -630,7 +640,18 @@ function ProductPage() {
                   className="mt-6 flex h-[52px] w-full items-center justify-center rounded-full text-base font-bold text-navy shadow-gold-glow disabled:opacity-60"
                   style={{ backgroundColor: "var(--accent-color)" }}
                 >
-                  {product.isPreorder ? "Pre-order Now" : "Buy Now"} · ${displayPrice.toFixed(2)}
+                  {product.isPreorder
+                    ? "Pre-order Now"
+                    : isCompleteSystemType(
+                          resolveProductType({
+                            product_type: product.productType,
+                            category: product.category,
+                            subcategory: product.subcategory,
+                          })?.slug,
+                        )
+                      ? "Get the Complete System"
+                      : "Buy Now"}{" "}
+                  · ${displayPrice.toFixed(2)}
                 </motion.button>
 
                 <motion.button
