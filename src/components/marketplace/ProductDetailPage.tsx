@@ -509,6 +509,7 @@ export function ProductDetailPage(props: ProductDetailPageProps) {
                   </li>
                 ))}
               </ul>
+              </>
             )}
             {tab === "creator" && (
               <>
