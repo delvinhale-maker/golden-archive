@@ -260,6 +260,9 @@ function AdminProductsPage() {
                 <textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })}
                   rows={6} className="w-full rounded-md border border-ink/15 p-3" />
               </Field>
+              <Field label="Digital delivery files (ZIP bundle + individual files)">
+                <ProductDeliveryFilesManager productId={editing.id} sellerId={editing.seller_id} />
+              </Field>
               <Field label="Preview images (shown to shoppers)">
                 <ProductPreviewsManager productId={editing.id} sellerId={editing.seller_id} />
               </Field>
