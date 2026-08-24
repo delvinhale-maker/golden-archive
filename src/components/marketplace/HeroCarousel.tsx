@@ -359,15 +359,11 @@ export function HeroCarousel({
   const [paused, setPaused] = useState(false);
   const { activeTheme, setActiveTheme } = useTheme();
 
-  const heroP: HeroProduct = heroProduct ?? FALLBACK_HERO;
-  const dealsList = useMemo(
-    () => (dealsProducts && dealsProducts.length ? dealsProducts : FALLBACK_STACK),
-    [dealsProducts],
-  );
-  const creatorList = useMemo(
-    () => (creatorProducts && creatorProducts.length ? creatorProducts : FALLBACK_STACK),
-    [creatorProducts],
-  );
+  // Only live, published products reach the hero — never demo placeholders.
+  const dealsList = useMemo(() => dealsProducts ?? [], [dealsProducts]);
+  const creatorList = useMemo(() => creatorProducts ?? [], [creatorProducts]);
+  const heroP = heroProduct ?? null;
+
 
   useEffect(() => {
     if (paused) return;
