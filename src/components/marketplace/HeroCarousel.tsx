@@ -458,7 +458,14 @@ export function HeroCarousel({
               ) : (
                 <>
                   {slide.kind === "hero" && (
-                    <HeroVisual items={pickThree([heroP, ...dealsList, ...creatorList])} />
+                    <HeroVisual
+                      items={pickThree(
+                        [heroP, ...dealsList, ...creatorList].filter(
+                          (p): p is HeroProduct => Boolean(p),
+                        ),
+                      )}
+                    />
+
                   )}
                   {slide.kind === "deals" && <DealsVisual items={pickThree(dealsList)} />}
                   {slide.kind === "creator" && <CreatorVisual items={pickThree(creatorList)} />}
