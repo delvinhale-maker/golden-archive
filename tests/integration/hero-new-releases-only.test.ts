@@ -141,8 +141,9 @@ describe("hero live contract", () => {
       const page = await browser.newPage({ viewport: { width: 1280, height: 1800 } });
       await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
       await page.waitForTimeout(4000);
-      heroTitles = await page.$$eval(".av-hero-bg img", (els) =>
-        els.map((e) => (e as HTMLImageElement).alt).filter(Boolean),
+      // Card titles render as text (covers may be generated SVGs, not <img>).
+      heroTitles = await page.$$eval(".av-hero-bg .line-clamp-2", (els) =>
+        els.map((e) => (e.textContent ?? "").trim()).filter(Boolean),
       );
       reachable = true;
       await browser.close();
