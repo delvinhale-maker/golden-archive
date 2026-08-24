@@ -87,9 +87,37 @@ export function MarketHeader() {
     });
   };
 
+  /**
+   * The fixed header grows when the mobile subcategory pill row opens, so its
+   * real height is published as --av-header-h and consumed by MarketShell's
+   * top padding. Without this, page content is clipped under the header.
+   */
+  const headerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const apply = () => {
+      document.documentElement.style.setProperty(
+        "--av-header-h",
+        `${Math.round(el.getBoundingClientRect().height)}px`,
+      );
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    window.addEventListener("orientationchange", apply);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("orientationchange", apply);
+    };
+  }, []);
+
+
+
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40">
+    <header ref={headerRef} className="fixed top-0 left-0 right-0 z-40">
+
       {/* Top bar */}
       <div
         className="scheme-surface-bg relative"
