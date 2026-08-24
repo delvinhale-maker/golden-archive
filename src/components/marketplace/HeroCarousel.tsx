@@ -183,10 +183,10 @@ function HeroVisual({ items }: { items: HeroProduct[] }) {
 /** Fanned arrangement of 2–3 covers for the deals slide. */
 function DealsVisual({ items }: { items: HeroProduct[] }) {
   const list = items.slice(0, 3);
-  while (list.length < 3) list.push(FALLBACK_STACK[list.length]);
-  const rots = [-10, 0, 10];
-  const offsets = [-52, 0, 52];
-  const z = [1, 3, 2];
+  if (list.length === 0) return <VisualSkeleton />;
+  const { rots, z } = fanLayout(list.length);
+  const offsets = list.length === 3 ? [-52, 0, 52] : fanLayout(list.length).offsets;
+
 
   const discountPct = (p: HeroProduct) => {
     if (!p.compareAtPrice || p.compareAtPrice <= p.price) return 0;
