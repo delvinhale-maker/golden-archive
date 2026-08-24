@@ -251,7 +251,7 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
 /** Layered creator-dashboard mockup: top bar + stacked covers. */
 function CreatorVisual({ items }: { items: HeroProduct[] }) {
   const list = items.slice(0, 3);
-  while (list.length < 3) list.push(FALLBACK_STACK[list.length]);
+  if (list.length === 0) return <VisualSkeleton />;
   return (
     <div className="relative mx-auto h-[280px] w-[300px] sm:h-[340px] sm:w-[380px] md:h-[420px] md:w-[440px]">
       <div
