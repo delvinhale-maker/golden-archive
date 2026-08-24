@@ -95,7 +95,8 @@ describe("hero live contract", () => {
   const hasBackend = Boolean(SUPABASE_URL && SUPABASE_KEY);
   let newReleaseTitles: string[] = [];
   let nonReleaseTitles: string[] = [];
-  let heroHtml = "";
+  /** Product titles actually rendered inside the hero band. */
+  let heroTitles: string[] = [];
   let reachable = false;
 
   beforeAll(async () => {
@@ -114,28 +115,31 @@ describe("hero live contract", () => {
       nonReleaseTitles = all.slice(8);
     }
     try {
-      const res = await fetch(`${BASE_URL}/`, { headers: { accept: "text/html" } });
-      if (res.ok) {
-        const html = await res.text();
-        // Hero region = markup before the category CTA bar that follows it.
-        const end = html.indexOf("Shop the vault");
-        const cta = html.indexOf("AI Prompt Packs");
-        const cut = [end, cta].filter((n) => n > 0).sort((a, b) => a - b)[0];
-        heroHtml = cut ? html.slice(0, cut) : html;
-        reachable = true;
-      }
+      const { chromium } = await import("playwright");
+      const browser = await chromium.launch({ headless: true });
+      const page = await browser.newPage({ viewport: { width: 1280, height: 1800 } });
+      await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
+      await page.waitForTimeout(4000);
+      heroTitles = await page.$$eval(".av-hero-bg img", (els) =>
+        els.map((e) => (e as HTMLImageElement).alt).filter(Boolean),
+      );
+      reachable = true;
+      await browser.close();
     } catch {
       reachable = false;
     }
-  });
+  }, 90_000);
 
   it("only renders titles that are new releases", () => {
     if (!hasBackend || !reachable || newReleaseTitles.length === 0) {
       console.warn("skipped: backend keys or dev server unavailable / no products");
       return;
     }
-    const rendered = newReleaseTitles.filter((t) => heroHtml.includes(t));
-    expect(rendered.length).toBeGreaterThan(0);
+    expect(heroTitles.length).toBeGreaterThan(0);
+    const foreign = heroTitles.filter((t) => !newReleaseTitles.includes(t));
+    expect(foreign, `hero rendered non-new-release titles: ${foreign.join(", ")}`).toEqual(
+      [],
+    );
   });
 
   it("never renders an older highlights/featured-only product", () => {
@@ -143,7 +147,7 @@ describe("hero live contract", () => {
       console.warn("skipped: backend keys or dev server unavailable");
       return;
     }
-    const leaked = nonReleaseTitles.filter((t) => t.length > 4 && heroHtml.includes(t));
+    const leaked = heroTitles.filter((t) => nonReleaseTitles.includes(t));
     expect(leaked, `older products leaked into hero: ${leaked.join(", ")}`).toEqual([]);
   });
 
@@ -153,8 +157,8 @@ describe("hero live contract", () => {
       return;
     }
     const isNewRelease = newReleaseTitles.some((t) => /^kingdom mind/i.test(t));
-    if (!isNewRelease) {
-      expect(/Kingdom Mind/i.test(heroHtml)).toBe(false);
-    }
+    const inHero = heroTitles.some((t) => /^kingdom mind/i.test(t));
+    if (!isNewRelease) expect(inHero).toBe(false);
   });
 });
+
