@@ -3,7 +3,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { slugToLabel, labelToSlug, getCategoryDef } from "@/lib/categories";
+import { slugToLabel, labelToSlug, getCategoryDef, CATEGORIES as CATEGORY_DEFS } from "@/lib/categories";
 import { MARKETPLACE_PAGE_SIZE, FEATURED_PRODUCTS_LIMIT } from "@/lib/marketplace-config";
 import { rotateHalfDay } from "@/lib/affiliate-rotation";
 
@@ -241,11 +241,14 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
       );
     }
     if (opts.q) {
-      // Search across title, description and both lower taxonomy levels so
-      // shoppers do not need exact taxonomy wording ("interactive decision
-      // tool" finds the Business Systems products tagged as such).
+      // Search across title, description, category and both lower taxonomy
+      // levels so shoppers do not need exact taxonomy wording ("interactive
+      // decision tool" finds the Business Systems products tagged as such;
+      // "business systems" finds the category by its display label even
+      // though the DB stores the enum slug business_operating_systems).
       const term = opts.q.replace(/[%,()]/g, " ").trim();
-      const slugTerm = term.toLowerCase().replace(/[\s/&-]+/g, "_");
+      const lower = term.toLowerCase();
+      const slugTerm = lower.replace(/[\s/&-]+/g, "_");
       const filters = [
         `title.ilike.%${term}%`,
         `description.ilike.%${term}%`,
@@ -253,6 +256,12 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
         `product_type.ilike.%${term}%`,
         `product_type.ilike.%${slugTerm}%`,
       ];
+      const matchedCategorySlugs = CATEGORY_DEFS.filter(
+        (c) => c.label.toLowerCase().includes(lower) || lower.includes(c.label.toLowerCase()),
+      ).map((c) => c.slug);
+      for (const slug of new Set(matchedCategorySlugs)) {
+        filters.push(`category.eq.${slug}`);
+      }
       query = query.or(filters.join(","));
     }
     const { data, error } = await query;

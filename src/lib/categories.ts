@@ -132,12 +132,11 @@ export const CATEGORIES: CategoryDef[] = [
       "Ready-to-use digital systems combining workflows, prompts, dashboards, and implementation plans for real business functions.",
     gradient: grad("#060B14", "#0F1D2F", "#2A2412"),
     subs: [
-      "AI Business Systems",
-      "Creator Business Systems",
-      "Marketing Systems",
-      "Sales & Client Systems",
-      "Operations & Productivity Systems",
       "Interactive Decision Tools",
+      "Complete Business Systems",
+      "Live Dashboards & Calculators",
+      "Operating Systems",
+      "Assessment & Scoring Tools",
     ],
   },
   {
@@ -349,13 +348,17 @@ export const SUBCATEGORIES: Record<string, string[]> = {
     "Invoicing & Payments",
     "UGC & Client Systems",
   ],
+  // Canonical System Types (spec: taxonomy corrective upgrade). Order
+  // matches product_subcategories.position from the 20260823183902
+  // migration that seeded these as managed rows. Keep this list — and
+  // business-systems.ts's BUSINESS_SYSTEM_SUBS, which derives from it — as
+  // the only two places these names are spelled out.
   business_operating_systems: [
-    "AI Business Systems",
-    "Creator Business Systems",
-    "Marketing Systems",
-    "Sales & Client Systems",
-    "Operations & Productivity Systems",
     "Interactive Decision Tools",
+    "Complete Business Systems",
+    "Live Dashboards & Calculators",
+    "Operating Systems",
+    "Assessment & Scoring Tools",
   ],
 
 };

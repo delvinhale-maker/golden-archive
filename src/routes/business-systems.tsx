@@ -85,10 +85,11 @@ function GoldRule({ className = "" }: { className?: string }) {
   );
 }
 
-const FILTERS = ["All", ...BUSINESS_SYSTEM_SUBS.map((s) => s.filter)] as const;
+const ALL_FILTER = "All Business Systems";
+const FILTERS = [ALL_FILTER, ...BUSINESS_SYSTEM_SUBS.map((s) => s.filter)] as const;
 
 function BusinessSystemsPage() {
-  const [filter, setFilter] = useState<string>("All");
+  const [filter, setFilter] = useState<string>(ALL_FILTER);
 
   const { data: managed } = useQuery(subcategoriesQuery);
   const liveSubs = new Set(
@@ -115,7 +116,7 @@ function BusinessSystemsPage() {
   );
 
   const visible = useMemo(() => {
-    if (filter === "All") return products;
+    if (filter === ALL_FILTER) return products;
     const sub = BUSINESS_SYSTEM_SUBS.find((s) => s.filter === filter);
     if (!sub) return products;
     return products.filter((p) => (p.subcategory ?? "") === sub.name);

@@ -1,6 +1,14 @@
 // Merchandising layer for the "Business Systems" department.
 // Reuses the existing `business_operating_systems` product category slug and
 // the admin-managed `product_subcategories` rows — no parallel taxonomy.
+//
+// System Type names below are NOT duplicated here: they're imported from
+// categories.ts's SUBCATEGORIES map, which is also the static fallback
+// useSubcategoryNames() (src/lib/subcategories.ts) serves when a category
+// has no managed product_subcategories rows yet. This file only adds the
+// chip/blurb copy for each canonical name — one list of names, one place.
+
+import { SUBCATEGORIES } from "@/lib/categories";
 
 export const BUSINESS_SYSTEMS_SLUG = "business_operating_systems";
 export const BUSINESS_SYSTEMS_LABEL = "Business Systems";
@@ -9,68 +17,34 @@ export const BUSINESS_SYSTEMS_TAGLINE =
 export const BUSINESS_SYSTEMS_POSITIONING =
   "Not just information. Not just prompts. Systems you can actually put to work.";
 
-export type BusinessSystemType =
-  | "ai-business"
-  | "creator-business"
-  | "marketing"
-  | "sales-client"
-  | "operations"
-  | "decision-tools";
-
 export type BusinessSystemSub = {
-  /** Optional taxonomy key for product classification. */
-  type: BusinessSystemType;
-  /** Filter chip label. */
+  /** Filter chip label — same as `name` for Business Systems System Types. */
   filter: string;
   /** Subcategory name stored on products (product_subcategories.name). */
   name: string;
   blurb: string;
 };
 
-export const BUSINESS_SYSTEM_SUBS: BusinessSystemSub[] = [
-  {
-    type: "ai-business",
-    filter: "AI Business",
-    name: "AI Business Systems",
-    blurb:
-      "Structured AI systems combining business context, prompts, workflows, dashboards, quality controls, and human approval.",
-  },
-  {
-    type: "creator-business",
-    filter: "Creator Business",
-    name: "Creator Business Systems",
-    blurb:
-      "Complete systems for creators managing content, products, brand partnerships, launches, and revenue workflows.",
-  },
-  {
-    type: "marketing",
-    filter: "Marketing",
-    name: "Marketing Systems",
-    blurb:
-      "Ready-to-use systems for planning, creating, organizing, and reviewing marketing activity.",
-  },
-  {
-    type: "sales-client",
-    filter: "Sales & Client",
-    name: "Sales & Client Systems",
-    blurb:
-      "Structured tools for managing leads, clients, follow-ups, proposals, and customer relationships.",
-  },
-  {
-    type: "operations",
-    filter: "Operations",
-    name: "Operations & Productivity Systems",
-    blurb:
-      "Practical systems for documenting work, organizing projects, improving handoffs, and running day-to-day operations.",
-  },
-  {
-    type: "decision-tools",
-    filter: "Decision Tools",
-    name: "Interactive Decision Tools",
-    blurb:
-      "Interactive tools designed to help users compare options, evaluate decisions, and organize important information.",
-  },
-];
+/** Chip copy for each canonical System Type. Keyed by the exact stored name. */
+const SYSTEM_TYPE_BLURBS: Record<string, string> = {
+  "Interactive Decision Tools":
+    "Interactive tools designed to help users compare options, evaluate decisions, and organize important information.",
+  "Complete Business Systems":
+    "Full, ready-to-use systems combining workflows, prompts, dashboards, and implementation plans for a real business function.",
+  "Live Dashboards & Calculators":
+    "Tools that automatically calculate metrics, scores, or financial outputs from the buyer's own inputs.",
+  "Operating Systems": "End-to-end operating systems for running a business function day to day.",
+  "Assessment & Scoring Tools":
+    "Guided assessments that score, rank, or evaluate the buyer's situation.",
+};
+
+export const BUSINESS_SYSTEM_SUBS: BusinessSystemSub[] = (
+  SUBCATEGORIES[BUSINESS_SYSTEMS_SLUG] ?? []
+).map((name) => ({
+  filter: name,
+  name,
+  blurb: SYSTEM_TYPE_BLURBS[name] ?? "",
+}));
 
 export const BUSINESS_SYSTEM_SUB_NAMES = BUSINESS_SYSTEM_SUBS.map((s) => s.name);
 
@@ -78,7 +52,7 @@ export const BUSINESS_SYSTEMS_FLAGSHIP = {
   title: "The AI Small Business Operating System",
   subtitle:
     "A Ready-to-Use System for Marketing, Sales, Customer Service, Operations & Executive Planning",
-  subcategory: "AI Business Systems",
+  subcategory: "Operating Systems",
   highlights: [
     "Business Brain",
     "65-Prompt Master Vault",
