@@ -86,17 +86,16 @@ const CREATOR_SLIDE: Slide = {
   theme: { accentColor: "#C9A227", gradientStart: "#0F1629" },
 };
 
-const FALLBACK_HERO: HeroProduct = {
-  id: "fallback-hero",
-  title: "Kingdom Mind",
-  category: "eBook",
-  price: 14.99,
-};
-const FALLBACK_STACK: HeroProduct[] = [
-  { id: "f1", title: "The Stewardship Codex", category: "eBook", price: 19 },
-  { id: "f2", title: "Not For Sale", category: "eBook", price: 12.99 },
-  { id: "f3", title: "Purpose Blueprint", category: "Course", price: 29 },
-];
+// No placeholder/demo products: the hero renders only live published titles.
+// When nothing is available yet, the skeleton is shown instead.
+
+/** Fan geometry that stays centered for 1, 2 or 3 real cards. */
+function fanLayout(n: number) {
+  if (n <= 1) return { rots: [0], offsets: [0], z: [1] };
+  if (n === 2) return { rots: [-8, 8], offsets: [-40, 40], z: [1, 2] };
+  return { rots: [-10, 0, 10], offsets: [-58, 0, 58], z: [1, 3, 2] };
+}
+
 
 function Cover({
   p,
@@ -133,10 +132,9 @@ function Cover({
 /** Trio of angled hero cards with gold glow, each on a white background. */
 function HeroVisual({ items }: { items: HeroProduct[] }) {
   const list = items.slice(0, 3);
-  while (list.length < 3) list.push(FALLBACK_STACK[list.length]);
-  const rots = [-10, 0, 10];
-  const offsets = [-58, 0, 58];
-  const z = [1, 3, 2];
+  if (list.length === 0) return <VisualSkeleton />;
+  const { rots, offsets, z } = fanLayout(list.length);
+
 
   return (
     <div className="relative mx-auto h-[320px] w-[300px] sm:h-[380px] sm:w-[380px] md:h-[440px] md:w-[440px]">
@@ -185,10 +183,10 @@ function HeroVisual({ items }: { items: HeroProduct[] }) {
 /** Fanned arrangement of 2–3 covers for the deals slide. */
 function DealsVisual({ items }: { items: HeroProduct[] }) {
   const list = items.slice(0, 3);
-  while (list.length < 3) list.push(FALLBACK_STACK[list.length]);
-  const rots = [-10, 0, 10];
-  const offsets = [-52, 0, 52];
-  const z = [1, 3, 2];
+  if (list.length === 0) return <VisualSkeleton />;
+  const { rots, z } = fanLayout(list.length);
+  const offsets = list.length === 3 ? [-52, 0, 52] : fanLayout(list.length).offsets;
+
 
   const discountPct = (p: HeroProduct) => {
     if (!p.compareAtPrice || p.compareAtPrice <= p.price) return 0;
@@ -253,7 +251,7 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
 /** Layered creator-dashboard mockup: top bar + stacked covers. */
 function CreatorVisual({ items }: { items: HeroProduct[] }) {
   const list = items.slice(0, 3);
-  while (list.length < 3) list.push(FALLBACK_STACK[list.length]);
+  if (list.length === 0) return <VisualSkeleton />;
   return (
     <div className="relative mx-auto h-[280px] w-[300px] sm:h-[340px] sm:w-[380px] md:h-[420px] md:w-[440px]">
       <div
@@ -361,15 +359,11 @@ export function HeroCarousel({
   const [paused, setPaused] = useState(false);
   const { activeTheme, setActiveTheme } = useTheme();
 
-  const heroP: HeroProduct = heroProduct ?? FALLBACK_HERO;
-  const dealsList = useMemo(
-    () => (dealsProducts && dealsProducts.length ? dealsProducts : FALLBACK_STACK),
-    [dealsProducts],
-  );
-  const creatorList = useMemo(
-    () => (creatorProducts && creatorProducts.length ? creatorProducts : FALLBACK_STACK),
-    [creatorProducts],
-  );
+  // Only live, published products reach the hero — never demo placeholders.
+  const dealsList = useMemo(() => dealsProducts ?? [], [dealsProducts]);
+  const creatorList = useMemo(() => creatorProducts ?? [], [creatorProducts]);
+  const heroP = heroProduct ?? null;
+
 
   useEffect(() => {
     if (paused) return;
@@ -464,7 +458,14 @@ export function HeroCarousel({
               ) : (
                 <>
                   {slide.kind === "hero" && (
-                    <HeroVisual items={pickThree([heroP, ...dealsList, ...creatorList])} />
+                    <HeroVisual
+                      items={pickThree(
+                        [heroP, ...dealsList, ...creatorList].filter(
+                          (p): p is HeroProduct => Boolean(p),
+                        ),
+                      )}
+                    />
+
                   )}
                   {slide.kind === "deals" && <DealsVisual items={pickThree(dealsList)} />}
                   {slide.kind === "creator" && <CreatorVisual items={pickThree(creatorList)} />}
