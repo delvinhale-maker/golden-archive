@@ -125,7 +125,8 @@ describe("hero live contract", () => {
       );
       reachable = true;
       await browser.close();
-    } catch {
+    } catch (err) {
+      console.warn("hero browser check unavailable:", err);
       reachable = false;
     }
   }, 90_000);
