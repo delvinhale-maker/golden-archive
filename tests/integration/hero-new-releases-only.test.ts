@@ -13,7 +13,7 @@
  *
  * Run: bunx vitest run tests/integration/hero-new-releases-only.test.ts
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { describe, it, expect, beforeAll } from "vitest";
@@ -34,6 +34,24 @@ function readEnv(key: string): string | undefined {
 const SUPABASE_URL = readEnv("VITE_SUPABASE_URL") ?? "";
 const SUPABASE_KEY =
   readEnv("VITE_SUPABASE_PUBLISHABLE_KEY") ?? readEnv("VITE_SUPABASE_ANON_KEY") ?? "";
+
+/**
+ * Some CI images ship a Chromium build that does not match the npm Playwright
+ * revision; reuse whatever browser is present instead of failing to launch.
+ */
+function findChromium(): string | undefined {
+  try {
+    const root = "/opt/ms-playwright";
+    for (const dir of readdirSync(root)) {
+      if (!dir.startsWith("chromium-")) continue;
+      const bin = join(root, dir, "chrome-linux", "chrome");
+      if (existsSync(bin)) return bin;
+    }
+  } catch {
+    /* not present — fall back to the bundled browser */
+  }
+  return undefined;
+}
 
 function read(file: string): string {
   return readFileSync(join(process.cwd(), file), "utf8");
@@ -116,7 +134,10 @@ describe("hero live contract", () => {
     }
     try {
       const { chromium } = await import("playwright");
-      const browser = await chromium.launch({ headless: true });
+      const browser = await chromium.launch({
+        headless: true,
+        ...(findChromium() ? { executablePath: findChromium()! } : {}),
+      });
       const page = await browser.newPage({ viewport: { width: 1280, height: 1800 } });
       await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
       await page.waitForTimeout(4000);
