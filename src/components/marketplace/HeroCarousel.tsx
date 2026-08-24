@@ -86,17 +86,16 @@ const CREATOR_SLIDE: Slide = {
   theme: { accentColor: "#C9A227", gradientStart: "#0F1629" },
 };
 
-const FALLBACK_HERO: HeroProduct = {
-  id: "fallback-hero",
-  title: "Kingdom Mind",
-  category: "eBook",
-  price: 14.99,
-};
-const FALLBACK_STACK: HeroProduct[] = [
-  { id: "f1", title: "The Stewardship Codex", category: "eBook", price: 19 },
-  { id: "f2", title: "Not For Sale", category: "eBook", price: 12.99 },
-  { id: "f3", title: "Purpose Blueprint", category: "Course", price: 29 },
-];
+// No placeholder/demo products: the hero renders only live published titles.
+// When nothing is available yet, the skeleton is shown instead.
+
+/** Fan geometry that stays centered for 1, 2 or 3 real cards. */
+function fanLayout(n: number) {
+  if (n <= 1) return { rots: [0], offsets: [0], z: [1] };
+  if (n === 2) return { rots: [-8, 8], offsets: [-40, 40], z: [1, 2] };
+  return { rots: [-10, 0, 10], offsets: [-58, 0, 58], z: [1, 3, 2] };
+}
+
 
 function Cover({
   p,
