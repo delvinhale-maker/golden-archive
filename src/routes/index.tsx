@@ -433,22 +433,11 @@ function toHeroProduct(p: Product) {
 }
 
 function FeaturedHero() {
-  const { data, isFetching } = useSuspenseQuery(highlightsQ);
-  const { data: featured } = useSuspenseQuery(featuredQ);
-  const { data: newest } = useSuspenseQuery(newReleasesRowQ);
+  const { data: newest, isFetching } = useSuspenseQuery(newReleasesRowQ);
 
-  // Fresh rotation: the hero shows the latest releases, rotated every 12h so
-  // the trio changes without losing the "newest first" feel.
-  const newestPool = (newest ?? []) as Product[];
-  const rotatedNew = rotateHalfDay(newestPool, 0, Math.min(3, newestPool.length));
-  const hp = rotatedNew[0] ?? data.heroProduct;
-
-  const heroTrio = (rotatedNew.length ? rotatedNew : (featured ?? []).slice(0, 3)).map(
-    toHeroProduct,
-  );
-  const dealsProducts = heroTrio;
-  const creatorProducts = heroTrio;
-
+  // New releases only — no fallback to highlights heroProduct or featured products.
+  const pool = (newest ?? []) as Product[];
+  const heroTrio = rotateHalfDay(pool, 0, Math.min(3, pool.length)).map(toHeroProduct);
 
   return (
     <div className="relative">
@@ -462,9 +451,9 @@ function FeaturedHero() {
         </div>
       )}
       <HeroCarousel
-        heroProduct={hp ? toHeroProduct(hp) : null}
-        dealsProducts={dealsProducts.length ? dealsProducts : creatorProducts}
-        creatorProducts={creatorProducts}
+        heroProduct={heroTrio[0] ?? null}
+        dealsProducts={heroTrio}
+        creatorProducts={heroTrio}
       />
       <CategoryCTABar />
     </div>
