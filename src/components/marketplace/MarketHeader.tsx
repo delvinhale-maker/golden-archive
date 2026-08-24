@@ -89,7 +89,8 @@ export function MarketHeader() {
 
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40">
+    <header ref={headerRef} className="fixed top-0 left-0 right-0 z-40">
+
       {/* Top bar */}
       <div
         className="scheme-surface-bg relative"
