@@ -132,10 +132,9 @@ function Cover({
 /** Trio of angled hero cards with gold glow, each on a white background. */
 function HeroVisual({ items }: { items: HeroProduct[] }) {
   const list = items.slice(0, 3);
-  while (list.length < 3) list.push(FALLBACK_STACK[list.length]);
-  const rots = [-10, 0, 10];
-  const offsets = [-58, 0, 58];
-  const z = [1, 3, 2];
+  if (list.length === 0) return <VisualSkeleton />;
+  const { rots, offsets, z } = fanLayout(list.length);
+
 
   return (
     <div className="relative mx-auto h-[320px] w-[300px] sm:h-[380px] sm:w-[380px] md:h-[440px] md:w-[440px]">
