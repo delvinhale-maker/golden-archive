@@ -196,10 +196,15 @@ export const Route = createFileRoute("/store/$slug")({
     const d = loaderData;
     const desc = d.pitch.slice(0, 155);
     const image = d.coverUrl || d.avatarUrl || undefined;
+    // A storefront is only worth a search-engine visit once it actually has
+    // something to show — an approved-but-empty storefront (no products
+    // published yet) is thin content and should stay out of the index
+    // until the creator publishes their first product.
+    const hasContent = d.products.length > 0;
     const meta: Array<Record<string, string>> = [
       { title: `${d.brandName} · AurumVault` },
       { name: "description", content: desc },
-      { name: "robots", content: "index, follow" },
+      { name: "robots", content: hasContent ? "index, follow" : "noindex, follow" },
       { property: "og:title", content: `${d.brandName} · AurumVault` },
       { property: "og:description", content: desc },
       { property: "og:type", content: "profile" },

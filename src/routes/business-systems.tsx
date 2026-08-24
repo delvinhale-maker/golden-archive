@@ -180,6 +180,21 @@ function BusinessSystemsPage() {
               and practical implementation resources designed to help
               entrepreneurs organize and run real business functions.
             </p>
+
+            <h3 className="mt-8 font-display text-lg font-bold text-white">
+              What is a digital business operating system?
+            </h3>
+            <p className="mt-3 text-[15px] leading-relaxed text-white/75">
+              A digital business operating system is a structured set of
+              resources — worksheets, spreadsheets with built-in formulas,
+              prompt libraries, decision frameworks, and step-by-step guides —
+              delivered as PDF, spreadsheet, and document files you download
+              and use. It's not standalone software: there's nothing to
+              install, and it won't run itself. What it gives you is a
+              repeatable structure for a real business process — marketing,
+              sales, operations, planning — so you're not rebuilding the same
+              decisions and documents from scratch every time.
+            </p>
           </div>
         </section>
 
