@@ -21,7 +21,9 @@ export function MarketShell({ children }: { children: ReactNode }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
+          style={{ paddingTop: "var(--av-header-h, 108px)" }}
           className="pt-[108px] md:pt-[112px]"
+
         >
           {children}
         </motion.main>
