@@ -103,7 +103,6 @@ import { Route as AuthenticatedDashboardKingdomPicksRouteImport } from './routes
 import { Route as AuthenticatedDashboardLaunchKitRouteImport } from './routes/_authenticated/dashboard.launch-kit'
 import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authenticated/dashboard.new'
 import { Route as AuthenticatedDashboardPayoutsRouteImport } from './routes/_authenticated/dashboard.payouts'
-import { Route as AuthenticatedDashboardQrRouteImport } from './routes/_authenticated/dashboard.qr'
 import { Route as AuthenticatedDashboardStorefrontRouteImport } from './routes/_authenticated/dashboard.storefront'
 import { Route as AcademyArticleSlugRouteImport } from './routes/academy.article.$slug'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
@@ -115,6 +114,7 @@ import { Route as AuthenticatedAdminHealthCoversRouteImport } from './routes/_au
 import { Route as AuthenticatedDashboardBumpsIdRouteImport } from './routes/_authenticated/dashboard.bumps.$id'
 import { Route as AuthenticatedDashboardEditIdRouteImport } from './routes/_authenticated/dashboard.edit.$id'
 import { Route as AuthenticatedDashboardPreorderIdRouteImport } from './routes/_authenticated/dashboard.preorder.$id'
+import { Route as AuthenticatedDashboardQrIndexRouteImport } from './routes/_authenticated/dashboard.qr.index'
 import { Route as AuthenticatedDashboardQrIdRouteImport } from './routes/_authenticated/dashboard.qr.$id'
 import { Route as AuthenticatedDashboardQrNewRouteImport } from './routes/_authenticated/dashboard.qr.new'
 import { Route as AuthenticatedDashboardVariantsIdRouteImport } from './routes/_authenticated/dashboard.variants.$id'
@@ -636,12 +636,6 @@ const AuthenticatedDashboardPayoutsRoute =
     path: '/dashboard/payouts',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedDashboardQrRoute =
-  AuthenticatedDashboardQrRouteImport.update({
-    id: '/dashboard/qr',
-    path: '/dashboard/qr',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedDashboardStorefrontRoute =
   AuthenticatedDashboardStorefrontRouteImport.update({
     id: '/dashboard/storefront',
@@ -705,17 +699,23 @@ const AuthenticatedDashboardPreorderIdRoute =
     path: '/dashboard/preorder/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardQrIndexRoute =
+  AuthenticatedDashboardQrIndexRouteImport.update({
+    id: '/dashboard/qr/',
+    path: '/dashboard/qr/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardQrIdRoute =
   AuthenticatedDashboardQrIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedDashboardQrRoute,
+    id: '/dashboard/qr/$id',
+    path: '/dashboard/qr/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedDashboardQrNewRoute =
   AuthenticatedDashboardQrNewRouteImport.update({
-    id: '/new',
-    path: '/new',
-    getParentRoute: () => AuthenticatedDashboardQrRoute,
+    id: '/dashboard/qr/new',
+    path: '/dashboard/qr/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedDashboardVariantsIdRoute =
   AuthenticatedDashboardVariantsIdRouteImport.update({
@@ -906,7 +906,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/launch-kit': typeof AuthenticatedDashboardLaunchKitRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
-  '/dashboard/qr': typeof AuthenticatedDashboardQrRouteWithChildren
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
   '/academy/article/$slug': typeof AcademyArticleSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
@@ -937,6 +936,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/admin/academy/': typeof AuthenticatedAdminAcademyIndexRoute
+  '/dashboard/qr/': typeof AuthenticatedDashboardQrIndexRoute
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
 }
 export interface FileRoutesByTo {
@@ -1028,7 +1028,6 @@ export interface FileRoutesByTo {
   '/dashboard/launch-kit': typeof AuthenticatedDashboardLaunchKitRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
-  '/dashboard/qr': typeof AuthenticatedDashboardQrRouteWithChildren
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
   '/academy/article/$slug': typeof AcademyArticleSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
@@ -1059,6 +1058,7 @@ export interface FileRoutesByTo {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/admin/academy': typeof AuthenticatedAdminAcademyIndexRoute
+  '/dashboard/qr': typeof AuthenticatedDashboardQrIndexRoute
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
 }
 export interface FileRoutesById {
@@ -1155,7 +1155,6 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/launch-kit': typeof AuthenticatedDashboardLaunchKitRoute
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/_authenticated/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
-  '/_authenticated/dashboard/qr': typeof AuthenticatedDashboardQrRouteWithChildren
   '/_authenticated/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
   '/academy/article/$slug': typeof AcademyArticleSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
@@ -1186,6 +1185,7 @@ export interface FileRoutesById {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/admin/academy/': typeof AuthenticatedAdminAcademyIndexRoute
+  '/_authenticated/dashboard/qr/': typeof AuthenticatedDashboardQrIndexRoute
   '/_authenticated/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
 }
 export interface FileRouteTypes {
@@ -1282,7 +1282,6 @@ export interface FileRouteTypes {
     | '/dashboard/launch-kit'
     | '/dashboard/new'
     | '/dashboard/payouts'
-    | '/dashboard/qr'
     | '/dashboard/storefront'
     | '/academy/article/$slug'
     | '/api/public/contact'
@@ -1313,6 +1312,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
     | '/admin/academy/'
+    | '/dashboard/qr/'
     | '/admin/health/covers/alerts'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1404,7 +1404,6 @@ export interface FileRouteTypes {
     | '/dashboard/launch-kit'
     | '/dashboard/new'
     | '/dashboard/payouts'
-    | '/dashboard/qr'
     | '/dashboard/storefront'
     | '/academy/article/$slug'
     | '/api/public/contact'
@@ -1435,6 +1434,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
     | '/admin/academy'
+    | '/dashboard/qr'
     | '/admin/health/covers/alerts'
   id:
     | '__root__'
@@ -1530,7 +1530,6 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/launch-kit'
     | '/_authenticated/dashboard/new'
     | '/_authenticated/dashboard/payouts'
-    | '/_authenticated/dashboard/qr'
     | '/_authenticated/dashboard/storefront'
     | '/academy/article/$slug'
     | '/api/public/contact'
@@ -1561,6 +1560,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
     | '/_authenticated/admin/academy/'
+    | '/_authenticated/dashboard/qr/'
     | '/_authenticated/admin/health/covers/alerts'
   fileRoutesById: FileRoutesById
 }
@@ -2298,13 +2298,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardPayoutsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/dashboard/qr': {
-      id: '/_authenticated/dashboard/qr'
-      path: '/dashboard/qr'
-      fullPath: '/dashboard/qr'
-      preLoaderRoute: typeof AuthenticatedDashboardQrRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/dashboard/storefront': {
       id: '/_authenticated/dashboard/storefront'
       path: '/dashboard/storefront'
@@ -2382,19 +2375,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardPreorderIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/qr/': {
+      id: '/_authenticated/dashboard/qr/'
+      path: '/dashboard/qr'
+      fullPath: '/dashboard/qr/'
+      preLoaderRoute: typeof AuthenticatedDashboardQrIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/qr/$id': {
       id: '/_authenticated/dashboard/qr/$id'
-      path: '/$id'
+      path: '/dashboard/qr/$id'
       fullPath: '/dashboard/qr/$id'
       preLoaderRoute: typeof AuthenticatedDashboardQrIdRouteImport
-      parentRoute: typeof AuthenticatedDashboardQrRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard/qr/new': {
       id: '/_authenticated/dashboard/qr/new'
-      path: '/new'
+      path: '/dashboard/qr/new'
       fullPath: '/dashboard/qr/new'
       preLoaderRoute: typeof AuthenticatedDashboardQrNewRouteImport
-      parentRoute: typeof AuthenticatedDashboardQrRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard/variants/$id': {
       id: '/_authenticated/dashboard/variants/$id'
@@ -2511,22 +2511,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedDashboardQrRouteChildren {
-  AuthenticatedDashboardQrIdRoute: typeof AuthenticatedDashboardQrIdRoute
-  AuthenticatedDashboardQrNewRoute: typeof AuthenticatedDashboardQrNewRoute
-}
-
-const AuthenticatedDashboardQrRouteChildren: AuthenticatedDashboardQrRouteChildren =
-  {
-    AuthenticatedDashboardQrIdRoute: AuthenticatedDashboardQrIdRoute,
-    AuthenticatedDashboardQrNewRoute: AuthenticatedDashboardQrNewRoute,
-  }
-
-const AuthenticatedDashboardQrRouteWithChildren =
-  AuthenticatedDashboardQrRoute._addFileChildren(
-    AuthenticatedDashboardQrRouteChildren,
-  )
-
 interface AuthenticatedAdminHealthCoversRouteChildren {
   AuthenticatedAdminHealthCoversAlertsRoute: typeof AuthenticatedAdminHealthCoversAlertsRoute
 }
@@ -2573,7 +2557,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardLaunchKitRoute: typeof AuthenticatedDashboardLaunchKitRoute
   AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
   AuthenticatedDashboardPayoutsRoute: typeof AuthenticatedDashboardPayoutsRoute
-  AuthenticatedDashboardQrRoute: typeof AuthenticatedDashboardQrRouteWithChildren
   AuthenticatedDashboardStorefrontRoute: typeof AuthenticatedDashboardStorefrontRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
@@ -2583,8 +2566,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardBumpsIdRoute: typeof AuthenticatedDashboardBumpsIdRoute
   AuthenticatedDashboardEditIdRoute: typeof AuthenticatedDashboardEditIdRoute
   AuthenticatedDashboardPreorderIdRoute: typeof AuthenticatedDashboardPreorderIdRoute
+  AuthenticatedDashboardQrIdRoute: typeof AuthenticatedDashboardQrIdRoute
+  AuthenticatedDashboardQrNewRoute: typeof AuthenticatedDashboardQrNewRoute
   AuthenticatedDashboardVariantsIdRoute: typeof AuthenticatedDashboardVariantsIdRoute
   AuthenticatedAdminAcademyIndexRoute: typeof AuthenticatedAdminAcademyIndexRoute
+  AuthenticatedDashboardQrIndexRoute: typeof AuthenticatedDashboardQrIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -2622,7 +2608,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardLaunchKitRoute: AuthenticatedDashboardLaunchKitRoute,
   AuthenticatedDashboardNewRoute: AuthenticatedDashboardNewRoute,
   AuthenticatedDashboardPayoutsRoute: AuthenticatedDashboardPayoutsRoute,
-  AuthenticatedDashboardQrRoute: AuthenticatedDashboardQrRouteWithChildren,
   AuthenticatedDashboardStorefrontRoute: AuthenticatedDashboardStorefrontRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
@@ -2633,8 +2618,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardBumpsIdRoute: AuthenticatedDashboardBumpsIdRoute,
   AuthenticatedDashboardEditIdRoute: AuthenticatedDashboardEditIdRoute,
   AuthenticatedDashboardPreorderIdRoute: AuthenticatedDashboardPreorderIdRoute,
+  AuthenticatedDashboardQrIdRoute: AuthenticatedDashboardQrIdRoute,
+  AuthenticatedDashboardQrNewRoute: AuthenticatedDashboardQrNewRoute,
   AuthenticatedDashboardVariantsIdRoute: AuthenticatedDashboardVariantsIdRoute,
   AuthenticatedAdminAcademyIndexRoute: AuthenticatedAdminAcademyIndexRoute,
+  AuthenticatedDashboardQrIndexRoute: AuthenticatedDashboardQrIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
