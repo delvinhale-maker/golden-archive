@@ -154,7 +154,9 @@ describe("Phase 2 migration — additive, owner-scoped, no anon exposure", () =>
   const migration = (() => {
     const { readdirSync } = require("node:fs") as typeof import("node:fs");
     const dir = join(ROOT, "supabase/migrations");
-    const file = readdirSync(dir).find((f) => f.includes("qr") && f.includes("campaign"));
+    const file = readdirSync(dir)
+      .filter((f) => f.endsWith(".sql"))
+      .find((f) => readFileSync(join(dir, f), "utf8").includes("CREATE TABLE public.qr_campaigns"));
     expect(file, "a QR campaigns migration should exist").toBeTruthy();
     return readFileSync(join(dir, file as string), "utf8");
   })();
