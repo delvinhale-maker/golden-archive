@@ -14,6 +14,7 @@
     "check:commission-guard": "node scripts/check-affiliate-commission-guard.mjs",
     "check:prepublish": "node scripts/prepublish-check.mjs",
     "smoke:previews": "node scripts/smoke-previews.mjs",
+    "smoke:qr": "node scripts/qr-smoke.mjs",
     "check:hero-contrast": "node scripts/check-hero-cta-contrast.mjs",
     "format": "prettier --write ."
   },
