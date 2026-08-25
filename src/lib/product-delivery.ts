@@ -16,6 +16,16 @@ export type DeliveryFile = {
   sort_order: number;
 };
 
+export type DeliveryFileSummary = {
+  id: string;
+  product_id: string;
+  label: string;
+  file_size_bytes: number | null;
+  format: string | null;
+  is_primary: boolean;
+  sort_order: number;
+};
+
 export const DELIVERY_EXTENSIONS = [
   "zip",
   "pdf",
@@ -98,16 +108,16 @@ export function formatBytes(bytes: number | null | undefined): string | null {
   return `${n < 10 && i > 0 ? n.toFixed(1) : Math.round(n)} ${units[i]}`;
 }
 
-/** Human label for a delivery file, falling back to the stored file name. */
-export function displayName(f: Pick<DeliveryFile, "label" | "file_path">): string {
+/** Human label for a delivery file, falling back to the stored file name only on private admin views. */
+export function displayName(f: { label?: string | null; file_path?: string | null }): string {
   const label = f.label?.trim();
   if (label) return label;
-  const raw = f.file_path.split("/").pop() ?? f.file_path;
+  const raw = f.file_path?.split("/").pop() ?? "Included file";
   return raw.replace(/^\d+-/, "");
 }
 
 /** Sorts primary first, then by explicit order, then label. */
-export function sortDeliveryFiles<T extends Pick<DeliveryFile, "is_primary" | "sort_order" | "label">>(
+export function sortDeliveryFiles<T extends Pick<DeliveryFileSummary, "is_primary" | "sort_order" | "label">>(
   files: T[],
 ): T[] {
   return [...files].sort((a, b) => {

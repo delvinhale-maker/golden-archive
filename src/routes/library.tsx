@@ -8,12 +8,11 @@ import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getMyOrders, type AccountOrder } from "@/lib/account.functions";
 import { getDownloadInfo } from "@/lib/payments.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { getDeliveryFileDownload } from "@/lib/product-delivery.functions";
+import { getDeliveryFileDownload, listPurchasedDeliveryFiles } from "@/lib/product-delivery.functions";
 import {
-  type DeliveryFile,
+  type DeliveryFileSummary,
   displayName as deliveryDisplayName,
   formatBytes as formatDeliveryBytes,
-  formatLabel as deliveryFormatLabel,
   sortDeliveryFiles,
 } from "@/lib/product-delivery";
 
@@ -358,17 +357,15 @@ function LibraryCard({
  */
 function LibraryDeliveryFiles({ productId, token }: { productId: string; token: string }) {
   const fetchFile = useServerFn(getDeliveryFileDownload);
+  const fetchFiles = useServerFn(listPurchasedDeliveryFiles);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [showIndividual, setShowIndividual] = useState(false);
   const filesQ = useQuery({
-    queryKey: ["library", "delivery-files", productId],
+    queryKey: ["library", "delivery-files", productId, token],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("product_download_files" as any)
-        .select("id,product_id,seller_id,label,file_path,file_size_bytes,format,is_primary,sort_order")
-        .eq("product_id", productId);
-      if (error) throw error;
-      return sortDeliveryFiles((data ?? []) as unknown as DeliveryFile[]);
+      const res = await fetchFiles({ data: { productId, token } });
+      if ("error" in res) throw new Error(res.error);
+      return sortDeliveryFiles(res.files as DeliveryFileSummary[]);
     },
     staleTime: 60_000,
   });
@@ -376,7 +373,7 @@ function LibraryDeliveryFiles({ productId, token }: { productId: string; token: 
   const files = filesQ.data ?? [];
   if (files.length === 0) return null;
 
-  async function grab(f: DeliveryFile) {
+  async function grab(f: DeliveryFileSummary) {
     setBusyId(f.id);
     const t = toast.loading(`Preparing "${deliveryDisplayName(f)}"…`);
     try {
@@ -449,7 +446,7 @@ function LibraryDeliveryFiles({ productId, token }: { productId: string; token: 
                     {deliveryDisplayName(f)}
                   </span>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-mute">
-                    {f.format?.toUpperCase() || deliveryFormatLabel(f.file_path)}
+                    {f.format?.toUpperCase() || "FILE"}
                     {formatDeliveryBytes(f.file_size_bytes) ? ` · ${formatDeliveryBytes(f.file_size_bytes)}` : ""}
                   </span>
                   <button

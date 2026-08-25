@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { getPublicDeliveryFileCount } from "@/lib/product-delivery.functions";
 import { deliverySummary, productBadges } from "@/lib/taxonomy";
 
 /**
@@ -20,15 +21,12 @@ export function ProductTaxonomyMeta({
   subcategory?: string | null;
   deliveryContents?: string[] | null;
 }) {
+  const fetchCount = useServerFn(getPublicDeliveryFileCount);
   const { data: fileCount } = useQuery({
     queryKey: ["delivery-file-count", productId],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from("product_download_files" as any)
-        .select("id", { count: "exact", head: true })
-        .eq("product_id", productId);
-      if (error) throw error;
-      return count ?? 0;
+      const res = await fetchCount({ data: { productId } });
+      return res.count;
     },
     staleTime: 60_000,
   });
