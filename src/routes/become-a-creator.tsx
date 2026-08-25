@@ -334,7 +334,7 @@ function TrustBand() {
         </ul>
         <div className="mt-10 text-center">
           <Link
-            to="/about_/trust"
+            to="/about/trust"
             onClick={() => logCtaClick("become_creator_trust_center")}
             className="inline-flex min-h-[48px] items-center gap-2 rounded-full border-2 border-white/40 px-7 text-sm font-bold text-white transition-colors hover:bg-white hover:text-navy"
           >
