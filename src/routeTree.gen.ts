@@ -68,6 +68,7 @@ import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
+import { Route as QPublicIdRouteImport } from './routes/q.$publicId'
 import { Route as StoreSlugRouteImport } from './routes/store.$slug'
 import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm'
 import { Route as ToolsRevenueCalculatorRouteImport } from './routes/tools.revenue-calculator'
@@ -113,6 +114,9 @@ import { Route as AuthenticatedAdminHealthCoversRouteImport } from './routes/_au
 import { Route as AuthenticatedDashboardBumpsIdRouteImport } from './routes/_authenticated/dashboard.bumps.$id'
 import { Route as AuthenticatedDashboardEditIdRouteImport } from './routes/_authenticated/dashboard.edit.$id'
 import { Route as AuthenticatedDashboardPreorderIdRouteImport } from './routes/_authenticated/dashboard.preorder.$id'
+import { Route as AuthenticatedDashboardQrIndexRouteImport } from './routes/_authenticated/dashboard.qr.index'
+import { Route as AuthenticatedDashboardQrIdRouteImport } from './routes/_authenticated/dashboard.qr.$id'
+import { Route as AuthenticatedDashboardQrNewRouteImport } from './routes/_authenticated/dashboard.qr.new'
 import { Route as AuthenticatedDashboardVariantsIdRouteImport } from './routes/_authenticated/dashboard.variants.$id'
 import { Route as ApiPublicAcademyReceiveArticleRouteImport } from './routes/api/public/academy/receive-article'
 import { Route as ApiPublicCronReleasePreordersRouteImport } from './routes/api/public/cron/release-preorders'
@@ -427,6 +431,11 @@ const ProductsIdRoute = ProductsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ProductsRoute,
 } as any)
+const QPublicIdRoute = QPublicIdRouteImport.update({
+  id: '/q/$publicId',
+  path: '/q/$publicId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StoreSlugRoute = StoreSlugRouteImport.update({
   id: '/store/$slug',
   path: '/store/$slug',
@@ -690,6 +699,24 @@ const AuthenticatedDashboardPreorderIdRoute =
     path: '/dashboard/preorder/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardQrIndexRoute =
+  AuthenticatedDashboardQrIndexRouteImport.update({
+    id: '/dashboard/qr/',
+    path: '/dashboard/qr/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardQrIdRoute =
+  AuthenticatedDashboardQrIdRouteImport.update({
+    id: '/dashboard/qr/$id',
+    path: '/dashboard/qr/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardQrNewRoute =
+  AuthenticatedDashboardQrNewRouteImport.update({
+    id: '/dashboard/qr/new',
+    path: '/dashboard/qr/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardVariantsIdRoute =
   AuthenticatedDashboardVariantsIdRouteImport.update({
     id: '/dashboard/variants/$id',
@@ -842,6 +869,7 @@ export interface FileRoutesByFullPath {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
@@ -890,6 +918,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
   '/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
+  '/dashboard/qr/$id': typeof AuthenticatedDashboardQrIdRoute
+  '/dashboard/qr/new': typeof AuthenticatedDashboardQrNewRoute
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
@@ -906,6 +936,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/admin/academy/': typeof AuthenticatedAdminAcademyIndexRoute
+  '/dashboard/qr/': typeof AuthenticatedDashboardQrIndexRoute
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
 }
 export interface FileRoutesByTo {
@@ -960,6 +991,7 @@ export interface FileRoutesByTo {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
@@ -1008,6 +1040,8 @@ export interface FileRoutesByTo {
   '/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
   '/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
+  '/dashboard/qr/$id': typeof AuthenticatedDashboardQrIdRoute
+  '/dashboard/qr/new': typeof AuthenticatedDashboardQrNewRoute
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
@@ -1024,6 +1058,7 @@ export interface FileRoutesByTo {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/admin/academy': typeof AuthenticatedAdminAcademyIndexRoute
+  '/dashboard/qr': typeof AuthenticatedDashboardQrIndexRoute
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
 }
 export interface FileRoutesById {
@@ -1083,6 +1118,7 @@ export interface FileRoutesById {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
@@ -1131,6 +1167,8 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/_authenticated/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
   '/_authenticated/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
+  '/_authenticated/dashboard/qr/$id': typeof AuthenticatedDashboardQrIdRoute
+  '/_authenticated/dashboard/qr/new': typeof AuthenticatedDashboardQrNewRoute
   '/_authenticated/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
@@ -1147,6 +1185,7 @@ export interface FileRoutesById {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/admin/academy/': typeof AuthenticatedAdminAcademyIndexRoute
+  '/_authenticated/dashboard/qr/': typeof AuthenticatedDashboardQrIndexRoute
   '/_authenticated/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
 }
 export interface FileRouteTypes {
@@ -1206,6 +1245,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/q/$publicId'
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/tools/revenue-calculator'
@@ -1254,6 +1294,8 @@ export interface FileRouteTypes {
     | '/dashboard/bumps/$id'
     | '/dashboard/edit/$id'
     | '/dashboard/preorder/$id'
+    | '/dashboard/qr/$id'
+    | '/dashboard/qr/new'
     | '/dashboard/variants/$id'
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
@@ -1270,6 +1312,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
     | '/admin/academy/'
+    | '/dashboard/qr/'
     | '/admin/health/covers/alerts'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1324,6 +1367,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/q/$publicId'
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/tools/revenue-calculator'
@@ -1372,6 +1416,8 @@ export interface FileRouteTypes {
     | '/dashboard/bumps/$id'
     | '/dashboard/edit/$id'
     | '/dashboard/preorder/$id'
+    | '/dashboard/qr/$id'
+    | '/dashboard/qr/new'
     | '/dashboard/variants/$id'
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
@@ -1388,6 +1434,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
     | '/admin/academy'
+    | '/dashboard/qr'
     | '/admin/health/covers/alerts'
   id:
     | '__root__'
@@ -1446,6 +1493,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/q/$publicId'
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/tools/revenue-calculator'
@@ -1494,6 +1542,8 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/bumps/$id'
     | '/_authenticated/dashboard/edit/$id'
     | '/_authenticated/dashboard/preorder/$id'
+    | '/_authenticated/dashboard/qr/$id'
+    | '/_authenticated/dashboard/qr/new'
     | '/_authenticated/dashboard/variants/$id'
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
@@ -1510,6 +1560,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
     | '/_authenticated/admin/academy/'
+    | '/_authenticated/dashboard/qr/'
     | '/_authenticated/admin/health/covers/alerts'
   fileRoutesById: FileRoutesById
 }
@@ -1564,6 +1615,7 @@ export interface RootRouteChildren {
   CreatorSlugRoute: typeof CreatorSlugRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  QPublicIdRoute: typeof QPublicIdRoute
   StoreSlugRoute: typeof StoreSlugRoute
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
   ToolsRevenueCalculatorRoute: typeof ToolsRevenueCalculatorRoute
@@ -2001,6 +2053,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsIdRouteImport
       parentRoute: typeof ProductsRoute
     }
+    '/q/$publicId': {
+      id: '/q/$publicId'
+      path: '/q/$publicId'
+      fullPath: '/q/$publicId'
+      preLoaderRoute: typeof QPublicIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/store/$slug': {
       id: '/store/$slug'
       path: '/store/$slug'
@@ -2316,6 +2375,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardPreorderIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/qr/': {
+      id: '/_authenticated/dashboard/qr/'
+      path: '/dashboard/qr'
+      fullPath: '/dashboard/qr/'
+      preLoaderRoute: typeof AuthenticatedDashboardQrIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/qr/$id': {
+      id: '/_authenticated/dashboard/qr/$id'
+      path: '/dashboard/qr/$id'
+      fullPath: '/dashboard/qr/$id'
+      preLoaderRoute: typeof AuthenticatedDashboardQrIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/qr/new': {
+      id: '/_authenticated/dashboard/qr/new'
+      path: '/dashboard/qr/new'
+      fullPath: '/dashboard/qr/new'
+      preLoaderRoute: typeof AuthenticatedDashboardQrNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/variants/$id': {
       id: '/_authenticated/dashboard/variants/$id'
       path: '/dashboard/variants/$id'
@@ -2486,8 +2566,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardBumpsIdRoute: typeof AuthenticatedDashboardBumpsIdRoute
   AuthenticatedDashboardEditIdRoute: typeof AuthenticatedDashboardEditIdRoute
   AuthenticatedDashboardPreorderIdRoute: typeof AuthenticatedDashboardPreorderIdRoute
+  AuthenticatedDashboardQrIdRoute: typeof AuthenticatedDashboardQrIdRoute
+  AuthenticatedDashboardQrNewRoute: typeof AuthenticatedDashboardQrNewRoute
   AuthenticatedDashboardVariantsIdRoute: typeof AuthenticatedDashboardVariantsIdRoute
   AuthenticatedAdminAcademyIndexRoute: typeof AuthenticatedAdminAcademyIndexRoute
+  AuthenticatedDashboardQrIndexRoute: typeof AuthenticatedDashboardQrIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -2535,8 +2618,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardBumpsIdRoute: AuthenticatedDashboardBumpsIdRoute,
   AuthenticatedDashboardEditIdRoute: AuthenticatedDashboardEditIdRoute,
   AuthenticatedDashboardPreorderIdRoute: AuthenticatedDashboardPreorderIdRoute,
+  AuthenticatedDashboardQrIdRoute: AuthenticatedDashboardQrIdRoute,
+  AuthenticatedDashboardQrNewRoute: AuthenticatedDashboardQrNewRoute,
   AuthenticatedDashboardVariantsIdRoute: AuthenticatedDashboardVariantsIdRoute,
   AuthenticatedAdminAcademyIndexRoute: AuthenticatedAdminAcademyIndexRoute,
+  AuthenticatedDashboardQrIndexRoute: AuthenticatedDashboardQrIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -2647,6 +2733,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreatorSlugRoute: CreatorSlugRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  QPublicIdRoute: QPublicIdRoute,
   StoreSlugRoute: StoreSlugRoute,
   SubscribeConfirmRoute: SubscribeConfirmRoute,
   ToolsRevenueCalculatorRoute: ToolsRevenueCalculatorRoute,
