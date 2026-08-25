@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { FileArchive } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { getPublicDeliveryFiles } from "@/lib/product-delivery.functions";
 import {
-  type DeliveryFile,
+  type DeliveryFileSummary,
   displayName,
   formatBytes,
-  formatLabel,
   sortDeliveryFiles,
 } from "@/lib/product-delivery";
 
@@ -14,15 +14,12 @@ import {
  * formats and sizes only — the actual files stay private until purchase.
  */
 export function ProductIncludedFiles({ productId }: { productId: string }) {
+  const fetchFiles = useServerFn(getPublicDeliveryFiles);
   const q = useQuery({
     queryKey: ["delivery-files", productId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("product_download_files" as any)
-        .select("id,product_id,seller_id,label,file_path,file_size_bytes,format,is_primary,sort_order")
-        .eq("product_id", productId);
-      if (error) throw error;
-      return sortDeliveryFiles((data ?? []) as unknown as DeliveryFile[]);
+      const res = await fetchFiles({ data: { productId } });
+      return sortDeliveryFiles(res.files as DeliveryFileSummary[]);
     },
     staleTime: 60_000,
   });
@@ -44,7 +41,7 @@ export function ProductIncludedFiles({ productId }: { productId: string }) {
           <li key={f.id} className="flex flex-wrap items-center gap-2 py-2.5">
             <span className="min-w-0 flex-1 truncate text-[15px] text-ink">{displayName(f)}</span>
             <span className="rounded-full bg-navy px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold">
-              {f.format?.toUpperCase() || formatLabel(f.file_path)}
+              {f.format?.toUpperCase() || "FILE"}
             </span>
             {formatBytes(f.file_size_bytes) && (
               <span className="text-xs text-mute">{formatBytes(f.file_size_bytes)}</span>

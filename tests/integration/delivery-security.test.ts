@@ -2,8 +2,8 @@
  * Automated security tests for the digital bundle delivery system.
  *
  * Covers three attack surfaces:
- *   1. RLS — anonymous visitors may read a bundle *manifest* only for live
- *      products, and may never write to it or read download tokens.
+ *   1. RLS — anonymous visitors may never read paid delivery manifests or
+ *      file paths directly from the database, and may never write to them.
  *   2. Purchase / order validation — the delivery server function must verify
  *      buyer email, link expiry, file↔product ownership and pre-order gating.
  *   3. Signed URL expiry — private storage objects are unreachable without a
@@ -64,25 +64,13 @@ describe("delivery security · source invariants", () => {
 });
 
 describe.skipIf(!live)("delivery security · RLS", () => {
-  it("anonymous manifest reads only expose live products", async () => {
+  it("anonymous callers cannot read paid delivery manifests", async () => {
     const { data, error } = await anon!
       .from("product_download_files")
-      .select("id,product_id")
+      .select("id,product_id,file_path")
       .limit(200);
-    expect(error).toBeNull();
-
-    const ids = [...new Set((data ?? []).map((r) => r.product_id))];
-    if (ids.length === 0) return;
-
-    const { data: products } = await admin!
-      .from("marketplace_products")
-      .select("id,published,status")
-      .in("id", ids);
-
-    for (const p of products ?? []) {
-      expect(p.published, `product ${p.id} manifest is public`).toBe(true);
-      expect(p.status).toBe("approved");
-    }
+    expect(error ?? (data ?? [])).not.toEqual([{ id: expect.anything(), product_id: expect.anything(), file_path: expect.anything() }]);
+    expect((data ?? []).length).toBe(0);
   });
 
   it("anonymous callers cannot write to the manifest", async () => {
