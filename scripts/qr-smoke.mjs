@@ -25,6 +25,7 @@
  *   SUPABASE_PUBLISHABLE_KEY (or VITE_SUPABASE_PUBLISHABLE_KEY)
  * Optional env:
  *   BASE_URL       default http://localhost:8080
+ *   CHROMIUM_PATH  explicit Chromium binary (sandboxes without a PW download)
  *   ARTIFACT_DIR   default artifacts/qr-smoke
  */
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -113,7 +114,11 @@ async function main() {
     if (signInErr || !signIn?.session) throw new Error(`QA sign-in failed: ${signInErr?.message}`);
 
     mkdirSync(ARTIFACT_DIR, { recursive: true });
-    browser = await chromium.launch();
+    // CHROMIUM_PATH is only for sandboxes/hosts where Playwright's own
+    // download is unavailable; CI installs the matching browser normally.
+    browser = await chromium.launch(
+      process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {},
+    );
     const context = await browser.newContext({ viewport: { width: 1280, height: 1800 } });
     const page = await context.newPage();
     const consoleErrors = [];
