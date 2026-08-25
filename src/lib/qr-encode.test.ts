@@ -58,7 +58,7 @@ describe("qrcode encoder — segment fidelity for every Phase 1 destination shap
     const url = buildDynamicQrUrl("a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2");
     const qr = QRCode.create(url, { errorCorrectionLevel: "M" });
     expect(reconstructPayloadFromSegments(qr)).toBe(url);
-    expect(url).toStartWith("https://www.aurumvault.store/q/");
+    expect(url.startsWith("https://www.aurumvault.store/q/")).toBe(true);
   });
 });
 

@@ -111,7 +111,7 @@ describe("buildDynamicQrUrl", () => {
   it("always encodes the production SITE_URL, never a staging origin", () => {
     const url = buildDynamicQrUrl("abc123");
     expect(url).toBe(`${SITE_URL}/q/abc123`);
-    expect(url).toStartWith("https://www.aurumvault.store/q/");
+    expect(url.startsWith("https://www.aurumvault.store/q/")).toBe(true);
   });
 });
 
