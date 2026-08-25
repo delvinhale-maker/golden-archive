@@ -12,10 +12,43 @@ import {
   resolveQrSizePx,
   type QrDestinationType,
 } from "@/lib/qr";
+import { QR_USE_CASE_IDS } from "@/lib/qr-use-cases";
+import { QR_NICHE_IDS } from "@/lib/qr-niches";
 
 const destinationTypeSchema = z.enum(QR_DESTINATION_TYPES);
 const formatSchema = z.enum(["png", "svg"]);
 const sizeSchema = z.enum(["small", "standard", "print"]).optional();
+// Phase 2 metadata is optional and additive everywhere it's accepted —
+// omitting it preserves exact Phase 1 behavior (no use_case/niche/campaign
+// classification at all).
+const useCaseSchema = z.enum(QR_USE_CASE_IDS).nullable().optional();
+const nicheSchema = z.enum(QR_NICHE_IDS).nullable().optional();
+const campaignIdSchema = z.string().uuid().nullable().optional();
+const placementLabelSchema = z.string().trim().max(60).nullable().optional();
+
+const QR_PROJECT_COLS =
+  "id,public_id,name,mode,destination_type,destination,style,status,use_case,niche,campaign_id,placement_label,created_at,updated_at";
+
+/**
+ * Verify a campaign_id (if provided) actually belongs to this owner before
+ * attaching a QR project to it — a friendly, specific error here backstops
+ * the DB-level qr_projects_guard_campaign_owner_trg trigger (Phase 2
+ * migration), which would otherwise surface as a raw Postgres exception.
+ */
+async function assertOwnsCampaign(
+  supabase: any,
+  userId: string,
+  campaignId: string | null | undefined,
+): Promise<void> {
+  if (!campaignId) return;
+  const { data: campaign } = await supabase
+    .from("qr_campaigns" as never)
+    .select("id" as never)
+    .eq("id" as never, campaignId)
+    .eq("owner_user_id" as never, userId)
+    .maybeSingle();
+  if (!campaign) throw new Error("Campaign not found");
+}
 
 export type QrRenderResult = { format: "png"; data: string } | { format: "svg"; data: string };
 
@@ -93,6 +126,10 @@ export const createQrProject = createServerFn({ method: "POST" })
         destination: z.string().min(1).max(2000),
         foreground: z.string().optional(),
         background: z.string().optional(),
+        useCase: useCaseSchema,
+        niche: nicheSchema,
+        campaignId: campaignIdSchema,
+        placementLabel: placementLabelSchema,
       })
       .parse(input),
   )
@@ -110,9 +147,13 @@ export const createQrProject = createServerFn({ method: "POST" })
 
     const { supabase, userId } = context;
 
+    await assertOwnsCampaign(supabase, userId, data.campaignId);
+
     // Paused codes still count against the allowance (Section 15): their
     // redirect infrastructure — and public_id — still exists and is still
-    // printable. Only archived rows are excluded.
+    // printable. Only archived rows are excluded. Every Phase 2 creation
+    // path (campaigns, duplication, shortcuts) routes through this same
+    // function, so the limit has exactly one enforcement point — no bypass.
     const { count } = await supabase
       .from("qr_projects" as never)
       .select("id", { count: "exact", head: true } as never)
@@ -121,7 +162,7 @@ export const createQrProject = createServerFn({ method: "POST" })
       .neq("status" as never, "archived");
     if ((count ?? 0) >= MAX_ACTIVE_DYNAMIC_QR) {
       throw new Error(
-        `You've reached your limit of ${MAX_ACTIVE_DYNAMIC_QR} active dynamic QR codes. Archive one to create another.`,
+        `You're using ${MAX_ACTIVE_DYNAMIC_QR} of ${MAX_ACTIVE_DYNAMIC_QR} active dynamic QR codes.`,
       );
     }
 
@@ -136,10 +177,12 @@ export const createQrProject = createServerFn({ method: "POST" })
         destination: dest.payload,
         style: { foreground: colors.foreground, background: colors.background },
         status: "active",
+        use_case: data.useCase ?? null,
+        niche: data.niche ?? null,
+        campaign_id: data.campaignId ?? null,
+        placement_label: data.placementLabel?.trim() || null,
       })
-      .select(
-        "id,public_id,name,mode,destination_type,destination,style,status,created_at,updated_at",
-      )
+      .select(QR_PROJECT_COLS)
       .single();
     if (error || !row) throw new Error(error?.message ?? "Couldn't create QR code");
     return row;
@@ -153,6 +196,10 @@ const projectUpdateSchema = z.object({
   foreground: z.string().optional(),
   background: z.string().optional(),
   status: z.enum(["active", "paused"]).optional(),
+  useCase: useCaseSchema,
+  niche: nicheSchema,
+  campaignId: campaignIdSchema,
+  placementLabel: placementLabelSchema,
 });
 
 /**
@@ -194,15 +241,21 @@ export const updateQrProject = createServerFn({ method: "POST" })
       patch.style = { foreground: colors.foreground, background: colors.background };
     }
 
+    if (data.useCase !== undefined) patch.use_case = data.useCase;
+    if (data.niche !== undefined) patch.niche = data.niche;
+    if (data.placementLabel !== undefined) patch.placement_label = data.placementLabel?.trim() || null;
+    if (data.campaignId !== undefined) {
+      await assertOwnsCampaign(supabase, userId, data.campaignId);
+      patch.campaign_id = data.campaignId;
+    }
+
     if (!Object.keys(patch).length) throw new Error("Nothing to update");
 
     const { data: row, error } = await (supabase.from("qr_projects" as never) as any)
       .update(patch)
       .eq("id", data.id)
       .eq("owner_user_id", userId)
-      .select(
-        "id,public_id,name,mode,destination_type,destination,style,status,created_at,updated_at",
-      )
+      .select(QR_PROJECT_COLS)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("QR code not found");
@@ -231,6 +284,10 @@ export type QrProjectListItem = {
   destination: string;
   style: { foreground?: string; background?: string };
   status: string;
+  use_case: string | null;
+  niche: string | null;
+  campaign_id: string | null;
+  placement_label: string | null;
   created_at: string;
   updated_at: string;
   scanCount: number;
@@ -248,9 +305,7 @@ export const listMyQrProjects = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data: projects, error } = await supabase
       .from("qr_projects" as never)
-      .select(
-        "id,public_id,name,mode,destination_type,destination,style,status,created_at,updated_at" as never,
-      )
+      .select(QR_PROJECT_COLS as never)
       .eq("owner_user_id" as never, userId)
       .order("created_at" as never, { ascending: false });
     if (error) throw new Error(error.message);
@@ -277,9 +332,7 @@ export const getMyQrProject = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data: row, error } = await supabase
       .from("qr_projects" as never)
-      .select(
-        "id,public_id,name,mode,destination_type,destination,style,status,created_at,updated_at" as never,
-      )
+      .select(QR_PROJECT_COLS as never)
       .eq("id" as never, data.id)
       .eq("owner_user_id" as never, userId)
       .maybeSingle();
@@ -340,6 +393,118 @@ export const renderQrProjectImage = createServerFn({ method: "POST" })
       foreground: style.foreground,
       background: style.background,
     });
+  });
+
+/**
+ * Duplicate an owned QR project for placement tracking (Phase 2 Section
+ * 26) — e.g. "Open House Flyer" → "Open House Front Door". Copies
+ * destination, style, use case, niche, and campaign; always generates a
+ * brand-new id and public_id (never reuses the source's), and goes through
+ * the exact same active-dynamic-limit check as createQrProject since it
+ * ultimately creates one more dynamic row.
+ */
+export const duplicateQrProject = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        name: z.string().trim().min(1).max(80),
+        placementLabel: placementLabelSchema,
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: source, error: sourceErr } = await supabase
+      .from("qr_projects" as never)
+      .select(QR_PROJECT_COLS as never)
+      .eq("id" as never, data.id)
+      .eq("owner_user_id" as never, userId)
+      .maybeSingle();
+    if (sourceErr) throw new Error(sourceErr.message);
+    if (!source) throw new Error("QR code not found");
+    const src = source as any;
+
+    const { count } = await supabase
+      .from("qr_projects" as never)
+      .select("id", { count: "exact", head: true } as never)
+      .eq("owner_user_id" as never, userId)
+      .eq("mode" as never, "dynamic")
+      .neq("status" as never, "archived");
+    if ((count ?? 0) >= MAX_ACTIVE_DYNAMIC_QR) {
+      throw new Error(
+        `You're using ${MAX_ACTIVE_DYNAMIC_QR} of ${MAX_ACTIVE_DYNAMIC_QR} active dynamic QR codes.`,
+      );
+    }
+
+    const publicId = generateQrPublicId();
+    const { data: row, error } = await (supabase.from("qr_projects" as never) as any)
+      .insert({
+        owner_user_id: userId,
+        public_id: publicId,
+        name: data.name.trim(),
+        mode: "dynamic",
+        destination_type: src.destination_type,
+        destination: src.destination,
+        style: src.style ?? {},
+        status: "active",
+        use_case: src.use_case ?? null,
+        niche: src.niche ?? null,
+        campaign_id: src.campaign_id ?? null,
+        placement_label: data.placementLabel?.trim() || null,
+      })
+      .select(QR_PROJECT_COLS)
+      .single();
+    if (error || !row) throw new Error(error?.message ?? "Couldn't duplicate QR code");
+    return row;
+  });
+
+function countInRange(
+  rows: { created_at: string }[],
+  sinceMs: number,
+): number {
+  return rows.filter((r) => new Date(r.created_at).getTime() >= sinceMs).length;
+}
+
+/**
+ * Modest scan analytics for one owned QR project (Phase 2 Section 15):
+ * total, today, last 7/30 days, and the timestamp of the most recent scan.
+ * No IP, geo, or fingerprinting — qr_scan_events never stored any of that
+ * to begin with. Fetches raw timestamps once and buckets them in memory
+ * rather than four separate COUNT queries; scan volume per QR is expected
+ * to stay small enough that this is cheap.
+ */
+export const getQrProjectAnalytics = createServerFn({ method: "GET" })
+  .inputValidator((input: { id: string }) => z.object({ id: z.string().uuid() }).parse(input))
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: owned } = await supabase
+      .from("qr_projects" as never)
+      .select("id" as never)
+      .eq("id" as never, data.id)
+      .eq("owner_user_id" as never, userId)
+      .maybeSingle();
+    if (!owned) throw new Error("QR code not found");
+
+    const { data: events } = await supabase
+      .from("qr_scan_events" as never)
+      .select("created_at" as never)
+      .eq("qr_project_id" as never, data.id)
+      .order("created_at" as never, { ascending: false });
+    const rows = (events ?? []) as unknown as { created_at: string }[];
+
+    const now = Date.now();
+    const DAY = 24 * 60 * 60 * 1000;
+    return {
+      totalScans: rows.length,
+      scansToday: countInRange(rows, now - (now % DAY)),
+      scansLast7Days: countInRange(rows, now - 7 * DAY),
+      scansLast30Days: countInRange(rows, now - 30 * DAY),
+      lastScanAt: rows[0]?.created_at ?? null,
+    };
   });
 
 export type { QrDestinationType };

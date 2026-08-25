@@ -1,8 +1,20 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Globe, Mail, Phone, MessageSquare, Type, Download } from "lucide-react";
+import {
+  ArrowLeft,
+  Globe,
+  Mail,
+  Phone,
+  MessageSquare,
+  Type,
+  Download,
+  Sparkles,
+  Compass,
+  Zap,
+} from "lucide-react";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
 import {
   createQrProject,
@@ -10,11 +22,20 @@ import {
   renderQrProjectImage,
   type QrRenderResult,
 } from "@/lib/qr.functions";
+import { listMyQrCampaigns } from "@/lib/qr-campaigns.functions";
+import {
+  createStorefrontQrShortcut,
+  createProductQrShortcut,
+  listMyEligibleProducts,
+} from "@/lib/qr-shortcuts.functions";
 import {
   DYNAMIC_QR_DESTINATION_TYPES,
   QR_DESTINATION_TYPES,
   type QrDestinationType,
+  type QrMode,
 } from "@/lib/qr";
+import { QR_USE_CASES, type QrUseCaseId } from "@/lib/qr-use-cases";
+import { QR_NICHES, type QrNicheId } from "@/lib/qr-niches";
 
 export const Route = createFileRoute("/_authenticated/dashboard/qr/new")({
   component: CreateQrPage,
@@ -75,27 +96,96 @@ function downloadDataUrlOrSvg(result: QrRenderResult, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+type EntryMode = "menu" | "quick" | "business" | "kit-niche" | "kit-outcome";
+
+/** Native AurumVault shortcuts, surfaced only under the Creator kit. */
+const CREATOR_SHORTCUT_USE_CASES: QrUseCaseId[] = ["visit_store", "buy_product"];
+
 function CreateQrPage() {
   const navigate = useNavigate();
   const generateStaticFn = useServerFn(generateStaticQrImage);
   const createFn = useServerFn(createQrProject);
   const renderProjectFn = useServerFn(renderQrProjectImage);
+  const listCampaignsFn = useServerFn(listMyQrCampaigns);
+  const storefrontShortcutFn = useServerFn(createStorefrontQrShortcut);
+  const productShortcutFn = useServerFn(createProductQrShortcut);
+  const listProductsFn = useServerFn(listMyEligibleProducts);
 
-  const [mode, setMode] = useState<"static" | "dynamic">("dynamic");
+  const [entry, setEntry] = useState<EntryMode>("menu");
+  const [showProductPicker, setShowProductPicker] = useState(false);
+  const [selectedNiche, setSelectedNiche] = useState<QrNicheId | null>(null);
+  const [selectedUseCase, setSelectedUseCase] = useState<QrUseCaseId | null>(null);
+
+  const [mode, setMode] = useState<QrMode>("dynamic");
   const [destinationType, setDestinationType] = useState<QrDestinationType>("url");
   const [destination, setDestination] = useState("");
+  const [destinationLocked, setDestinationLocked] = useState(false);
   const [name, setName] = useState("");
+  const [placementLabel, setPlacementLabel] = useState("");
+  const [campaignId, setCampaignId] = useState<string>("");
   const [foreground, setForeground] = useState("#1A2E4A");
   const [background, setBackground] = useState("#FFFFFF");
   const [preview, setPreview] = useState<QrRenderResult | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
+  const [shortcutLoading, setShortcutLoading] = useState(false);
+
+  const { data: campaigns } = useQuery({
+    queryKey: ["qr", "my-campaigns"],
+    queryFn: () => listCampaignsFn(),
+    staleTime: 30_000,
+    enabled: entry !== "menu",
+  });
+
+  const { data: eligibleProducts } = useQuery({
+    queryKey: ["qr", "my-eligible-products"],
+    queryFn: () => listProductsFn(),
+    staleTime: 30_000,
+    enabled: showProductPicker,
+  });
 
   const availableTypes = mode === "dynamic" ? DYNAMIC_QR_DESTINATION_TYPES : QR_DESTINATION_TYPES;
-
   const canPreview =
     destination.trim().length > 0 && (mode === "static" || destinationType !== "text");
+
+  function resetOutputState() {
+    setPreview(null);
+    setSavedProjectId(null);
+  }
+
+  function applyUseCase(useCaseId: QrUseCaseId) {
+    const uc = QR_USE_CASES[useCaseId];
+    setSelectedUseCase(useCaseId);
+    setDestinationType(uc.destinationType);
+    setMode(uc.suggestedMode);
+    setDestinationLocked(false);
+    setDestination("");
+    resetOutputState();
+    setEntry("business");
+  }
+
+  async function applyShortcut(useCaseId: "visit_store" | "buy_product", productId?: string) {
+    setShortcutLoading(true);
+    try {
+      const result =
+        useCaseId === "visit_store"
+          ? await storefrontShortcutFn()
+          : await productShortcutFn({ data: { productId: productId! } });
+      setSelectedUseCase(useCaseId);
+      setDestinationType("url");
+      setMode("dynamic");
+      setDestination(result.destination);
+      setDestinationLocked(true);
+      setName(result.suggestedName);
+      resetOutputState();
+      setEntry("business");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't set up that shortcut");
+    } finally {
+      setShortcutLoading(false);
+    }
+  }
 
   async function handlePreview() {
     if (!canPreview) return;
@@ -129,7 +219,17 @@ function CreateQrPage() {
     setSaving(true);
     try {
       const project = await createFn({
-        data: { name, destinationType, destination, foreground, background },
+        data: {
+          name,
+          destinationType,
+          destination,
+          foreground,
+          background,
+          useCase: selectedUseCase ?? undefined,
+          niche: selectedNiche ?? undefined,
+          campaignId: campaignId || undefined,
+          placementLabel: placementLabel || undefined,
+        },
       });
       setSavedProjectId(project.id);
       const result = await renderProjectFn({ data: { id: project.id, format: "png" } });
@@ -159,18 +259,216 @@ function CreateQrPage() {
       : preview.data;
   }, [preview]);
 
+  const useCase = selectedUseCase ? QR_USE_CASES[selectedUseCase] : null;
+
+  // ---- Entry menu: Quick QR / Business QR / Industry Kit ----
+  if (entry === "menu") {
+    return (
+      <PublisherShell accent={ACCENTS.help}>
+        <Link
+          to="/dashboard/qr"
+          className="inline-flex items-center gap-1 text-sm text-mute hover:text-navy"
+        >
+          <ArrowLeft size={14} /> Back to QR Codes
+        </Link>
+        <h1 className="font-display text-3xl text-navy mt-3">What are you creating today?</h1>
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          <button
+            type="button"
+            onClick={() => setEntry("quick")}
+            className="rounded-2xl border border-ink/10 bg-white p-6 text-left hover:border-navy/40"
+          >
+            <Zap className="text-navy" size={22} />
+            <p className="font-display text-lg text-navy mt-3">Quick QR</p>
+            <p className="text-sm text-mute mt-1">I already know the link.</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setEntry("business")}
+            className="rounded-2xl border border-ink/10 bg-white p-6 text-left hover:border-navy/40"
+          >
+            <Sparkles className="text-navy" size={22} />
+            <p className="font-display text-lg text-navy mt-3">Business QR</p>
+            <p className="text-sm text-mute mt-1">Help me choose what this should do.</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setEntry("kit-niche")}
+            className="rounded-2xl border border-ink/10 bg-white p-6 text-left hover:border-navy/40"
+          >
+            <Compass className="text-navy" size={22} />
+            <p className="font-display text-lg text-navy mt-3">Industry Kit</p>
+            <p className="text-sm text-mute mt-1">Show me the best QR workflows for my business.</p>
+          </button>
+        </div>
+      </PublisherShell>
+    );
+  }
+
+  // ---- Industry Kit: pick a niche, then an outcome from that niche ----
+  if (entry === "kit-niche") {
+    return (
+      <PublisherShell accent={ACCENTS.help}>
+        <button
+          type="button"
+          onClick={() => setEntry("menu")}
+          className="inline-flex items-center gap-1 text-sm text-mute hover:text-navy"
+        >
+          <ArrowLeft size={14} /> Back
+        </button>
+        <h1 className="font-display text-3xl text-navy mt-3">What's your business?</h1>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          {Object.values(QR_NICHES).map((niche) => (
+            <button
+              key={niche.id}
+              type="button"
+              onClick={() => {
+                setSelectedNiche(niche.id);
+                setEntry("kit-outcome");
+              }}
+              className="rounded-2xl border border-ink/10 bg-white p-5 text-left hover:border-navy/40"
+            >
+              <p className="font-display text-lg text-navy">{niche.label}</p>
+              <p className="text-sm text-mute mt-1">{niche.description}</p>
+            </button>
+          ))}
+        </div>
+      </PublisherShell>
+    );
+  }
+
+  if (entry === "kit-outcome" && selectedNiche) {
+    const niche = QR_NICHES[selectedNiche];
+    const isCreator = selectedNiche === "creator";
+    return (
+      <PublisherShell accent={ACCENTS.help}>
+        <button
+          type="button"
+          onClick={() => setEntry("kit-niche")}
+          className="inline-flex items-center gap-1 text-sm text-mute hover:text-navy"
+        >
+          <ArrowLeft size={14} /> Back
+        </button>
+        <h1 className="font-display text-3xl text-navy mt-3">{niche.label} QR ideas</h1>
+        <p className="text-sm text-mute mt-1">What do you want people to do?</p>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          {niche.useCaseIds.map((id) => {
+            const uc = QR_USE_CASES[id];
+            const isCreatorShortcut = isCreator && CREATOR_SHORTCUT_USE_CASES.includes(id);
+            return (
+              <button
+                key={id}
+                type="button"
+                disabled={shortcutLoading}
+                onClick={() =>
+                  isCreatorShortcut
+                    ? id === "visit_store"
+                      ? void applyShortcut("visit_store")
+                      : setShowProductPicker(true)
+                    : applyUseCase(id)
+                }
+                className="rounded-xl border border-ink/10 bg-white p-4 text-left hover:border-navy/40 disabled:opacity-50"
+              >
+                <p className="text-sm font-semibold text-navy">{uc.label}</p>
+                <p className="text-xs text-mute mt-1">{uc.description}</p>
+                {isCreatorShortcut && (
+                  <p className="text-[11px] text-mute mt-1 italic">
+                    {id === "visit_store"
+                      ? "Auto-fills your storefront link."
+                      : "Choose one of your published products."}
+                  </p>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {showProductPicker && (
+          <div className="mt-6 rounded-2xl border border-ink/10 bg-white p-5">
+            <h2 className="font-display text-lg text-navy">Which product?</h2>
+            {eligibleProducts === undefined ? (
+              <p className="text-sm text-mute mt-2">Loading your products…</p>
+            ) : eligibleProducts.length === 0 ? (
+              <p className="text-sm text-mute mt-2">
+                You don't have any approved, published products yet.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {eligibleProducts.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      type="button"
+                      disabled={shortcutLoading}
+                      onClick={() => void applyShortcut("buy_product", p.id)}
+                      className="w-full rounded-lg border border-ink/15 px-3 py-2 text-left text-sm text-navy hover:bg-paper disabled:opacity-50"
+                    >
+                      {p.title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </PublisherShell>
+    );
+  }
+
+  // ---- Business QR: pick a goal directly (no niche) ----
+  if (entry === "business" && !useCase && !destinationLocked) {
+    return (
+      <PublisherShell accent={ACCENTS.help}>
+        <button
+          type="button"
+          onClick={() => setEntry("menu")}
+          className="inline-flex items-center gap-1 text-sm text-mute hover:text-navy"
+        >
+          <ArrowLeft size={14} /> Back
+        </button>
+        <h1 className="font-display text-3xl text-navy mt-3">What do you want people to do?</h1>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          {Object.values(QR_USE_CASES).map((uc) => (
+            <button
+              key={uc.id}
+              type="button"
+              onClick={() => applyUseCase(uc.id)}
+              className="rounded-xl border border-ink/10 bg-white p-4 text-left hover:border-navy/40"
+            >
+              <p className="text-sm font-semibold text-navy">{uc.label}</p>
+              <p className="text-xs text-mute mt-1">{uc.description}</p>
+            </button>
+          ))}
+        </div>
+      </PublisherShell>
+    );
+  }
+
+  // ---- Shared build form (Quick QR lands here directly; Business QR / Industry
+  // Kit land here after a goal is chosen, prefilled) ----
   return (
     <PublisherShell accent={ACCENTS.help}>
-      <Link
-        to="/dashboard/qr"
+      <button
+        type="button"
+        onClick={() => setEntry("menu")}
         className="inline-flex items-center gap-1 text-sm text-mute hover:text-navy"
       >
-        <ArrowLeft size={14} /> Back to QR Codes
-      </Link>
+        <ArrowLeft size={14} /> Start Over
+      </button>
       <h1 className="font-display text-3xl text-navy mt-3">Create a QR Code</h1>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <div className="space-y-6">
+          {useCase && (
+            <section className="rounded-2xl border border-navy/20 bg-paper p-5">
+              <p className="text-xs font-bold uppercase tracking-wide text-navy/60">Goal</p>
+              <p className="font-display text-lg text-navy mt-1">{useCase.label}</p>
+              <p className="text-sm text-mute mt-1">{useCase.helperCopy}</p>
+              {useCase.ctaExamples.length > 0 && (
+                <p className="text-xs text-mute mt-2 italic">"{useCase.ctaExamples[0]}"</p>
+              )}
+            </section>
+          )}
+
           <section className="rounded-2xl border border-ink/10 bg-white p-5">
             <h2 className="font-display text-lg text-navy">What should this QR code do?</h2>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -182,12 +480,12 @@ function CreateQrPage() {
                   <button
                     key={t}
                     type="button"
+                    disabled={destinationLocked}
                     onClick={() => {
                       setDestinationType(t);
-                      setPreview(null);
-                      setSavedProjectId(null);
+                      resetOutputState();
                     }}
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium ${
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium disabled:opacity-50 ${
                       active
                         ? "border-navy bg-navy text-white"
                         : "border-ink/15 text-navy hover:bg-paper"
@@ -205,14 +503,20 @@ function CreateQrPage() {
             <h2 className="font-display text-lg text-navy">Destination</h2>
             <input
               value={destination}
+              disabled={destinationLocked}
               onChange={(e) => {
                 setDestination(e.target.value);
-                setPreview(null);
-                setSavedProjectId(null);
+                resetOutputState();
               }}
               placeholder={TYPE_META[destinationType].placeholder}
-              className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm disabled:bg-paper disabled:text-mute"
             />
+            {destinationLocked && (
+              <p className="text-xs text-mute">
+                Auto-filled from your AurumVault account — this always points to your own store or
+                product.
+              </p>
+            )}
 
             <div>
               <p className="text-sm font-medium text-navy mb-2">QR Type</p>
@@ -226,7 +530,7 @@ function CreateQrPage() {
                 >
                   <p className="text-sm font-semibold text-navy">Static</p>
                   <p className="text-xs text-mute mt-0.5">
-                    Destination is stored directly in the QR.
+                    Best when this destination will not need to change.
                   </p>
                 </button>
                 <button
@@ -241,19 +545,45 @@ function CreateQrPage() {
                 >
                   <p className="text-sm font-semibold text-navy">Dynamic</p>
                   <p className="text-xs text-mute mt-0.5">
-                    Change the destination later and track scans.
+                    Best when you may want to update the destination or track scans.
                   </p>
                 </button>
               </div>
             </div>
 
             {mode === "dynamic" && (
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Name this QR code (e.g. Front Door Menu)"
-                className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm"
-              />
+              <>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Name this QR code (e.g. Front Door Menu)"
+                  className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm"
+                />
+                <input
+                  value={placementLabel}
+                  onChange={(e) => setPlacementLabel(e.target.value)}
+                  placeholder="Placement (optional — e.g. Front Door, Flyer, Instagram)"
+                  className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm"
+                />
+                <select
+                  value={campaignId}
+                  onChange={(e) => setCampaignId(e.target.value)}
+                  className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm text-navy"
+                >
+                  <option value="">No campaign</option>
+                  {(campaigns ?? []).map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <Link
+                  to="/dashboard/qr/campaigns"
+                  className="inline-block text-xs font-semibold text-navy hover:underline"
+                >
+                  + Create a new campaign
+                </Link>
+              </>
             )}
           </section>
 

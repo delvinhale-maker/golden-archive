@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, Download, Pause, Play } from "lucide-react";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
 import {
   getMyQrProject,
+  getQrProjectAnalytics,
   updateQrProject,
   renderQrProjectImage,
   type QrRenderResult,
 } from "@/lib/qr.functions";
+import { listMyQrCampaigns } from "@/lib/qr-campaigns.functions";
 import { DYNAMIC_QR_DESTINATION_TYPES, type QrDestinationType } from "@/lib/qr";
 
 export const Route = createFileRoute("/_authenticated/dashboard/qr/$id")({
@@ -41,6 +44,8 @@ function EditQrPage() {
   const getFn = useServerFn(getMyQrProject);
   const updateFn = useServerFn(updateQrProject);
   const renderFn = useServerFn(renderQrProjectImage);
+  const analyticsFn = useServerFn(getQrProjectAnalytics);
+  const listCampaignsFn = useServerFn(listMyQrCampaigns);
 
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -50,8 +55,22 @@ function EditQrPage() {
   const [status, setStatus] = useState("active");
   const [publicId, setPublicId] = useState("");
   const [scanCount, setScanCount] = useState(0);
+  const [placementLabel, setPlacementLabel] = useState("");
+  const [campaignId, setCampaignId] = useState("");
   const [saving, setSaving] = useState(false);
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+
+  const { data: analytics } = useQuery({
+    queryKey: ["qr", "project-analytics", id],
+    queryFn: () => analyticsFn({ data: { id } }),
+    enabled: !loading && !notFound,
+  });
+  const { data: campaigns } = useQuery({
+    queryKey: ["qr", "my-campaigns"],
+    queryFn: () => listCampaignsFn(),
+    staleTime: 30_000,
+    enabled: !loading && !notFound,
+  });
 
   async function loadPreview() {
     try {
@@ -71,6 +90,8 @@ function EditQrPage() {
         setStatus(row.status);
         setPublicId(row.public_id);
         setScanCount(row.scanCount ?? 0);
+        setPlacementLabel(row.placement_label ?? "");
+        setCampaignId(row.campaign_id ?? "");
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
@@ -86,7 +107,14 @@ function EditQrPage() {
     setSaving(true);
     try {
       await updateFn({
-        data: { id, name, destinationType, destination },
+        data: {
+          id,
+          name,
+          destinationType,
+          destination,
+          placementLabel: placementLabel || undefined,
+          campaignId: campaignId || null,
+        },
       });
       toast.success("Destination updated — the same QR code keeps working");
       void loadPreview();
@@ -150,6 +178,27 @@ function EditQrPage() {
         {scanCount === 1 ? "" : "s"} so far.
       </p>
 
+      {analytics && (
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-lg border border-ink/10 bg-white p-3">
+            <p className="text-[11px] text-mute">Today</p>
+            <p className="font-display text-xl text-navy">{analytics.scansToday}</p>
+          </div>
+          <div className="rounded-lg border border-ink/10 bg-white p-3">
+            <p className="text-[11px] text-mute">Last 7 Days</p>
+            <p className="font-display text-xl text-navy">{analytics.scansLast7Days}</p>
+          </div>
+          <div className="rounded-lg border border-ink/10 bg-white p-3">
+            <p className="text-[11px] text-mute">Last 30 Days</p>
+            <p className="font-display text-xl text-navy">{analytics.scansLast30Days}</p>
+          </div>
+          <div className="rounded-lg border border-ink/10 bg-white p-3">
+            <p className="text-[11px] text-mute">Total</p>
+            <p className="font-display text-xl text-navy">{analytics.totalScans}</p>
+          </div>
+        </div>
+      )}
+
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <section className="rounded-2xl border border-ink/10 bg-white p-5 space-y-4">
           <label className="block">
@@ -188,6 +237,32 @@ function EditQrPage() {
               onChange={(e) => setDestination(e.target.value)}
               className="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm"
             />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-navy">Placement (optional)</span>
+            <input
+              value={placementLabel}
+              onChange={(e) => setPlacementLabel(e.target.value)}
+              placeholder="e.g. Front Door, Flyer, Instagram"
+              className="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-navy">Campaign</span>
+            <select
+              value={campaignId}
+              onChange={(e) => setCampaignId(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm text-navy"
+            >
+              <option value="">No campaign</option>
+              {(campaigns ?? []).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
           </label>
 
           <div className="flex flex-wrap gap-2">

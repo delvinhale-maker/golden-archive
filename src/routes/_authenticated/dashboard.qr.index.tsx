@@ -1,10 +1,16 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { QrCode, Plus, Pause, Play, Archive, Pencil, ScanLine } from "lucide-react";
+import { QrCode, Plus, Pause, Play, Archive, Pencil, ScanLine, Copy, Layers } from "lucide-react";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
-import { archiveQrProject, listMyQrProjects, updateQrProject } from "@/lib/qr.functions";
+import {
+  archiveQrProject,
+  duplicateQrProject,
+  listMyQrProjects,
+  updateQrProject,
+} from "@/lib/qr.functions";
 import { MAX_ACTIVE_DYNAMIC_QR } from "@/lib/qr";
 
 export const Route = createFileRoute("/_authenticated/dashboard/qr/")({
@@ -24,6 +30,8 @@ function QrDashboard() {
   const listFn = useServerFn(listMyQrProjects);
   const updateFn = useServerFn(updateQrProject);
   const archiveFn = useServerFn(archiveQrProject);
+  const duplicateFn = useServerFn(duplicateQrProject);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["qr", "my-projects"],
@@ -57,6 +65,29 @@ function QrDashboard() {
     }
   }
 
+  async function duplicate(id: string, sourceName: string) {
+    const placement = prompt(
+      `Duplicate "${sourceName}" for a different placement. What's this copy for? (e.g. Front Door, Flyer)`,
+    );
+    if (placement === null) return;
+    setDuplicatingId(id);
+    try {
+      await duplicateFn({
+        data: {
+          id,
+          name: placement.trim() ? `${sourceName} — ${placement.trim()}` : `${sourceName} (Copy)`,
+          placementLabel: placement.trim() || undefined,
+        },
+      });
+      queryClient.invalidateQueries({ queryKey: ["qr", "my-projects"] });
+      toast.success("QR code duplicated — same destination, new QR image to place elsewhere");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't duplicate QR code");
+    } finally {
+      setDuplicatingId(null);
+    }
+  }
+
   return (
     <PublisherShell accent={ACCENTS.help}>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -67,12 +98,20 @@ function QrDashboard() {
             anytime without reprinting it.
           </p>
         </div>
-        <Link
-          to="/dashboard/qr/new"
-          className="inline-flex items-center gap-1.5 rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-navy hover:brightness-105"
-        >
-          <Plus size={15} /> Create a QR Code
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/dashboard/qr/campaigns"
+            className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-4 py-2.5 text-sm font-semibold text-navy hover:bg-paper"
+          >
+            <Layers size={15} /> Campaigns
+          </Link>
+          <Link
+            to="/dashboard/qr/new"
+            className="inline-flex items-center gap-1.5 rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-navy hover:brightness-105"
+          >
+            <Plus size={15} /> Create a QR Code
+          </Link>
+        </div>
       </div>
 
       <p className="mt-3 text-xs text-mute">
@@ -126,6 +165,7 @@ function QrDashboard() {
                 <p className="text-xs text-mute mt-1 truncate">
                   {DESTINATION_LABEL[p.destination_type] ?? p.destination_type} · Created{" "}
                   {new Date(p.created_at).toLocaleDateString()}
+                  {p.placement_label ? ` · ${p.placement_label}` : ""}
                 </p>
                 <p className="text-xs text-mute mt-0.5 inline-flex items-center gap-1">
                   <ScanLine size={12} /> {p.scanCount} scan{p.scanCount === 1 ? "" : "s"}
@@ -139,6 +179,14 @@ function QrDashboard() {
                 >
                   <Pencil size={13} /> Edit
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => duplicate(p.id, p.name)}
+                  disabled={duplicatingId === p.id}
+                  className="inline-flex items-center gap-1 rounded-full border border-ink/15 px-3 py-1.5 text-xs font-semibold text-navy hover:bg-paper disabled:opacity-50"
+                >
+                  <Copy size={13} /> Duplicate
+                </button>
                 {p.status !== "archived" && (
                   <button
                     type="button"
