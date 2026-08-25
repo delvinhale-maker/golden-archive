@@ -11,6 +11,7 @@ import {
   formatBytes,
   formatLabel,
   isAllowedDeliveryFile,
+  isAllowedDeliveryMime,
   sortDeliveryFiles,
 } from "@/lib/product-delivery";
 
@@ -56,6 +57,10 @@ export function ProductDeliveryFilesManager({
     for (const f of list) {
       if (!isAllowedDeliveryFile(f.name)) {
         toast.error(`${f.name}: unsupported format`);
+        continue;
+      }
+      if (!isAllowedDeliveryMime(f.name, f.type)) {
+        toast.error(`${f.name}: file contents don't match its .${extOf(f.name)} extension`);
         continue;
       }
       if (f.size <= 0) {
