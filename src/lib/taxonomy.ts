@@ -311,6 +311,8 @@ export const DELIVERY_CONTENT_OPTIONS = [
   "Templates",
   "Sample Data",
   "Live Tool Included",
+  "Interactive PDF",
+  "Decision Engine",
   "Quick Start Guide",
   "Reference Guide",
   "Other",
