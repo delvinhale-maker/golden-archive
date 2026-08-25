@@ -2702,6 +2702,80 @@ export type Database = {
         }
         Relationships: []
       }
+      qr_projects: {
+        Row: {
+          created_at: string
+          destination: string
+          destination_type: string
+          id: string
+          mode: string
+          name: string
+          owner_user_id: string
+          public_id: string
+          status: string
+          style: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          destination: string
+          destination_type: string
+          id?: string
+          mode: string
+          name: string
+          owner_user_id: string
+          public_id: string
+          status?: string
+          style?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          destination?: string
+          destination_type?: string
+          id?: string
+          mode?: string
+          name?: string
+          owner_user_id?: string
+          public_id?: string
+          status?: string
+          style?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      qr_scan_events: {
+        Row: {
+          created_at: string
+          device_category: string | null
+          id: string
+          qr_project_id: string
+          referrer_host: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_category?: string | null
+          id?: string
+          qr_project_id: string
+          referrer_host?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_category?: string | null
+          id?: string
+          qr_project_id?: string
+          referrer_host?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_scan_events_qr_project_id_fkey"
+            columns: ["qr_project_id"]
+            isOneToOne: false
+            referencedRelation: "qr_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           created_at: string
