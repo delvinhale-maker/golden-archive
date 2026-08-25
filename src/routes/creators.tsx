@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { MapPin, Search } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getApprovedCreators, type CreatorSummary } from "@/lib/creators.functions";
+import { StorefrontFoundingBadge } from "@/components/marketplace/StorefrontFoundingBadge";
 import { BROWSE_CATEGORIES, labelToSlug } from "@/lib/categories";
 
 const creatorsQ = queryOptions({
