@@ -70,6 +70,7 @@ import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as StoreSlugRouteImport } from './routes/store.$slug'
 import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm'
+import { Route as ToolsRevenueCalculatorRouteImport } from './routes/tools.revenue-calculator'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAutoReleaseRouteImport } from './routes/_authenticated/admin.auto-release'
 import { Route as AuthenticatedAdminBundlesRouteImport } from './routes/_authenticated/admin.bundles'
@@ -434,6 +435,11 @@ const StoreSlugRoute = StoreSlugRouteImport.update({
 const SubscribeConfirmRoute = SubscribeConfirmRouteImport.update({
   id: '/subscribe/confirm',
   path: '/subscribe/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsRevenueCalculatorRoute = ToolsRevenueCalculatorRouteImport.update({
+  id: '/tools/revenue-calculator',
+  path: '/tools/revenue-calculator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -838,6 +844,7 @@ export interface FileRoutesByFullPath {
   '/products/$id': typeof ProductsIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
+  '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
   '/academy/': typeof AcademyIndexRoute
   '/bundles/': typeof BundlesIndexRoute
   '/creator-business-tools/': typeof CreatorBusinessToolsIndexRoute
@@ -955,6 +962,7 @@ export interface FileRoutesByTo {
   '/products/$id': typeof ProductsIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
+  '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
   '/academy': typeof AcademyIndexRoute
   '/bundles': typeof BundlesIndexRoute
   '/creator-business-tools': typeof CreatorBusinessToolsIndexRoute
@@ -1077,6 +1085,7 @@ export interface FileRoutesById {
   '/products/$id': typeof ProductsIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
+  '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
   '/academy/': typeof AcademyIndexRoute
   '/bundles/': typeof BundlesIndexRoute
   '/creator-business-tools/': typeof CreatorBusinessToolsIndexRoute
@@ -1199,6 +1208,7 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/store/$slug'
     | '/subscribe/confirm'
+    | '/tools/revenue-calculator'
     | '/academy/'
     | '/bundles/'
     | '/creator-business-tools/'
@@ -1316,6 +1326,7 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/store/$slug'
     | '/subscribe/confirm'
+    | '/tools/revenue-calculator'
     | '/academy'
     | '/bundles'
     | '/creator-business-tools'
@@ -1437,6 +1448,7 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/store/$slug'
     | '/subscribe/confirm'
+    | '/tools/revenue-calculator'
     | '/academy/'
     | '/bundles/'
     | '/creator-business-tools/'
@@ -1554,6 +1566,7 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   StoreSlugRoute: typeof StoreSlugRoute
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
+  ToolsRevenueCalculatorRoute: typeof ToolsRevenueCalculatorRoute
   BundlesIndexRoute: typeof BundlesIndexRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
@@ -2000,6 +2013,13 @@ declare module '@tanstack/react-router' {
       path: '/subscribe/confirm'
       fullPath: '/subscribe/confirm'
       preLoaderRoute: typeof SubscribeConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/revenue-calculator': {
+      id: '/tools/revenue-calculator'
+      path: '/tools/revenue-calculator'
+      fullPath: '/tools/revenue-calculator'
+      preLoaderRoute: typeof ToolsRevenueCalculatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
@@ -2629,6 +2649,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   StoreSlugRoute: StoreSlugRoute,
   SubscribeConfirmRoute: SubscribeConfirmRoute,
+  ToolsRevenueCalculatorRoute: ToolsRevenueCalculatorRoute,
   BundlesIndexRoute: BundlesIndexRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
