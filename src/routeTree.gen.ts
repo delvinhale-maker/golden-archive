@@ -133,6 +133,8 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as AuthenticatedAdminHealthCoversAlertsRouteImport } from './routes/_authenticated/admin.health.covers.alerts'
+import { Route as AuthenticatedDashboardQrCampaignsIndexRouteImport } from './routes/_authenticated/dashboard.qr.campaigns.index'
+import { Route as AuthenticatedDashboardQrCampaignsIdRouteImport } from './routes/_authenticated/dashboard.qr.campaigns.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -813,6 +815,18 @@ const AuthenticatedAdminHealthCoversAlertsRoute =
     path: '/alerts',
     getParentRoute: () => AuthenticatedAdminHealthCoversRoute,
   } as any)
+const AuthenticatedDashboardQrCampaignsIndexRoute =
+  AuthenticatedDashboardQrCampaignsIndexRouteImport.update({
+    id: '/dashboard/qr/campaigns/',
+    path: '/dashboard/qr/campaigns/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardQrCampaignsIdRoute =
+  AuthenticatedDashboardQrCampaignsIdRouteImport.update({
+    id: '/dashboard/qr/campaigns/$id',
+    path: '/dashboard/qr/campaigns/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -938,6 +952,8 @@ export interface FileRoutesByFullPath {
   '/admin/academy/': typeof AuthenticatedAdminAcademyIndexRoute
   '/dashboard/qr/': typeof AuthenticatedDashboardQrIndexRoute
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
+  '/dashboard/qr/campaigns/$id': typeof AuthenticatedDashboardQrCampaignsIdRoute
+  '/dashboard/qr/campaigns/': typeof AuthenticatedDashboardQrCampaignsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1060,6 +1076,8 @@ export interface FileRoutesByTo {
   '/admin/academy': typeof AuthenticatedAdminAcademyIndexRoute
   '/dashboard/qr': typeof AuthenticatedDashboardQrIndexRoute
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
+  '/dashboard/qr/campaigns/$id': typeof AuthenticatedDashboardQrCampaignsIdRoute
+  '/dashboard/qr/campaigns': typeof AuthenticatedDashboardQrCampaignsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1187,6 +1205,8 @@ export interface FileRoutesById {
   '/_authenticated/admin/academy/': typeof AuthenticatedAdminAcademyIndexRoute
   '/_authenticated/dashboard/qr/': typeof AuthenticatedDashboardQrIndexRoute
   '/_authenticated/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
+  '/_authenticated/dashboard/qr/campaigns/$id': typeof AuthenticatedDashboardQrCampaignsIdRoute
+  '/_authenticated/dashboard/qr/campaigns/': typeof AuthenticatedDashboardQrCampaignsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1314,6 +1334,8 @@ export interface FileRouteTypes {
     | '/admin/academy/'
     | '/dashboard/qr/'
     | '/admin/health/covers/alerts'
+    | '/dashboard/qr/campaigns/$id'
+    | '/dashboard/qr/campaigns/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1436,6 +1458,8 @@ export interface FileRouteTypes {
     | '/admin/academy'
     | '/dashboard/qr'
     | '/admin/health/covers/alerts'
+    | '/dashboard/qr/campaigns/$id'
+    | '/dashboard/qr/campaigns'
   id:
     | '__root__'
     | '/'
@@ -1562,6 +1586,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/academy/'
     | '/_authenticated/dashboard/qr/'
     | '/_authenticated/admin/health/covers/alerts'
+    | '/_authenticated/dashboard/qr/campaigns/$id'
+    | '/_authenticated/dashboard/qr/campaigns/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -2508,6 +2534,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminHealthCoversAlertsRouteImport
       parentRoute: typeof AuthenticatedAdminHealthCoversRoute
     }
+    '/_authenticated/dashboard/qr/campaigns/': {
+      id: '/_authenticated/dashboard/qr/campaigns/'
+      path: '/dashboard/qr/campaigns'
+      fullPath: '/dashboard/qr/campaigns/'
+      preLoaderRoute: typeof AuthenticatedDashboardQrCampaignsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/qr/campaigns/$id': {
+      id: '/_authenticated/dashboard/qr/campaigns/$id'
+      path: '/dashboard/qr/campaigns/$id'
+      fullPath: '/dashboard/qr/campaigns/$id'
+      preLoaderRoute: typeof AuthenticatedDashboardQrCampaignsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -2571,6 +2611,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardVariantsIdRoute: typeof AuthenticatedDashboardVariantsIdRoute
   AuthenticatedAdminAcademyIndexRoute: typeof AuthenticatedAdminAcademyIndexRoute
   AuthenticatedDashboardQrIndexRoute: typeof AuthenticatedDashboardQrIndexRoute
+  AuthenticatedDashboardQrCampaignsIdRoute: typeof AuthenticatedDashboardQrCampaignsIdRoute
+  AuthenticatedDashboardQrCampaignsIndexRoute: typeof AuthenticatedDashboardQrCampaignsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -2623,6 +2665,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardVariantsIdRoute: AuthenticatedDashboardVariantsIdRoute,
   AuthenticatedAdminAcademyIndexRoute: AuthenticatedAdminAcademyIndexRoute,
   AuthenticatedDashboardQrIndexRoute: AuthenticatedDashboardQrIndexRoute,
+  AuthenticatedDashboardQrCampaignsIdRoute:
+    AuthenticatedDashboardQrCampaignsIdRoute,
+  AuthenticatedDashboardQrCampaignsIndexRoute:
+    AuthenticatedDashboardQrCampaignsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
