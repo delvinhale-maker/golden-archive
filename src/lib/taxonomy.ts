@@ -324,14 +324,23 @@ export function isDeliveryContent(v: string): v is DeliveryContent {
   return (DELIVERY_CONTENT_OPTIONS as readonly string[]).includes(v);
 }
 
-/** "PDF + XLSX + Templates" — the single metadata line on product pages. */
+/** File formats, in the order buyers expect to see them on a product page. */
+const FORMAT_PRIORITY = ["PDF", "XLSX", "ZIP", "DOCX", "CSV"] as const;
+
+/**
+ * "PDF + XLSX + ZIP" — the single metadata line on product pages. Actual file
+ * formats always win over descriptive extras, so a complete system never hides
+ * its ZIP bundle behind labels like "Templates".
+ */
 export function deliverySummary(contents?: string[] | null, max = 3): string {
   const list = (contents ?? []).filter((c) => c && c !== "Other");
   if (!list.length) return "";
-  return list.slice(0, max).join(" + ");
+  const formats = FORMAT_PRIORITY.filter((f) => list.includes(f)) as string[];
+  const rest = list.filter((c) => !formats.includes(c));
+  return [...formats, ...rest].slice(0, max).join(" + ");
 }
 
-/** At most two premium badges, never a pile-up (spec §13/§21). */
+/** Up to three premium badges, never a pile-up (spec §13/§21). */
 export function productBadges(input: {
   product_type?: string | null;
   category?: string | null;
