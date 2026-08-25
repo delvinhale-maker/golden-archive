@@ -172,7 +172,8 @@ describe("Phase 2 migration — additive, owner-scoped, no anon exposure", () =>
   });
 
   it("only adds nullable columns to qr_projects — Phase 1 rows stay valid", () => {
-    const alter = migration.slice(migration.indexOf("ALTER TABLE public.qr_projects"));
+    const alterStart = migration.indexOf("ALTER TABLE public.qr_projects");
+    const alter = migration.slice(alterStart, migration.indexOf(";", alterStart));
     expect(alter).not.toMatch(/NOT NULL/);
     expect(alter).not.toMatch(/DROP (COLUMN|CONSTRAINT|TABLE)/i);
     for (const col of [
