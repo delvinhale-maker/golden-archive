@@ -11,38 +11,33 @@ import {
   ShieldCheck,
   Crown,
   Check,
+  QrCode,
+  Store,
+  Download,
 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
+import { logCtaClick } from "@/lib/cta-tracking";
 
 
 const NAVY = "#1B2A4A";
 const NAVY_DEEP = "#11192E";
 const GOLD = "#C9A84C";
 
+const DESCRIPTION =
+  "Sell your digital products on AurumVault: keep 85% of every sale, pay $0 to list or apply, keep 100% ownership of your work, and get your own storefront with trackable QR codes.";
+
 export const Route = createFileRoute("/become-a-creator")({
   head: () => ({
     meta: [
-      { title: "Become a Creator on AurumVault | Sell Digital Products & Keep 85%" },
-      {
-        name: "description",
-        content:
-          "Join the most curated digital marketplace for purpose-driven creators. Keep 85% of every sale. AI-powered tools, built-in Kingdom-minded audience, 48-hour review.",
-      },
-      { property: "og:title", content: "Your Knowledge. Your Empire. Your Vault." },
-      {
-        property: "og:description",
-        content:
-          "Join the most curated digital marketplace for purpose-driven creators. Keep 85% of every sale.",
-      },
+      { title: "Sell on AurumVault | Keep 85%, $0 Fees, Own Your Work" },
+      { name: "description", content: DESCRIPTION },
+      { property: "og:title", content: "Build Your Store. Keep 85%. Own Your Work." },
+      { property: "og:description", content: DESCRIPTION },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://www.aurumvault.store/become-a-creator" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Become a Creator on AurumVault" },
-      {
-        name: "twitter:description",
-        content:
-          "Keep 85% of every sale. AI-powered tools. Kingdom-minded audience.",
-      },
+      { name: "twitter:title", content: "Build Your Store. Keep 85%. Own Your Work." },
+      { name: "twitter:description", content: DESCRIPTION },
     ],
     links: [
       { rel: "canonical", href: "https://www.aurumvault.store/become-a-creator" },
@@ -55,12 +50,17 @@ function BecomeACreatorPage() {
   return (
     <MarketShell>
       <Hero />
+      <ValueStrip />
       <ValueProps />
+      <StorefrontAndQR />
       <StartCreatingCTA />
       <PreSetupFAQ />
       <HowItWorks />
       <WhatToSell />
       <CreatorTools />
+      <FoundingBand />
+      <StarterPackBand />
+      <TrustBand />
       <FAQ />
       <FinalCTA />
     </MarketShell>
