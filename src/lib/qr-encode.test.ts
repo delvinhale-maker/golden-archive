@@ -73,7 +73,7 @@ describe("qrcode encoder — PNG/SVG rendering with validated colors", () => {
       width: 512,
       color: { dark: colors.foreground, light: colors.background },
     });
-    expect(dataUrl).toStartWith("data:image/png;base64,");
+    expect(dataUrl.startsWith("data:image/png;base64,")).toBe(true);
     expect(dataUrl.length).toBeGreaterThan(100);
   });
 
