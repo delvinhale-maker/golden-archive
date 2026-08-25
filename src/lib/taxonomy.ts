@@ -350,11 +350,15 @@ export function productBadges(input: {
   const badges: string[] = [];
   const type = resolveProductType(input);
   if (type) badges.push(type.label);
+  const contents = input.delivery_contents ?? [];
   const sub = (input.subcategory ?? "").trim();
-  if (sub && sub === "Interactive Decision Tools" && type?.slug !== "interactive_decision_tool") {
+  const isDecisionTool =
+    type?.slug === "interactive_decision_tool" ||
+    sub === "Interactive Decision Tools" ||
+    contents.includes("Decision Engine");
+  if (isDecisionTool && type?.slug !== "interactive_decision_tool") {
     badges.push("Interactive Decision Tool");
-  } else if ((input.delivery_contents ?? []).includes("Live Tool Included")) {
-    badges.push("Live Tools Included");
   }
-  return badges.slice(0, 2);
+  if (contents.includes("Live Tool Included")) badges.push("Live Tools Included");
+  return [...new Set(badges)].slice(0, 3);
 }
