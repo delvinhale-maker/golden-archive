@@ -7,7 +7,7 @@ import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell
 import { archiveQrProject, listMyQrProjects, updateQrProject } from "@/lib/qr.functions";
 import { MAX_ACTIVE_DYNAMIC_QR } from "@/lib/qr";
 
-export const Route = createFileRoute("/_authenticated/dashboard/qr")({
+export const Route = createFileRoute("/_authenticated/dashboard/qr/")({
   component: QrDashboard,
 });
 
