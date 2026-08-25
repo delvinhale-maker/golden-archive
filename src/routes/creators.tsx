@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { MapPin, Search } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getApprovedCreators, type CreatorSummary } from "@/lib/creators.functions";
+import { StorefrontFoundingBadge } from "@/components/marketplace/StorefrontFoundingBadge";
 import { BROWSE_CATEGORIES, labelToSlug } from "@/lib/categories";
 
 const creatorsQ = queryOptions({
@@ -152,11 +153,11 @@ function CreatorsPage() {
                         </span>
                       )}
                     </div>
-                    <div className="mt-2 flex items-center gap-1.5">
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
                       <div className="truncate font-display text-lg font-bold text-white">
                         {c.brandName}
                       </div>
-                      
+                      <StorefrontFoundingBadge sellerId={c.userId} />
                     </div>
                     {c.pitch && (
                       <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-white/70">
