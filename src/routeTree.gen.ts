@@ -68,6 +68,7 @@ import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
+import { Route as QPublicIdRouteImport } from './routes/q.$publicId'
 import { Route as StoreSlugRouteImport } from './routes/store.$slug'
 import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm'
 import { Route as ToolsRevenueCalculatorRouteImport } from './routes/tools.revenue-calculator'
@@ -102,6 +103,7 @@ import { Route as AuthenticatedDashboardKingdomPicksRouteImport } from './routes
 import { Route as AuthenticatedDashboardLaunchKitRouteImport } from './routes/_authenticated/dashboard.launch-kit'
 import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authenticated/dashboard.new'
 import { Route as AuthenticatedDashboardPayoutsRouteImport } from './routes/_authenticated/dashboard.payouts'
+import { Route as AuthenticatedDashboardQrRouteImport } from './routes/_authenticated/dashboard.qr'
 import { Route as AuthenticatedDashboardStorefrontRouteImport } from './routes/_authenticated/dashboard.storefront'
 import { Route as AcademyArticleSlugRouteImport } from './routes/academy.article.$slug'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
@@ -113,6 +115,8 @@ import { Route as AuthenticatedAdminHealthCoversRouteImport } from './routes/_au
 import { Route as AuthenticatedDashboardBumpsIdRouteImport } from './routes/_authenticated/dashboard.bumps.$id'
 import { Route as AuthenticatedDashboardEditIdRouteImport } from './routes/_authenticated/dashboard.edit.$id'
 import { Route as AuthenticatedDashboardPreorderIdRouteImport } from './routes/_authenticated/dashboard.preorder.$id'
+import { Route as AuthenticatedDashboardQrIdRouteImport } from './routes/_authenticated/dashboard.qr.$id'
+import { Route as AuthenticatedDashboardQrNewRouteImport } from './routes/_authenticated/dashboard.qr.new'
 import { Route as AuthenticatedDashboardVariantsIdRouteImport } from './routes/_authenticated/dashboard.variants.$id'
 import { Route as ApiPublicAcademyReceiveArticleRouteImport } from './routes/api/public/academy/receive-article'
 import { Route as ApiPublicCronReleasePreordersRouteImport } from './routes/api/public/cron/release-preorders'
@@ -427,6 +431,11 @@ const ProductsIdRoute = ProductsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ProductsRoute,
 } as any)
+const QPublicIdRoute = QPublicIdRouteImport.update({
+  id: '/q/$publicId',
+  path: '/q/$publicId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StoreSlugRoute = StoreSlugRouteImport.update({
   id: '/store/$slug',
   path: '/store/$slug',
@@ -627,6 +636,12 @@ const AuthenticatedDashboardPayoutsRoute =
     path: '/dashboard/payouts',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardQrRoute =
+  AuthenticatedDashboardQrRouteImport.update({
+    id: '/dashboard/qr',
+    path: '/dashboard/qr',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardStorefrontRoute =
   AuthenticatedDashboardStorefrontRouteImport.update({
     id: '/dashboard/storefront',
@@ -689,6 +704,18 @@ const AuthenticatedDashboardPreorderIdRoute =
     id: '/dashboard/preorder/$id',
     path: '/dashboard/preorder/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardQrIdRoute =
+  AuthenticatedDashboardQrIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedDashboardQrRoute,
+  } as any)
+const AuthenticatedDashboardQrNewRoute =
+  AuthenticatedDashboardQrNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedDashboardQrRoute,
   } as any)
 const AuthenticatedDashboardVariantsIdRoute =
   AuthenticatedDashboardVariantsIdRouteImport.update({
@@ -842,6 +869,7 @@ export interface FileRoutesByFullPath {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
@@ -878,6 +906,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/launch-kit': typeof AuthenticatedDashboardLaunchKitRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
+  '/dashboard/qr': typeof AuthenticatedDashboardQrRouteWithChildren
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
   '/academy/article/$slug': typeof AcademyArticleSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
@@ -890,6 +919,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
   '/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
+  '/dashboard/qr/$id': typeof AuthenticatedDashboardQrIdRoute
+  '/dashboard/qr/new': typeof AuthenticatedDashboardQrNewRoute
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
@@ -960,6 +991,7 @@ export interface FileRoutesByTo {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
@@ -996,6 +1028,7 @@ export interface FileRoutesByTo {
   '/dashboard/launch-kit': typeof AuthenticatedDashboardLaunchKitRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
+  '/dashboard/qr': typeof AuthenticatedDashboardQrRouteWithChildren
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
   '/academy/article/$slug': typeof AcademyArticleSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
@@ -1008,6 +1041,8 @@ export interface FileRoutesByTo {
   '/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
   '/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
+  '/dashboard/qr/$id': typeof AuthenticatedDashboardQrIdRoute
+  '/dashboard/qr/new': typeof AuthenticatedDashboardQrNewRoute
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
@@ -1083,6 +1118,7 @@ export interface FileRoutesById {
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/products/$id': typeof ProductsIdRoute
+  '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
@@ -1119,6 +1155,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/launch-kit': typeof AuthenticatedDashboardLaunchKitRoute
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/_authenticated/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
+  '/_authenticated/dashboard/qr': typeof AuthenticatedDashboardQrRouteWithChildren
   '/_authenticated/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
   '/academy/article/$slug': typeof AcademyArticleSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
@@ -1131,6 +1168,8 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
   '/_authenticated/dashboard/edit/$id': typeof AuthenticatedDashboardEditIdRoute
   '/_authenticated/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
+  '/_authenticated/dashboard/qr/$id': typeof AuthenticatedDashboardQrIdRoute
+  '/_authenticated/dashboard/qr/new': typeof AuthenticatedDashboardQrNewRoute
   '/_authenticated/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
@@ -1206,6 +1245,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/q/$publicId'
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/tools/revenue-calculator'
@@ -1242,6 +1282,7 @@ export interface FileRouteTypes {
     | '/dashboard/launch-kit'
     | '/dashboard/new'
     | '/dashboard/payouts'
+    | '/dashboard/qr'
     | '/dashboard/storefront'
     | '/academy/article/$slug'
     | '/api/public/contact'
@@ -1254,6 +1295,8 @@ export interface FileRouteTypes {
     | '/dashboard/bumps/$id'
     | '/dashboard/edit/$id'
     | '/dashboard/preorder/$id'
+    | '/dashboard/qr/$id'
+    | '/dashboard/qr/new'
     | '/dashboard/variants/$id'
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
@@ -1324,6 +1367,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/q/$publicId'
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/tools/revenue-calculator'
@@ -1360,6 +1404,7 @@ export interface FileRouteTypes {
     | '/dashboard/launch-kit'
     | '/dashboard/new'
     | '/dashboard/payouts'
+    | '/dashboard/qr'
     | '/dashboard/storefront'
     | '/academy/article/$slug'
     | '/api/public/contact'
@@ -1372,6 +1417,8 @@ export interface FileRouteTypes {
     | '/dashboard/bumps/$id'
     | '/dashboard/edit/$id'
     | '/dashboard/preorder/$id'
+    | '/dashboard/qr/$id'
+    | '/dashboard/qr/new'
     | '/dashboard/variants/$id'
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
@@ -1446,6 +1493,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/email/unsubscribe'
     | '/products/$id'
+    | '/q/$publicId'
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/tools/revenue-calculator'
@@ -1482,6 +1530,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/launch-kit'
     | '/_authenticated/dashboard/new'
     | '/_authenticated/dashboard/payouts'
+    | '/_authenticated/dashboard/qr'
     | '/_authenticated/dashboard/storefront'
     | '/academy/article/$slug'
     | '/api/public/contact'
@@ -1494,6 +1543,8 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/bumps/$id'
     | '/_authenticated/dashboard/edit/$id'
     | '/_authenticated/dashboard/preorder/$id'
+    | '/_authenticated/dashboard/qr/$id'
+    | '/_authenticated/dashboard/qr/new'
     | '/_authenticated/dashboard/variants/$id'
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
@@ -1564,6 +1615,7 @@ export interface RootRouteChildren {
   CreatorSlugRoute: typeof CreatorSlugRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  QPublicIdRoute: typeof QPublicIdRoute
   StoreSlugRoute: typeof StoreSlugRoute
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
   ToolsRevenueCalculatorRoute: typeof ToolsRevenueCalculatorRoute
@@ -2001,6 +2053,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsIdRouteImport
       parentRoute: typeof ProductsRoute
     }
+    '/q/$publicId': {
+      id: '/q/$publicId'
+      path: '/q/$publicId'
+      fullPath: '/q/$publicId'
+      preLoaderRoute: typeof QPublicIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/store/$slug': {
       id: '/store/$slug'
       path: '/store/$slug'
@@ -2239,6 +2298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardPayoutsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/qr': {
+      id: '/_authenticated/dashboard/qr'
+      path: '/dashboard/qr'
+      fullPath: '/dashboard/qr'
+      preLoaderRoute: typeof AuthenticatedDashboardQrRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/storefront': {
       id: '/_authenticated/dashboard/storefront'
       path: '/dashboard/storefront'
@@ -2315,6 +2381,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/preorder/$id'
       preLoaderRoute: typeof AuthenticatedDashboardPreorderIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/qr/$id': {
+      id: '/_authenticated/dashboard/qr/$id'
+      path: '/$id'
+      fullPath: '/dashboard/qr/$id'
+      preLoaderRoute: typeof AuthenticatedDashboardQrIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardQrRoute
+    }
+    '/_authenticated/dashboard/qr/new': {
+      id: '/_authenticated/dashboard/qr/new'
+      path: '/new'
+      fullPath: '/dashboard/qr/new'
+      preLoaderRoute: typeof AuthenticatedDashboardQrNewRouteImport
+      parentRoute: typeof AuthenticatedDashboardQrRoute
     }
     '/_authenticated/dashboard/variants/$id': {
       id: '/_authenticated/dashboard/variants/$id'
@@ -2431,6 +2511,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedDashboardQrRouteChildren {
+  AuthenticatedDashboardQrIdRoute: typeof AuthenticatedDashboardQrIdRoute
+  AuthenticatedDashboardQrNewRoute: typeof AuthenticatedDashboardQrNewRoute
+}
+
+const AuthenticatedDashboardQrRouteChildren: AuthenticatedDashboardQrRouteChildren =
+  {
+    AuthenticatedDashboardQrIdRoute: AuthenticatedDashboardQrIdRoute,
+    AuthenticatedDashboardQrNewRoute: AuthenticatedDashboardQrNewRoute,
+  }
+
+const AuthenticatedDashboardQrRouteWithChildren =
+  AuthenticatedDashboardQrRoute._addFileChildren(
+    AuthenticatedDashboardQrRouteChildren,
+  )
+
 interface AuthenticatedAdminHealthCoversRouteChildren {
   AuthenticatedAdminHealthCoversAlertsRoute: typeof AuthenticatedAdminHealthCoversAlertsRoute
 }
@@ -2477,6 +2573,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardLaunchKitRoute: typeof AuthenticatedDashboardLaunchKitRoute
   AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
   AuthenticatedDashboardPayoutsRoute: typeof AuthenticatedDashboardPayoutsRoute
+  AuthenticatedDashboardQrRoute: typeof AuthenticatedDashboardQrRouteWithChildren
   AuthenticatedDashboardStorefrontRoute: typeof AuthenticatedDashboardStorefrontRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
@@ -2525,6 +2622,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardLaunchKitRoute: AuthenticatedDashboardLaunchKitRoute,
   AuthenticatedDashboardNewRoute: AuthenticatedDashboardNewRoute,
   AuthenticatedDashboardPayoutsRoute: AuthenticatedDashboardPayoutsRoute,
+  AuthenticatedDashboardQrRoute: AuthenticatedDashboardQrRouteWithChildren,
   AuthenticatedDashboardStorefrontRoute: AuthenticatedDashboardStorefrontRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
@@ -2647,6 +2745,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreatorSlugRoute: CreatorSlugRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  QPublicIdRoute: QPublicIdRoute,
   StoreSlugRoute: StoreSlugRoute,
   SubscribeConfirmRoute: SubscribeConfirmRoute,
   ToolsRevenueCalculatorRoute: ToolsRevenueCalculatorRoute,
