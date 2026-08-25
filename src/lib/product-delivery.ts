@@ -44,6 +44,43 @@ export function isAllowedDeliveryFile(name: string): boolean {
   return (DELIVERY_EXTENSIONS as readonly string[]).includes(extOf(name));
 }
 
+/**
+ * MIME types browsers report per delivery extension. Kept permissive because
+ * mobile browsers frequently send "" or application/octet-stream for ZIP and
+ * Office files — those are accepted, anything that clearly contradicts the
+ * extension is not.
+ */
+const DELIVERY_MIME: Record<string, string[]> = {
+  zip: [
+    "application/zip",
+    "application/x-zip-compressed",
+    "application/x-zip",
+    "multipart/x-zip",
+  ],
+  pdf: ["application/pdf"],
+  docx: ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+  xlsx: ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
+  pptx: ["application/vnd.openxmlformats-officedocument.presentationml.presentation"],
+  csv: ["text/csv", "application/csv", "text/plain"],
+  epub: ["application/epub+zip"],
+  txt: ["text/plain"],
+  png: ["image/png"],
+  jpg: ["image/jpeg"],
+  jpeg: ["image/jpeg"],
+  mp3: ["audio/mpeg", "audio/mp3"],
+};
+
+const NEUTRAL_MIME = ["", "application/octet-stream", "application/binary"];
+
+/** True when the reported MIME type is consistent with the file extension. */
+export function isAllowedDeliveryMime(name: string, mime: string | undefined): boolean {
+  const expected = DELIVERY_MIME[extOf(name)];
+  if (!expected) return false;
+  const m = (mime ?? "").toLowerCase().split(";")[0].trim();
+  if (NEUTRAL_MIME.includes(m)) return true;
+  return expected.includes(m);
+}
+
 export function formatLabel(nameOrPath: string | null): string {
   const e = extOf(nameOrPath ?? "");
   return e ? e.toUpperCase() : "FILE";

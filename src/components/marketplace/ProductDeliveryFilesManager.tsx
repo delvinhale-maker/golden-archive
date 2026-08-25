@@ -11,6 +11,7 @@ import {
   formatBytes,
   formatLabel,
   isAllowedDeliveryFile,
+  isAllowedDeliveryMime,
   sortDeliveryFiles,
 } from "@/lib/product-delivery";
 
@@ -56,6 +57,10 @@ export function ProductDeliveryFilesManager({
     for (const f of list) {
       if (!isAllowedDeliveryFile(f.name)) {
         toast.error(`${f.name}: unsupported format`);
+        continue;
+      }
+      if (!isAllowedDeliveryMime(f.name, f.type)) {
+        toast.error(`${f.name}: file contents don't match its .${extOf(f.name)} extension`);
         continue;
       }
       if (f.size <= 0) {
@@ -150,10 +155,11 @@ export function ProductDeliveryFilesManager({
           <Upload size={22} className="text-gold-ink" />
         )}
         <span className="text-sm font-semibold text-navy">
-          {uploading ? "Uploading…" : "Drop files here or tap to upload"}
+          {uploading ? "Uploading…" : "Upload the main customer bundle"}
         </span>
         <span className="text-xs text-mute">
-          ZIP, PDF, DOCX, XLSX, PPTX, CSV, EPUB, TXT, images or MP3 · up to 500 MB each
+          Drop files here or tap to upload · Supported: ZIP, PDF, XLSX, DOCX, CSV (also PPTX,
+          EPUB, TXT, images, MP3) · up to 500 MB each
         </span>
         <input
           type="file"
@@ -180,38 +186,49 @@ export function ProductDeliveryFilesManager({
           {files.map((f) => (
             <li
               key={f.id}
-              className="flex flex-wrap items-center gap-2 rounded-lg border border-ink/10 bg-white px-3 py-2"
+              data-testid="delivery-file-row"
+              className="w-full min-w-0 space-y-2 overflow-hidden rounded-lg border border-ink/10 bg-white px-3 py-2"
             >
-              <FileArchive size={16} className="shrink-0 text-gold-ink" />
-              <input
-                defaultValue={displayName(f)}
-                onBlur={(e) => void rename(f, e.target.value)}
-                className="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 py-1 text-sm text-ink hover:border-ink/15 focus:border-gold focus:outline-none"
-                aria-label="File label"
-              />
-              <span className="rounded-full bg-navy px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold">
-                {f.format?.toUpperCase() || formatLabel(f.file_path)}
-              </span>
-              {formatBytes(f.file_size_bytes) && (
-                <span className="text-[11px] text-mute">{formatBytes(f.file_size_bytes)}</span>
-              )}
-              <button
-                type="button"
-                onClick={() => void makePrimary(f)}
-                title="Make this the main download"
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                  f.is_primary ? "bg-gold text-navy" : "border border-ink/15 text-mute hover:bg-ink/5"
-                }`}
-              >
-                <Star size={12} /> {f.is_primary ? "Main" : "Set main"}
-              </button>
-              <button
-                type="button"
-                onClick={() => void remove(f)}
-                className="inline-flex items-center gap-1 rounded-full border border-red-200 px-2.5 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-50"
-              >
-                <Trash2 size={12} /> Remove
-              </button>
+              <div className="flex min-w-0 items-center gap-2">
+                <FileArchive size={16} className="shrink-0 text-gold-ink" />
+                <input
+                  defaultValue={displayName(f)}
+                  onBlur={(e) => void rename(f, e.target.value)}
+                  className="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 py-1 text-sm text-ink hover:border-ink/15 focus:border-gold focus:outline-none"
+                  aria-label="File label"
+                />
+              </div>
+              <p className="truncate text-[11px] text-mute" title={f.file_path.split("/").pop() ?? ""}>
+                {(f.file_path.split("/").pop() ?? "").replace(/^\d+-/, "")}
+              </p>
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <span className="rounded-full bg-navy px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold">
+                  {f.format?.toUpperCase() || formatLabel(f.file_path)}
+                </span>
+                {formatBytes(f.file_size_bytes) && (
+                  <span className="text-[11px] text-mute">{formatBytes(f.file_size_bytes)}</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => void makePrimary(f)}
+                  title="Mark as the primary customer bundle"
+                  className={`inline-flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-semibold ${
+                    f.is_primary ? "bg-gold text-navy" : "border border-ink/15 text-mute hover:bg-ink/5"
+                  }`}
+                >
+                  <Star size={12} />
+                  <span className="whitespace-nowrap">
+                    {f.is_primary ? "Primary bundle" : "Set as primary"}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void remove(f)}
+                  className="inline-flex min-h-9 items-center gap-1 rounded-full border border-red-200 px-3 py-1.5 text-[11px] font-semibold text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 size={12} /> Remove
+                </button>
+              </div>
             </li>
           ))}
         </ul>
