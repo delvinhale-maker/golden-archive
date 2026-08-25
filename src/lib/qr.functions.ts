@@ -12,6 +12,11 @@ import {
   resolveQrSizePx,
   type QrDestinationType,
 } from "@/lib/qr";
+import { QR_NICHES, QR_USE_CASES, normalizePlacementLabel } from "@/lib/qr-usecases";
+import {
+  QR_PROJECT_COLUMNS,
+  assertOwnedCampaign,
+} from "@/lib/qr-business.server";
 
 const destinationTypeSchema = z.enum(QR_DESTINATION_TYPES);
 const formatSchema = z.enum(["png", "svg"]);
@@ -93,6 +98,11 @@ export const createQrProject = createServerFn({ method: "POST" })
         destination: z.string().min(1).max(2000),
         foreground: z.string().optional(),
         background: z.string().optional(),
+        // Phase 2 (all optional — Phase 1 callers keep working unchanged).
+        useCase: z.enum(QR_USE_CASES).optional(),
+        niche: z.enum(QR_NICHES).optional(),
+        campaignId: z.string().uuid().nullable().optional(),
+        placementLabel: z.string().max(80).nullable().optional(),
       })
       .parse(input),
   )
@@ -125,6 +135,10 @@ export const createQrProject = createServerFn({ method: "POST" })
       );
     }
 
+    // A campaign must be one the caller owns; the DB trigger enforces this
+    // too, so a forged campaign_id can never cross owners.
+    const campaignId = await assertOwnedCampaign(supabase as never, userId, data.campaignId);
+
     const publicId = generateQrPublicId();
     const { data: row, error } = await (supabase.from("qr_projects" as never) as any)
       .insert({
@@ -136,10 +150,12 @@ export const createQrProject = createServerFn({ method: "POST" })
         destination: dest.payload,
         style: { foreground: colors.foreground, background: colors.background },
         status: "active",
+        use_case: data.useCase ?? null,
+        niche: data.niche ?? null,
+        placement_label: normalizePlacementLabel(data.placementLabel),
+        campaign_id: campaignId,
       })
-      .select(
-        "id,public_id,name,mode,destination_type,destination,style,status,created_at,updated_at",
-      )
+      .select(QR_PROJECT_COLUMNS)
       .single();
     if (error || !row) throw new Error(error?.message ?? "Couldn't create QR code");
     return row;
@@ -153,6 +169,9 @@ const projectUpdateSchema = z.object({
   foreground: z.string().optional(),
   background: z.string().optional(),
   status: z.enum(["active", "paused"]).optional(),
+  // Phase 2 — placement label and campaign assignment are editable.
+  placementLabel: z.string().max(80).nullable().optional(),
+  campaignId: z.string().uuid().nullable().optional(),
 });
 
 /**
@@ -174,6 +193,12 @@ export const updateQrProject = createServerFn({ method: "POST" })
 
     if (data.name !== undefined) patch.name = data.name.trim();
     if (data.status !== undefined) patch.status = data.status;
+    if (data.placementLabel !== undefined) {
+      patch.placement_label = normalizePlacementLabel(data.placementLabel);
+    }
+    if (data.campaignId !== undefined) {
+      patch.campaign_id = await assertOwnedCampaign(supabase as never, userId, data.campaignId);
+    }
 
     if (data.destinationType !== undefined || data.destination !== undefined) {
       if (data.destinationType === undefined || data.destination === undefined) {
@@ -200,9 +225,7 @@ export const updateQrProject = createServerFn({ method: "POST" })
       .update(patch)
       .eq("id", data.id)
       .eq("owner_user_id", userId)
-      .select(
-        "id,public_id,name,mode,destination_type,destination,style,status,created_at,updated_at",
-      )
+      .select(QR_PROJECT_COLUMNS)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("QR code not found");
@@ -231,6 +254,11 @@ export type QrProjectListItem = {
   destination: string;
   style: { foreground?: string; background?: string };
   status: string;
+  use_case: string | null;
+  niche: string | null;
+  placement_label: string | null;
+  campaign_id: string | null;
+  duplicated_from: string | null;
   created_at: string;
   updated_at: string;
   scanCount: number;
@@ -249,7 +277,7 @@ export const listMyQrProjects = createServerFn({ method: "GET" })
     const { data: projects, error } = await supabase
       .from("qr_projects" as never)
       .select(
-        "id,public_id,name,mode,destination_type,destination,style,status,created_at,updated_at" as never,
+        QR_PROJECT_COLUMNS as never,
       )
       .eq("owner_user_id" as never, userId)
       .order("created_at" as never, { ascending: false });
@@ -278,7 +306,7 @@ export const getMyQrProject = createServerFn({ method: "GET" })
     const { data: row, error } = await supabase
       .from("qr_projects" as never)
       .select(
-        "id,public_id,name,mode,destination_type,destination,style,status,created_at,updated_at" as never,
+        QR_PROJECT_COLUMNS as never,
       )
       .eq("id" as never, data.id)
       .eq("owner_user_id" as never, userId)

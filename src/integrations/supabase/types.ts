@@ -2702,47 +2702,110 @@ export type Database = {
         }
         Relationships: []
       }
-      qr_projects: {
+      qr_campaigns: {
         Row: {
           created_at: string
-          destination: string
-          destination_type: string
+          goal: string | null
           id: string
-          mode: string
           name: string
+          notes: string | null
           owner_user_id: string
-          public_id: string
           status: string
-          style: Json
           updated_at: string
         }
         Insert: {
           created_at?: string
-          destination: string
-          destination_type: string
+          goal?: string | null
           id?: string
-          mode: string
           name: string
+          notes?: string | null
           owner_user_id: string
-          public_id: string
           status?: string
-          style?: Json
           updated_at?: string
         }
         Update: {
           created_at?: string
+          goal?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_user_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      qr_projects: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          destination: string
+          destination_type: string
+          duplicated_from: string | null
+          id: string
+          mode: string
+          name: string
+          niche: string | null
+          owner_user_id: string
+          placement_label: string | null
+          public_id: string
+          status: string
+          style: Json
+          updated_at: string
+          use_case: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          destination: string
+          destination_type: string
+          duplicated_from?: string | null
+          id?: string
+          mode: string
+          name: string
+          niche?: string | null
+          owner_user_id: string
+          placement_label?: string | null
+          public_id: string
+          status?: string
+          style?: Json
+          updated_at?: string
+          use_case?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
           destination?: string
           destination_type?: string
+          duplicated_from?: string | null
           id?: string
           mode?: string
           name?: string
+          niche?: string | null
           owner_user_id?: string
+          placement_label?: string | null
           public_id?: string
           status?: string
           style?: Json
           updated_at?: string
+          use_case?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "qr_projects_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "qr_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qr_projects_duplicated_from_fkey"
+            columns: ["duplicated_from"]
+            isOneToOne: false
+            referencedRelation: "qr_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       qr_scan_events: {
         Row: {

@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Pause, Play } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Copy, Download, Pause, Play } from "lucide-react";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
 import {
   getMyQrProject,
@@ -11,6 +12,7 @@ import {
   type QrRenderResult,
 } from "@/lib/qr.functions";
 import { DYNAMIC_QR_DESTINATION_TYPES, type QrDestinationType } from "@/lib/qr";
+import { duplicateQrProject, listMyQrCampaigns } from "@/lib/qr-business.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/qr/$id")({
   component: EditQrPage,
@@ -41,6 +43,14 @@ function EditQrPage() {
   const getFn = useServerFn(getMyQrProject);
   const updateFn = useServerFn(updateQrProject);
   const renderFn = useServerFn(renderQrProjectImage);
+  const duplicateFn = useServerFn(duplicateQrProject);
+  const campaignsFn = useServerFn(listMyQrCampaigns);
+
+  const { data: campaigns } = useQuery({
+    queryKey: ["qr", "campaigns"],
+    queryFn: () => campaignsFn(),
+    staleTime: 30_000,
+  });
 
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -50,7 +60,10 @@ function EditQrPage() {
   const [status, setStatus] = useState("active");
   const [publicId, setPublicId] = useState("");
   const [scanCount, setScanCount] = useState(0);
+  const [placement, setPlacement] = useState("");
+  const [campaignId, setCampaignId] = useState("");
   const [saving, setSaving] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
 
   async function loadPreview() {
@@ -71,6 +84,8 @@ function EditQrPage() {
         setStatus(row.status);
         setPublicId(row.public_id);
         setScanCount(row.scanCount ?? 0);
+        setPlacement(row.placement_label ?? "");
+        setCampaignId(row.campaign_id ?? "");
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
@@ -86,7 +101,14 @@ function EditQrPage() {
     setSaving(true);
     try {
       await updateFn({
-        data: { id, name, destinationType, destination },
+        data: {
+          id,
+          name,
+          destinationType,
+          destination,
+          placementLabel: placement || null,
+          campaignId: campaignId || null,
+        },
       });
       toast.success("Destination updated — the same QR code keeps working");
       void loadPreview();
@@ -105,6 +127,21 @@ function EditQrPage() {
       toast.success(next === "paused" ? "QR code paused" : "QR code reactivated");
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't update QR code");
+    }
+  }
+
+  async function handleDuplicate() {
+    setDuplicating(true);
+    try {
+      const copy: any = await duplicateFn({
+        data: { id, placementLabel: placement || null },
+      });
+      toast.success("Copied — this new QR code tracks its own scans");
+      navigate({ to: "/dashboard/qr/$id", params: { id: copy.id } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't duplicate QR code");
+    } finally {
+      setDuplicating(false);
     }
   }
 
@@ -190,6 +227,35 @@ function EditQrPage() {
             />
           </label>
 
+          <label className="block">
+            <span className="text-sm font-medium text-navy">Placement</span>
+            <p className="text-xs text-mute mt-0.5">
+              Where this specific code is displayed — e.g. Front window.
+            </p>
+            <input
+              value={placement}
+              onChange={(e) => setPlacement(e.target.value)}
+              placeholder="Optional"
+              className="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-navy">Campaign</span>
+            <select
+              value={campaignId}
+              onChange={(e) => setCampaignId(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm"
+            >
+              <option value="">No campaign</option>
+              {(campaigns ?? []).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -206,6 +272,14 @@ function EditQrPage() {
             >
               {status === "active" ? <Pause size={14} /> : <Play size={14} />}
               {status === "active" ? "Pause" : "Reactivate"}
+            </button>
+            <button
+              type="button"
+              onClick={handleDuplicate}
+              disabled={duplicating}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-ink/15 px-5 py-2.5 text-sm font-semibold text-navy disabled:opacity-50"
+            >
+              <Copy size={14} /> {duplicating ? "Copying…" : "Duplicate for another spot"}
             </button>
           </div>
         </section>
