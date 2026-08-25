@@ -1,0 +1,170 @@
+name: QR Phase 1 Smoke
+
+# Automated live smoke test for the shipped QR Phase 1 feature:
+#   /dashboard/qr, /dashboard/qr/new and /q/{public_id}
+#
+# Runs on every PR and push to main against a locally built app, on a daily
+# schedule against production, and on demand with any base_url. All test data
+# is disposable: the harness creates a throwaway QA auth user and deletes it,
+# its QR codes and its scan events at the end of every run, pass or fail.
+#
+# Required repository secrets:
+#   VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, VITE_SUPABASE_PROJECT_ID
+#   SUPABASE_SERVICE_ROLE_KEY  (creates/destroys the disposable QA user)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ["**"]
+  schedule:
+    # 08:15 UTC daily — production canary for the redirect service.
+    - cron: "15 8 * * *"
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Target URL (blank = build and test locally)"
+        required: false
+        type: string
+
+jobs:
+  qr-smoke:
+    name: QR Phase 1 live smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    env:
+      # Scheduled runs target production; everything else builds locally
+      # unless a base_url was supplied by hand.
+      TARGET_URL: ${{ inputs.base_url != '' && inputs.base_url || (github.event_name == 'schedule' && 'https://www.aurumvault.store' || '') }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Bun global store
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-store-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-store-
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json') }}
+
+      - name: Install JS dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        id: cache-playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-chromium-node-v1
+
+      - name: Install Playwright chromium
+        run: |
+          if [ "${{ steps.cache-playwright.outputs.cache-hit }}" = "true" ]; then
+            bunx playwright install-deps chromium
+          else
+            bunx playwright install --with-deps chromium
+          fi
+
+      - name: QR unit + guard tests
+        run: bunx vitest run src/lib/qr.test.ts src/lib/qr-encode.test.ts src/lib/qr-usecases.test.ts tests/integration/qr-system.test.ts tests/integration/qr-phase2.test.ts
+
+      - name: Cache Vite build
+        if: env.TARGET_URL == ''
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules/.vite
+            .vinxi
+            .output
+            .tanstack
+          key: ${{ runner.os }}-vite-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json', 'vite.config.*') }}-${{ hashFiles('src/**') }}
+          restore-keys: |
+            ${{ runner.os }}-vite-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json', 'vite.config.*') }}-
+            ${{ runner.os }}-vite-
+
+      - name: Build app
+        if: env.TARGET_URL == ''
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+
+      - name: Start dev server
+        if: env.TARGET_URL == ''
+        run: |
+          bun run dev > /tmp/dev-server.log 2>&1 &
+          echo $! > /tmp/dev-server.pid
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Wait for server (http://localhost:8080)
+        if: env.TARGET_URL == ''
+        run: |
+          for i in {1..90}; do
+            if curl -sSf http://localhost:8080 > /dev/null; then
+              echo "Server up after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server did not start in time"
+          tail -n 200 /tmp/dev-server.log
+          exit 1
+
+      - name: Run QR Phase 1 smoke
+        run: bun run smoke:qr
+        env:
+          BASE_URL: ${{ env.TARGET_URL != '' && env.TARGET_URL || 'http://localhost:8080' }}
+          ARTIFACT_DIR: artifacts/qr-smoke
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Publish evidence report to the run summary
+        if: always()
+        run: |
+          if [ -f artifacts/qr-smoke/report.md ]; then
+            cat artifacts/qr-smoke/report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No QR smoke evidence report was produced." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload evidence artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qr-phase1-smoke-evidence
+          path: |
+            artifacts/qr-smoke/**
+            /tmp/dev-server.log
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Stop dev server
+        if: always() && env.TARGET_URL == ''
+        run: |
+          if [ -f /tmp/dev-server.pid ]; then
+            kill "$(cat /tmp/dev-server.pid)" || true
+          fi

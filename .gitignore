@@ -38,3 +38,6 @@ tests/mobile/screenshots/diffs/
 tests/mobile/screenshots/fit_*.png
 tests/mobile/screenshots/pinch_*.png
 tests/mobile/screenshots/*.png
+
+# Generated CI evidence reports (uploaded as workflow artifacts)
+artifacts/
