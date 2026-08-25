@@ -93,39 +93,253 @@ function Hero() {
           className="mb-6 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]"
           style={{ borderColor: `${GOLD}55`, color: GOLD }}
         >
-          <Crown size={12} /> For Purpose-Driven Creators
+          <Crown size={12} /> Sell on AurumVault
         </div>
         <h1
           className="mx-auto max-w-4xl text-4xl leading-[1.05] text-white sm:text-5xl md:text-6xl lg:text-7xl"
           style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
         >
-          Your Knowledge.
+          Build Your Store.
           <br />
-          Your Empire.{" "}
+          Keep 85%.{" "}
           <span className="italic" style={{ color: GOLD }}>
-            Your Vault.
+            Own Your Work.
           </span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-base md:text-lg text-white/75">
-          Join the most curated digital marketplace for purpose-driven creators.
-          Keep <strong className="text-white">85%</strong> of every sale. Reach a
-          Kingdom-minded audience ready to buy.
+          A curated marketplace for premium digital products. You keep{" "}
+          <strong className="text-white">85%</strong> of every sale, pay{" "}
+          <strong className="text-white">$0</strong> to apply or list, and keep{" "}
+          <strong className="text-white">100%</strong> of the rights to what you create.
         </p>
         <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             to="/sell"
+            onClick={() => logCtaClick("become_creator_hero_apply")}
             className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-sm font-bold transition-all hover:shadow-[0_18px_40px_-12px_rgba(201,168,76,0.6)] active:scale-[0.98]"
             style={{ background: GOLD, color: NAVY }}
           >
             Apply to Sell
             <ArrowRight size={16} />
           </Link>
-          <a
-            href="#how-it-works"
-            className="inline-flex items-center justify-center rounded-full border-2 border-white/40 px-8 py-4 text-sm font-bold text-white hover:bg-white hover:text-navy transition-colors"
+          <Link
+            to="/creator-starter-pack"
+            onClick={() => logCtaClick("become_creator_hero_starter_pack")}
+            className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/40 px-8 py-4 text-sm font-bold text-white transition-colors hover:bg-white hover:text-navy"
           >
-            See How It Works
-          </a>
+            <Download size={16} /> Get the Free Starter Pack
+          </Link>
+        </div>
+        <p className="mt-5 text-xs text-white/55">
+          No application fee · No monthly fee · Reviewed within 48 hours
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/** Four hard numbers, above the fold on mobile, that answer "what do I actually get?" */
+function ValueStrip() {
+  const stats = [
+    { value: "85%", label: "Your share of every sale" },
+    { value: "$0", label: "To apply, list or stay listed" },
+    { value: "100%", label: "Ownership of your work" },
+    { value: "~2 min", label: "To finish an application" },
+  ];
+  return (
+    <section className="border-b border-ink/10 bg-white py-8 md:py-10">
+      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-4 sm:px-6 md:grid-cols-4">
+        {stats.map((s) => (
+          <div key={s.label} className="text-center">
+            <div
+              className="text-3xl md:text-4xl"
+              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", color: NAVY }}
+            >
+              {s.value}
+            </div>
+            <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/55">
+              {s.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Storefront + QR band. Every claim here is verified live in production:
+ * creator storefronts at /store/{slug} and dynamic, editable, scan-tracked
+ * QR codes with PNG/SVG downloads, campaigns and placement labels.
+ */
+function StorefrontAndQR() {
+  const rows = [
+    {
+      icon: Store,
+      title: "Your own storefront",
+      body: "A branded page at aurumvault.store/store/your-name — your cover, your bio, your catalogue, one link to share everywhere.",
+    },
+    {
+      icon: QrCode,
+      title: "Trackable QR codes",
+      body: "Generate a QR for your storefront or any product, download it as PNG or SVG for print, and change where it points later without reprinting.",
+    },
+    {
+      icon: BarChart3,
+      title: "See what's working",
+      body: "Group codes into campaigns, label each placement (yard sign, packaging, business card) and watch which one actually earns the scans.",
+    },
+  ];
+  return (
+    <section className="bg-paper py-16 md:py-24">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold-ink">
+            Built For Selling Offline Too
+          </p>
+          <h2
+            className="mt-2 text-3xl text-navy md:text-5xl"
+            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+          >
+            One link. One code. Every channel.
+          </h2>
+        </div>
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {rows.map((r) => (
+            <div key={r.title} className="rounded-2xl border border-ink/10 bg-white p-8">
+              <div
+                className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl"
+                style={{ background: `${GOLD}1A`, color: GOLD }}
+              >
+                <r.icon size={22} />
+              </div>
+              <h3
+                className="text-2xl text-navy"
+                style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+              >
+                {r.title}
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-ink/70">{r.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Founding 100 cohort invitation — links to the existing registry page. */
+function FoundingBand() {
+  return (
+    <section className="bg-paper py-16 md:py-24">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6">
+        <div className="rounded-3xl border border-ink/10 bg-white p-8 text-center md:p-12">
+          <div
+            className="mx-auto inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]"
+            style={{ borderColor: `${GOLD}66`, color: "#8a6d1f" }}
+          >
+            <Crown size={12} /> Founding 100
+          </div>
+          <h2
+            className="mt-4 text-3xl text-navy md:text-4xl"
+            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+          >
+            The first 100 creators are numbered forever.
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-ink/70 md:text-base">
+            Founding Creators carry a permanent numbered mark on their storefront and product
+            pages — assigned by us, never self-declared, and never reissued.
+          </p>
+          <Link
+            to="/founding-100"
+            onClick={() => logCtaClick("become_creator_founding_100")}
+            className="mt-7 inline-flex min-h-[48px] items-center gap-2 rounded-full bg-navy px-7 text-sm font-bold text-gold"
+          >
+            See the Founding 100 <ArrowRight size={16} />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Soft-conversion path for visitors who aren't ready to apply yet. */
+function StarterPackBand() {
+  return (
+    <section className="bg-white py-16 md:py-20">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6">
+        <div
+          className="rounded-3xl p-8 text-center md:p-12"
+          style={{ background: `${GOLD}12`, border: `1px solid ${GOLD}44` }}
+        >
+          <h2
+            className="text-3xl text-navy md:text-4xl"
+            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+          >
+            Not ready to apply yet?
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-ink/70 md:text-base">
+            Take the free Digital Creator Starter Pack: 25 product ideas, a pricing worksheet, a
+            launch checklist, quality checks, AI prompts and a 7-Day Creator Sprint. No purchase,
+            no obligation.
+          </p>
+          <Link
+            to="/creator-starter-pack"
+            onClick={() => logCtaClick("become_creator_starter_pack_band")}
+            className="mt-7 inline-flex min-h-[48px] items-center gap-2 rounded-full px-7 text-sm font-bold"
+            style={{ background: GOLD, color: NAVY }}
+          >
+            <Download size={16} /> Get the Free Starter Pack
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Credibility band: concrete, checkable promises instead of vague hype. */
+function TrustBand() {
+  const items = [
+    "You keep 85% of every sale — the 15% platform fee is the only fee.",
+    "No application fee, no listing fee, no monthly subscription.",
+    "You keep full rights to your work; AurumVault holds a distribution licence only.",
+    "Files are delivered through tokenised, expiring links so your work isn't passed around.",
+    "Every application is reviewed by a human within 48 hours.",
+    "Buyers get a 14-day refund window, applied consistently across the marketplace.",
+  ];
+  return (
+    <section
+      className="py-16 text-white md:py-24"
+      style={{ background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY_DEEP} 100%)` }}
+    >
+      <div className="mx-auto max-w-4xl px-4 sm:px-6">
+        <div className="text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em]" style={{ color: GOLD }}>
+            The Fine Print, In Plain English
+          </p>
+          <h2
+            className="mt-2 text-3xl md:text-5xl"
+            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+          >
+            What you can hold us to.
+          </h2>
+        </div>
+        <ul className="mx-auto mt-10 grid max-w-3xl gap-4 md:grid-cols-2">
+          {items.map((t) => (
+            <li key={t} className="flex items-start gap-3 text-sm leading-relaxed text-white/80">
+              <Check size={16} className="mt-[3px] shrink-0" style={{ color: GOLD }} />
+              <span>{t}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-10 text-center">
+          <Link
+            to="/about_/trust"
+            onClick={() => logCtaClick("become_creator_trust_center")}
+            className="inline-flex min-h-[48px] items-center gap-2 rounded-full border-2 border-white/40 px-7 text-sm font-bold text-white transition-colors hover:bg-white hover:text-navy"
+          >
+            Read the Trust Center <ArrowRight size={16} />
+          </Link>
         </div>
       </div>
     </section>
