@@ -122,8 +122,14 @@ async function main() {
     const context = await browser.newContext({ viewport: { width: 1280, height: 1800 } });
     const page = await context.newPage();
     const consoleErrors = [];
+    // "Failed to fetch" from the Supabase auth client is navigation noise: a
+    // session request still in flight when the harness navigates away is
+    // aborted by the browser, which surfaces as a console error even though
+    // nothing in the app failed. Everything else counts.
+    const isNavigationAbort = (text) =>
+      text.includes("Failed to fetch") || text.includes("NetworkError when attempting to fetch");
     page.on("console", (m) => {
-      if (m.type() === "error") consoleErrors.push(m.text());
+      if (m.type() === "error" && !isNavigationAbort(m.text())) consoleErrors.push(m.text());
     });
 
     await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
