@@ -1773,20 +1773,25 @@ function StepContent(p: {
       </div>
 
       {/* Digital delivery files — extra downloads bundled with this title */}
-      {p.deliveryProductId && p.deliverySellerId ? (
-        <div>
-          <h3 className="font-display text-lg text-navy mb-1">Digital delivery files</h3>
-          <p className="text-xs text-mute mb-3">
-            Optional. Add a ZIP bundle and/or the individual files buyers receive
-            (worksheets, spreadsheets, audio). ZIP is only a delivery format — your
-            product still lists in its normal category.
-          </p>
+      <div>
+        <h3 className="font-display text-lg text-navy mb-1">Digital delivery</h3>
+        <p className="text-xs text-mute mb-3">
+          Upload the primary customer bundle (ZIP, PDF, XLSX, DOCX or CSV) plus any
+          individual supporting files buyers receive. ZIP is only a delivery format —
+          your product still lists in its normal category.
+        </p>
+        {p.deliveryProductId && p.deliverySellerId ? (
           <ProductDeliveryFilesManager
             productId={p.deliveryProductId}
             sellerId={p.deliverySellerId}
           />
-        </div>
-      ) : null}
+        ) : (
+          <p className="rounded-lg border border-ink/10 bg-paper/60 p-3 text-xs text-mute">
+            Save this title first — the bundle uploader unlocks as soon as the product
+            exists, then you can attach the ZIP and its supporting files.
+          </p>
+        )}
+      </div>
 
       {/* Preview page picker — appears once a manuscript is present */}
       <div>
