@@ -59,11 +59,10 @@ export function ShareButtons({ title, url }: { title: string; url: string }) {
   );
 }
 
-export function ReportIssueLink({ title }: { title: string }) {
-  const subject = encodeURIComponent(`Issue with "${title}" on AurumVault`);
+export function ReportIssueLink({ title: _title }: { title: string }) {
   return (
     <a
-      href={`mailto:support@aurumvault.store?subject=${subject}`}
+      href="/#contact"
       className="mt-8 inline-flex items-center gap-1.5 text-xs font-semibold text-mute hover:text-ink"
     >
       <Flag size={11} /> Report an issue with this product
