@@ -15,6 +15,7 @@ import {
   GraduationCap,
   Headphones,
   Lock,
+  Mail,
   QrCode,
   RefreshCw,
   ShieldCheck,
