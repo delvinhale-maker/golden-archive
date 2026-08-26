@@ -852,7 +852,9 @@ function ContactEmailsSection() {
           </h2>
           <span className="mt-3 block h-[2px] w-10 bg-gold" />
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <ContactForm />
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+
           {emails.map((e) => (
             <a
               key={e.label}
