@@ -40,35 +40,40 @@ export const validateStoredManuscript = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const dl = await supabaseAdmin.storage.from("product-files").download(data.filePath);
-    if (dl.error || !dl.data) {
+    const { validateStoredObject } = await import("@/lib/manuscript-validate.server");
+
+    const dir = data.filePath.split("/").slice(0, -1).join("/");
+    const filename = data.filePath.split("/").pop() ?? "file";
+    const { data: listed } = await supabaseAdmin.storage
+      .from("product-files")
+      .list(dir, { search: filename, limit: 100 });
+    const entry = listed?.find((o) => o.name === filename);
+    const size = (entry?.metadata as { size?: number } | null)?.size;
+    if (size === undefined || size === null) {
       return { ok: false as const, reason: "File not found in storage." };
     }
-    // Hard size cap (mirrors the client MAX_FILE_MB) so an oversized object
-    // pushed straight into storage can never be published.
-    const MAX_BYTES = 650 * 1024 * 1024;
-    if (dl.data.size > MAX_BYTES) {
-      return {
-        ok: false as const,
-        reason: `File exceeds the ${MAX_BYTES / 1024 / 1024} MB limit (${(dl.data.size / 1024 / 1024).toFixed(1)} MB).`,
-      };
+
+    const signed = await supabaseAdmin.storage
+      .from("product-files")
+      .createSignedUrl(data.filePath, 300);
+    if (signed.error || !signed.data?.signedUrl) {
+      return { ok: false as const, reason: "Could not read the stored file. Please re-upload." };
     }
-    if (dl.data.size === 0) {
-      return { ok: false as const, reason: "File is empty (0 bytes)." };
-    }
-    const buf = new Uint8Array(await dl.data.arrayBuffer());
-    const filename = data.filePath.split("/").pop() ?? "file";
+
     const allowed = (data.allowedExts ?? ["pdf", "docx", "epub"]).map((e) =>
       e.toLowerCase().replace(/^\./, ""),
     );
-    const nameExt = filename.toLowerCase().split(".").pop() ?? "";
-    if (!allowed.includes(nameExt)) {
-      return {
-        ok: false as const,
-        reason: `Unsupported file type ".${nameExt}". Allowed: ${allowed.map((e) => `.${e.toUpperCase()}`).join(", ")}.`,
-      };
-    }
-    const result = validateManuscriptBytes(buf, filename);
-    if (result.ok) return { ok: true as const, ext: result.ext };
-    return { ok: false as const, reason: result.reason, ext: result.ext };
+
+    return await validateStoredObject({
+      signedUrl: signed.data.signedUrl,
+      size,
+      filename,
+      allowed,
+      download: async () => {
+        const dl = await supabaseAdmin.storage.from("product-files").download(data.filePath);
+        if (dl.error || !dl.data) throw new Error("File not found in storage.");
+        return new Uint8Array(await dl.data.arrayBuffer());
+      },
+    });
   });
+

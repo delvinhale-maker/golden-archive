@@ -185,7 +185,24 @@ export async function validateManuscriptFile(file: File): Promise<ValidateResult
     return { ok: true, ext };
   }
 
-  // docx/epub are ZIP containers — we need the full bytes to unzip.
+  // docx/epub are ZIP containers — deep validation needs the full bytes.
+  // Large archives (e.g. image-heavy EPUBs) would blow up a mobile browser
+  // tab, so above this threshold we only verify the ZIP signature.
+  const DEEP_SCAN_LIMIT = 32 * 1024 * 1024;
+  if (file.size > DEEP_SCAN_LIMIT) {
+    if (head[0] !== 0x50 || head[1] !== 0x4b) {
+      return {
+        ok: false,
+        ext,
+        reason:
+          ext === "docx"
+            ? "Not a valid .docx file (wrong signature). Re-save from Word and try again."
+            : "Not a valid .epub file (wrong signature).",
+      };
+    }
+    return { ok: true, ext };
+  }
   const buf = await file.arrayBuffer();
   return validateManuscriptBytes(new Uint8Array(buf), file.name);
 }
+

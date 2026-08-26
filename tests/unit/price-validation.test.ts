@@ -8,7 +8,7 @@
  *
  * Run with: bun test tests/unit/price-validation.test.ts
  */
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
 import { validateListPrice, isListPriceValid } from "../../src/lib/publish-validation";
 
 describe("validateListPrice — Continue must block", () => {
