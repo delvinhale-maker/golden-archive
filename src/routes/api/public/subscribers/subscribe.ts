@@ -1,13 +1,15 @@
 import * as React from 'react'
 import { render } from 'react-email'
-import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { TEMPLATES } from '@/lib/email-templates/registry'
-
-const SITE_NAME = 'AurumVault'
-const SENDER_DOMAIN = 'notify.www.aurumvault.store'
-const FROM_DOMAIN = 'www.aurumvault.store'
-const SITE_URL = 'https://www.aurumvault.store'
+import { audienceForSource, isValidAudience, isValidEmail, CONSENT_VERSION } from '@/lib/insider'
+import {
+  insiderAdminClient,
+  SITE_NAME,
+  SENDER_DOMAIN,
+  FROM_DOMAIN,
+  SITE_URL,
+} from '@/lib/insider-email.server'
 
 function generateToken(): string {
   const bytes = new Uint8Array(32)
@@ -24,43 +26,75 @@ export const Route = createFileRoute('/api/public/subscribers/subscribe')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-        if (!supabaseUrl || !serviceKey) {
-          return Response.json({ error: 'Server configuration error' }, { status: 500 })
-        }
-
         let email = ''
         let source = 'homepage_banner'
+        let firstName: string | null = null
+        let audienceType: string | null = null
+        let topicInterest: string | null = null
         try {
           const body = await request.json()
           email = String(body.email || '').trim().toLowerCase()
           if (body.source && typeof body.source === 'string') source = body.source.slice(0, 64)
+          if (body.first_name && typeof body.first_name === 'string') {
+            firstName = body.first_name.trim().slice(0, 60) || null
+          }
+          if (isValidAudience(body.audience_type)) audienceType = body.audience_type
+          if (body.topic_interest && typeof body.topic_interest === 'string') {
+            topicInterest = body.topic_interest.slice(0, 120)
+          }
         } catch {
           return Response.json({ error: 'Invalid JSON' }, { status: 400 })
         }
 
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 255) {
+        if (!isValidEmail(email)) {
           return Response.json({ error: 'Invalid email' }, { status: 400 })
         }
 
-        const supabase = createClient(supabaseUrl, serviceKey)
+        const audience = audienceType ?? audienceForSource(source)
 
-        // Honor suppression list
-        const { data: suppressed } = await supabase
-          .from('suppressed_emails').select('id').eq('email', email).maybeSingle()
-        if (suppressed) {
-          return Response.json({ ok: true, status: 'suppressed' })
+        let supabase
+        try {
+          supabase = insiderAdminClient()
+        } catch {
+          return Response.json({ error: 'Server configuration error' }, { status: 500 })
         }
 
-        // Check existing subscriber
+        // Existing subscriber (checked first so an intentional resubscribe can
+        // clear a prior marketing opt-out).
         const { data: existing } = await supabase
           .from('subscribers')
           .select('id, status, confirmation_sent_at')
           .eq('email', email)
           .maybeSingle()
 
+        // Honor the suppression list, except for an intentional resubscribe of
+        // an address that had only unsubscribed (bounces/complaints stay blocked).
+        const { data: suppressed } = await supabase
+          .from('suppressed_emails')
+          .select('id, reason')
+          .eq('email', email)
+          .maybeSingle()
+        if (suppressed) {
+          if (suppressed.reason !== 'unsubscribe') {
+            return Response.json({ ok: true, status: 'suppressed' })
+          }
+          await supabase.from('suppressed_emails').delete().eq('id', suppressed.id)
+          await supabase
+            .from('email_unsubscribe_tokens')
+            .update({ used_at: null })
+            .eq('email', email)
+        }
+
         if (existing?.status === 'confirmed') {
+          // Keep segmentation/consent metadata fresh without duplicating rows.
+          await supabase
+            .from('subscribers')
+            .update({
+              unsubscribed_at: null,
+              ...(firstName ? { first_name: firstName } : {}),
+              ...(topicInterest ? { topic_interest: topicInterest } : {}),
+            })
+            .eq('id', existing.id)
           return Response.json({ ok: true, status: 'already_confirmed' })
         }
 
@@ -75,28 +109,27 @@ export const Route = createFileRoute('/api/public/subscribers/subscribe')({
         const token = generateToken()
         const nowIso = new Date().toISOString()
 
+        const record = {
+          status: 'pending',
+          confirmation_token: token,
+          confirmation_sent_at: nowIso,
+          source,
+          audience_type: audience,
+          consent_source: source,
+          consent_version: CONSENT_VERSION,
+          unsubscribed_at: null,
+          ...(firstName ? { first_name: firstName } : {}),
+          ...(topicInterest ? { topic_interest: topicInterest } : {}),
+        }
+
         if (existing) {
-          const { error } = await supabase
-            .from('subscribers')
-            .update({
-              status: 'pending',
-              confirmation_token: token,
-              confirmation_sent_at: nowIso,
-              source,
-            })
-            .eq('id', existing.id)
+          const { error } = await supabase.from('subscribers').update(record).eq('id', existing.id)
           if (error) {
             console.error('subscribe update failed', { error, email: redact(email) })
             return Response.json({ error: 'Could not subscribe' }, { status: 500 })
           }
         } else {
-          const { error } = await supabase.from('subscribers').insert({
-            email,
-            source,
-            status: 'pending',
-            confirmation_token: token,
-            confirmation_sent_at: nowIso,
-          })
+          const { error } = await supabase.from('subscribers').insert({ email, ...record })
           if (error) {
             console.error('subscribe insert failed', { error, email: redact(email) })
             return Response.json({ error: 'Could not subscribe' }, { status: 500 })
