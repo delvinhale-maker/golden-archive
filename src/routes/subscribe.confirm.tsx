@@ -1,6 +1,5 @@
 import { createFileRoute, useSearch, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { AVLogo } from "@/components/marketplace/AVLogo";
 
 type Status = "loading" | "confirmed" | "already" | "invalid";
@@ -24,8 +23,13 @@ function ConfirmPage() {
       return;
     }
     (async () => {
-      const { data, error } = await (supabase.rpc as any)("confirm_subscriber", { _token: token });
-      if (error || !data || (data as any).ok === false) {
+      const res = await fetch("/api/public/subscribers/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data || data.ok === false) {
         setStatus("invalid");
         return;
       }
@@ -50,7 +54,7 @@ function ConfirmPage() {
               <h1 className="font-display text-2xl text-navy">You're confirmed</h1>
               <p className="text-mute mt-2">
                 {email ? <>Welcome aboard, <strong>{email}</strong>.</> : <>Welcome aboard.</>}{" "}
-                Look out for Kingdom resources in your inbox soon.
+                Your AurumVault Insider welcome email is on its way.
               </p>
               <Link to="/" className="mt-6 inline-flex rounded-full bg-navy text-white px-5 py-2.5 font-semibold hover:bg-navy/90">
                 Continue to AurumVault

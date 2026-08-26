@@ -66,6 +66,8 @@ import { Route as CreatorStarterPackThankYouRouteImport } from './routes/creator
 import { Route as CreatorSlugRouteImport } from './routes/creator.$slug'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as InsiderIndexRouteImport } from './routes/insider.index'
+import { Route as InsiderSlugRouteImport } from './routes/insider.$slug'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as QPublicIdRouteImport } from './routes/q.$publicId'
@@ -83,6 +85,7 @@ import { Route as AuthenticatedAdminFounding100RouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminFoundingAnalyticsRouteImport } from './routes/_authenticated/admin.founding-analytics'
 import { Route as AuthenticatedAdminHomepageRouteImport } from './routes/_authenticated/admin.homepage'
 import { Route as AuthenticatedAdminImportRouteImport } from './routes/_authenticated/admin.import'
+import { Route as AuthenticatedAdminInsiderRouteImport } from './routes/_authenticated/admin.insider'
 import { Route as AuthenticatedAdminLeadAnalyticsRouteImport } from './routes/_authenticated/admin.lead-analytics'
 import { Route as AuthenticatedAdminMerchandisingRouteImport } from './routes/_authenticated/admin.merchandising'
 import { Route as AuthenticatedAdminMessagesRouteImport } from './routes/_authenticated/admin.messages'
@@ -128,6 +131,7 @@ import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksAutoReleaseReviewsRouteImport } from './routes/api/public/hooks/auto-release-reviews'
 import { Route as ApiPublicHooksPayoutReleaseHeartbeatRouteImport } from './routes/api/public/hooks/payout-release-heartbeat'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicSubscribersConfirmRouteImport } from './routes/api/public/subscribers/confirm'
 import { Route as ApiPublicSubscribersSubscribeRouteImport } from './routes/api/public/subscribers/subscribe'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -423,6 +427,16 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InsiderIndexRoute = InsiderIndexRouteImport.update({
+  id: '/insider/',
+  path: '/insider/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsiderSlugRoute = InsiderSlugRouteImport.update({
+  id: '/insider/$slug',
+  path: '/insider/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductsIndexRoute = ProductsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -516,6 +530,12 @@ const AuthenticatedAdminImportRoute =
   AuthenticatedAdminImportRouteImport.update({
     id: '/admin/import',
     path: '/admin/import',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminInsiderRoute =
+  AuthenticatedAdminInsiderRouteImport.update({
+    id: '/admin/insider',
+    path: '/admin/insider',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminLeadAnalyticsRoute =
@@ -785,6 +805,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicSubscribersConfirmRoute =
+  ApiPublicSubscribersConfirmRouteImport.update({
+    id: '/api/public/subscribers/confirm',
+    path: '/api/public/subscribers/confirm',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicSubscribersSubscribeRoute =
   ApiPublicSubscribersSubscribeRouteImport.update({
     id: '/api/public/subscribers/subscribe',
@@ -882,6 +908,7 @@ export interface FileRoutesByFullPath {
   '/creator/$slug': typeof CreatorSlugRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/insider/$slug': typeof InsiderSlugRoute
   '/products/$id': typeof ProductsIdRoute
   '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
@@ -890,6 +917,7 @@ export interface FileRoutesByFullPath {
   '/academy/': typeof AcademyIndexRoute
   '/bundles/': typeof BundlesIndexRoute
   '/creator-business-tools/': typeof CreatorBusinessToolsIndexRoute
+  '/insider/': typeof InsiderIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/bundles': typeof AuthenticatedAdminBundlesRoute
@@ -901,6 +929,7 @@ export interface FileRoutesByFullPath {
   '/admin/founding-analytics': typeof AuthenticatedAdminFoundingAnalyticsRoute
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
+  '/admin/insider': typeof AuthenticatedAdminInsiderRoute
   '/admin/lead-analytics': typeof AuthenticatedAdminLeadAnalyticsRoute
   '/admin/merchandising': typeof AuthenticatedAdminMerchandisingRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
@@ -945,6 +974,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
   '/api/public/hooks/payout-release-heartbeat': typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/subscribers/confirm': typeof ApiPublicSubscribersConfirmRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -1006,6 +1036,7 @@ export interface FileRoutesByTo {
   '/creator/$slug': typeof CreatorSlugRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/insider/$slug': typeof InsiderSlugRoute
   '/products/$id': typeof ProductsIdRoute
   '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
@@ -1014,6 +1045,7 @@ export interface FileRoutesByTo {
   '/academy': typeof AcademyIndexRoute
   '/bundles': typeof BundlesIndexRoute
   '/creator-business-tools': typeof CreatorBusinessToolsIndexRoute
+  '/insider': typeof InsiderIndexRoute
   '/products': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/bundles': typeof AuthenticatedAdminBundlesRoute
@@ -1025,6 +1057,7 @@ export interface FileRoutesByTo {
   '/admin/founding-analytics': typeof AuthenticatedAdminFoundingAnalyticsRoute
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
+  '/admin/insider': typeof AuthenticatedAdminInsiderRoute
   '/admin/lead-analytics': typeof AuthenticatedAdminLeadAnalyticsRoute
   '/admin/merchandising': typeof AuthenticatedAdminMerchandisingRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
@@ -1069,6 +1102,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
   '/api/public/hooks/payout-release-heartbeat': typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/subscribers/confirm': typeof ApiPublicSubscribersConfirmRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -1135,6 +1169,7 @@ export interface FileRoutesById {
   '/creator/$slug': typeof CreatorSlugRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/insider/$slug': typeof InsiderSlugRoute
   '/products/$id': typeof ProductsIdRoute
   '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
@@ -1143,6 +1178,7 @@ export interface FileRoutesById {
   '/academy/': typeof AcademyIndexRoute
   '/bundles/': typeof BundlesIndexRoute
   '/creator-business-tools/': typeof CreatorBusinessToolsIndexRoute
+  '/insider/': typeof InsiderIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/_authenticated/admin/bundles': typeof AuthenticatedAdminBundlesRoute
@@ -1154,6 +1190,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/founding-analytics': typeof AuthenticatedAdminFoundingAnalyticsRoute
   '/_authenticated/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/_authenticated/admin/import': typeof AuthenticatedAdminImportRoute
+  '/_authenticated/admin/insider': typeof AuthenticatedAdminInsiderRoute
   '/_authenticated/admin/lead-analytics': typeof AuthenticatedAdminLeadAnalyticsRoute
   '/_authenticated/admin/merchandising': typeof AuthenticatedAdminMerchandisingRoute
   '/_authenticated/admin/messages': typeof AuthenticatedAdminMessagesRoute
@@ -1198,6 +1235,7 @@ export interface FileRoutesById {
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
   '/api/public/hooks/payout-release-heartbeat': typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/subscribers/confirm': typeof ApiPublicSubscribersConfirmRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -1264,6 +1302,7 @@ export interface FileRouteTypes {
     | '/creator/$slug'
     | '/download/$token'
     | '/email/unsubscribe'
+    | '/insider/$slug'
     | '/products/$id'
     | '/q/$publicId'
     | '/store/$slug'
@@ -1272,6 +1311,7 @@ export interface FileRouteTypes {
     | '/academy/'
     | '/bundles/'
     | '/creator-business-tools/'
+    | '/insider/'
     | '/products/'
     | '/admin/auto-release'
     | '/admin/bundles'
@@ -1283,6 +1323,7 @@ export interface FileRouteTypes {
     | '/admin/founding-analytics'
     | '/admin/homepage'
     | '/admin/import'
+    | '/admin/insider'
     | '/admin/lead-analytics'
     | '/admin/merchandising'
     | '/admin/messages'
@@ -1327,6 +1368,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/auto-release-reviews'
     | '/api/public/hooks/payout-release-heartbeat'
     | '/api/public/payments/webhook'
+    | '/api/public/subscribers/confirm'
     | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -1388,6 +1430,7 @@ export interface FileRouteTypes {
     | '/creator/$slug'
     | '/download/$token'
     | '/email/unsubscribe'
+    | '/insider/$slug'
     | '/products/$id'
     | '/q/$publicId'
     | '/store/$slug'
@@ -1396,6 +1439,7 @@ export interface FileRouteTypes {
     | '/academy'
     | '/bundles'
     | '/creator-business-tools'
+    | '/insider'
     | '/products'
     | '/admin/auto-release'
     | '/admin/bundles'
@@ -1407,6 +1451,7 @@ export interface FileRouteTypes {
     | '/admin/founding-analytics'
     | '/admin/homepage'
     | '/admin/import'
+    | '/admin/insider'
     | '/admin/lead-analytics'
     | '/admin/merchandising'
     | '/admin/messages'
@@ -1451,6 +1496,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/auto-release-reviews'
     | '/api/public/hooks/payout-release-heartbeat'
     | '/api/public/payments/webhook'
+    | '/api/public/subscribers/confirm'
     | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -1516,6 +1562,7 @@ export interface FileRouteTypes {
     | '/creator/$slug'
     | '/download/$token'
     | '/email/unsubscribe'
+    | '/insider/$slug'
     | '/products/$id'
     | '/q/$publicId'
     | '/store/$slug'
@@ -1524,6 +1571,7 @@ export interface FileRouteTypes {
     | '/academy/'
     | '/bundles/'
     | '/creator-business-tools/'
+    | '/insider/'
     | '/products/'
     | '/_authenticated/admin/auto-release'
     | '/_authenticated/admin/bundles'
@@ -1535,6 +1583,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/founding-analytics'
     | '/_authenticated/admin/homepage'
     | '/_authenticated/admin/import'
+    | '/_authenticated/admin/insider'
     | '/_authenticated/admin/lead-analytics'
     | '/_authenticated/admin/merchandising'
     | '/_authenticated/admin/messages'
@@ -1579,6 +1628,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/auto-release-reviews'
     | '/api/public/hooks/payout-release-heartbeat'
     | '/api/public/payments/webhook'
+    | '/api/public/subscribers/confirm'
     | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -1641,11 +1691,13 @@ export interface RootRouteChildren {
   CreatorSlugRoute: typeof CreatorSlugRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  InsiderSlugRoute: typeof InsiderSlugRoute
   QPublicIdRoute: typeof QPublicIdRoute
   StoreSlugRoute: typeof StoreSlugRoute
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
   ToolsRevenueCalculatorRoute: typeof ToolsRevenueCalculatorRoute
   BundlesIndexRoute: typeof BundlesIndexRoute
+  InsiderIndexRoute: typeof InsiderIndexRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicAcademyReceiveArticleRoute: typeof ApiPublicAcademyReceiveArticleRoute
@@ -1658,6 +1710,7 @@ export interface RootRouteChildren {
   ApiPublicHooksAutoReleaseReviewsRoute: typeof ApiPublicHooksAutoReleaseReviewsRoute
   ApiPublicHooksPayoutReleaseHeartbeatRoute: typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicSubscribersConfirmRoute: typeof ApiPublicSubscribersConfirmRoute
   ApiPublicSubscribersSubscribeRoute: typeof ApiPublicSubscribersSubscribeRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -2065,6 +2118,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/insider/': {
+      id: '/insider/'
+      path: '/insider'
+      fullPath: '/insider/'
+      preLoaderRoute: typeof InsiderIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insider/$slug': {
+      id: '/insider/$slug'
+      path: '/insider/$slug'
+      fullPath: '/insider/$slug'
+      preLoaderRoute: typeof InsiderSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products/': {
       id: '/products/'
       path: '/'
@@ -2182,6 +2249,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/import'
       fullPath: '/admin/import'
       preLoaderRoute: typeof AuthenticatedAdminImportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/insider': {
+      id: '/_authenticated/admin/insider'
+      path: '/admin/insider'
+      fullPath: '/admin/insider'
+      preLoaderRoute: typeof AuthenticatedAdminInsiderRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/lead-analytics': {
@@ -2499,6 +2573,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/subscribers/confirm': {
+      id: '/api/public/subscribers/confirm'
+      path: '/api/public/subscribers/confirm'
+      fullPath: '/api/public/subscribers/confirm'
+      preLoaderRoute: typeof ApiPublicSubscribersConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/subscribers/subscribe': {
       id: '/api/public/subscribers/subscribe'
       path: '/api/public/subscribers/subscribe'
@@ -2578,6 +2659,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminFoundingAnalyticsRoute: typeof AuthenticatedAdminFoundingAnalyticsRoute
   AuthenticatedAdminHomepageRoute: typeof AuthenticatedAdminHomepageRoute
   AuthenticatedAdminImportRoute: typeof AuthenticatedAdminImportRoute
+  AuthenticatedAdminInsiderRoute: typeof AuthenticatedAdminInsiderRoute
   AuthenticatedAdminLeadAnalyticsRoute: typeof AuthenticatedAdminLeadAnalyticsRoute
   AuthenticatedAdminMerchandisingRoute: typeof AuthenticatedAdminMerchandisingRoute
   AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
@@ -2629,6 +2711,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAdminFoundingAnalyticsRoute,
   AuthenticatedAdminHomepageRoute: AuthenticatedAdminHomepageRoute,
   AuthenticatedAdminImportRoute: AuthenticatedAdminImportRoute,
+  AuthenticatedAdminInsiderRoute: AuthenticatedAdminInsiderRoute,
   AuthenticatedAdminLeadAnalyticsRoute: AuthenticatedAdminLeadAnalyticsRoute,
   AuthenticatedAdminMerchandisingRoute: AuthenticatedAdminMerchandisingRoute,
   AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
@@ -2779,11 +2862,13 @@ const rootRouteChildren: RootRouteChildren = {
   CreatorSlugRoute: CreatorSlugRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  InsiderSlugRoute: InsiderSlugRoute,
   QPublicIdRoute: QPublicIdRoute,
   StoreSlugRoute: StoreSlugRoute,
   SubscribeConfirmRoute: SubscribeConfirmRoute,
   ToolsRevenueCalculatorRoute: ToolsRevenueCalculatorRoute,
   BundlesIndexRoute: BundlesIndexRoute,
+  InsiderIndexRoute: InsiderIndexRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicAcademyReceiveArticleRoute: ApiPublicAcademyReceiveArticleRoute,
@@ -2797,6 +2882,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksPayoutReleaseHeartbeatRoute:
     ApiPublicHooksPayoutReleaseHeartbeatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicSubscribersConfirmRoute: ApiPublicSubscribersConfirmRoute,
   ApiPublicSubscribersSubscribeRoute: ApiPublicSubscribersSubscribeRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,

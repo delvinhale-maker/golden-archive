@@ -1640,6 +1640,60 @@ export type Database = {
         }
         Relationships: []
       }
+      insider_editions: {
+        Row: {
+          audience_type: string
+          body_md: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_public: boolean
+          preview_text: string | null
+          published_at: string | null
+          recipients_count: number
+          sent_at: string | null
+          slug: string
+          status: string
+          subject: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audience_type?: string
+          body_md?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_public?: boolean
+          preview_text?: string | null
+          published_at?: string | null
+          recipients_count?: number
+          sent_at?: string | null
+          slug: string
+          status?: string
+          subject: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audience_type?: string
+          body_md?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_public?: boolean
+          preview_text?: string | null
+          published_at?: string | null
+          recipients_count?: number
+          sent_at?: string | null
+          slug?: string
+          status?: string
+          subject?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       marketplace_bundle_items: {
         Row: {
           bundle_id: string
@@ -3144,40 +3198,61 @@ export type Database = {
       }
       subscribers: {
         Row: {
+          audience_type: string
           confirmation_sent_at: string | null
           confirmation_token: string | null
           confirmed_at: string | null
+          consent_source: string | null
+          consent_version: string | null
           created_at: string
           email: string
+          first_name: string | null
           id: string
           sequence_step2_sent_at: string | null
           sequence_step3_sent_at: string | null
           source: string
           status: string
+          topic_interest: string | null
+          unsubscribed_at: string | null
+          welcome_sent_at: string | null
         }
         Insert: {
+          audience_type?: string
           confirmation_sent_at?: string | null
           confirmation_token?: string | null
           confirmed_at?: string | null
+          consent_source?: string | null
+          consent_version?: string | null
           created_at?: string
           email: string
+          first_name?: string | null
           id?: string
           sequence_step2_sent_at?: string | null
           sequence_step3_sent_at?: string | null
           source?: string
           status?: string
+          topic_interest?: string | null
+          unsubscribed_at?: string | null
+          welcome_sent_at?: string | null
         }
         Update: {
+          audience_type?: string
           confirmation_sent_at?: string | null
           confirmation_token?: string | null
           confirmed_at?: string | null
+          consent_source?: string | null
+          consent_version?: string | null
           created_at?: string
           email?: string
+          first_name?: string | null
           id?: string
           sequence_step2_sent_at?: string | null
           sequence_step3_sent_at?: string | null
           source?: string
           status?: string
+          topic_interest?: string | null
+          unsubscribed_at?: string | null
+          welcome_sent_at?: string | null
         }
         Relationships: []
       }

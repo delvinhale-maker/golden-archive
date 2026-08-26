@@ -44,7 +44,7 @@ export const Route = createFileRoute("/email/unsubscribe")({
           return Response.json({ valid: false, reason: 'already_unsubscribed' })
         }
 
-        return Response.json({ valid: true })
+        return Response.json({ valid: true, email: tokenRecord.email })
       },
 
       POST: async ({ request }) => {
@@ -140,6 +140,13 @@ export const Route = createFileRoute("/email/unsubscribe")({
           })
           return Response.json({ error: 'Failed to process unsubscribe' }, { status: 500 })
         }
+
+        // Stop Insider marketing for this address without touching order or
+        // account records (transactional email is unaffected).
+        await supabase
+          .from('subscribers')
+          .update({ status: 'unsubscribed', unsubscribed_at: new Date().toISOString() })
+          .eq('email', tokenRecord.email.toLowerCase())
 
         console.log('Email unsubscribed', {
           email_redacted: redactEmail(tokenRecord.email),

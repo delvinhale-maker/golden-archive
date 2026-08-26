@@ -5,6 +5,7 @@ import { MarketShell } from "@/components/marketplace/MarketShell";
 import { getArticleBySlug } from "@/lib/academy.functions";
 import { ArticleCard, difficultyFor } from "./academy.index";
 import { AcademyBusinessSystemsCallout } from "@/components/marketplace/AcademyBusinessSystemsCallout";
+import { InsiderSignup } from "@/components/insider/InsiderSignup";
 import { ChevronRight, Clock, ArrowRight, Share2, BookmarkPlus, BookmarkCheck, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -267,6 +268,16 @@ function ArticleDetail() {
 
         {/* Cross-link: Business Systems department + featured system */}
         <AcademyBusinessSystemsCallout article={article} />
+
+        <div className="mt-10 rounded-2xl border border-ink/10 bg-white p-6">
+          <InsiderSignup
+            source="academy"
+            topicInterest={article.slug}
+            heading="Enjoying the Academy?"
+            description="Join AurumVault Insider for new practical guides, digital tools, and marketplace releases."
+            buttonLabel="Join Free"
+          />
+        </div>
 
 
         {/* Recommended Resources */}
