@@ -106,7 +106,7 @@ const STATUS_COPY: Record<ItemStatus, string> = {
     "This sale was just made and is still within our standard holding period. This helps protect against refunds or order issues before your earnings are finalized.",
   ready:
     "Your earnings have cleared and are ready to be paid out in the next payout cycle. Payouts are processed every Friday.",
-  paid: `This amount was sent to you. If you haven't received it within 3–5 business days, reach out to us at ${SUPPORT_EMAIL} and we'll look into it.`,
+  paid: "This amount was sent to you. If you haven't received it within 3–5 business days, contact us and we'll look into it.",
 };
 
 function EarnPage() {
