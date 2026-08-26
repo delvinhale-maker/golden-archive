@@ -46,6 +46,18 @@ export function MarketFooter() {
             Instantly.
           </p>
 
+          <div className="mt-8 max-w-sm rounded-2xl border border-white/10 bg-white/5 p-5">
+            <InsiderSignup
+              source="footer"
+              variant="footer"
+              heading="Stay in the Vault"
+              description="New digital tools, creator opportunities, marketplace releases, and practical resources."
+              buttonLabel="Join Free"
+            />
+            <a href="/insider" className="mt-3 inline-block text-xs text-gold hover:text-white">
+              About AurumVault Insider →
+            </a>
+          </div>
         </div>
         <FooterCol title="Marketplace" links={SHOP_LINKS} />
         <FooterCol title="Creators" links={CREATOR_LINKS} />
