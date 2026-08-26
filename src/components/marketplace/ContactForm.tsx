@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Loader2, Send, CheckCircle2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { z } from "zod";
 
 const schema = z.object({
@@ -11,7 +12,11 @@ const schema = z.object({
     .trim()
     .min(10, "Please include a longer message (10+ characters).")
     .max(4000),
+  consent: z.literal(true, {
+    message: "Please agree to the privacy notice before sending your message.",
+  }),
 });
+
 
 const TOPICS: { value: string; label: string }[] = [
   { value: "support", label: "Support" },
