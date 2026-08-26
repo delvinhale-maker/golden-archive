@@ -50,6 +50,8 @@ import {
 import { getHomepageLayout } from "@/lib/homepage-layout.functions";
 import { rotateHalfDay } from "@/lib/affiliate-rotation";
 import { BROWSE_CATEGORIES } from "@/lib/categories";
+import { ContactForm } from "@/components/marketplace/ContactForm";
+
 
 import { useAuth } from "@/hooks/use-auth";
 
@@ -852,7 +854,9 @@ function ContactEmailsSection() {
           </h2>
           <span className="mt-3 block h-[2px] w-10 bg-gold" />
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <ContactForm />
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+
           {emails.map((e) => (
             <a
               key={e.label}
