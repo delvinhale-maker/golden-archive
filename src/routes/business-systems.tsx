@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { InsiderSignup } from "@/components/insider/InsiderSignup";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Building2 } from "lucide-react";
@@ -394,6 +395,18 @@ function BusinessSystemsPage() {
                 Visit the Academy
               </Link>
             </div>
+          </div>
+        </section>
+
+        <section className="bg-white py-14">
+          <div className="mx-auto max-w-3xl px-4 text-center md:px-8">
+            <InsiderSignup
+              source="qr"
+              heading="Get new business systems first"
+              description="Join AurumVault Insider for new tools, systems, and templates as they launch."
+              buttonLabel="Join Free"
+              className="text-left sm:text-center"
+            />
           </div>
         </section>
       </main>
