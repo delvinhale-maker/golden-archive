@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketShell } from "@/components/marketplace/MarketShell";
+import { ContactLink } from "@/components/marketplace/ContactLink";
 
 
 export const Route = createFileRoute("/terms")({
@@ -128,13 +129,10 @@ function TermsPage() {
           </Section>
 
           <Section title="11. Contact">
-            For questions about these terms, email{" "}
-            <a
-              href="mailto:support@aurumvault.store"
-              className="text-navy hover:text-gold-ink hover:underline"
-            >
-              support@aurumvault.store
-            </a>
+            For questions about these terms,{" "}
+            <ContactLink className="text-navy hover:text-gold-ink hover:underline">
+              contact us
+            </ContactLink>
             .
           </Section>
         </div>

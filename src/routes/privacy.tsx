@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { openConsentSettings } from "@/lib/consent";
+import { ContactLink } from "@/components/marketplace/ContactLink";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
@@ -146,13 +147,10 @@ function PrivacyPage() {
           </Section>
 
           <Section title="10. Contact">
-            For privacy questions or data requests, email{" "}
-            <a
-              href="mailto:support@aurumvault.store"
-              className="text-navy hover:text-gold-ink hover:underline"
-            >
-              support@aurumvault.store
-            </a>
+            For privacy questions or data requests,{" "}
+            <ContactLink className="text-navy hover:text-gold-ink hover:underline">
+              use our contact form
+            </ContactLink>
             .
           </Section>
         </div>

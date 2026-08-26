@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/dashboard/earn")({
 });
 
 const HOLDING_MS = 24 * 60 * 60 * 1000;
-const SUPPORT_EMAIL = "support@aurumvault.store";
+const SUPPORT_HREF = "/#contact";
 
 type OrderItemRow = {
   id: string;
@@ -106,7 +106,7 @@ const STATUS_COPY: Record<ItemStatus, string> = {
     "This sale was just made and is still within our standard holding period. This helps protect against refunds or order issues before your earnings are finalized.",
   ready:
     "Your earnings have cleared and are ready to be paid out in the next payout cycle. Payouts are processed every Friday.",
-  paid: `This amount was sent to you. If you haven't received it within 3–5 business days, reach out to us at ${SUPPORT_EMAIL} and we'll look into it.`,
+  paid: "This amount was sent to you. If you haven't received it within 3–5 business days, contact us and we'll look into it.",
 };
 
 function EarnPage() {
@@ -406,9 +406,9 @@ function EarnPage() {
           Payouts are processed every Friday after each sale clears our standard holding period.
         </p>
         <p className="mt-3 text-xs text-mute">
-          Have a question about your balance or a payout? Contact us at{" "}
-          <a href={`mailto:${SUPPORT_EMAIL}`} className="text-navy underline">
-            {SUPPORT_EMAIL}
+          Have a question about your balance or a payout?{" "}
+          <a href={SUPPORT_HREF} className="text-navy underline">
+            Contact us
           </a>{" "}
           — we're happy to help.
         </p>

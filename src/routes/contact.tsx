@@ -25,8 +25,6 @@ export const Route = createFileRoute("/contact")({
   component: ContactPage,
 });
 
-const CONTACT_EMAIL = "support@aurumvault.store";
-
 const CHANNELS = [
   {
     icon: LifeBuoy,
@@ -213,7 +211,7 @@ function ContactPage() {
           {CHANNELS.map(({ icon: Icon, title, body }) => (
             <a
               key={title}
-              href={`mailto:${CONTACT_EMAIL}`}
+              href="/#contact"
               className="group rounded-2xl border border-ink/10 bg-white p-5 transition hover:border-gold/40 hover:shadow-sm"
             >
               <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-navy text-gold">
@@ -222,7 +220,7 @@ function ContactPage() {
               <div className="mt-3 font-display text-lg text-navy">{title}</div>
               <p className="mt-1 text-sm text-mute">{body}</p>
               <div className="mt-3 text-sm font-medium text-navy group-hover:text-gold-ink">
-                {CONTACT_EMAIL}
+                Contact us →
               </div>
             </a>
           ))}
@@ -233,7 +231,10 @@ function ContactPage() {
           <p className="mt-2 text-sm text-white/70">
             AurumVault
             <br />
-            All correspondence: support@aurumvault.store
+            All correspondence: use the form above or our{" "}
+            <a href="/#contact" className="text-gold underline underline-offset-4">
+              contact links
+            </a>
           </p>
         </div>
       </main>
