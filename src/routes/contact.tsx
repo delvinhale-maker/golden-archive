@@ -48,6 +48,7 @@ type Status = "idle" | "submitting" | "success" | "error";
 function ContactPage() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -59,12 +60,17 @@ function ContactPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!consent) {
+      setStatus("error");
+      setError("Please agree to the privacy notice before sending your message.");
+      return;
+    }
     setStatus("submitting");
     try {
       const res = await fetch("/api/public/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, consent }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
@@ -72,11 +78,13 @@ function ContactPage() {
       }
       setStatus("success");
       setForm({ name: "", email: "", topic: "support", message: "", company: "" });
+      setConsent(false);
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : "Something went wrong.");
     }
   }
+
 
   return (
     <MarketShell>
