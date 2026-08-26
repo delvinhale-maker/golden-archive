@@ -192,6 +192,25 @@ function ContactPage() {
                 </span>
               </label>
 
+              <label className="mt-5 flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-ink/30 accent-navy"
+                  aria-describedby="contact-page-privacy-notice"
+                />
+                <span id="contact-page-privacy-notice" className="text-xs leading-relaxed text-mute">
+                  I consent to AurumVault storing the name, email address, and message I
+                  submit here so the team can respond to my inquiry. We never sell your
+                  data, and you can ask us to delete it at any time. See our{" "}
+                  <Link to="/privacy" className="font-medium text-navy underline underline-offset-2">
+                    Privacy Policy
+                  </Link>
+                  .
+                </span>
+              </label>
+
               {error && (
                 <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
                   {error}
@@ -200,9 +219,10 @@ function ContactPage() {
 
               <button
                 type="submit"
-                disabled={status === "submitting"}
+                disabled={status === "submitting" || !consent}
                 className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-navy/90 disabled:opacity-60"
               >
+
                 {status === "submitting" ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" /> Sending…
