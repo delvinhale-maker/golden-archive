@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { type ReactNode } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, QrCode } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AVLogo } from "./AVLogo";
@@ -43,10 +43,10 @@ export const ACCENTS = {
   help: { color: "#2E5B8A", tint: "rgba(46,91,138,0.08)" },
 } satisfies Record<string, PublisherAccent>;
 
-const NAV_ITEMS = [
+const NAV_ITEMS: { label: string; to: string; featured?: boolean }[] = [
   { label: "Bookshelf", to: "/dashboard" as const },
   { label: "Publish", to: "/dashboard/new" as const },
-  { label: "QR Codes", to: "/dashboard/qr" as const },
+  { label: "QR Generator", to: "/dashboard/qr" as const, featured: true },
   { label: "AI Studio", to: "/dashboard/ai-studio" as const },
   { label: "Kingdom Picks", to: "/dashboard/kingdom-picks" as const },
   { label: "Earn", to: "/dashboard/earn" as const },
@@ -96,8 +96,13 @@ export function PublisherShell({
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="relative px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors"
+                  className={
+                    item.featured
+                      ? "relative ml-1 inline-flex items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-sm font-bold text-navy hover:bg-gold/90 transition-colors"
+                      : "relative px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors"
+                  }
                 >
+                  {item.featured && <QrCode size={14} />}
                   {item.label}
                   {item.to === "/dashboard/community" && <CommunityUnreadBadge />}
                   <span
@@ -135,7 +140,11 @@ export function PublisherShell({
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="relative flex-1 text-center py-3 text-[13px] font-medium text-white/80"
+                  className={
+                    item.featured
+                      ? "relative flex-1 text-center py-3 text-[13px] font-bold text-gold"
+                      : "relative flex-1 text-center py-3 text-[13px] font-medium text-white/80"
+                  }
                 >
                   {item.label}
                   {item.to === "/dashboard/community" && <CommunityUnreadBadge />}
