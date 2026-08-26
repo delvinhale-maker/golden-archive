@@ -35,6 +35,7 @@ export const Route = createFileRoute('/api/public/contact')({
         let topic = 'support'
         let message = ''
         let honeypot = ''
+        let consent = false
         try {
           const body = await request.json()
           name = String(body.name || '').trim().slice(0, 120)
@@ -42,6 +43,7 @@ export const Route = createFileRoute('/api/public/contact')({
           topic = String(body.topic || 'support').trim().toLowerCase().slice(0, 32)
           message = String(body.message || '').trim().slice(0, 4000)
           honeypot = String(body.company || '').trim()
+          consent = body.consent === true
         } catch {
           return Response.json({ error: 'Invalid JSON' }, { status: 400 })
         }
@@ -49,6 +51,12 @@ export const Route = createFileRoute('/api/public/contact')({
         // Honeypot: silently succeed for bots
         if (honeypot) return Response.json({ ok: true })
 
+        if (!consent) {
+          return Response.json(
+            { error: 'Please agree to the privacy notice before sending your message.' },
+            { status: 400 },
+          )
+        }
         if (name.length < 2) return Response.json({ error: 'Please enter your name.' }, { status: 400 })
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
           return Response.json({ error: 'Please enter a valid email.' }, { status: 400 })
@@ -57,6 +65,7 @@ export const Route = createFileRoute('/api/public/contact')({
           return Response.json({ error: 'Please include a longer message (10+ characters).' }, { status: 400 })
         }
         if (!ALLOWED_TOPICS.has(topic)) topic = 'support'
+
 
         const supabase = createClient(supabaseUrl, serviceKey)
 
