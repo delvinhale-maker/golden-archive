@@ -128,6 +128,7 @@ import { Route as ApiPublicHooksAuditCoversRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksAutoReleaseReviewsRouteImport } from './routes/api/public/hooks/auto-release-reviews'
 import { Route as ApiPublicHooksPayoutReleaseHeartbeatRouteImport } from './routes/api/public/hooks/payout-release-heartbeat'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicSubscribersConfirmRouteImport } from './routes/api/public/subscribers/confirm'
 import { Route as ApiPublicSubscribersSubscribeRouteImport } from './routes/api/public/subscribers/subscribe'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -785,6 +786,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicSubscribersConfirmRoute =
+  ApiPublicSubscribersConfirmRouteImport.update({
+    id: '/api/public/subscribers/confirm',
+    path: '/api/public/subscribers/confirm',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicSubscribersSubscribeRoute =
   ApiPublicSubscribersSubscribeRouteImport.update({
     id: '/api/public/subscribers/subscribe',
@@ -945,6 +952,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
   '/api/public/hooks/payout-release-heartbeat': typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/subscribers/confirm': typeof ApiPublicSubscribersConfirmRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -1069,6 +1077,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
   '/api/public/hooks/payout-release-heartbeat': typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/subscribers/confirm': typeof ApiPublicSubscribersConfirmRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -1198,6 +1207,7 @@ export interface FileRoutesById {
   '/api/public/hooks/auto-release-reviews': typeof ApiPublicHooksAutoReleaseReviewsRoute
   '/api/public/hooks/payout-release-heartbeat': typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/subscribers/confirm': typeof ApiPublicSubscribersConfirmRoute
   '/api/public/subscribers/subscribe': typeof ApiPublicSubscribersSubscribeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -1327,6 +1337,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/auto-release-reviews'
     | '/api/public/hooks/payout-release-heartbeat'
     | '/api/public/payments/webhook'
+    | '/api/public/subscribers/confirm'
     | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -1451,6 +1462,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/auto-release-reviews'
     | '/api/public/hooks/payout-release-heartbeat'
     | '/api/public/payments/webhook'
+    | '/api/public/subscribers/confirm'
     | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -1579,6 +1591,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/auto-release-reviews'
     | '/api/public/hooks/payout-release-heartbeat'
     | '/api/public/payments/webhook'
+    | '/api/public/subscribers/confirm'
     | '/api/public/subscribers/subscribe'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -1658,6 +1671,7 @@ export interface RootRouteChildren {
   ApiPublicHooksAutoReleaseReviewsRoute: typeof ApiPublicHooksAutoReleaseReviewsRoute
   ApiPublicHooksPayoutReleaseHeartbeatRoute: typeof ApiPublicHooksPayoutReleaseHeartbeatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicSubscribersConfirmRoute: typeof ApiPublicSubscribersConfirmRoute
   ApiPublicSubscribersSubscribeRoute: typeof ApiPublicSubscribersSubscribeRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -2499,6 +2513,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/subscribers/confirm': {
+      id: '/api/public/subscribers/confirm'
+      path: '/api/public/subscribers/confirm'
+      fullPath: '/api/public/subscribers/confirm'
+      preLoaderRoute: typeof ApiPublicSubscribersConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/subscribers/subscribe': {
       id: '/api/public/subscribers/subscribe'
       path: '/api/public/subscribers/subscribe'
@@ -2797,6 +2818,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksPayoutReleaseHeartbeatRoute:
     ApiPublicHooksPayoutReleaseHeartbeatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicSubscribersConfirmRoute: ApiPublicSubscribersConfirmRoute,
   ApiPublicSubscribersSubscribeRoute: ApiPublicSubscribersSubscribeRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
