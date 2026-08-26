@@ -67,6 +67,7 @@ import { Route as CreatorSlugRouteImport } from './routes/creator.$slug'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as InsiderIndexRouteImport } from './routes/insider.index'
+import { Route as InsiderSlugRouteImport } from './routes/insider.$slug'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as QPublicIdRouteImport } from './routes/q.$publicId'
@@ -428,6 +429,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
 const InsiderIndexRoute = InsiderIndexRouteImport.update({
   id: '/insider/',
   path: '/insider/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsiderSlugRoute = InsiderSlugRouteImport.update({
+  id: '/insider/$slug',
+  path: '/insider/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsIndexRoute = ProductsIndexRouteImport.update({
@@ -895,6 +901,7 @@ export interface FileRoutesByFullPath {
   '/creator/$slug': typeof CreatorSlugRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/insider/$slug': typeof InsiderSlugRoute
   '/products/$id': typeof ProductsIdRoute
   '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
@@ -1021,6 +1028,7 @@ export interface FileRoutesByTo {
   '/creator/$slug': typeof CreatorSlugRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/insider/$slug': typeof InsiderSlugRoute
   '/products/$id': typeof ProductsIdRoute
   '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
@@ -1152,6 +1160,7 @@ export interface FileRoutesById {
   '/creator/$slug': typeof CreatorSlugRoute
   '/download/$token': typeof DownloadTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/insider/$slug': typeof InsiderSlugRoute
   '/products/$id': typeof ProductsIdRoute
   '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
@@ -1283,6 +1292,7 @@ export interface FileRouteTypes {
     | '/creator/$slug'
     | '/download/$token'
     | '/email/unsubscribe'
+    | '/insider/$slug'
     | '/products/$id'
     | '/q/$publicId'
     | '/store/$slug'
@@ -1409,6 +1419,7 @@ export interface FileRouteTypes {
     | '/creator/$slug'
     | '/download/$token'
     | '/email/unsubscribe'
+    | '/insider/$slug'
     | '/products/$id'
     | '/q/$publicId'
     | '/store/$slug'
@@ -1539,6 +1550,7 @@ export interface FileRouteTypes {
     | '/creator/$slug'
     | '/download/$token'
     | '/email/unsubscribe'
+    | '/insider/$slug'
     | '/products/$id'
     | '/q/$publicId'
     | '/store/$slug'
@@ -1666,6 +1678,7 @@ export interface RootRouteChildren {
   CreatorSlugRoute: typeof CreatorSlugRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  InsiderSlugRoute: typeof InsiderSlugRoute
   QPublicIdRoute: typeof QPublicIdRoute
   StoreSlugRoute: typeof StoreSlugRoute
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
@@ -2097,6 +2110,13 @@ declare module '@tanstack/react-router' {
       path: '/insider'
       fullPath: '/insider/'
       preLoaderRoute: typeof InsiderIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insider/$slug': {
+      id: '/insider/$slug'
+      path: '/insider/$slug'
+      fullPath: '/insider/$slug'
+      preLoaderRoute: typeof InsiderSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products/': {
@@ -2820,6 +2840,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreatorSlugRoute: CreatorSlugRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  InsiderSlugRoute: InsiderSlugRoute,
   QPublicIdRoute: QPublicIdRoute,
   StoreSlugRoute: StoreSlugRoute,
   SubscribeConfirmRoute: SubscribeConfirmRoute,
