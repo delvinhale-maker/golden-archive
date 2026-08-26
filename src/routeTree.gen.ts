@@ -66,6 +66,7 @@ import { Route as CreatorStarterPackThankYouRouteImport } from './routes/creator
 import { Route as CreatorSlugRouteImport } from './routes/creator.$slug'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as InsiderIndexRouteImport } from './routes/insider.index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as QPublicIdRouteImport } from './routes/q.$publicId'
@@ -422,6 +423,11 @@ const DownloadTokenRoute = DownloadTokenRouteImport.update({
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsiderIndexRoute = InsiderIndexRouteImport.update({
+  id: '/insider/',
+  path: '/insider/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsIndexRoute = ProductsIndexRouteImport.update({
@@ -897,6 +903,7 @@ export interface FileRoutesByFullPath {
   '/academy/': typeof AcademyIndexRoute
   '/bundles/': typeof BundlesIndexRoute
   '/creator-business-tools/': typeof CreatorBusinessToolsIndexRoute
+  '/insider/': typeof InsiderIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/bundles': typeof AuthenticatedAdminBundlesRoute
@@ -1022,6 +1029,7 @@ export interface FileRoutesByTo {
   '/academy': typeof AcademyIndexRoute
   '/bundles': typeof BundlesIndexRoute
   '/creator-business-tools': typeof CreatorBusinessToolsIndexRoute
+  '/insider': typeof InsiderIndexRoute
   '/products': typeof ProductsIndexRoute
   '/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/admin/bundles': typeof AuthenticatedAdminBundlesRoute
@@ -1152,6 +1160,7 @@ export interface FileRoutesById {
   '/academy/': typeof AcademyIndexRoute
   '/bundles/': typeof BundlesIndexRoute
   '/creator-business-tools/': typeof CreatorBusinessToolsIndexRoute
+  '/insider/': typeof InsiderIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/auto-release': typeof AuthenticatedAdminAutoReleaseRoute
   '/_authenticated/admin/bundles': typeof AuthenticatedAdminBundlesRoute
@@ -1282,6 +1291,7 @@ export interface FileRouteTypes {
     | '/academy/'
     | '/bundles/'
     | '/creator-business-tools/'
+    | '/insider/'
     | '/products/'
     | '/admin/auto-release'
     | '/admin/bundles'
@@ -1407,6 +1417,7 @@ export interface FileRouteTypes {
     | '/academy'
     | '/bundles'
     | '/creator-business-tools'
+    | '/insider'
     | '/products'
     | '/admin/auto-release'
     | '/admin/bundles'
@@ -1536,6 +1547,7 @@ export interface FileRouteTypes {
     | '/academy/'
     | '/bundles/'
     | '/creator-business-tools/'
+    | '/insider/'
     | '/products/'
     | '/_authenticated/admin/auto-release'
     | '/_authenticated/admin/bundles'
@@ -1659,6 +1671,7 @@ export interface RootRouteChildren {
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
   ToolsRevenueCalculatorRoute: typeof ToolsRevenueCalculatorRoute
   BundlesIndexRoute: typeof BundlesIndexRoute
+  InsiderIndexRoute: typeof InsiderIndexRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicAcademyReceiveArticleRoute: typeof ApiPublicAcademyReceiveArticleRoute
@@ -2077,6 +2090,13 @@ declare module '@tanstack/react-router' {
       path: '/email/unsubscribe'
       fullPath: '/email/unsubscribe'
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insider/': {
+      id: '/insider/'
+      path: '/insider'
+      fullPath: '/insider/'
+      preLoaderRoute: typeof InsiderIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products/': {
@@ -2805,6 +2825,7 @@ const rootRouteChildren: RootRouteChildren = {
   SubscribeConfirmRoute: SubscribeConfirmRoute,
   ToolsRevenueCalculatorRoute: ToolsRevenueCalculatorRoute,
   BundlesIndexRoute: BundlesIndexRoute,
+  InsiderIndexRoute: InsiderIndexRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicAcademyReceiveArticleRoute: ApiPublicAcademyReceiveArticleRoute,
