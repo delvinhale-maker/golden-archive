@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { AVLogo } from "./AVLogo";
+import { InsiderSignup } from "@/components/insider/InsiderSignup";
 
 type FooterLink = { label: string; to: string; search?: Record<string, string> };
 
