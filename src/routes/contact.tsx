@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { Mail, LifeBuoy, Store, Loader2, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
