@@ -25,7 +25,7 @@ export const Route = createFileRoute("/contact")({
   component: ContactPage,
 });
 
-const CONTACT_EMAIL = "support@aurumvault.tech";
+const CONTACT_EMAIL = "support@aurumvault.store";
 
 const CHANNELS = [
   {
@@ -233,7 +233,7 @@ function ContactPage() {
           <p className="mt-2 text-sm text-white/70">
             AurumVault
             <br />
-            All correspondence: support@aurumvault.tech
+            All correspondence: support@aurumvault.store
           </p>
         </div>
       </main>

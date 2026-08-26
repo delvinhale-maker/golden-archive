@@ -58,7 +58,7 @@ export const template = {
   subject: (data: Record<string, any>) =>
     `New contact: ${data.topic || "support"} — ${data.name || "Visitor"}`,
   displayName: "Contact form notification",
-  to: "support@aurumvault.tech",
+  to: "support@aurumvault.store",
   previewData: {
     name: "Jane Doe",
     email: "jane@example.com",

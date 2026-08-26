@@ -150,7 +150,7 @@ export const resendCreatorStarterKit = createServerFn({ method: "POST" })
     // Never re-mail an unsubscribed/suppressed address; tell the requester instead.
     if (!result.sent && result.reason === "opted_out") {
       throw new Error(
-        "This email has unsubscribed from AurumVault emails, so we can't send it again. Use the download link on this page, or contact support@aurumvault.tech to resubscribe.",
+        "This email has unsubscribed from AurumVault emails, so we can't send it again. Use the download link on this page, or contact support@aurumvault.store to resubscribe.",
       );
     }
     if (!result.sent) {

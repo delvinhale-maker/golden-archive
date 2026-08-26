@@ -316,6 +316,7 @@ function Home() {
       <Suspense fallback={null}>
         <EmailCaptureBanner />
       </Suspense>
+      <ContactEmailsSection />
     </MarketShell>
   );
 }

@@ -49,7 +49,7 @@ function HelpPage() {
         <HelpCard
           icon={<Mail size={18} />}
           title="Contact support"
-          body="Email support@aurumvault.tech — we typically reply within 24 hours."
+          body="Email support@aurumvault.store — we typically reply within 24 hours."
         />
       </div>
 
@@ -73,11 +73,11 @@ function HelpPage() {
             to="."
             onClick={(e) => {
               e.preventDefault();
-              window.location.href = "mailto:support@aurumvault.tech";
+              window.location.href = "mailto:support@aurumvault.store";
             }}
             className="mt-3 inline-flex items-center gap-2 rounded-full bg-white text-navy font-semibold px-4 py-2 text-sm"
           >
-            <Mail size={14} /> support@aurumvault.tech
+            <Mail size={14} /> support@aurumvault.store
           </Link>
         </div>
       </section>
