@@ -2,6 +2,7 @@ import * as React from "react";
 import { render } from "react-email";
 import { createClient } from "@supabase/supabase-js";
 import { TEMPLATES } from "@/lib/email-templates/registry";
+import { getOrCreateUnsubscribeToken, unsubscribeUrlFor } from "@/lib/insider-email.server";
 
 const SITE_NAME = "AurumVault";
 const SENDER_DOMAIN = "notify.www.aurumvault.store";
@@ -39,6 +40,7 @@ export async function runSubscriberSequence(): Promise<SequenceResult> {
       .from("subscribers")
       .select("id,email,confirmed_at")
       .eq("status", "confirmed")
+      .is("unsubscribed_at", null)
       .not("confirmed_at", "is", null)
       .lte("confirmed_at", cutoff)
       .is(cfg.column, null)
@@ -66,7 +68,12 @@ export async function runSubscriberSequence(): Promise<SequenceResult> {
         continue;
       }
 
-      const unsubscribeUrl = `${SITE_URL}/unsubscribe?email=${encodeURIComponent(row.email)}`;
+      const unsubToken = await getOrCreateUnsubscribeToken(supabase as any, row.email);
+      if (!unsubToken) {
+        result.failed += 1;
+        continue;
+      }
+      const unsubscribeUrl = unsubscribeUrlFor(unsubToken);
       const props = { siteUrl: SITE_URL, unsubscribeUrl };
       const element = React.createElement(tpl.component, props);
       const html = await render(element);
