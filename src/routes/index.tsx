@@ -15,6 +15,7 @@ import {
   GraduationCap,
   Headphones,
   Lock,
+  QrCode,
   RefreshCw,
   ShieldCheck,
   Sparkles,
@@ -491,6 +492,17 @@ function CategoryCTABar() {
               </Link>
             );
           })}
+
+          <Link to="/dashboard/qr" aria-label="Open the QR Code Generator">
+            <motion.span
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.97 }}
+              className="inline-flex items-center gap-2 rounded-full border border-gold bg-gold px-5 py-2.5 text-sm font-bold text-navy shadow-sm transition hover:bg-gold/90"
+            >
+              <QrCode size={16} />
+              QR Code Generator
+            </motion.span>
+          </Link>
         </div>
       </div>
     </section>
