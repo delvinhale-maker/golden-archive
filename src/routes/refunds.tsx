@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketShell } from "@/components/marketplace/MarketShell";
+import { ContactLink } from "@/components/marketplace/ContactLink";
 
 export const Route = createFileRoute("/refunds")({
   head: () => ({
@@ -86,13 +87,9 @@ function RefundsPage() {
           </Section>
 
           <Section title="5. How to Request a Refund">
-            Email{" "}
-            <a
-              href="mailto:support@aurumvault.store"
-              className="text-navy hover:text-gold-ink hover:underline"
-            >
-              support@aurumvault.store
-            </a>{" "}
+            <ContactLink className="text-navy hover:text-gold-ink hover:underline">
+              Contact us
+            </ContactLink>{" "}
             from the address on your order with your order number and a short
             note about the reason. Most requests are reviewed within one
             business day. Approved refunds are issued instantly on our side and
@@ -113,13 +110,10 @@ function RefundsPage() {
           </Section>
 
           <Section title="8. Contact">
-            Questions about this policy? Email{" "}
-            <a
-              href="mailto:support@aurumvault.store"
-              className="text-navy hover:text-gold-ink hover:underline"
-            >
-              support@aurumvault.store
-            </a>{" "}
+            Questions about this policy?{" "}
+            <ContactLink className="text-navy hover:text-gold-ink hover:underline">
+              Contact us
+            </ContactLink>{" "}
             or visit the{" "}
             <Link to="/support" className="text-navy hover:text-gold-ink hover:underline">
               Help Center

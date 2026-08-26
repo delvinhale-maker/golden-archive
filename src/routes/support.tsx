@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { Mail, MessageSquare, BookOpen, Download, RotateCcw, Store, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { ContactLink } from "@/components/marketplace/ContactLink";
 
 export const Route = createFileRoute("/support")({
   head: () => ({
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/support")({
       {
         name: "description",
         content:
-          "Answers to the most common questions about AurumVault purchases, downloads, refunds, and creator payouts. Reach support at support@aurumvault.store.",
+          "Answers to the most common questions about AurumVault purchases, downloads, refunds, and creator payouts. Reach support through our contact links.",
       },
       { property: "og:title", content: "AurumVault Support" },
       {
@@ -44,7 +45,7 @@ const TOPICS = [
   {
     icon: Mail,
     title: "Contact a Human",
-    body: "Email support@aurumvault.store for orders, creators@aurumvault.store for seller questions. Reply within 24h.",
+    body: "Use the contact links on our homepage for orders or seller questions. Reply within 24h.",
   },
 ];
 
@@ -89,7 +90,7 @@ const FAQ_SECTIONS: { title: string; items: FAQ[] }[] = [
       },
       {
         q: "A download link isn't working. What do I do?",
-        a: "First, sign in and try the link in Account → My Downloads (that link is always current). If it still fails, email support@aurumvault.store with your order number and we'll re-issue it within 24 hours.",
+        a: "First, sign in and try the link in Account → My Downloads (that link is always current). If it still fails, contact us with your order number and we'll re-issue it within 24 hours.",
       },
       {
         q: "Can I read a preview before buying?",
@@ -102,7 +103,7 @@ const FAQ_SECTIONS: { title: string; items: FAQ[] }[] = [
     items: [
       {
         q: "What is your refund policy?",
-        a: "We offer a 14-day money-back guarantee on digital purchases you haven't fully downloaded or consumed. If a product isn't what was described, or you're not satisfied, email support@aurumvault.store within 14 days of purchase and we'll issue a refund to your original payment method.",
+        a: "We offer a 14-day money-back guarantee on digital purchases you haven't fully downloaded or consumed. If a product isn't what was described, or you're not satisfied, contact us within 14 days of purchase and we'll issue a refund to your original payment method.",
       },
       {
         q: "How long does a refund take?",
@@ -152,7 +153,7 @@ const FAQ_SECTIONS: { title: string; items: FAQ[] }[] = [
       },
       {
         q: "How do I delete my account?",
-        a: "Email support@aurumvault.store from the address on your account and we'll delete your data within 7 days. See our Privacy Policy for details on what's retained for legal/tax reasons.",
+        a: "Contact us from the address on your account and we'll delete your data within 7 days. See our Privacy Policy for details on what's retained for legal/tax reasons.",
       },
     ],
   },
@@ -223,13 +224,9 @@ function SupportPage() {
             <div>
               <p className="font-display text-xl">Still need help?</p>
               <p className="mt-2 text-sm text-white/75">
-                Email{" "}
-                <a
-                  href="mailto:support@aurumvault.store"
-                  className="text-gold-ink hover:underline"
-                >
-                  support@aurumvault.store
-                </a>{" "}
+                <ContactLink className="text-gold-ink hover:underline">
+                  Contact us
+                </ContactLink>{" "}
                 or use the{" "}
                 <Link to="/contact" className="text-gold-ink hover:underline">
                   contact form

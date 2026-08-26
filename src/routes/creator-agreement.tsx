@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { Check } from "lucide-react";
+import { ContactLink } from "@/components/marketplace/ContactLink";
 
 export const Route = createFileRoute("/creator-agreement")({
   head: () => ({
@@ -128,12 +129,9 @@ function CreatorAgreementPage() {
             <h2 className="font-display text-xl text-navy">7. Contact</h2>
             <p className="mt-2 text-sm">
               Seller questions:{" "}
-              <a
-                href="mailto:creators@aurumvault.store"
-                className="text-navy hover:text-gold-ink hover:underline"
-              >
-                creators@aurumvault.store
-              </a>
+              <ContactLink className="text-navy hover:text-gold-ink hover:underline">
+                use our contact links
+              </ContactLink>
               .
             </p>
           </section>

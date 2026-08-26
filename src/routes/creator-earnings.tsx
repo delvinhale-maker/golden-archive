@@ -344,7 +344,7 @@ function CreatorEarningsPage() {
             <Link to="/support" className="hover:text-gold">
               FAQ
             </Link>
-            <a href="mailto:support@aurumvault.store" className="hover:text-gold">
+            <a href="/#contact" className="hover:text-gold">
               Contact Support
             </a>
           </div>

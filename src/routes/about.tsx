@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { ShieldCheck, Sparkles, HeartHandshake, Crown } from "lucide-react";
+import { ContactLink } from "@/components/marketplace/ContactLink";
 
 const SITE_URL = "https://www.aurumvault.store";
 const ABOUT_URL = `${SITE_URL}/about`;
@@ -198,7 +199,7 @@ function AboutPage() {
               link, and your purchases stay in your library when you're signed in.
             </Faq>
             <Faq q="How do I contact AurumVault?">
-              Email support@aurumvault.store or use the contact page. We reply
+              Use the contact page or our contact links. We reply
               within 24 hours, Monday through Friday.
             </Faq>
           </dl>
@@ -229,10 +230,8 @@ function AboutPage() {
             <Link to="/contact" className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink">
               contact page
             </Link>{" "}
-            or email{" "}
-            <a href="mailto:support@aurumvault.store" className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink">
-              support@aurumvault.store
-            </a>
+            or{" "}
+            <ContactLink>use our contact links</ContactLink>
             . We reply within 24 hours, Monday through Friday.
           </p>
         </section>

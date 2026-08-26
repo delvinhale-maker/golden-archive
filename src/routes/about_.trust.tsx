@@ -10,6 +10,7 @@ import {
   BadgeCheck,
 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
+import { ContactLink } from "@/components/marketplace/ContactLink";
 
 const SITE_URL = "https://www.aurumvault.store";
 const CANONICAL = `${SITE_URL}/about/trust`;
@@ -205,13 +206,10 @@ function TrustCenterPage() {
         <Section icon={<Scale size={18} />} title="Intellectual property">
           <p className="mt-3">
             Creators must own or be licensed to sell everything they list. If you
-            believe a listing infringes your copyright or trademark, email{" "}
-            <a
-              href="mailto:support@aurumvault.store"
-              className="font-medium text-navy underline underline-offset-4"
-            >
-              support@aurumvault.store
-            </a>{" "}
+            believe a listing infringes your copyright or trademark,{" "}
+            <ContactLink className="font-medium text-navy underline underline-offset-4">
+              contact us
+            </ContactLink>{" "}
             with the product URL, a description of the protected work, and your
             contact details. We investigate and remove infringing listings.
           </p>
@@ -219,13 +217,9 @@ function TrustCenterPage() {
 
         <Section icon={<Mail size={18} />} title="Complaints and support">
           <p className="mt-3">
-            Email{" "}
-            <a
-              href="mailto:support@aurumvault.store"
-              className="font-medium text-navy underline underline-offset-4"
-            >
-              support@aurumvault.store
-            </a>{" "}
+            <ContactLink className="font-medium text-navy underline underline-offset-4">
+              Contact us
+            </ContactLink>{" "}
             or use our{" "}
             <Link
               to="/contact"
