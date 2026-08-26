@@ -21,6 +21,8 @@ import { template as creatorNurture3 } from './creator-nurture-3'
 import { template as creatorNurture4 } from './creator-nurture-4'
 import { template as creatorNurture5 } from './creator-nurture-5'
 import { template as foundingCreatorAccepted } from './founding-creator-accepted'
+import { template as insiderWelcome } from './insider-welcome'
+import { template as insiderEdition } from './insider-edition'
 
 export interface TemplateEntry {
   component: ComponentType<any>
@@ -54,4 +56,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'creator-nurture-4': creatorNurture4,
   'creator-nurture-5': creatorNurture5,
   'founding-creator-accepted': foundingCreatorAccepted,
+  'insider-welcome': insiderWelcome,
+  'insider-edition': insiderEdition,
 }
