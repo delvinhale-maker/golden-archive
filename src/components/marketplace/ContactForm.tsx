@@ -33,6 +33,7 @@ export function ContactForm() {
     message: "",
     company: "",
   });
+  const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -44,7 +45,8 @@ export function ContactForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const parsed = schema.safeParse(form);
+    const parsed = schema.safeParse({ ...form, consent });
+
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Please check your details.");
       return;
