@@ -50,6 +50,8 @@ import {
 import { getHomepageLayout } from "@/lib/homepage-layout.functions";
 import { rotateHalfDay } from "@/lib/affiliate-rotation";
 import { BROWSE_CATEGORIES } from "@/lib/categories";
+import { ContactForm } from "@/components/marketplace/ContactForm";
+
 
 import { useAuth } from "@/hooks/use-auth";
 
