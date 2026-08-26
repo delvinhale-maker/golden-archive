@@ -124,7 +124,7 @@ function TrustCenterPage() {
             </li>
             <li>
               Official email from us comes from an{" "}
-              <span className="font-medium text-navy">@aurumvault.tech</span>{" "}
+              <span className="font-medium text-navy">@aurumvault.store</span>{" "}
               address — support and order notifications included.
             </li>
             <li>
@@ -207,10 +207,10 @@ function TrustCenterPage() {
             Creators must own or be licensed to sell everything they list. If you
             believe a listing infringes your copyright or trademark, email{" "}
             <a
-              href="mailto:support@aurumvault.tech"
+              href="mailto:support@aurumvault.store"
               className="font-medium text-navy underline underline-offset-4"
             >
-              support@aurumvault.tech
+              support@aurumvault.store
             </a>{" "}
             with the product URL, a description of the protected work, and your
             contact details. We investigate and remove infringing listings.
@@ -221,10 +221,10 @@ function TrustCenterPage() {
           <p className="mt-3">
             Email{" "}
             <a
-              href="mailto:support@aurumvault.tech"
+              href="mailto:support@aurumvault.store"
               className="font-medium text-navy underline underline-offset-4"
             >
-              support@aurumvault.tech
+              support@aurumvault.store
             </a>{" "}
             or use our{" "}
             <Link

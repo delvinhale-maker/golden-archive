@@ -198,7 +198,7 @@ function AboutPage() {
               link, and your purchases stay in your library when you're signed in.
             </Faq>
             <Faq q="How do I contact AurumVault?">
-              Email support@aurumvault.tech or use the contact page. We reply
+              Email support@aurumvault.store or use the contact page. We reply
               within 24 hours, Monday through Friday.
             </Faq>
           </dl>
@@ -230,8 +230,8 @@ function AboutPage() {
               contact page
             </Link>{" "}
             or email{" "}
-            <a href="mailto:support@aurumvault.tech" className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink">
-              support@aurumvault.tech
+            <a href="mailto:support@aurumvault.store" className="font-medium text-navy underline underline-offset-4 hover:text-gold-ink">
+              support@aurumvault.store
             </a>
             . We reply within 24 hours, Monday through Friday.
           </p>

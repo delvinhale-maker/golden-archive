@@ -114,7 +114,7 @@ export async function enqueueInsiderEmail(
       message_id: messageId,
       to: email,
       from: `${SENDER_NAME} <noreply@${FROM_DOMAIN}>`,
-      reply_to: `support@aurumvault.tech`,
+      reply_to: `support@aurumvault.store`,
       sender_domain: SENDER_DOMAIN,
       subject,
       html,

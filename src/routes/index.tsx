@@ -15,6 +15,7 @@ import {
   GraduationCap,
   Headphones,
   Lock,
+  Mail,
   QrCode,
   RefreshCw,
   ShieldCheck,
@@ -316,6 +317,7 @@ function Home() {
       <Suspense fallback={null}>
         <EmailCaptureBanner />
       </Suspense>
+      <ContactEmailsSection />
     </MarketShell>
   );
 }
@@ -827,8 +829,48 @@ function TrustBar() {
         ))}
       </div>
     </section>
+  );
+}
 
-
+function ContactEmailsSection() {
+  const emails = [
+    { label: "Partnerships", href: "mailto:partnerships@aurumvault.store" },
+    { label: "Support", href: "mailto:support@aurumvault.store" },
+    { label: "Creators", href: "mailto:creators@aurumvault.store" },
+    { label: "Business", href: "mailto:business@aurumvault.store" },
+    { label: "General", href: "mailto:hello@aurumvault.store" },
+  ];
+  return (
+    <section className="bg-bg-page py-16 md:py-20">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mb-10 flex flex-col items-center text-center">
+          <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
+            GET IN TOUCH
+          </div>
+          <h2 className="mt-2 font-display text-3xl font-bold text-navy md:text-4xl">
+            Contact AurumVault
+          </h2>
+          <span className="mt-3 block h-[2px] w-10 bg-gold" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {emails.map((e) => (
+            <a
+              key={e.label}
+              href={e.href}
+              className="group flex flex-col items-center rounded-2xl border border-line bg-white p-6 text-center shadow-sm transition hover:-translate-y-1 hover:border-gold hover:shadow-card-hover"
+            >
+              <Mail size={22} className="text-gold-ink" />
+              <span className="mt-3 font-display text-sm font-bold text-navy">
+                {e.label}
+              </span>
+              <span className="mt-1 break-all text-xs text-mute group-hover:text-gold-ink">
+                {e.href.replace("mailto:", "")}
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
