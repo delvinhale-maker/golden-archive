@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Loader2, Send, CheckCircle2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { z } from "zod";
 
 const schema = z.object({
@@ -11,7 +12,11 @@ const schema = z.object({
     .trim()
     .min(10, "Please include a longer message (10+ characters).")
     .max(4000),
+  consent: z.literal(true, {
+    message: "Please agree to the privacy notice before sending your message.",
+  }),
 });
+
 
 const TOPICS: { value: string; label: string }[] = [
   { value: "support", label: "Support" },
@@ -28,6 +33,7 @@ export function ContactForm() {
     message: "",
     company: "",
   });
+  const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -39,7 +45,8 @@ export function ContactForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const parsed = schema.safeParse(form);
+    const parsed = schema.safeParse({ ...form, consent });
+
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Please check your details.");
       return;
@@ -139,16 +146,36 @@ export function ContactForm() {
         className="hidden"
       />
 
+      <label className="mt-5 flex items-start gap-3">
+        <input
+          type="checkbox"
+          checked={consent}
+          onChange={(e) => setConsent(e.target.checked)}
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-ink/30 accent-navy"
+          aria-describedby="contact-privacy-notice"
+        />
+        <span id="contact-privacy-notice" className="text-xs leading-relaxed text-mute">
+          I consent to AurumVault storing the name, email address, and message I submit
+          here so the team can respond to my inquiry. We never sell your data, and you can
+          ask us to delete it at any time. See our{" "}
+          <Link to="/privacy" className="font-medium text-navy underline underline-offset-2">
+            Privacy Policy
+          </Link>
+          .
+        </span>
+      </label>
+
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
       <button
         type="submit"
-        disabled={busy}
+        disabled={busy || !consent}
         className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-navy/90 disabled:opacity-60"
       >
         {busy ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
         {busy ? "Sending…" : "Send message"}
       </button>
+
       <p className="mt-3 text-center text-xs text-mute">
         We typically reply within 1–2 business days.
       </p>
