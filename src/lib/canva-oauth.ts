@@ -1,29 +1,37 @@
 /**
- * Canva OAuth 2.0 (authorization code + PKCE) — server-only.
+ * Canva OAuth 2.0 (authorization code + PKCE) — canonical core.
  *
- * Reuses the project's existing patterns rather than adding a second
- * integration architecture:
- *   - service-role Supabase client created per call, exactly like
- *     `insiderAdminClient()`;
- *   - envelope encryption via `src/lib/integration-crypto.server.ts`, the same
- *     keyring shape as payout details;
- *   - one row per (user, provider) in `public.integration_connections`, so
- *     re-connecting upserts instead of accumulating rows.
+ * ONE implementation for the whole app: PKCE minting, authorize-URL building,
+ * atomic single-use state claiming, token exchange/refresh, connection storage,
+ * status reads and disconnect (with remote token revocation).
  *
- * NOTE: the backing table is NOT yet applied to the database. Every function
- * here fails closed with a readable error until the proposed migration in
- * docs/proposed-migrations/ is authorized and applied.
+ * Security posture:
+ *   - the PKCE verifier and both tokens are encrypted at rest through the single
+ *     OAuth keyring in `oauth-token-crypto.server.ts`;
+ *   - `state` is opaque, length/charset validated, expiry enforced, and claimed
+ *     ATOMICALLY (conditional UPDATE), so a replayed callback can never consume
+ *     the same handshake twice;
+ *   - writes are scoped by the owning `user_id` so a connection row can never be
+ *     re-pointed at another user;
+ *   - the post-callback redirect base is fixed from the allow-listed
+ *     CANVA_REDIRECT_URI, never derived from the incoming request;
+ *   - service-role access only — the table grants nothing to anon/authenticated.
+ *
+ * NOTE: the backing table `public.integration_connections` is NOT yet applied to
+ * the database (see docs/proposed-migrations/). Every DB call fails closed with a
+ * readable error until that migration is authorized and applied.
  */
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import {
-  decryptIntegrationSecret,
-  encryptIntegrationSecret,
-} from "./integration-crypto.server";
+import { decryptOAuthSecret, encryptOAuthSecret } from "./oauth-token-crypto.server";
 
 export const CANVA_PROVIDER = "canva" as const;
 export const CANVA_AUTHORIZE_URL = "https://www.canva.com/api/oauth/authorize";
 export const CANVA_TOKEN_URL = "https://api.canva.com/rest/v1/oauth/token";
+export const CANVA_REVOKE_URL = "https://api.canva.com/rest/v1/oauth/revoke";
+
+/** Canva Connect expects the lowercase form of the S256 method. */
+export const CANVA_CODE_CHALLENGE_METHOD = "s256" as const;
 
 /** Least-privilege scope set for AurumVault cover/asset workflows. */
 export const CANVA_SCOPES = [
@@ -36,6 +44,9 @@ export const CANVA_SCOPES = [
 /** A pending handshake is only valid for ten minutes. */
 export const STATE_TTL_MS = 10 * 60 * 1000;
 
+export const STATE_MIN_LENGTH = 16;
+export const STATE_MAX_LENGTH = 128;
+
 export type CanvaConnectionStatus = {
   connected: boolean;
   status: "pending" | "connected" | "revoked" | "error" | "disconnected";
@@ -47,8 +58,8 @@ export type CanvaConnectionStatus = {
 };
 
 export function integrationAdminClient(): SupabaseClient {
-  const url = process.env.SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env["SUPABASE_URL"];
+  const key = process.env["SUPABASE_SERVICE_ROLE_KEY"];
   if (!url || !key) throw new Error("Server configuration error");
   return createClient(url, key, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -63,6 +74,14 @@ export function canvaConfig(): { clientId: string; clientSecret: string; redirec
     throw new Error("Canva integration is not configured");
   }
   return { clientId, clientSecret, redirectUri };
+}
+
+/**
+ * Fixed, allow-listed redirect base: the origin is taken from the configured
+ * redirect URI, so a spoofed Host/`request.url` cannot bounce the user offsite.
+ */
+export function canvaReturnOrigin(): string {
+  return new URL(canvaConfig().redirectUri).origin;
 }
 
 function randomHex(byteLength: number): string {
@@ -84,10 +103,29 @@ export function createCodeVerifier(): string {
   return base64UrlFromBytes(crypto.getRandomValues(new Uint8Array(48)));
 }
 
-/** RFC 7636 §4.2 S256 challenge. */
+/** RFC 7636 §4.2 S256 challenge (base64url of SHA-256). */
 export async function deriveCodeChallenge(verifier: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
   return base64UrlFromBytes(new Uint8Array(digest));
+}
+
+/** Opaque handshake state: hex, length-bounded, high entropy. */
+export function createOAuthState(): string {
+  return randomHex(24);
+}
+
+/**
+ * Sanity-validate a state value arriving from the browser before any DB work.
+ * Rejects empty, short, oversized and malformed values so the callback never
+ * runs a lookup on attacker-shaped input.
+ */
+export function isValidStateFormat(state: unknown): state is string {
+  return (
+    typeof state === "string" &&
+    state.length >= STATE_MIN_LENGTH &&
+    state.length <= STATE_MAX_LENGTH &&
+    /^[0-9a-f]+$/.test(state)
+  );
 }
 
 export function buildCanvaAuthorizeUrl(args: {
@@ -104,20 +142,20 @@ export function buildCanvaAuthorizeUrl(args: {
   url.searchParams.set("scope", (args.scopes ?? CANVA_SCOPES).join(" "));
   url.searchParams.set("state", args.state);
   url.searchParams.set("code_challenge", args.codeChallenge);
-  url.searchParams.set("code_challenge_method", "S256");
+  url.searchParams.set("code_challenge_method", CANVA_CODE_CHALLENGE_METHOD);
   return url.toString();
 }
 
 /**
  * Opens (or restarts) an authorization handshake for one user. The PKCE verifier
- * is stored encrypted; the opaque `state` is the only value that travels through
+ * is stored ENCRYPTED; the opaque `state` is the only value that travels through
  * the browser. Idempotent per (user, provider) via the unique index.
  */
 export async function beginCanvaAuthorization(userId: string): Promise<{ authorizeUrl: string }> {
   const { clientId, redirectUri } = canvaConfig();
   const supabase = integrationAdminClient();
 
-  const state = randomHex(24);
+  const state = createOAuthState();
   const verifier = createCodeVerifier();
   const codeChallenge = await deriveCodeChallenge(verifier);
 
@@ -127,7 +165,7 @@ export async function beginCanvaAuthorization(userId: string): Promise<{ authori
       provider: CANVA_PROVIDER,
       status: "pending",
       oauth_state: state,
-      code_verifier_enc: await encryptIntegrationSecret(verifier),
+      code_verifier_enc: await encryptOAuthSecret(verifier),
       state_expires_at: new Date(Date.now() + STATE_TTL_MS).toISOString(),
       last_error: null,
     },
@@ -153,19 +191,18 @@ export async function exchangeCanvaCode(args: {
   codeVerifier: string;
 }): Promise<CanvaTokenResponse> {
   const { clientId, clientSecret, redirectUri } = canvaConfig();
-  const body = new URLSearchParams({
-    grant_type: "authorization_code",
-    code: args.code,
-    code_verifier: args.codeVerifier,
-    redirect_uri: redirectUri,
-  });
   const res = await fetch(CANVA_TOKEN_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
     },
-    body,
+    body: new URLSearchParams({
+      grant_type: "authorization_code",
+      code: args.code,
+      code_verifier: args.codeVerifier,
+      redirect_uri: redirectUri,
+    }),
   });
   if (!res.ok) throw new Error(`Canva token exchange failed (${res.status})`);
   return (await res.json()) as CanvaTokenResponse;
@@ -185,37 +222,82 @@ export async function refreshCanvaToken(refreshToken: string): Promise<CanvaToke
   return (await res.json()) as CanvaTokenResponse;
 }
 
-type PendingRow = {
-  id: string;
-  user_id: string;
-  code_verifier_enc: unknown;
-  state_expires_at: string | null;
-};
-
-/** Look up a pending handshake by opaque state, rejecting expired ones. */
-export async function consumeCanvaState(
-  supabase: SupabaseClient,
-  state: string,
-): Promise<{ row: PendingRow; codeVerifier: string }> {
-  const { data, error } = await supabase
-    .from("integration_connections")
-    .select("id, user_id, code_verifier_enc, state_expires_at")
-    .eq("provider", CANVA_PROVIDER)
-    .eq("oauth_state", state)
-    .maybeSingle();
-  if (error) throw new Error(`Unable to verify authorization state: ${error.message}`);
-  const row = data as PendingRow | null;
-  if (!row) throw new Error("invalid_state");
-  if (!row.state_expires_at || new Date(row.state_expires_at).getTime() < Date.now()) {
-    throw new Error("expired_state");
+/** Best-effort remote revocation; the local wipe proceeds regardless. */
+export async function revokeCanvaTokenRemotely(token: string): Promise<boolean> {
+  try {
+    const { clientId, clientSecret } = canvaConfig();
+    const res = await fetch(CANVA_REVOKE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+      },
+      body: new URLSearchParams({ token }),
+    });
+    return res.ok;
+  } catch {
+    return false;
   }
-  return { row, codeVerifier: await decryptIntegrationSecret(row.code_verifier_enc) };
 }
 
-/** Persist an established connection and clear all handshake state. */
+export type ClaimedState = {
+  id: string;
+  user_id: string;
+  codeVerifier: string;
+};
+
+/**
+ * ATOMIC single-use state claim.
+ *
+ * One conditional UPDATE both matches the pending state (unexpired) and clears
+ * it, returning the row only to the first caller. A replayed callback finds no
+ * matching row, so the same authorization code can never be exchanged twice.
+ * Throws `invalid_state` or `expired_state`.
+ */
+export async function claimCanvaState(
+  supabase: SupabaseClient,
+  state: string,
+): Promise<ClaimedState> {
+  if (!isValidStateFormat(state)) throw new Error("invalid_state");
+
+  const nowIso = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("integration_connections")
+    .update({ oauth_state: null, state_expires_at: null })
+    .eq("provider", CANVA_PROVIDER)
+    .eq("oauth_state", state)
+    .gt("state_expires_at", nowIso)
+    .select("id, user_id, code_verifier_enc")
+    .maybeSingle();
+
+  if (error) throw new Error(`Unable to verify authorization state: ${error.message}`);
+
+  const row = data as { id: string; user_id: string; code_verifier_enc: unknown } | null;
+  if (!row) {
+    // Classification only (no secrets, no mutation): expired or unknown?
+    const { data: stale } = await supabase
+      .from("integration_connections")
+      .select("id")
+      .eq("provider", CANVA_PROVIDER)
+      .eq("oauth_state", state)
+      .maybeSingle();
+    throw new Error(stale ? "expired_state" : "invalid_state");
+  }
+
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    codeVerifier: await decryptOAuthSecret(row.code_verifier_enc),
+  };
+}
+
+/**
+ * Persist an established connection and clear all handshake state. Scoped by
+ * BOTH row id and owner id, so a row can never be reassigned to another user.
+ */
 export async function storeCanvaConnection(
   supabase: SupabaseClient,
-  args: { rowId: string; tokens: CanvaTokenResponse },
+  args: { rowId: string; ownerUserId: string; tokens: CanvaTokenResponse },
 ): Promise<void> {
   const expiresAt = args.tokens.expires_in
     ? new Date(Date.now() + args.tokens.expires_in * 1000).toISOString()
@@ -224,9 +306,9 @@ export async function storeCanvaConnection(
     .from("integration_connections")
     .update({
       status: "connected",
-      access_token_enc: await encryptIntegrationSecret(args.tokens.access_token),
+      access_token_enc: await encryptOAuthSecret(args.tokens.access_token),
       refresh_token_enc: args.tokens.refresh_token
-        ? await encryptIntegrationSecret(args.tokens.refresh_token)
+        ? await encryptOAuthSecret(args.tokens.refresh_token)
         : null,
       access_token_expires_at: expiresAt,
       scopes: args.tokens.scope ? args.tokens.scope.split(" ").filter(Boolean) : [...CANVA_SCOPES],
@@ -236,7 +318,8 @@ export async function storeCanvaConnection(
       state_expires_at: null,
       last_error: null,
     })
-    .eq("id", args.rowId);
+    .eq("id", args.rowId)
+    .eq("user_id", args.ownerUserId);
   if (error) throw new Error(`Unable to store Canva connection: ${error.message}`);
 }
 
@@ -269,16 +352,14 @@ export async function readCanvaStatus(userId: string): Promise<CanvaConnectionSt
     .eq("user_id", userId)
     .maybeSingle();
 
-  const row = data as
-    | {
-        status: CanvaConnectionStatus["status"];
-        external_display_name: string | null;
-        scopes: string[] | null;
-        last_connected_at: string | null;
-        access_token_expires_at: string | null;
-        last_error: string | null;
-      }
-    | null;
+  const row = data as {
+    status: CanvaConnectionStatus["status"];
+    external_display_name: string | null;
+    scopes: string[] | null;
+    last_connected_at: string | null;
+    access_token_expires_at: string | null;
+    last_error: string | null;
+  } | null;
 
   if (!row) {
     return {
@@ -302,9 +383,32 @@ export async function readCanvaStatus(userId: string): Promise<CanvaConnectionSt
   };
 }
 
-/** Revoke locally: wipe every secret column, keep the row for audit continuity. */
-export async function disconnectCanva(userId: string): Promise<void> {
+/**
+ * Disconnect: revoke remotely at Canva first (best effort), then wipe every
+ * secret column locally. The row is kept for audit continuity.
+ */
+export async function disconnectCanva(userId: string): Promise<{ remoteRevoked: boolean }> {
   const supabase = integrationAdminClient();
+
+  const { data } = await supabase
+    .from("integration_connections")
+    .select("id, refresh_token_enc, access_token_enc")
+    .eq("provider", CANVA_PROVIDER)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const row = data as { id: string; refresh_token_enc: unknown; access_token_enc: unknown } | null;
+
+  let remoteRevoked = false;
+  const sealed = row?.refresh_token_enc ?? row?.access_token_enc;
+  if (sealed) {
+    try {
+      remoteRevoked = await revokeCanvaTokenRemotely(await decryptOAuthSecret(sealed));
+    } catch {
+      remoteRevoked = false;
+    }
+  }
+
   const { error } = await supabase
     .from("integration_connections")
     .update({
@@ -319,4 +423,6 @@ export async function disconnectCanva(userId: string): Promise<void> {
     .eq("provider", CANVA_PROVIDER)
     .eq("user_id", userId);
   if (error) throw new Error(`Unable to disconnect Canva: ${error.message}`);
+
+  return { remoteRevoked };
 }

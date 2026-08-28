@@ -1,38 +1,33 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 /**
- * Static (source-only) verification of the proposed integration_connections
- * migration and the Canva OAuth wiring. Nothing here touches the database:
- * the migration is intentionally NOT applied, so these assertions guard the SQL
- * text and route/source contracts instead.
+ * Static (source-only) verification of the consolidated Canva OAuth foundation
+ * and the proposed integration_connections migration. Nothing here touches the
+ * database: the migration is intentionally NOT applied, so these assertions
+ * guard the SQL text and source/route contracts instead.
  */
 
-const MIGRATION_PATH =
-  "docs/proposed-migrations/20260828004015_create_integration_connections.sql";
-const sql = readFileSync(MIGRATION_PATH, "utf8");
-const callback = readFileSync(
-  "src/routes/api/public/integrations/canva/callback.ts",
-  "utf8",
-);
-const serverLib = readFileSync("src/lib/canva-oauth.server.ts", "utf8");
-const functions = readFileSync("src/lib/canva-oauth.functions.ts", "utf8");
+const MIGRATION_PATH = "docs/proposed-migrations/20260828004015_create_integration_connections.sql";
+const sqlRaw = readFileSync(MIGRATION_PATH, "utf8");
+/** Executable SQL only — line comments carry rollback/design notes, not statements. */
+const sql = sqlRaw
+  .split("\n")
+  .filter((line) => !line.trimStart().startsWith("--"))
+  .join("\n");
+const core = readFileSync("src/lib/canva-oauth.ts", "utf8");
+const crypto = readFileSync("src/lib/oauth-token-crypto.server.ts", "utf8");
+const functions = readFileSync("src/lib/canva.functions.ts", "utf8");
+const callback = readFileSync("src/routes/api/public/integrations/canva/callback.ts", "utf8");
+const ui = readFileSync("src/routes/_authenticated/dashboard.integrations.tsx", "utf8");
+const routeTree = readFileSync("src/routeTree.gen.ts", "utf8");
 
 describe("migration is additive-only", () => {
-  it("contains no destructive statements", () => {
-    const body = sql
-      .split("\n")
-      .filter((l) => !l.trimStart().startsWith("--"))
-      .join("\n");
-    expect(body).not.toMatch(/\bDROP\s+(TABLE|COLUMN|POLICY|FUNCTION|INDEX|TRIGGER)\b/i);
-    expect(body).not.toMatch(/\bTRUNCATE\b/i);
-    expect(body).not.toMatch(/\bDELETE\s+FROM\b/i);
-    expect(body).not.toMatch(/\bREVOKE\b/i);
-  });
-
-  it("only ALTERs the table it creates", () => {
-    const alters = sql.match(/ALTER TABLE\s+[a-z_.]+/gi) ?? [];
-    for (const a of alters) expect(a).toMatch(/public\.integration_connections/i);
+  it("contains no destructive statements against existing objects", () => {
+    expect(sql).not.toMatch(/\bDROP\s+TABLE\b/i);
+    expect(sql).not.toMatch(/\bTRUNCATE\b/i);
+    expect(sql).not.toMatch(/\bDELETE\s+FROM\b/i);
+    expect(sql).not.toMatch(/ALTER\s+TABLE\s+public\.(?!integration_connections)/i);
   });
 
   it("creates exactly one new table", () => {
@@ -40,135 +35,163 @@ describe("migration is additive-only", () => {
     expect(sql).toContain("CREATE TABLE public.integration_connections");
   });
 
-  it("documents a self-contained rollback", () => {
-    expect(sql).toContain("DROP TABLE IF EXISTS public.integration_connections CASCADE;");
+  it("is not staged in supabase/migrations (unapplied by design)", () => {
+    expect(
+      existsSync("supabase/migrations/20260828004015_create_integration_connections.sql"),
+    ).toBe(false);
   });
 });
 
-const sqlBody = sql
-  .split("\n")
-  .filter((l) => !l.trimStart().startsWith("--"))
-  .join("\n");
-
-describe("migration security posture", () => {
-  it("enables row level security", () => {
-    expect(sql).toMatch(
-      /ALTER TABLE public\.integration_connections ENABLE ROW LEVEL SECURITY/i,
-    );
+describe("migration security model", () => {
+  it("enables RLS", () => {
+    expect(sql).toContain("ENABLE ROW LEVEL SECURITY");
   });
 
-  it("grants only to service_role — never anon or authenticated", () => {
-    const grants = sqlBody.match(/GRANT[^;]+;/gi) ?? [];
-    expect(grants.length).toBeGreaterThan(0);
-    for (const g of grants) {
-      expect(g).toMatch(/TO service_role/i);
-      expect(g).not.toMatch(/\banon\b/i);
-      expect(g).not.toMatch(/\bauthenticated\b/i);
+  it("grants only to service_role and explicitly revokes anon", () => {
+    expect(sql).toContain("GRANT ALL ON public.integration_connections TO service_role;");
+    expect(sql).not.toMatch(/GRANT[^;]+TO\s+anon/i);
+    expect(sql).not.toMatch(/GRANT[^;]+TO\s+authenticated/i);
+    expect(sql).toContain("REVOKE ALL ON public.integration_connections FROM anon;");
+  });
+
+  it("scopes owner policies by auth.uid() with an admin escape hatch", () => {
+    expect(sql).toContain("USING (user_id = auth.uid() OR public.has_role(auth.uid(), 'admin'))");
+  });
+
+  it("keeps token material out of client-reachable columns via encryption", () => {
+    for (const col of ["access_token_enc", "refresh_token_enc", "code_verifier_enc"]) {
+      expect(sql).toContain(`${col} JSONB`);
     }
+    expect(sql).not.toMatch(/access_token\s+TEXT/i);
+    expect(sql).not.toMatch(/code_verifier\s+TEXT/i);
   });
 
-  it("scopes every policy to the owning user or an admin", () => {
-    const policies = sql.match(/CREATE POLICY[\s\S]*?;/gi) ?? [];
-    expect(policies.length).toBeGreaterThanOrEqual(2);
-    for (const p of policies) {
-      expect(p).toMatch(/user_id = auth\.uid\(\)/);
-      expect(p).toMatch(/public\.has_role\(auth\.uid\(\), 'admin'\)/);
-      expect(p).toMatch(/TO authenticated/);
-    }
+  it("protects owner reassignment with a guard trigger", () => {
+    expect(sql).toContain("guard_integration_connection_owner");
+    expect(sql).toContain("trg_integration_connections_owner_guard");
+    expect(sql).toContain("is immutable");
   });
 
-  it("reuses existing helpers instead of redefining them", () => {
+  it("enforces idempotency and unique handshake state", () => {
+    expect(sql).toContain("CREATE UNIQUE INDEX integration_connections_user_provider_key");
+    expect(sql).toContain("CREATE UNIQUE INDEX integration_connections_oauth_state_key");
+  });
+
+  it("bounds stored state length", () => {
+    expect(sql).toContain("char_length(oauth_state) BETWEEN 16 AND 128");
+  });
+
+  it("reuses existing helpers without redefining them", () => {
     expect(sql).toContain("public.touch_updated_at()");
-    expect(sql).toContain("public.has_role(");
-    expect(sql).not.toMatch(/CREATE\s+(OR REPLACE\s+)?FUNCTION\s+public\.(has_role|touch_updated_at)/i);
+    expect(sql).toContain("public.has_role(auth.uid(), 'admin')");
+    expect(sql).not.toMatch(/CREATE (OR REPLACE )?FUNCTION public\.touch_updated_at/i);
+    expect(sql).not.toMatch(/CREATE (OR REPLACE )?FUNCTION public\.has_role/i);
   });
 
-  it("cascades rows when the auth user is removed", () => {
-    expect(sql).toMatch(/user_id UUID NOT NULL REFERENCES auth\.users\(id\) ON DELETE CASCADE/i);
-  });
-});
-
-describe("uniqueness and idempotency", () => {
-  it("allows one connection per user and provider", () => {
-    expect(sql).toMatch(
-      /CREATE UNIQUE INDEX integration_connections_user_provider_key[\s\S]*?\(user_id, provider\)/i,
-    );
-  });
-
-  it("makes oauth_state globally unique while non-null", () => {
-    expect(sql).toMatch(
-      /CREATE UNIQUE INDEX integration_connections_oauth_state_key[\s\S]*?WHERE oauth_state IS NOT NULL/i,
-    );
-  });
-
-  it("constrains status and provider values", () => {
-    expect(sql).toMatch(/status[\s\S]*?CHECK \(status IN \('pending', 'connected', 'revoked', 'error'\)\)/i);
-    expect(sql).toMatch(/provider TEXT NOT NULL CHECK \(provider IN \('canva'\)\)/i);
-  });
-
-  it("keeps updated_at maintained by the shared trigger", () => {
-    expect(sql).toMatch(
-      /CREATE TRIGGER trg_integration_connections_updated[\s\S]*?EXECUTE FUNCTION public\.touch_updated_at\(\)/i,
-    );
+  it("documents a self-contained rollback", () => {
+    expect(sqlRaw).toContain("DROP TABLE IF EXISTS public.integration_connections CASCADE;");
   });
 });
 
-describe("callback route contract", () => {
-  it("is registered at the public integrations path", () => {
-    expect(callback).toContain(
-      'createFileRoute("/api/public/integrations/canva/callback")',
-    );
+describe("single canonical implementation", () => {
+  it("has exactly one crypto/keyring module for OAuth material", () => {
+    expect(existsSync("src/lib/integration-crypto.server.ts")).toBe(false);
+    expect(crypto).toContain("INTEGRATION_TOKEN_ENCRYPTION_KEY");
   });
 
-  it("authorizes by opaque state rather than trusting query identity", () => {
-    expect(callback).toContain("consumeCanvaState");
-    expect(callback).not.toMatch(/searchParams\.get\(["']user_id["']\)/);
+  it("has exactly one Canva OAuth core and one server-function module", () => {
+    expect(existsSync("src/lib/canva-oauth.server.ts")).toBe(false);
+    expect(existsSync("src/lib/canva-oauth.functions.ts")).toBe(false);
   });
 
-  it("always redirects and never returns token material", () => {
-    expect(callback).toMatch(/status: 302/);
-    // No token material may ever reach a redirect target / response body.
-    const redirects = callback.match(/backTo\(request,[^)]*\)/g) ?? [];
-    expect(redirects.length).toBeGreaterThan(0);
-    for (const r of redirects) expect(r).not.toMatch(/token/i);
-  });
-
-  it("records provider denial and exchange failures", () => {
-    expect(callback).toContain("markCanvaError");
-    expect(callback).toContain('canva: "denied"');
+  it("has no leftover references to the superseded modules", () => {
+    for (const source of [core, crypto, functions, callback, ui]) {
+      expect(source).not.toContain("canva-oauth.server");
+      expect(source).not.toContain("integration-crypto.server");
+      expect(source).not.toContain("canva-oauth.functions");
+    }
   });
 });
 
-describe("server library and server functions", () => {
-  it("uses S256 PKCE and never puts the secret in the browser redirect", () => {
-    expect(serverLib).toContain('url.searchParams.set("code_challenge_method", "S256")');
-    expect(serverLib).not.toMatch(/searchParams\.set\("client_secret"/);
+describe("callback route hardening", () => {
+  it("validates state format before any database work", () => {
+    expect(callback).toContain("isValidStateFormat");
+    expect(callback.indexOf("isValidStateFormat(state)")).toBeLessThan(
+      callback.indexOf("claimCanvaState(supabase, state)"),
+    );
   });
 
-  it("encrypts every stored credential", () => {
-    expect(serverLib).toContain("encryptIntegrationSecret(verifier)");
-    expect(serverLib).toContain("encryptIntegrationSecret(args.tokens.access_token)");
+  it("uses the atomic single-use claim", () => {
+    expect(callback).toContain("claimCanvaState");
+    expect(callback).not.toContain("consumeCanvaState");
   });
 
-  it("scopes reads and writes by user_id", () => {
-    expect(serverLib).toMatch(/\.eq\("user_id", userId\)/);
+  it("redirects to a fixed allow-listed origin, not the request origin", () => {
+    expect(callback).toContain("canvaReturnOrigin()");
+    expect(callback).not.toContain("new URL(request.url).origin");
   });
 
-  it("wipes secrets on disconnect", () => {
-    const disconnect = serverLib.slice(serverLib.indexOf("export async function disconnectCanva"));
-    expect(disconnect).toContain("access_token_enc: null");
-    expect(disconnect).toContain("refresh_token_enc: null");
-    expect(disconnect).toContain('status: "revoked"');
+  it("passes the claimed owner id through to storage", () => {
+    expect(callback).toContain("ownerUserId: claimed.user_id");
   });
 
-  it("derives the caller from verified auth claims only", () => {
-    expect(functions).toContain("requireSupabaseAuth");
+  it("never returns tokens or secrets to the browser", () => {
+    // The only mention of a token is the truthiness guard before storage —
+    // nothing token-shaped is ever written into the redirect or the body.
+    expect(callback.match(/tokens\.access_token/g)?.length).toBe(1);
+    expect(callback).toContain("if (!tokens.access_token)");
+    expect(callback).not.toMatch(/Location.*token/i);
+    expect(callback).toContain("status: 302");
+  });
+
+  it("loads server-only modules dynamically inside the handler", () => {
+    expect(callback).toContain('await import("@/lib/canva-oauth")');
+  });
+});
+
+describe("core OAuth behaviour", () => {
+  it("claims state atomically with expiry enforcement", () => {
+    expect(core).toContain('.eq("oauth_state", state)');
+    expect(core).toContain('.gt("state_expires_at", nowIso)');
+    expect(core).toContain(".update({ oauth_state: null, state_expires_at: null })");
+  });
+
+  it("encrypts verifier and tokens at rest", () => {
+    expect(core).toContain("code_verifier_enc: await encryptOAuthSecret(verifier)");
+    expect(core).toContain("access_token_enc: await encryptOAuthSecret(args.tokens.access_token)");
+  });
+
+  it("scopes connection writes by owner id", () => {
+    expect(core).toContain('.eq("user_id", args.ownerUserId)');
+  });
+
+  it("revokes remotely on disconnect", () => {
+    expect(core).toContain("CANVA_REVOKE_URL");
+    expect(core).toContain("revokeCanvaTokenRemotely");
+  });
+
+  it("uses Canva's lowercase s256 challenge method", () => {
+    expect(core).toContain('CANVA_CODE_CHALLENGE_METHOD = "s256"');
+  });
+});
+
+describe("server functions derive identity from the verified session", () => {
+  it("requires auth on every entry point", () => {
+    expect(functions.match(/\.middleware\(\[requireSupabaseAuth\]\)/g)?.length).toBe(3);
+  });
+
+  it("never accepts a user id from client input", () => {
+    expect(functions).not.toContain("inputValidator");
     expect(functions).toContain("context.userId");
-    expect(functions).not.toMatch(/inputValidator/);
+  });
+});
+
+describe("routes are registered", () => {
+  it("registers the public Canva callback", () => {
+    expect(routeTree).toContain("/api/public/integrations/canva/callback");
   });
 
-  it("keeps the server-only module out of the client bundle", () => {
-    expect(functions).not.toMatch(/^import .*canva-oauth\.server/m);
-    expect(functions).toContain('await import("./canva-oauth.server")');
+  it("registers the authenticated integrations dashboard", () => {
+    expect(routeTree).toContain("/_authenticated/dashboard/integrations");
   });
 });

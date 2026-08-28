@@ -90,6 +90,28 @@ CREATE POLICY "integration_connections_owner_delete"
   FOR DELETE TO authenticated
   USING (user_id = auth.uid() OR public.has_role(auth.uid(), 'admin'));
 
+-- Owner-reassignment protection: a connection row can never be re-pointed at a
+-- different auth user, even by service-role code with a bad WHERE clause.
+CREATE OR REPLACE FUNCTION public.guard_integration_connection_owner()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.user_id IS DISTINCT FROM OLD.user_id THEN
+    RAISE EXCEPTION 'integration_connections.user_id is immutable';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_integration_connections_owner_guard
+  BEFORE UPDATE ON public.integration_connections
+  FOR EACH ROW EXECUTE FUNCTION public.guard_integration_connection_owner();
+
+-- Explicit anon restriction (belt-and-braces: no grant was ever issued).
+REVOKE ALL ON public.integration_connections FROM anon;
+
 CREATE TRIGGER trg_integration_connections_updated
   BEFORE UPDATE ON public.integration_connections
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
