@@ -22,7 +22,7 @@
  * readable error until that migration is authorized and applied.
  */
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { decryptOAuthSecret, encryptOAuthSecret } from "./oauth-token-crypto.server";
 
 export const CANVA_PROVIDER = "canva" as const;
@@ -33,12 +33,18 @@ export const CANVA_REVOKE_URL = "https://api.canva.com/rest/v1/oauth/revoke";
 /** Canva Connect expects the lowercase form of the S256 method. */
 export const CANVA_CODE_CHALLENGE_METHOD = "s256" as const;
 
-/** Least-privilege scope set for AurumVault cover/asset workflows. */
+/**
+ * Intended Canva Connect scope set for AurumVault cover/asset workflows.
+ * All five are required: asset:write is what lets us push generated covers back
+ * into the creator's Canva account. Guarded by a regression test so it cannot
+ * silently drift again.
+ */
 export const CANVA_SCOPES = [
   "profile:read",
-  "design:meta:read",
-  "design:content:read",
   "asset:read",
+  "asset:write",
+  "design:content:read",
+  "design:meta:read",
 ] as const;
 
 /** A pending handshake is only valid for ten minutes. */
@@ -57,13 +63,15 @@ export type CanvaConnectionStatus = {
   lastError: string | null;
 };
 
-export function integrationAdminClient(): SupabaseClient {
-  const url = process.env["SUPABASE_URL"];
-  const key = process.env["SUPABASE_SERVICE_ROLE_KEY"];
-  if (!url || !key) throw new Error("Server configuration error");
-  return createClient(url, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+/**
+ * Privileged client for writes and decrypt paths only. Reuses the project's
+ * established service-role singleton (`@/integrations/supabase/client.server`)
+ * instead of hand-rolling a second admin client. Loaded dynamically so the
+ * server-only module never enters a client bundle.
+ */
+export async function integrationAdminClient(): Promise<SupabaseClient> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin as unknown as SupabaseClient;
 }
 
 export function canvaConfig(): { clientId: string; clientSecret: string; redirectUri: string } {
@@ -153,7 +161,7 @@ export function buildCanvaAuthorizeUrl(args: {
  */
 export async function beginCanvaAuthorization(userId: string): Promise<{ authorizeUrl: string }> {
   const { clientId, redirectUri } = canvaConfig();
-  const supabase = integrationAdminClient();
+  const supabase = await integrationAdminClient();
 
   const state = createOAuthState();
   const verifier = createCodeVerifier();
@@ -340,9 +348,21 @@ export async function markCanvaError(
     .eq("id", rowId);
 }
 
-/** Non-secret status for the owning user only. */
-export async function readCanvaStatus(userId: string): Promise<CanvaConnectionStatus> {
-  const supabase = integrationAdminClient();
+/**
+ * Non-secret status for the owning user only.
+ *
+ * Defence in depth: prefer an RLS-bound authenticated client (the caller's own
+ * `context.supabase`), so the read is constrained by the owner policy as well as
+ * by the explicit `user_id` filter. Encrypted token columns are never selected —
+ * and the migration grants `authenticated` column-level SELECT on the non-secret
+ * columns only, so they are not reachable on this path at all. Falls back to the
+ * privileged client when no user-scoped client is supplied (e.g. server jobs).
+ */
+export async function readCanvaStatus(
+  userId: string,
+  rlsClient?: SupabaseClient,
+): Promise<CanvaConnectionStatus> {
+  const supabase = rlsClient ?? (await integrationAdminClient());
   const { data } = await supabase
     .from("integration_connections")
     .select(
@@ -388,7 +408,7 @@ export async function readCanvaStatus(userId: string): Promise<CanvaConnectionSt
  * secret column locally. The row is kept for audit continuity.
  */
 export async function disconnectCanva(userId: string): Promise<{ remoteRevoked: boolean }> {
-  const supabase = integrationAdminClient();
+  const supabase = await integrationAdminClient();
 
   const { data } = await supabase
     .from("integration_connections")

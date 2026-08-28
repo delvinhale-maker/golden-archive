@@ -73,9 +73,27 @@ CREATE UNIQUE INDEX integration_connections_oauth_state_key
 CREATE INDEX integration_connections_provider_status_idx
   ON public.integration_connections (provider, status);
 
--- Deliberately NO grants to anon or authenticated: encrypted OAuth material is
--- only ever touched by server code holding the service role.
+-- Service role owns all privileged writes and every decrypt path.
 GRANT ALL ON public.integration_connections TO service_role;
+
+-- Defense in depth: the signed-in owner may read ONLY the non-secret status
+-- columns, so the dashboard status read can run RLS-bound as the user. The
+-- encrypted columns (access_token_enc, refresh_token_enc, code_verifier_enc)
+-- and the handshake columns (oauth_state, state_expires_at) are deliberately
+-- omitted, so they are unreachable from any client session.
+GRANT SELECT (
+  id,
+  user_id,
+  provider,
+  status,
+  external_display_name,
+  scopes,
+  last_connected_at,
+  access_token_expires_at,
+  last_error,
+  created_at,
+  updated_at
+) ON public.integration_connections TO authenticated;
 
 ALTER TABLE public.integration_connections ENABLE ROW LEVEL SECURITY;
 

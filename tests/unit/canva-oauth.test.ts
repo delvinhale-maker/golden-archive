@@ -52,6 +52,38 @@ describe("Canva PKCE", () => {
   });
 });
 
+describe("Canva scope set (regression guard)", () => {
+  it("contains exactly the five intended scopes", () => {
+    expect([...CANVA_SCOPES].sort()).toEqual(
+      [
+        "asset:read",
+        "asset:write",
+        "design:content:read",
+        "design:meta:read",
+        "profile:read",
+      ].sort(),
+    );
+    expect(CANVA_SCOPES).toHaveLength(5);
+  });
+
+  it("includes asset:write so cover pushes keep working", () => {
+    expect(CANVA_SCOPES).toContain("asset:write");
+  });
+
+  it("puts every scope on the authorize URL", () => {
+    const url = new URL(
+      buildCanvaAuthorizeUrl({
+        clientId: "c",
+        redirectUri: "https://www.aurumvault.store/api/public/integrations/canva/callback",
+        state: "a".repeat(24),
+        codeChallenge: "x",
+      }),
+    );
+    const requested = (url.searchParams.get("scope") ?? "").split(" ");
+    for (const scope of CANVA_SCOPES) expect(requested).toContain(scope);
+  });
+});
+
 describe("authorize URL", () => {
   const url = new URL(
     buildCanvaAuthorizeUrl({
@@ -235,6 +267,35 @@ describe("OAuth credential encryption", () => {
   it("rejects non-envelope values", async () => {
     await expect(decryptOAuthSecret("plaintext")).rejects.toThrow();
     await expect(decryptOAuthSecret(null)).rejects.toThrow();
+  });
+
+  it("decrypts across the full four-slot keyring (V4 -> V3 -> V2 -> original)", async () => {
+    // Sealed with the original key only.
+    const v1 = await encryptOAuthSecret("token-v1");
+
+    process.env["INTEGRATION_TOKEN_ENCRYPTION_KEY_V2"] = "unit-test-key-v2";
+    resetOAuthKeyring();
+    const v2 = await encryptOAuthSecret("token-v2");
+
+    process.env["INTEGRATION_TOKEN_ENCRYPTION_KEY_V3"] = "unit-test-key-v3";
+    resetOAuthKeyring();
+    const v3 = await encryptOAuthSecret("token-v3");
+
+    process.env["INTEGRATION_TOKEN_ENCRYPTION_KEY_V4"] = "unit-test-key-v4";
+    resetOAuthKeyring();
+    const v4 = await encryptOAuthSecret("token-v4");
+
+    // Newest slot is active, and every retired slot still decrypts.
+    expect(new Set([v1.kid, v2.kid, v3.kid, v4.kid]).size).toBe(4);
+    expect(await decryptOAuthSecret(v1)).toBe("token-v1");
+    expect(await decryptOAuthSecret(v2)).toBe("token-v2");
+    expect(await decryptOAuthSecret(v3)).toBe("token-v3");
+    expect(await decryptOAuthSecret(v4)).toBe("token-v4");
+
+    delete process.env["INTEGRATION_TOKEN_ENCRYPTION_KEY_V2"];
+    delete process.env["INTEGRATION_TOKEN_ENCRYPTION_KEY_V3"];
+    delete process.env["INTEGRATION_TOKEN_ENCRYPTION_KEY_V4"];
+    resetOAuthKeyring();
   });
 
   it("decrypts rows sealed with a retired key after rotation", async () => {

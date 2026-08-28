@@ -7,6 +7,8 @@
  * decrypt-only fallback across retired keys so rotation needs no downtime.
  *
  * Keyring (newest first — index 0 is the ACTIVE encrypting key):
+ *   INTEGRATION_TOKEN_ENCRYPTION_KEY_V4
+ *   INTEGRATION_TOKEN_ENCRYPTION_KEY_V3
  *   INTEGRATION_TOKEN_ENCRYPTION_KEY_V2
  *   INTEGRATION_TOKEN_ENCRYPTION_KEY        (original)
  *
@@ -21,6 +23,8 @@ export type OAuthEnvelope = {
 };
 
 const KEY_ENV_NAMES = [
+  "INTEGRATION_TOKEN_ENCRYPTION_KEY_V4",
+  "INTEGRATION_TOKEN_ENCRYPTION_KEY_V3",
   "INTEGRATION_TOKEN_ENCRYPTION_KEY_V2",
   "INTEGRATION_TOKEN_ENCRYPTION_KEY",
 ] as const;

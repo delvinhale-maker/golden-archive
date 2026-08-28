@@ -21,7 +21,7 @@ export const getCanvaConnectionStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { readCanvaStatus } = await import("./canva-oauth");
-    return readCanvaStatus(context.userId);
+    return readCanvaStatus(context.userId, context.supabase as never);
   });
 
 export const disconnectCanvaConnection = createServerFn({ method: "POST" })

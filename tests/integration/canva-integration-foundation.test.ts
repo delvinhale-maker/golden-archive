@@ -47,11 +47,32 @@ describe("migration security model", () => {
     expect(sql).toContain("ENABLE ROW LEVEL SECURITY");
   });
 
-  it("grants only to service_role and explicitly revokes anon", () => {
+  it("grants privileged access to service_role only and revokes anon", () => {
     expect(sql).toContain("GRANT ALL ON public.integration_connections TO service_role;");
     expect(sql).not.toMatch(/GRANT[^;]+TO\s+anon/i);
-    expect(sql).not.toMatch(/GRANT[^;]+TO\s+authenticated/i);
     expect(sql).toContain("REVOKE ALL ON public.integration_connections FROM anon;");
+  });
+
+  it("grants authenticated a column-level SELECT that excludes all secret columns", () => {
+    const grant = sql.match(
+      /GRANT SELECT \(([^)]+)\) ON public\.integration_connections TO authenticated;/i,
+    );
+    expect(grant).not.toBeNull();
+    const columns = grant![1]!.split(",").map((c) => c.trim());
+    for (const secret of [
+      "access_token_enc",
+      "refresh_token_enc",
+      "code_verifier_enc",
+      "oauth_state",
+      "state_expires_at",
+    ]) {
+      expect(columns).not.toContain(secret);
+    }
+    expect(columns).toContain("status");
+    // No table-wide grant to authenticated anywhere.
+    expect(sql).not.toMatch(
+      /GRANT\s+(ALL|SELECT)\s+ON\s+public\.integration_connections\s+TO\s+authenticated/i,
+    );
   });
 
   it("scopes owner policies by auth.uid() with an admin escape hatch", () => {
@@ -168,6 +189,46 @@ describe("core OAuth behaviour", () => {
   it("revokes remotely on disconnect", () => {
     expect(core).toContain("CANVA_REVOKE_URL");
     expect(core).toContain("revokeCanvaTokenRemotely");
+  });
+
+  it("requests exactly the five intended Canva scopes, including asset:write", () => {
+    const block = core.match(/export const CANVA_SCOPES = \[([^\]]+)\]/)![1]!;
+    const scopes = block
+      .split(",")
+      .map((s) => s.trim().replace(/^"|"$/g, ""))
+      .filter(Boolean);
+    expect(new Set(scopes)).toEqual(
+      new Set([
+        "profile:read",
+        "asset:read",
+        "asset:write",
+        "design:content:read",
+        "design:meta:read",
+      ]),
+    );
+    expect(scopes).toContain("asset:write");
+    expect(scopes.length).toBe(5);
+  });
+
+  it("keeps a four-slot encryption keyring", () => {
+    for (const slot of [
+      "INTEGRATION_TOKEN_ENCRYPTION_KEY_V4",
+      "INTEGRATION_TOKEN_ENCRYPTION_KEY_V3",
+      "INTEGRATION_TOKEN_ENCRYPTION_KEY_V2",
+      "INTEGRATION_TOKEN_ENCRYPTION_KEY",
+    ]) {
+      expect(crypto).toContain(slot);
+    }
+  });
+
+  it("reuses the established service-role singleton instead of a hand-rolled client", () => {
+    expect(core).toContain('await import("@/integrations/supabase/client.server")');
+    expect(core).not.toContain("createClient(");
+  });
+
+  it("supports an RLS-bound status read", () => {
+    expect(core).toMatch(/readCanvaStatus\(\s*userId: string,\s*rlsClient\?: SupabaseClient/);
+    expect(functions).toContain("context.supabase");
   });
 
   it("uses Canva's lowercase s256 challenge method", () => {
