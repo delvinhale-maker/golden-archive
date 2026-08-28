@@ -1,8 +1,17 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
-import { Plug, ShieldCheck, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  Plug,
+  ShieldCheck,
+  AlertTriangle,
+  Loader2,
+  Copy,
+  ExternalLink,
+  RefreshCw,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   disconnectCanvaConnection,
@@ -33,6 +42,7 @@ function IntegrationsPage() {
   const fetchStatus = useServerFn(getCanvaConnectionStatus);
   const beginConnect = useServerFn(startCanvaConnection);
   const disconnect = useServerFn(disconnectCanvaConnection);
+  const [manualUrl, setManualUrl] = useState<string | null>(null);
 
   const status = useQuery({
     queryKey: ["canva-connection"],
@@ -46,6 +56,12 @@ function IntegrationsPage() {
       window.location.href = result.authorizeUrl;
     },
     onError: (err: Error) => toast.error(err.message || "Unable to start Canva authorization"),
+  });
+
+  const manualMutation = useMutation({
+    mutationFn: () => beginConnect({ data: undefined }),
+    onSuccess: (result) => setManualUrl(result.authorizeUrl),
+    onError: (err: Error) => toast.error(err.message || "Unable to prepare a Canva link"),
   });
 
   const disconnectMutation = useMutation({
@@ -130,7 +146,86 @@ function IntegrationsPage() {
                   Disconnect
                 </button>
               )}
+              <button
+                type="button"
+                onClick={() => manualMutation.mutate()}
+                disabled={manualMutation.isPending}
+                className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-navy disabled:opacity-60"
+              >
+                {manualMutation.isPending ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="animate-spin" size={14} /> Preparing link…
+                  </span>
+                ) : manualUrl ? (
+                  "Get a fresh link"
+                ) : (
+                  "Connect manually"
+                )}
+              </button>
             </div>
+
+            {manualUrl && (
+              <div className="mt-5 rounded-xl border border-border bg-background p-4">
+                <h3 className="font-display text-base text-navy">Finish in your browser</h3>
+                <p className="mt-1 text-xs text-mute">
+                  If Canva shows a “verify you’re human” challenge and the redirect stalls, complete
+                  the consent step manually. The link is single-use and expires in 10 minutes.
+                </p>
+                <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-navy">
+                  <li>Open the link below in a normal browser tab (not in-app or private mode).</li>
+                  <li>Sign in to Canva and clear the human-verification challenge if shown.</li>
+                  <li>
+                    Approve access for AurumVault — Canva returns you here automatically.
+                  </li>
+                  <li>Come back to this page and press Refresh status.</li>
+                </ol>
+
+                <div className="mt-3 break-all rounded-lg border border-border bg-card p-3 font-mono text-[11px] text-mute">
+                  {manualUrl}
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <a
+                    href={manualUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                  >
+                    <ExternalLink size={13} /> Open Canva consent
+                  </a>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(manualUrl);
+                        toast.success("Link copied");
+                      } catch {
+                        toast.error("Copy failed — long-press the link to copy it");
+                      }
+                    }}
+                    className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-navy"
+                  >
+                    <Copy size={13} /> Copy link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void queryClient.invalidateQueries({ queryKey: ["canva-connection"] });
+                    }}
+                    className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-navy"
+                  >
+                    <RefreshCw size={13} /> Refresh status
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setManualUrl(null)}
+                    className="rounded-lg px-3 py-2 text-xs font-semibold text-mute"
+                  >
+                    Hide
+                  </button>
+                </div>
+              </div>
+            )}
 
             <p className="mt-4 text-xs text-mute">
               Requested access: read-only profile, design metadata, design content and assets.
