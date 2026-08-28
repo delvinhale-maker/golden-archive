@@ -25,6 +25,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
+import { CanvaHomeBanner } from "@/components/marketplace/CanvaHomeBanner";
 import {
   ProductCard,
   ProductCardSkeleton,
@@ -274,6 +275,10 @@ function Home() {
       </Suspense>
       <BrandIntro />
       <TrustBar />
+
+      <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
+        <CanvaHomeBanner />
+      </div>
 
       <RefreshHighlightsBar />
       <ContinueBrowsingRow />
