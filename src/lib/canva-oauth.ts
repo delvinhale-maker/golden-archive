@@ -95,10 +95,7 @@ function randomHex(byteLength: number): string {
 function base64UrlFromBytes(bytes: Uint8Array): string {
   let s = "";
   for (const b of bytes) s += String.fromCharCode(b);
-  return btoa(s)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 /** RFC 7636 §4.1 verifier: 43–128 unreserved chars. */
