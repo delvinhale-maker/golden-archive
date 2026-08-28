@@ -1,8 +1,17 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
-import { Plug, ShieldCheck, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  Plug,
+  ShieldCheck,
+  AlertTriangle,
+  Loader2,
+  Copy,
+  ExternalLink,
+  RefreshCw,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   disconnectCanvaConnection,
