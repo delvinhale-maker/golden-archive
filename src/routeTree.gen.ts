@@ -139,6 +139,7 @@ import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lova
 import { Route as AuthenticatedAdminHealthCoversAlertsRouteImport } from './routes/_authenticated/admin.health.covers.alerts'
 import { Route as AuthenticatedDashboardQrCampaignsIndexRouteImport } from './routes/_authenticated/dashboard.qr.campaigns.index'
 import { Route as AuthenticatedDashboardQrCampaignsIdRouteImport } from './routes/_authenticated/dashboard.qr.campaigns.$id'
+import { Route as ApiPublicIntegrationsCanvaCallbackRouteImport } from './routes/api/public/integrations/canva/callback'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -853,6 +854,12 @@ const AuthenticatedDashboardQrCampaignsIdRoute =
     path: '/dashboard/qr/campaigns/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicIntegrationsCanvaCallbackRoute =
+  ApiPublicIntegrationsCanvaCallbackRouteImport.update({
+    id: '/api/public/integrations/canva/callback',
+    path: '/api/public/integrations/canva/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -983,6 +990,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/qr/': typeof AuthenticatedDashboardQrIndexRoute
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
   '/dashboard/qr/campaigns/$id': typeof AuthenticatedDashboardQrCampaignsIdRoute
+  '/api/public/integrations/canva/callback': typeof ApiPublicIntegrationsCanvaCallbackRoute
   '/dashboard/qr/campaigns/': typeof AuthenticatedDashboardQrCampaignsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -1111,6 +1119,7 @@ export interface FileRoutesByTo {
   '/dashboard/qr': typeof AuthenticatedDashboardQrIndexRoute
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
   '/dashboard/qr/campaigns/$id': typeof AuthenticatedDashboardQrCampaignsIdRoute
+  '/api/public/integrations/canva/callback': typeof ApiPublicIntegrationsCanvaCallbackRoute
   '/dashboard/qr/campaigns': typeof AuthenticatedDashboardQrCampaignsIndexRoute
 }
 export interface FileRoutesById {
@@ -1244,6 +1253,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/qr/': typeof AuthenticatedDashboardQrIndexRoute
   '/_authenticated/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
   '/_authenticated/dashboard/qr/campaigns/$id': typeof AuthenticatedDashboardQrCampaignsIdRoute
+  '/api/public/integrations/canva/callback': typeof ApiPublicIntegrationsCanvaCallbackRoute
   '/_authenticated/dashboard/qr/campaigns/': typeof AuthenticatedDashboardQrCampaignsIndexRoute
 }
 export interface FileRouteTypes {
@@ -1377,6 +1387,7 @@ export interface FileRouteTypes {
     | '/dashboard/qr/'
     | '/admin/health/covers/alerts'
     | '/dashboard/qr/campaigns/$id'
+    | '/api/public/integrations/canva/callback'
     | '/dashboard/qr/campaigns/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1505,6 +1516,7 @@ export interface FileRouteTypes {
     | '/dashboard/qr'
     | '/admin/health/covers/alerts'
     | '/dashboard/qr/campaigns/$id'
+    | '/api/public/integrations/canva/callback'
     | '/dashboard/qr/campaigns'
   id:
     | '__root__'
@@ -1637,6 +1649,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/qr/'
     | '/_authenticated/admin/health/covers/alerts'
     | '/_authenticated/dashboard/qr/campaigns/$id'
+    | '/api/public/integrations/canva/callback'
     | '/_authenticated/dashboard/qr/campaigns/'
   fileRoutesById: FileRoutesById
 }
@@ -1715,6 +1728,7 @@ export interface RootRouteChildren {
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
+  ApiPublicIntegrationsCanvaCallbackRoute: typeof ApiPublicIntegrationsCanvaCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -2629,6 +2643,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardQrCampaignsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/integrations/canva/callback': {
+      id: '/api/public/integrations/canva/callback'
+      path: '/api/public/integrations/canva/callback'
+      fullPath: '/api/public/integrations/canva/callback'
+      preLoaderRoute: typeof ApiPublicIntegrationsCanvaCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -2887,6 +2908,8 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
+  ApiPublicIntegrationsCanvaCallbackRoute:
+    ApiPublicIntegrationsCanvaCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
