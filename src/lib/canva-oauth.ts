@@ -16,10 +16,7 @@
  */
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import {
-  decryptIntegrationSecret,
-  encryptIntegrationSecret,
-} from "./integration-crypto.server";
+import { decryptIntegrationSecret, encryptIntegrationSecret } from "./integration-crypto.server";
 
 export const CANVA_PROVIDER = "canva" as const;
 export const CANVA_AUTHORIZE_URL = "https://www.canva.com/api/oauth/authorize";
@@ -269,16 +266,14 @@ export async function readCanvaStatus(userId: string): Promise<CanvaConnectionSt
     .eq("user_id", userId)
     .maybeSingle();
 
-  const row = data as
-    | {
-        status: CanvaConnectionStatus["status"];
-        external_display_name: string | null;
-        scopes: string[] | null;
-        last_connected_at: string | null;
-        access_token_expires_at: string | null;
-        last_error: string | null;
-      }
-    | null;
+  const row = data as {
+    status: CanvaConnectionStatus["status"];
+    external_display_name: string | null;
+    scopes: string[] | null;
+    last_connected_at: string | null;
+    access_token_expires_at: string | null;
+    last_error: string | null;
+  } | null;
 
   if (!row) {
     return {

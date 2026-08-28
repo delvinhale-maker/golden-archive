@@ -8,8 +8,7 @@ import { describe, expect, it } from "vitest";
  * guard the SQL text and source/route contracts instead.
  */
 
-const MIGRATION_PATH =
-  "docs/proposed-migrations/20260828004015_create_integration_connections.sql";
+const MIGRATION_PATH = "docs/proposed-migrations/20260828004015_create_integration_connections.sql";
 const sqlRaw = readFileSync(MIGRATION_PATH, "utf8");
 /** Executable SQL only — line comments carry rollback/design notes, not statements. */
 const sql = sqlRaw
@@ -19,10 +18,7 @@ const sql = sqlRaw
 const core = readFileSync("src/lib/canva-oauth.ts", "utf8");
 const crypto = readFileSync("src/lib/oauth-token-crypto.server.ts", "utf8");
 const functions = readFileSync("src/lib/canva.functions.ts", "utf8");
-const callback = readFileSync(
-  "src/routes/api/public/integrations/canva/callback.ts",
-  "utf8",
-);
+const callback = readFileSync("src/routes/api/public/integrations/canva/callback.ts", "utf8");
 const ui = readFileSync("src/routes/_authenticated/dashboard.integrations.tsx", "utf8");
 const routeTree = readFileSync("src/routeTree.gen.ts", "utf8");
 
@@ -40,9 +36,9 @@ describe("migration is additive-only", () => {
   });
 
   it("is not staged in supabase/migrations (unapplied by design)", () => {
-    expect(existsSync("supabase/migrations/20260828004015_create_integration_connections.sql")).toBe(
-      false,
-    );
+    expect(
+      existsSync("supabase/migrations/20260828004015_create_integration_connections.sql"),
+    ).toBe(false);
   });
 });
 
@@ -77,9 +73,7 @@ describe("migration security model", () => {
   });
 
   it("enforces idempotency and unique handshake state", () => {
-    expect(sql).toContain(
-      "CREATE UNIQUE INDEX integration_connections_user_provider_key",
-    );
+    expect(sql).toContain("CREATE UNIQUE INDEX integration_connections_user_provider_key");
     expect(sql).toContain("CREATE UNIQUE INDEX integration_connections_oauth_state_key");
   });
 
@@ -159,7 +153,7 @@ describe("core OAuth behaviour", () => {
   it("claims state atomically with expiry enforcement", () => {
     expect(core).toContain('.eq("oauth_state", state)');
     expect(core).toContain('.gt("state_expires_at", nowIso)');
-    expect(core).toContain('.update({ oauth_state: null, state_expires_at: null })');
+    expect(core).toContain(".update({ oauth_state: null, state_expires_at: null })");
   });
 
   it("encrypts verifier and tokens at rest", () => {

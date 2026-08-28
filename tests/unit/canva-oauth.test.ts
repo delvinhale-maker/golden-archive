@@ -113,9 +113,12 @@ describe("OAuth state format validation", () => {
  * claimCanvaState. It models the database's atomicity: the pending state is
  * cleared by the first successful claim, so a second claim matches nothing.
  */
-function fakeSupabase(row: { id: string; user_id: string; code_verifier_enc: unknown } | null, opts: {
-  expired?: boolean;
-} = {}) {
+function fakeSupabase(
+  row: { id: string; user_id: string; code_verifier_enc: unknown } | null,
+  opts: {
+    expired?: boolean;
+  } = {},
+) {
   const state = { row, cleared: false };
   const chain = (mode: "update" | "select") => {
     const filters: Record<string, unknown> = {};
