@@ -1,6 +1,10 @@
 -- AurumVault third-party integration connections (ADDITIVE ONLY — NOT APPLIED).
 --
--- STATUS: proposed / unapplied. Staged here on purpose. The platform will only
+-- STATUS: APPLIED 2026-08-28 to the shared Lovable Cloud database (plus a
+-- follow-up grant-tightening statement, because the platform's default ACL
+-- granted `authenticated` full table privileges on creation; revoked, then
+-- re-granted as column-level SELECT on status-safe columns only).
+-- (Historical note follows.) Originally proposed / unapplied. Staged here on purpose. The platform will only
 -- accept SQL under supabase/migrations/ through the migration runner, which
 -- executes it immediately against the shared preview+production database. Since
 -- this pass is source-only, the SQL lives here for static review and is copied
