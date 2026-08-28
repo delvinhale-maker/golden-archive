@@ -57,6 +57,12 @@ function IntegrationsPage() {
     onError: (err: Error) => toast.error(err.message || "Unable to start Canva authorization"),
   });
 
+  const manualMutation = useMutation({
+    mutationFn: () => beginConnect({ data: undefined }),
+    onSuccess: (result) => setManualUrl(result.authorizeUrl),
+    onError: (err: Error) => toast.error(err.message || "Unable to prepare a Canva link"),
+  });
+
   const disconnectMutation = useMutation({
     mutationFn: () => disconnect({ data: undefined }),
     onSuccess: () => {
