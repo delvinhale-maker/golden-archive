@@ -115,7 +115,9 @@ export function CanvaConnectBanner() {
                   "Connect Canva"
                 )}
               </button>
-              <p className="text-center text-sm text-mute lg:text-right">Takes less than a minute</p>
+              <p className="text-center text-sm text-mute lg:text-right">
+                Takes less than a minute
+              </p>
             </>
           )}
         </div>
