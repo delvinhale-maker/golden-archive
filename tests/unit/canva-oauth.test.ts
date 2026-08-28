@@ -104,7 +104,7 @@ describe("OAuth state format validation", () => {
     expect(isValidStateFormat("../../etc/passwd0000")).toBe(false);
     expect(isValidStateFormat("ZZZZZZZZZZZZZZZZZZZZ")).toBe(false);
     expect(isValidStateFormat(null)).toBe(false);
-    expect(isValidStateFormat(12345678901234567890)).toBe(false);
+    expect(isValidStateFormat("12345678901234567890abcdefg!")).toBe(false);
   });
 });
 
