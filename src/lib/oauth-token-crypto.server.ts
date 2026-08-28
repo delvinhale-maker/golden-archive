@@ -1,5 +1,5 @@
 /**
- * Server-only envelope encryption for third-party integration credentials.
+ * Server-only envelope encryption for third-party OAuth credentials.
  *
  * Deliberately mirrors the established payout-details pattern
  * (src/lib/payout-crypto.server.ts): AES-256-GCM, a newest-first keyring read
@@ -13,7 +13,7 @@
  * Stored shape: { __enc: "v1", kid: "<hex8>", iv: "<base64>", data: "<base64>" }
  */
 
-export type IntegrationEnvelope = {
+export type OAuthEnvelope = {
   __enc: "v1";
   kid?: string;
   iv: string;
@@ -70,21 +70,21 @@ async function buildKeyring(): Promise<KeyringEntry[]> {
 }
 
 /** Test seam: drop the cached keyring after changing env vars. */
-export function resetIntegrationKeyring(): void {
+export function resetOAuthKeyring(): void {
   keyringCache = null;
 }
 
-export function isIntegrationEnvelope(value: unknown): value is IntegrationEnvelope {
+export function isOAuthEnvelope(value: unknown): value is OAuthEnvelope {
   return (
     !!value &&
     typeof value === "object" &&
     (value as Record<string, unknown>)["__enc"] === "v1" &&
-    typeof (value as IntegrationEnvelope).iv === "string" &&
-    typeof (value as IntegrationEnvelope).data === "string"
+    typeof (value as OAuthEnvelope).iv === "string" &&
+    typeof (value as OAuthEnvelope).data === "string"
   );
 }
 
-export async function encryptIntegrationSecret(plaintext: string): Promise<IntegrationEnvelope> {
+export async function encryptOAuthSecret(plaintext: string): Promise<OAuthEnvelope> {
   const ring = await buildKeyring();
   const active = ring[0]!;
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -101,9 +101,9 @@ export async function encryptIntegrationSecret(plaintext: string): Promise<Integ
   };
 }
 
-export async function decryptIntegrationSecret(stored: unknown): Promise<string> {
-  if (!isIntegrationEnvelope(stored)) {
-    throw new Error("Stored integration secret is not a valid envelope");
+export async function decryptOAuthSecret(stored: unknown): Promise<string> {
+  if (!isOAuthEnvelope(stored)) {
+    throw new Error("Stored OAuth secret is not a valid envelope");
   }
   const ring = await buildKeyring();
   const ordered = stored.kid
@@ -125,11 +125,11 @@ export async function decryptIntegrationSecret(stored: unknown): Promise<string>
   }
   throw lastError instanceof Error
     ? lastError
-    : new Error("Unable to decrypt integration secret with any configured key");
+    : new Error("Unable to decrypt OAuth secret with any configured key");
 }
 
 /** Active key id + loaded slots (no secret material) — for admin diagnostics. */
-export async function getIntegrationKeyringStatus(): Promise<{
+export async function getOAuthKeyringStatus(): Promise<{
   active_kid: string;
   active_env: string;
   decrypt_only: { env: string; kid: string }[];
