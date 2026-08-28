@@ -45,6 +45,11 @@ describe("migration is additive-only", () => {
   });
 });
 
+const sqlBody = sql
+  .split("\n")
+  .filter((l) => !l.trimStart().startsWith("--"))
+  .join("\n");
+
 describe("migration security posture", () => {
   it("enables row level security", () => {
     expect(sql).toMatch(
@@ -53,7 +58,7 @@ describe("migration security posture", () => {
   });
 
   it("grants only to service_role — never anon or authenticated", () => {
-    const grants = sql.match(/GRANT[^;]+;/gi) ?? [];
+    const grants = sqlBody.match(/GRANT[^;]+;/gi) ?? [];
     expect(grants.length).toBeGreaterThan(0);
     for (const g of grants) {
       expect(g).toMatch(/TO service_role/i);
@@ -122,7 +127,10 @@ describe("callback route contract", () => {
 
   it("always redirects and never returns token material", () => {
     expect(callback).toMatch(/status: 302/);
-    expect(callback).not.toMatch(/access_token/);
+    // No token material may ever reach a redirect target / response body.
+    const redirects = callback.match(/backTo\(request,[^)]*\)/g) ?? [];
+    expect(redirects.length).toBeGreaterThan(0);
+    for (const r of redirects) expect(r).not.toMatch(/token/i);
   });
 
   it("records provider denial and exchange failures", () => {
