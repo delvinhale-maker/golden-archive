@@ -4,8 +4,12 @@ import { createFileRoute } from "@tanstack/react-router";
  * Canva OAuth redirect target. Public by necessity (the provider calls it with
  * no app session), so it authorizes the caller itself: the only trusted input is
  * the opaque, single-use, short-lived `state` value minted by
- * `beginCanvaAuthorization`. The state row identifies the user — nothing about
- * the user is ever read from the query string.
+ * `beginCanvaAuthorization`. The claimed state row identifies the user — nothing
+ * about the user is ever read from the query string.
+ *
+ * The state claim is ATOMIC, so a replayed callback cannot consume the same
+ * handshake twice. The redirect target is built from the fixed, allow-listed
+ * CANVA_REDIRECT_URI origin, never from the incoming request URL.
  *
  * Never renders tokens or secrets; always finishes as a redirect back into the
  * dashboard with a coarse status flag.
@@ -13,8 +17,8 @@ import { createFileRoute } from "@tanstack/react-router";
 
 const DASHBOARD_PATH = "/dashboard/integrations";
 
-function backTo(request: Request, params: Record<string, string>): Response {
-  const url = new URL(DASHBOARD_PATH, new URL(request.url).origin);
+function backTo(origin: string, params: Record<string, string>): Response {
+  const url = new URL(DASHBOARD_PATH, origin);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   return new Response(null, { status: 302, headers: { Location: url.toString() } });
 }
@@ -28,58 +32,64 @@ export const Route = createFileRoute("/api/public/integrations/canva/callback")(
         const code = url.searchParams.get("code") ?? "";
         const providerError = url.searchParams.get("error");
 
-        if (!state || state.length < 16) {
-          return backTo(request, { canva: "error", reason: "invalid_state" });
-        }
-
         const {
           integrationAdminClient,
-          consumeCanvaState,
+          canvaReturnOrigin,
+          isValidStateFormat,
+          claimCanvaState,
           exchangeCanvaCode,
           storeCanvaConnection,
           markCanvaError,
-        } = await import("@/lib/canva-oauth.server");
+        } = await import("@/lib/canva-oauth");
 
+        let origin: string;
         let supabase;
         try {
+          origin = canvaReturnOrigin();
           supabase = integrationAdminClient();
         } catch {
-          return backTo(request, { canva: "error", reason: "server_config" });
+          return new Response("Canva integration is not configured", { status: 503 });
         }
 
-        let pending;
+        // Malformed / oversized / non-hex state never reaches the database.
+        if (!isValidStateFormat(state)) {
+          return backTo(origin, { canva: "error", reason: "invalid_state" });
+        }
+
+        let claimed;
         try {
-          pending = await consumeCanvaState(supabase, state);
+          claimed = await claimCanvaState(supabase, state);
         } catch (err) {
           const reason = err instanceof Error ? err.message : "invalid_state";
-          return backTo(request, {
+          return backTo(origin, {
             canva: "error",
             reason: reason === "expired_state" ? "expired_state" : "invalid_state",
           });
         }
 
         if (providerError || !code) {
-          await markCanvaError(supabase, pending.row.id, providerError ?? "missing_code");
-          return backTo(request, { canva: "denied" });
+          await markCanvaError(supabase, claimed.id, providerError ?? "missing_code");
+          return backTo(origin, { canva: "denied" });
         }
 
         try {
-          const tokens = await exchangeCanvaCode({
-            code,
-            codeVerifier: pending.codeVerifier,
-          });
+          const tokens = await exchangeCanvaCode({ code, codeVerifier: claimed.codeVerifier });
           if (!tokens.access_token) throw new Error("no_access_token");
-          await storeCanvaConnection(supabase, { rowId: pending.row.id, tokens });
+          await storeCanvaConnection(supabase, {
+            rowId: claimed.id,
+            ownerUserId: claimed.user_id,
+            tokens,
+          });
         } catch (err) {
           console.error("[canva] token exchange failed", {
-            connection_id: pending.row.id,
+            connection_id: claimed.id,
             message: err instanceof Error ? err.message : "unknown",
           });
-          await markCanvaError(supabase, pending.row.id, "token_exchange_failed");
-          return backTo(request, { canva: "error", reason: "exchange_failed" });
+          await markCanvaError(supabase, claimed.id, "token_exchange_failed");
+          return backTo(origin, { canva: "error", reason: "exchange_failed" });
         }
 
-        return backTo(request, { canva: "connected" });
+        return backTo(origin, { canva: "connected" });
       },
     },
   },
