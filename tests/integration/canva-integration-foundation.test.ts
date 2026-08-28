@@ -54,7 +54,9 @@ describe("migration security model", () => {
   });
 
   it("grants authenticated a column-level SELECT that excludes all secret columns", () => {
-    const grant = sql.match(/GRANT SELECT \(([^)]+)\) ON public\.integration_connections TO authenticated;/i);
+    const grant = sql.match(
+      /GRANT SELECT \(([^)]+)\) ON public\.integration_connections TO authenticated;/i,
+    );
     expect(grant).not.toBeNull();
     const columns = grant![1]!.split(",").map((c) => c.trim());
     for (const secret of [
@@ -68,7 +70,9 @@ describe("migration security model", () => {
     }
     expect(columns).toContain("status");
     // No table-wide grant to authenticated anywhere.
-    expect(sql).not.toMatch(/GRANT\s+(ALL|SELECT)\s+ON\s+public\.integration_connections\s+TO\s+authenticated/i);
+    expect(sql).not.toMatch(
+      /GRANT\s+(ALL|SELECT)\s+ON\s+public\.integration_connections\s+TO\s+authenticated/i,
+    );
   });
 
   it("scopes owner policies by auth.uid() with an admin escape hatch", () => {
