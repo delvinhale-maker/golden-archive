@@ -1694,6 +1694,69 @@ export type Database = {
         }
         Relationships: []
       }
+      integration_connections: {
+        Row: {
+          access_token_enc: Json | null
+          access_token_expires_at: string | null
+          code_verifier_enc: Json | null
+          created_at: string
+          external_account_id: string | null
+          external_display_name: string | null
+          id: string
+          last_connected_at: string | null
+          last_error: string | null
+          metadata: Json
+          oauth_state: string | null
+          provider: string
+          refresh_token_enc: Json | null
+          scopes: string[]
+          state_expires_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_enc?: Json | null
+          access_token_expires_at?: string | null
+          code_verifier_enc?: Json | null
+          created_at?: string
+          external_account_id?: string | null
+          external_display_name?: string | null
+          id?: string
+          last_connected_at?: string | null
+          last_error?: string | null
+          metadata?: Json
+          oauth_state?: string | null
+          provider: string
+          refresh_token_enc?: Json | null
+          scopes?: string[]
+          state_expires_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_enc?: Json | null
+          access_token_expires_at?: string | null
+          code_verifier_enc?: Json | null
+          created_at?: string
+          external_account_id?: string | null
+          external_display_name?: string | null
+          id?: string
+          last_connected_at?: string | null
+          last_error?: string | null
+          metadata?: Json
+          oauth_state?: string | null
+          provider?: string
+          refresh_token_enc?: Json | null
+          scopes?: string[]
+          state_expires_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       marketplace_bundle_items: {
         Row: {
           bundle_id: string
