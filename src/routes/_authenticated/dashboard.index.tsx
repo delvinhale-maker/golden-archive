@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
+import { CanvaConnectBanner } from "@/components/dashboard/CanvaConnectBanner";
 import { categoryDisplay, PRODUCT_TYPES, PRODUCT_TYPE_ORDER, type ProductTypeKey } from "@/lib/product-types";
 import { ChevronDown, Crown } from "lucide-react";
 import {
@@ -340,6 +341,10 @@ function BookshelfPage() {
 
         )}
       </div>
+
+      <CanvaConnectBanner />
+
+
 
       {!loading && !app && !isAdmin && (
         <div className="mt-8 rounded-2xl bg-white border border-ink/10 p-7">
