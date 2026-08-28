@@ -341,6 +341,10 @@ function BookshelfPage() {
         )}
       </div>
 
+      <CanvaConnectBanner />
+
+
+
       {!loading && !app && !isAdmin && (
         <div className="mt-8 rounded-2xl bg-white border border-ink/10 p-7">
           <h2 className="font-display text-xl text-navy">Become an AurumVault Creator</h2>
