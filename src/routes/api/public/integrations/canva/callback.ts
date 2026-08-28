@@ -46,7 +46,7 @@ export const Route = createFileRoute("/api/public/integrations/canva/callback")(
         let supabase;
         try {
           origin = canvaReturnOrigin();
-          supabase = integrationAdminClient();
+          supabase = await integrationAdminClient();
         } catch {
           return new Response("Canva integration is not configured", { status: 503 });
         }
