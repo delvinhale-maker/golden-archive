@@ -42,6 +42,7 @@ function IntegrationsPage() {
   const fetchStatus = useServerFn(getCanvaConnectionStatus);
   const beginConnect = useServerFn(startCanvaConnection);
   const disconnect = useServerFn(disconnectCanvaConnection);
+  const [manualUrl, setManualUrl] = useState<string | null>(null);
 
   const status = useQuery({
     queryKey: ["canva-connection"],
