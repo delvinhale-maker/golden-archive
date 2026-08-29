@@ -20,6 +20,7 @@ function serverSupabase() {
 
 type DbProductRow = {
   id: string;
+  slug?: string | null;
   title: string;
   category: string;
   subcategory?: string | null;
@@ -72,6 +73,7 @@ function dbRowToProduct(r: DbProductRow): Product {
   const included = isEbook ? undefined : parseWhatsIncluded(r.admin_notes);
   return {
     id: r.id,
+    slug: r.slug ?? null,
     title: r.title,
     category: catLabel,
     subcategory: r.subcategory ?? null,
@@ -312,6 +314,8 @@ export type PublicCreatorRef = {
 
 export type Product = {
   id: string;
+  /** Clean, SEO-friendly URL segment when the product has one (nullable). */
+  slug?: string | null;
   title: string;
   category: string;
   subcategory?: string | null;
@@ -685,20 +689,27 @@ export const relatedProductsQuery = (category: string) =>
   });
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** Lowercase, hyphen-separated clean product slug (e.g. dethroning-the-bully-2). */
+const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const getProduct = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ id: z.string() }).parse(input))
   .handler(async ({ data }) => {
-    if (!UUID_RE.test(data.id)) return { kind: "notFound" } as ProductDetailResult;
+    const identifier = data.id.trim();
+    const isUuid = UUID_RE.test(identifier);
+    // Accept either a UUID (legacy, permanently supported) or a clean slug.
+    if (!isUuid && !SLUG_RE.test(identifier)) {
+      return { kind: "notFound" } as ProductDetailResult;
+    }
     // Use service-role client so we can distinguish "does not exist" from
     // "exists but is not yet published/approved" despite RLS policies.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row } = await supabaseAdmin
       .from("marketplace_products")
       .select(
-        "id,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages",
+        "id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages",
       )
-      .eq("id", data.id)
+      .eq(isUuid ? "id" : "slug", identifier)
       .maybeSingle();
 
     if (!row) return { kind: "notFound" } as ProductDetailResult;
