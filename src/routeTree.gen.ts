@@ -142,6 +142,7 @@ import { Route as AuthenticatedAdminHealthCoversAlertsRouteImport } from './rout
 import { Route as AuthenticatedDashboardQrCampaignsIndexRouteImport } from './routes/_authenticated/dashboard.qr.campaigns.index'
 import { Route as AuthenticatedDashboardQrCampaignsIdRouteImport } from './routes/_authenticated/dashboard.qr.campaigns.$id'
 import { Route as ApiPublicIntegrationsCanvaCallbackRouteImport } from './routes/api/public/integrations/canva/callback'
+import { Route as ApiPublicIntegrationsTiktokShopCallbackRouteImport } from './routes/api/public/integrations/tiktok-shop/callback'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -873,6 +874,12 @@ const ApiPublicIntegrationsCanvaCallbackRoute =
     path: '/api/public/integrations/canva/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicIntegrationsTiktokShopCallbackRoute =
+  ApiPublicIntegrationsTiktokShopCallbackRouteImport.update({
+    id: '/api/public/integrations/tiktok-shop/callback',
+    path: '/api/public/integrations/tiktok-shop/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -1006,6 +1013,7 @@ export interface FileRoutesByFullPath {
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
   '/dashboard/qr/campaigns/$id': typeof AuthenticatedDashboardQrCampaignsIdRoute
   '/api/public/integrations/canva/callback': typeof ApiPublicIntegrationsCanvaCallbackRoute
+  '/api/public/integrations/tiktok-shop/callback': typeof ApiPublicIntegrationsTiktokShopCallbackRoute
   '/dashboard/qr/campaigns/': typeof AuthenticatedDashboardQrCampaignsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -1137,6 +1145,7 @@ export interface FileRoutesByTo {
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
   '/dashboard/qr/campaigns/$id': typeof AuthenticatedDashboardQrCampaignsIdRoute
   '/api/public/integrations/canva/callback': typeof ApiPublicIntegrationsCanvaCallbackRoute
+  '/api/public/integrations/tiktok-shop/callback': typeof ApiPublicIntegrationsTiktokShopCallbackRoute
   '/dashboard/qr/campaigns': typeof AuthenticatedDashboardQrCampaignsIndexRoute
 }
 export interface FileRoutesById {
@@ -1273,6 +1282,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
   '/_authenticated/dashboard/qr/campaigns/$id': typeof AuthenticatedDashboardQrCampaignsIdRoute
   '/api/public/integrations/canva/callback': typeof ApiPublicIntegrationsCanvaCallbackRoute
+  '/api/public/integrations/tiktok-shop/callback': typeof ApiPublicIntegrationsTiktokShopCallbackRoute
   '/_authenticated/dashboard/qr/campaigns/': typeof AuthenticatedDashboardQrCampaignsIndexRoute
 }
 export interface FileRouteTypes {
@@ -1409,6 +1419,7 @@ export interface FileRouteTypes {
     | '/admin/health/covers/alerts'
     | '/dashboard/qr/campaigns/$id'
     | '/api/public/integrations/canva/callback'
+    | '/api/public/integrations/tiktok-shop/callback'
     | '/dashboard/qr/campaigns/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1540,6 +1551,7 @@ export interface FileRouteTypes {
     | '/admin/health/covers/alerts'
     | '/dashboard/qr/campaigns/$id'
     | '/api/public/integrations/canva/callback'
+    | '/api/public/integrations/tiktok-shop/callback'
     | '/dashboard/qr/campaigns'
   id:
     | '__root__'
@@ -1675,6 +1687,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/health/covers/alerts'
     | '/_authenticated/dashboard/qr/campaigns/$id'
     | '/api/public/integrations/canva/callback'
+    | '/api/public/integrations/tiktok-shop/callback'
     | '/_authenticated/dashboard/qr/campaigns/'
   fileRoutesById: FileRoutesById
 }
@@ -1755,6 +1768,7 @@ export interface RootRouteChildren {
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
   ApiPublicIntegrationsCanvaCallbackRoute: typeof ApiPublicIntegrationsCanvaCallbackRoute
+  ApiPublicIntegrationsTiktokShopCallbackRoute: typeof ApiPublicIntegrationsTiktokShopCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -2690,6 +2704,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIntegrationsCanvaCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/integrations/tiktok-shop/callback': {
+      id: '/api/public/integrations/tiktok-shop/callback'
+      path: '/api/public/integrations/tiktok-shop/callback'
+      fullPath: '/api/public/integrations/tiktok-shop/callback'
+      preLoaderRoute: typeof ApiPublicIntegrationsTiktokShopCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -2954,6 +2975,8 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
   ApiPublicIntegrationsCanvaCallbackRoute:
     ApiPublicIntegrationsCanvaCallbackRoute,
+  ApiPublicIntegrationsTiktokShopCallbackRoute:
+    ApiPublicIntegrationsTiktokShopCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
