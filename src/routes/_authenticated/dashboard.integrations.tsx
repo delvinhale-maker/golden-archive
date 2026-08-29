@@ -11,6 +11,7 @@ import {
   Copy,
   ExternalLink,
   RefreshCw,
+  ShoppingBag,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -18,13 +19,19 @@ import {
   getCanvaConnectionStatus,
   startCanvaConnection,
 } from "@/lib/canva.functions";
+import {
+  disconnectTikTokShopConnection,
+  getTikTokShopConnectionStatus,
+  startTikTokShopConnection,
+} from "@/lib/tiktok-shop.functions";
 
-type CanvaSearch = { canva?: string; reason?: string };
+type CanvaSearch = { canva?: string; reason?: string; tiktok_shop?: string };
 
 export const Route = createFileRoute("/_authenticated/dashboard/integrations")({
   validateSearch: (search: Record<string, unknown>): CanvaSearch => ({
     canva: typeof search["canva"] === "string" ? search["canva"] : undefined,
     reason: typeof search["reason"] === "string" ? search["reason"] : undefined,
+    tiktok_shop: typeof search["tiktok_shop"] === "string" ? search["tiktok_shop"] : undefined,
   }),
   component: IntegrationsPage,
 });
@@ -33,6 +40,12 @@ const CALLBACK_MESSAGES: Record<string, string> = {
   connected: "Canva is connected.",
   denied: "Canva authorization was cancelled.",
   error: "Canva could not be connected.",
+};
+
+const TIKTOK_CALLBACK_MESSAGES: Record<string, string> = {
+  connected: "TikTok Shop is connected.",
+  denied: "TikTok Shop authorization was cancelled.",
+  error: "TikTok Shop could not be connected.",
 };
 
 function IntegrationsPage() {
@@ -75,6 +88,37 @@ function IntegrationsPage() {
 
   const callbackNote = search.canva ? CALLBACK_MESSAGES[search.canva] : undefined;
   const connected = status.data?.connected === true;
+
+  const fetchTikTokStatus = useServerFn(getTikTokShopConnectionStatus);
+  const beginTikTokConnect = useServerFn(startTikTokShopConnection);
+  const disconnectTikTok = useServerFn(disconnectTikTokShopConnection);
+
+  const tiktokStatus = useQuery({
+    queryKey: ["tiktok-shop-connection"],
+    queryFn: () => fetchTikTokStatus({ data: undefined }),
+    retry: false,
+  });
+
+  const tiktokConnectMutation = useMutation({
+    mutationFn: () => beginTikTokConnect({ data: undefined }),
+    onSuccess: (result) => {
+      window.location.href = result.authorizeUrl;
+    },
+    onError: (err: Error) =>
+      toast.error(err.message || "Unable to start TikTok Shop authorization"),
+  });
+
+  const tiktokDisconnectMutation = useMutation({
+    mutationFn: () => disconnectTikTok({ data: undefined }),
+    onSuccess: () => {
+      toast.success("TikTok Shop disconnected");
+      void queryClient.invalidateQueries({ queryKey: ["tiktok-shop-connection"] });
+    },
+    onError: (err: Error) => toast.error(err.message || "Unable to disconnect TikTok Shop"),
+  });
+
+  const tiktokNote = search.tiktok_shop ? TIKTOK_CALLBACK_MESSAGES[search.tiktok_shop] : undefined;
+  const tiktokConnected = tiktokStatus.data?.connected === true;
 
   return (
     <PublisherShell accent={ACCENTS.help}>
@@ -174,9 +218,7 @@ function IntegrationsPage() {
                 <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-navy">
                   <li>Open the link below in a normal browser tab (not in-app or private mode).</li>
                   <li>Sign in to Canva and clear the human-verification challenge if shown.</li>
-                  <li>
-                    Approve access for AurumVault — Canva returns you here automatically.
-                  </li>
+                  <li>Approve access for AurumVault — Canva returns you here automatically.</li>
                   <li>Come back to this page and press Refresh status.</li>
                 </ol>
 
@@ -229,6 +271,86 @@ function IntegrationsPage() {
 
             <p className="mt-4 text-xs text-mute">
               Requested access: read-only profile, design metadata, design content and assets.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="mt-6 max-w-2xl rounded-2xl border border-border bg-card p-6">
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 text-primary">
+            <ShoppingBag size={20} />
+          </span>
+          <div className="flex-1">
+            <h2 className="font-display text-xl text-navy">TikTok Shop</h2>
+            <p className="mt-1 text-sm text-mute">
+              Connect your TikTok Shop to prepare AurumVault for multi-channel product and commerce
+              workflows.
+            </p>
+
+            {tiktokNote && (
+              <div className="mt-4 rounded-xl border border-border bg-background p-3 text-sm text-navy">
+                {tiktokNote}
+                {search.reason ? ` (${search.reason.replace(/_/g, " ")})` : ""}
+              </div>
+            )}
+
+            <div className="mt-4 text-sm" aria-live="polite">
+              {tiktokStatus.isLoading ? (
+                <span className="inline-flex items-center gap-2 text-mute">
+                  <Loader2 className="animate-spin" size={14} /> Checking connection…
+                </span>
+              ) : tiktokStatus.isError ? (
+                <span className="inline-flex items-center gap-2 text-destructive">
+                  <AlertTriangle size={14} /> TikTok Shop integration is not available yet.
+                </span>
+              ) : tiktokConnected ? (
+                <span className="inline-flex items-center gap-2 text-primary">
+                  <ShieldCheck size={14} /> TikTok Shop Connected
+                  {tiktokStatus.data?.displayName ? ` — ${tiktokStatus.data.displayName}` : ""}
+                </span>
+              ) : (
+                <span className="text-mute">Not connected</span>
+              )}
+            </div>
+
+            {tiktokStatus.data?.lastError && (
+              <p className="mt-2 text-xs text-destructive">
+                Last error: {tiktokStatus.data.lastError.replace(/_/g, " ")}
+              </p>
+            )}
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => tiktokConnectMutation.mutate()}
+                disabled={tiktokConnectMutation.isPending}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+              >
+                {tiktokConnectMutation.isPending ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="animate-spin" size={14} /> Redirecting…
+                  </span>
+                ) : tiktokConnected ? (
+                  "Reconnect TikTok Shop"
+                ) : (
+                  "Connect TikTok Shop"
+                )}
+              </button>
+              {tiktokConnected && (
+                <button
+                  type="button"
+                  onClick={() => tiktokDisconnectMutation.mutate()}
+                  disabled={tiktokDisconnectMutation.isPending}
+                  className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-navy disabled:opacity-60"
+                >
+                  Disconnect
+                </button>
+              )}
+            </div>
+
+            <p className="mt-4 text-xs text-mute">
+              Connection enables the foundation for TikTok Shop workflows. Product and order
+              synchronization will be added in the next integration phase.
             </p>
           </div>
         </div>
