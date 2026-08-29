@@ -84,7 +84,7 @@ export const Route = createFileRoute("/sitemap.xml")({
 
             const [prodRes, storeRes, catRes, articleRes] = await Promise.all([
               fetch(
-                `${url}/rest/v1/marketplace_products?select=id&status=eq.approved&published=eq.true`,
+                `${url}/rest/v1/marketplace_products?select=id,slug,updated_at&status=eq.approved&published=eq.true`,
                 { headers },
               ),
               fetch(
@@ -98,10 +98,20 @@ export const Route = createFileRoute("/sitemap.xml")({
               ),
             ]);
             if (prodRes.ok) {
-              const rows = (await prodRes.json()) as Array<{ id: string }>;
+              const rows = (await prodRes.json()) as Array<{
+                id: string;
+                slug?: string | null;
+                updated_at?: string | null;
+              }>;
               for (const row of rows) {
+                // Prefer the clean, canonical slug URL; fall back to the UUID
+                // path for products that have no slug yet.
+                const segment = row.slug?.trim() ? row.slug.trim() : row.id;
                 entries.push({
-                  path: `/products/${row.id}`,
+                  path: `/products/${encodeURIComponent(segment)}`,
+                  lastmod: row.updated_at
+                    ? new Date(row.updated_at).toISOString().slice(0, 10)
+                    : undefined,
                   changefreq: "weekly",
                   priority: "0.8",
                 });
