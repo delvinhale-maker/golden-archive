@@ -104,7 +104,9 @@ export const Route = createFileRoute("/products/$id")({
     const res = loaderData as ProductDetailResult | undefined;
     const p = res?.kind === "published" ? res.product : undefined;
     const isUnpublished = res?.kind === "unpublished";
-    const url = `${SITE_URL}/products/${params.id}`;
+    // Canonical prefers the clean slug URL when the product has one, so
+    // legacy UUID links stay working but consolidate their SEO signals.
+    const url = `${SITE_URL}/products/${p?.slug ?? params.id}`;
 
     let baseTitle: string;
     let rawDesc: string;
