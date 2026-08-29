@@ -294,22 +294,77 @@ function IntegrationsPage() {
               </div>
             )}
 
-            <div className="mt-4 text-sm" aria-live="polite">
-              {tiktokStatus.isLoading ? (
-                <span className="inline-flex items-center gap-2 text-mute">
-                  <Loader2 className="animate-spin" size={14} /> Checking connection…
+            <div className="mt-4 rounded-xl border border-border bg-background p-4" aria-live="polite">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs font-semibold uppercase tracking-wide text-mute">
+                  Connection status
                 </span>
-              ) : tiktokStatus.isError ? (
-                <span className="inline-flex items-center gap-2 text-destructive">
-                  <AlertTriangle size={14} /> TikTok Shop integration is not available yet.
-                </span>
-              ) : tiktokConnected ? (
-                <span className="inline-flex items-center gap-2 text-primary">
-                  <ShieldCheck size={14} /> TikTok Shop Connected
-                  {tiktokStatus.data?.displayName ? ` — ${tiktokStatus.data.displayName}` : ""}
-                </span>
-              ) : (
-                <span className="text-mute">Not connected</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void queryClient.invalidateQueries({ queryKey: ["tiktok-shop-connection"] });
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold text-navy"
+                >
+                  <RefreshCw size={12} /> Refresh
+                </button>
+              </div>
+
+              <div className="mt-3 text-sm">
+                {tiktokStatus.isLoading ? (
+                  <span className="inline-flex items-center gap-2 text-mute">
+                    <Loader2 className="animate-spin" size={14} /> Checking connection…
+                  </span>
+                ) : tiktokStatus.isError ? (
+                  <span className="inline-flex items-center gap-2 text-destructive">
+                    <AlertTriangle size={14} /> Status unavailable right now.
+                  </span>
+                ) : tiktokConnected ? (
+                  <span className="inline-flex items-center gap-2 font-semibold text-primary">
+                    <ShieldCheck size={14} /> Authorized — encrypted tokens are stored
+                    {tiktokStatus.data?.displayName ? ` for ${tiktokStatus.data.displayName}` : ""}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2 font-semibold text-navy">
+                    <AlertTriangle size={14} className="text-destructive" /> Action needed — Partner
+                    Center authorization not completed yet
+                  </span>
+                )}
+              </div>
+
+              <dl className="mt-3 grid gap-2 text-xs text-mute sm:grid-cols-2">
+                <div>
+                  <dt className="font-semibold text-navy">Tokens stored</dt>
+                  <dd>{tiktokConnected ? "Yes (encrypted at rest)" : "No"}</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-navy">Authorization step</dt>
+                  <dd>{tiktokConnected ? "Complete" : "Still required"}</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-navy">Last connected</dt>
+                  <dd>
+                    {tiktokStatus.data?.connectedAt
+                      ? new Date(tiktokStatus.data.connectedAt).toLocaleString()
+                      : "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-navy">Access token expires</dt>
+                  <dd>
+                    {tiktokStatus.data?.expiresAt
+                      ? new Date(tiktokStatus.data.expiresAt).toLocaleString()
+                      : "—"}
+                  </dd>
+                </div>
+              </dl>
+
+              {!tiktokConnected && !tiktokStatus.isLoading && (
+                <ol className="mt-3 list-decimal space-y-1 pl-5 text-xs text-navy">
+                  <li>Make sure you have a TikTok Shop seller account.</li>
+                  <li>Press “Connect TikTok Shop” below and approve access in Partner Center.</li>
+                  <li>You’ll return here and this panel will switch to Authorized.</li>
+                </ol>
               )}
             </div>
 
@@ -346,12 +401,29 @@ function IntegrationsPage() {
                   Disconnect
                 </button>
               )}
+              <a
+                href="https://partner.tiktokshop.com/"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-navy"
+              >
+                <ExternalLink size={13} /> Open Partner Center
+              </a>
+              <a
+                href="https://seller-us.tiktok.com/account/register"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-primary underline"
+              >
+                Sign up for TikTok Shop
+              </a>
             </div>
 
             <p className="mt-4 text-xs text-mute">
               Connection enables the foundation for TikTok Shop workflows. Product and order
               synchronization will be added in the next integration phase.
             </p>
+
           </div>
         </div>
       </div>
