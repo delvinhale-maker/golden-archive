@@ -54,6 +54,7 @@ const NAV_ITEMS: { label: string; to: string; featured?: boolean }[] = [
   { label: "Affiliate", to: "/dashboard/affiliate" as const },
   { label: "Community", to: "/dashboard/community" as const },
   { label: "Integrations", to: "/dashboard/integrations" as const },
+  { label: "Rights Passport", to: "/dashboard/rights-passport" as const },
   { label: "Help", to: "/dashboard/help" as const },
 ];
 
