@@ -12,6 +12,7 @@ import {
   ScrollText,
   Fingerprint,
   ShieldAlert,
+  UploadCloud,
 } from "lucide-react";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
 import { getPassportHome, createPassport } from "@/lib/rights-passport.functions";
@@ -125,6 +126,12 @@ function PassportHomePage() {
       icon: ShieldAlert,
       label: "Risk Review",
       detail: `${openReviewCount} open`,
+    },
+    {
+      to: "/dashboard/rights-passport/$passportId/analyze" as const,
+      icon: UploadCloud,
+      label: "Upload & Analyze",
+      detail: "Extract rights data from documents",
     },
   ];
 
