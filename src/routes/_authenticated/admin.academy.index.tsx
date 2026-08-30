@@ -16,6 +16,7 @@ import {
   Search,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ACADEMY_CATEGORIES } from "@/lib/academy-categories";
 
 export const Route = createFileRoute("/_authenticated/admin/academy/")({
   component: AdminAcademyList,
@@ -43,13 +44,7 @@ function slugify(s: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-const CATEGORIES = [
-  { value: "financial-freedom", label: "Financial Freedom" },
-  { value: "ai-productivity", label: "AI & Productivity" },
-  { value: "digital-publishing", label: "Digital Publishing" },
-  { value: "kingdom-living", label: "Kingdom Living" },
-  { value: "entrepreneurship", label: "Entrepreneurship" },
-];
+const CATEGORIES = ACADEMY_CATEGORIES;
 
 function AdminAcademyList() {
   const { user, loading } = useAuth();
