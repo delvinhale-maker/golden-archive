@@ -26,6 +26,19 @@ import {
   type AssetRow,
 } from "@/lib/rights-passport.schema";
 import { computeReadinessScore, type ReadinessResult } from "@/lib/rights-passport-readiness";
+import {
+  computeReadinessScoreV2,
+  type ReadinessResultV2,
+} from "@/lib/rights-passport-readiness-v2";
+import { evaluateRiskRules } from "@/lib/rights-passport-risk-rules";
+import {
+  AI_CONSENT_COLS,
+  LICENSE_COLS,
+  EVIDENCE_COLS,
+  type AiConsentRow,
+  type LicenseRow,
+  type EvidenceRow,
+} from "@/lib/rights-passport-workspace.schema";
 
 function toPatch(input: Partial<Record<string, unknown>>): Record<string, unknown> {
   const map: Record<string, string> = {
@@ -218,7 +231,7 @@ export const createNewPassportVersion = createServerFn({ method: "POST" })
 
 export type PassportHome = {
   passport: PassportRow | null;
-  readiness: ReadinessResult | null;
+  readiness: ReadinessResultV2 | null;
   assetCount: number;
   licenseCount: number;
   evidenceCount: number;
@@ -228,8 +241,11 @@ export type PassportHome = {
 /**
  * Powers Passport Home. Prefers the ACTIVE version; falls back to the
  * latest DRAFT (highest version number) if no version has been activated
- * yet. License/evidence counts are hardcoded to 0 for now — those
- * registries are a later build phase and their tables don't exist yet.
+ * yet. Readiness is v2 (rights-passport-readiness-v2.ts) — scored from real
+ * asset/AI-consent/license/evidence/review-flag records, not just identity
+ * fields. Review flags are read as already-stored rows (not re-synced here)
+ * — syncReviewFlags (rights-passport-review.functions.ts) is the only place
+ * that writes them; Home reads whatever is currently OPEN/ACKNOWLEDGED.
  */
 export const getPassportHome = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -266,21 +282,52 @@ export const getPassportHome = createServerFn({ method: "GET" })
       };
     }
 
-    const { data: assetRows } = await supabase
-      .from("rights_passport_assets" as never)
-      .select(ASSET_COLS as never)
-      .eq("passport_key" as never, passport.passport_key)
-      .neq("status" as never, "ARCHIVED");
-    const assets = (assetRows ?? []) as unknown as AssetRow[];
+    const [assetsRes, consentsRes, licensesRes, evidenceRes, flagsRes] = await Promise.all([
+      supabase
+        .from("rights_passport_assets" as never)
+        .select(ASSET_COLS as never)
+        .eq("passport_key" as never, passport.passport_key)
+        .neq("status" as never, "ARCHIVED"),
+      supabase
+        .from("rights_ai_consents" as never)
+        .select(AI_CONSENT_COLS as never)
+        .eq("passport_key" as never, passport.passport_key),
+      supabase
+        .from("rights_licenses" as never)
+        .select(LICENSE_COLS as never)
+        .eq("passport_key" as never, passport.passport_key),
+      supabase
+        .from("rights_evidence" as never)
+        .select(EVIDENCE_COLS as never)
+        .eq("passport_key" as never, passport.passport_key),
+      supabase
+        .from("rights_review_flags" as never)
+        .select("rule_code,severity,status" as never)
+        .eq("passport_key" as never, passport.passport_key)
+        .in("status" as never, ["OPEN", "ACKNOWLEDGED"] as never),
+    ]);
 
-    const readiness = computeReadinessScore(passport, assets);
+    const assets = (assetsRes.data ?? []) as unknown as AssetRow[];
+    const aiConsents = (consentsRes.data ?? []) as unknown as AiConsentRow[];
+    const licenses = (licensesRes.data ?? []) as unknown as LicenseRow[];
+    const evidence = (evidenceRes.data ?? []) as unknown as EvidenceRow[];
+    const openFlags = (flagsRes.data ?? []) as unknown as { rule_code: string; severity: any }[];
+
+    const readiness = computeReadinessScoreV2({
+      passport,
+      assets,
+      aiConsents,
+      licenses,
+      evidence,
+      openFlags: openFlags.map((f) => ({ ruleCode: f.rule_code, severity: f.severity })),
+    });
 
     return {
       passport,
       readiness,
       assetCount: assets.length,
-      licenseCount: 0,
-      evidenceCount: 0,
-      openReviewCount: readiness.openReviewCount,
+      licenseCount: licenses.length,
+      evidenceCount: evidence.length,
+      openReviewCount: openFlags.length,
     };
   });

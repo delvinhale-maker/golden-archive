@@ -2,14 +2,32 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ShieldCheck, FileText, Sparkles, AlertTriangle, ArrowRight } from "lucide-react";
+import {
+  ShieldCheck,
+  FileText,
+  Sparkles,
+  AlertTriangle,
+  ArrowRight,
+  Bot,
+  ScrollText,
+  Fingerprint,
+  ShieldAlert,
+} from "lucide-react";
 import { PublisherShell, ACCENTS } from "@/components/marketplace/PublisherShell";
 import { getPassportHome, createPassport } from "@/lib/rights-passport.functions";
 import { RIGHTS_PASSPORT_DISCLAIMER } from "@/lib/rights-passport.schema";
+import { READINESS_STATUS_LABELS, type ReadinessStatus } from "@/lib/rights-passport-readiness-v2";
 
 export const Route = createFileRoute("/_authenticated/dashboard/rights-passport/")({
   component: PassportHomePage,
 });
+
+const STATUS_TONE: Record<ReadinessStatus, string> = {
+  PUBLISH_READY: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  CONTROLLED_WITH_GAPS: "bg-sky-50 text-sky-700 border-sky-200",
+  INCOMPLETE: "bg-amber-50 text-amber-700 border-amber-200",
+  HIGH_RIGHTS_EXPOSURE: "bg-red-50 text-red-700 border-red-200",
+};
 
 function PassportHomePage() {
   const navigate = useNavigate();
@@ -68,7 +86,47 @@ function PassportHomePage() {
     );
   }
 
-  const { passport, readiness, assetCount, openReviewCount } = data;
+  const { passport, readiness, assetCount, licenseCount, evidenceCount, openReviewCount } = data;
+  const params = { passportId: passport.id };
+
+  const sections = [
+    {
+      to: "/dashboard/rights-passport/$passportId" as const,
+      icon: FileText,
+      label: "Profile",
+      detail: passport.public_professional_name ? "Complete" : "Needs identity fields",
+    },
+    {
+      to: "/dashboard/rights-passport/$passportId/assets" as const,
+      icon: Sparkles,
+      label: "Rights Assets",
+      detail: `${assetCount} registered`,
+    },
+    {
+      to: "/dashboard/rights-passport/$passportId/ai-consent" as const,
+      icon: Bot,
+      label: "AI Consent",
+      detail: "Manage declared uses",
+    },
+    {
+      to: "/dashboard/rights-passport/$passportId/licenses" as const,
+      icon: ScrollText,
+      label: "Licenses",
+      detail: `${licenseCount} on record`,
+    },
+    {
+      to: "/dashboard/rights-passport/$passportId/evidence" as const,
+      icon: Fingerprint,
+      label: "Evidence",
+      detail: `${evidenceCount} records`,
+    },
+    {
+      to: "/dashboard/rights-passport/$passportId/review" as const,
+      icon: ShieldAlert,
+      label: "Risk Review",
+      detail: `${openReviewCount} open`,
+    },
+  ];
 
   return (
     <PublisherShell accent={ACCENTS.help}>
@@ -82,61 +140,59 @@ function PassportHomePage() {
         </div>
         <Link
           to="/dashboard/rights-passport/$passportId"
-          params={{ passportId: passport.id }}
+          params={params}
           className="inline-flex items-center gap-1.5 rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-navy hover:brightness-105"
         >
           Create / Continue Passport <ArrowRight size={15} />
         </Link>
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-ink/10 bg-white p-4">
-          <p className="text-xs text-mute">Digital Rights Readiness Score™</p>
-          <p className="font-display text-3xl text-navy mt-1">
-            {readiness?.score ?? 0}
-            <span className="text-base text-mute">/100</span>
-          </p>
-        </div>
-        <div className="rounded-xl border border-ink/10 bg-white p-4">
-          <p className="text-xs text-mute">Registered Assets</p>
-          <p className="font-display text-3xl text-navy mt-1">{assetCount}</p>
-        </div>
-        <div className="rounded-xl border border-ink/10 bg-white p-4">
-          <p className="text-xs text-mute">Open Review Flags</p>
-          <p className="font-display text-3xl text-navy mt-1">{openReviewCount}</p>
-        </div>
-      </div>
-
-      {readiness?.primaryGap && (
-        <div className="mt-4 inline-flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <AlertTriangle size={16} className="mt-0.5 shrink-0" />
-          <span>
-            <strong>Recommended next move:</strong> {readiness.primaryGap.label}
-          </span>
+      {readiness && (
+        <div className="mt-6 rounded-2xl border border-ink/10 bg-white p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs text-mute">Digital Rights Readiness Score™</p>
+              <p className="font-display text-3xl text-navy mt-1">
+                {readiness.score}
+                <span className="text-base text-mute">/100</span>
+              </p>
+            </div>
+            <span
+              className={`rounded-full border px-3 py-1 text-xs font-bold ${STATUS_TONE[readiness.status]}`}
+            >
+              {READINESS_STATUS_LABELS[readiness.status]}
+            </span>
+          </div>
+          {readiness.publishBlocked && readiness.blockers.length > 0 && (
+            <div className="mt-3 space-y-1">
+              {readiness.blockers.map((b) => (
+                <p key={b} className="text-xs text-red-700 inline-flex items-center gap-1.5">
+                  <ShieldAlert size={12} /> {b}
+                </p>
+              ))}
+            </div>
+          )}
+          {readiness.primaryGap && (
+            <p className="mt-3 text-sm text-navy">
+              <strong>Recommended next move:</strong> {readiness.recommendedNextMove}
+            </p>
+          )}
         </div>
       )}
 
-      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Link
-          to="/dashboard/rights-passport/$passportId"
-          params={{ passportId: passport.id }}
-          className="rounded-xl border border-ink/10 bg-white p-4 hover:border-navy/30"
-        >
-          <FileText size={18} className="text-navy" />
-          <p className="text-sm font-semibold text-navy mt-2">Passport Details</p>
-          <p className="text-xs text-mute mt-1">Identity, contact, and verification level</p>
-        </Link>
-        <Link
-          to="/dashboard/rights-passport/$passportId/assets"
-          params={{ passportId: passport.id }}
-          className="rounded-xl border border-ink/10 bg-white p-4 hover:border-navy/30"
-        >
-          <Sparkles size={18} className="text-navy" />
-          <p className="text-sm font-semibold text-navy mt-2">Rights Asset Registry</p>
-          <p className="text-xs text-mute mt-1">
-            {assetCount} asset{assetCount === 1 ? "" : "s"} registered
-          </p>
-        </Link>
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {sections.map((s) => (
+          <Link
+            key={s.to}
+            to={s.to}
+            params={params}
+            className="rounded-xl border border-ink/10 bg-white p-4 hover:border-navy/30"
+          >
+            <s.icon size={18} className="text-navy" />
+            <p className="text-sm font-semibold text-navy mt-2">{s.label}</p>
+            <p className="text-xs text-mute mt-1">{s.detail}</p>
+          </Link>
+        ))}
       </div>
 
       <p className="mt-8 max-w-xl text-xs text-mute italic">{RIGHTS_PASSPORT_DISCLAIMER}</p>
