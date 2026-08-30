@@ -6,6 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { Loader2, Upload, ArrowLeft, FileJson, CheckCircle2, AlertTriangle } from "lucide-react";
+import {
+  ACADEMY_CATEGORIES,
+  ACADEMY_CATEGORY_ALIASES,
+  ACADEMY_CATEGORY_VALUES,
+} from "@/lib/academy-categories";
 
 export const Route = createFileRoute("/_authenticated/admin/academy/upload")({
   head: () => ({
@@ -21,38 +26,11 @@ export const Route = createFileRoute("/_authenticated/admin/academy/upload")({
 /* Config                                                              */
 /* ------------------------------------------------------------------ */
 
-const CATEGORIES = [
-  { value: "financial-freedom", label: "Financial Freedom" },
-  { value: "ai-productivity", label: "AI & Productivity" },
-  { value: "digital-publishing", label: "Digital Publishing" },
-  { value: "kingdom-living", label: "Kingdom Living" },
-  { value: "entrepreneurship", label: "Entrepreneurship" },
-];
-const CATEGORY_VALUES = CATEGORIES.map((c) => c.value);
+const CATEGORIES = ACADEMY_CATEGORIES;
+const CATEGORY_VALUES = ACADEMY_CATEGORY_VALUES;
 
 /** Loose category matching so real-world files (e.g. "AI & Productivity") import cleanly. */
-const CATEGORY_ALIASES: Record<string, string> = {
-  ai: "ai-productivity",
-  aiproductivity: "ai-productivity",
-  productivity: "ai-productivity",
-  aitools: "ai-productivity",
-  finance: "financial-freedom",
-  financial: "financial-freedom",
-  financialfreedom: "financial-freedom",
-  money: "financial-freedom",
-  credit: "financial-freedom",
-  publishing: "digital-publishing",
-  digitalpublishing: "digital-publishing",
-  selfpublishing: "digital-publishing",
-  writing: "digital-publishing",
-  kingdom: "kingdom-living",
-  kingdomliving: "kingdom-living",
-  faith: "kingdom-living",
-  business: "entrepreneurship",
-  entrepreneur: "entrepreneurship",
-  entrepreneurship: "entrepreneurship",
-  startup: "entrepreneurship",
-};
+const CATEGORY_ALIASES = ACADEMY_CATEGORY_ALIASES;
 
 /** Returns a valid Academy category, or null when nothing matches. */
 function normalizeCategory(input: string): string | null {

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ACADEMY_CATEGORIES } from "@/lib/academy-categories";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -74,13 +75,7 @@ type Article = {
 type Prod = { id: string; title: string };
 type RelatedArticle = { id: string; title: string; slug: string };
 
-const CATEGORIES = [
-  { value: "financial-freedom", label: "Financial Freedom" },
-  { value: "ai-productivity", label: "AI & Productivity" },
-  { value: "digital-publishing", label: "Digital Publishing" },
-  { value: "kingdom-living", label: "Kingdom Living" },
-  { value: "entrepreneurship", label: "Entrepreneurship" },
-];
+const CATEGORIES = ACADEMY_CATEGORIES;
 
 const SCHEMA_TYPES = ["Article", "FAQ", "Book", "HowTo", "Breadcrumb"];
 

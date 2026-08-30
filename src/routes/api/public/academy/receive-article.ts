@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
+import { ACADEMY_CATEGORY_VALUES } from '@/lib/academy-categories'
 
 /**
  * Secure ingest endpoint for new Academy articles.
@@ -12,13 +13,7 @@ import { z } from 'zod'
 
 const SITE_ORIGIN = 'https://www.aurumvault.store'
 
-const ALLOWED_CATEGORIES = new Set([
-  'financial-freedom',
-  'ai-productivity',
-  'digital-publishing',
-  'kingdom-living',
-  'entrepreneurship',
-])
+const ALLOWED_CATEGORIES = new Set<string>(ACADEMY_CATEGORY_VALUES)
 
 const PayloadSchema = z.object({
   title: z.string().trim().min(3).max(200),
