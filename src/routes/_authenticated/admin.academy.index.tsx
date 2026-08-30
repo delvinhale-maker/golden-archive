@@ -16,6 +16,7 @@ import {
   Search,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ACADEMY_CATEGORIES } from "@/lib/academy-categories";
 
 export const Route = createFileRoute("/_authenticated/admin/academy/")({
   component: AdminAcademyList,
