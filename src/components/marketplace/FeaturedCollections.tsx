@@ -172,7 +172,7 @@ export function FeaturedCollections() {
           <span className="mt-5 block h-[2px] w-10 bg-gold" />
         </div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-4 md:grid-rows-2 md:gap-6">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 md:gap-6">
           {COLLECTIONS.map((c, i) => (
             <CollectionCard key={c.title} c={c} index={i} />
           ))}
