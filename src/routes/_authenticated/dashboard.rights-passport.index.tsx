@@ -133,6 +133,18 @@ function PassportHomePage() {
       label: "Upload & Analyze",
       detail: "Extract rights data from documents",
     },
+    {
+      to: "/dashboard/rights-passport/$passportId/verify" as const,
+      icon: ShieldCheck,
+      label: "Verify Passport",
+      detail: "Final quality gate before publishing",
+    },
+    {
+      to: "/dashboard/rights-passport/$passportId/generate" as const,
+      icon: FileText,
+      label: "Export Center",
+      detail: "Publish, QR code, PDF & JSON exports",
+    },
   ];
 
   return (
