@@ -8,6 +8,7 @@ import { UploadFab } from "./UploadFab";
 import { useAuth } from "@/hooks/use-auth";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { countUnreadAnnouncements } from "@/lib/community.functions";
+import { isRightsPassportEnabledClient } from "@/lib/rights-passport-feature-flags";
 
 function CommunityUnreadBadge() {
   const fn = useServerFn(countUnreadAnnouncements);
@@ -43,7 +44,7 @@ export const ACCENTS = {
   help: { color: "#2E5B8A", tint: "rgba(46,91,138,0.08)" },
 } satisfies Record<string, PublisherAccent>;
 
-const NAV_ITEMS: { label: string; to: string; featured?: boolean }[] = [
+const NAV_ITEMS: { label: string; to: string; featured?: boolean; rightsPassport?: boolean }[] = [
   { label: "Bookshelf", to: "/dashboard" as const },
   { label: "Publish", to: "/dashboard/new" as const },
   { label: "QR Generator", to: "/dashboard/qr" as const, featured: true },
@@ -54,7 +55,15 @@ const NAV_ITEMS: { label: string; to: string; featured?: boolean }[] = [
   { label: "Affiliate", to: "/dashboard/affiliate" as const },
   { label: "Community", to: "/dashboard/community" as const },
   { label: "Integrations", to: "/dashboard/integrations" as const },
-  { label: "Rights Passport", to: "/dashboard/rights-passport" as const },
+  // Digital Rights Passport™ — gated behind DIGITAL_RIGHTS_PASSPORT_ENABLED
+  // (see the `.filter()` below) so the entry only ever appears once the
+  // product is explicitly turned on for this deployment; absent config
+  // fails safe (hidden), matching every server-side gate on the feature.
+  {
+    label: "Digital Rights Passport™",
+    to: "/dashboard/rights-passport" as const,
+    rightsPassport: true,
+  },
   { label: "Help", to: "/dashboard/help" as const },
 ];
 
@@ -89,11 +98,11 @@ export function PublisherShell({
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 flex items-center gap-6">
           <AVLogo />
           <nav className="hidden md:flex items-center gap-1 ml-6">
-            {NAV_ITEMS.map((item) => {
+            {NAV_ITEMS.filter(
+              (item) => !item.rightsPassport || isRightsPassportEnabledClient(import.meta.env),
+            ).map((item) => {
               const isActive =
-                item.to === "/dashboard"
-                  ? pathname === "/dashboard"
-                  : pathname.startsWith(item.to);
+                item.to === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.to);
               return (
                 <Link
                   key={item.to}
@@ -133,11 +142,11 @@ export function PublisherShell({
         {/* Mobile nav */}
         <div className="md:hidden border-t border-white/10">
           <div className="mx-auto max-w-6xl px-2 flex">
-            {NAV_ITEMS.map((item) => {
+            {NAV_ITEMS.filter(
+              (item) => !item.rightsPassport || isRightsPassportEnabledClient(import.meta.env),
+            ).map((item) => {
               const isActive =
-                item.to === "/dashboard"
-                  ? pathname === "/dashboard"
-                  : pathname.startsWith(item.to);
+                item.to === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.to);
               return (
                 <Link
                   key={item.to}

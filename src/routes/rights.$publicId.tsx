@@ -49,7 +49,20 @@ function PublicRightsCardPage() {
     );
   }
 
-  if (!data?.found) {
+  if (data && "disabled" in data && data.disabled) {
+    return (
+      <div className="min-h-screen bg-ivory flex flex-col items-center justify-center gap-4 px-6 text-center">
+        <AVLogo dark />
+        <p className="font-display text-2xl text-navy">Temporarily unavailable</p>
+        <p className="text-sm text-mute max-w-sm">
+          Digital Rights Passport public cards are temporarily unavailable. Please check back
+          shortly.
+        </p>
+      </div>
+    );
+  }
+
+  if (!data || !("found" in data) || !data.found) {
     return (
       <div className="min-h-screen bg-ivory flex flex-col items-center justify-center gap-4 px-6 text-center">
         <AVLogo dark />

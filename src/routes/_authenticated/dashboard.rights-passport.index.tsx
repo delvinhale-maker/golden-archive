@@ -35,9 +35,10 @@ function PassportHomePage() {
   const getHomeFn = useServerFn(getPassportHome);
   const createFn = useServerFn(createPassport);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["rights-passport", "home"],
     queryFn: () => getHomeFn(),
+    retry: false,
   });
 
   async function handleCreate() {
@@ -56,6 +57,22 @@ function PassportHomePage() {
     return (
       <PublisherShell accent={ACCENTS.help}>
         <p className="text-mute">Loading…</p>
+      </PublisherShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <PublisherShell accent={ACCENTS.help}>
+        <h1 className="font-display text-3xl text-navy">Digital Rights Passport</h1>
+        <div className="mt-8 rounded-2xl border border-ink/10 bg-white p-8 text-center max-w-xl">
+          <ShieldAlert className="mx-auto text-mute" size={32} />
+          <p className="font-display text-xl text-navy mt-3">Temporarily unavailable</p>
+          <p className="text-sm text-mute mt-2">
+            {(error as any)?.message ??
+              "This tool isn't available right now. Please check back shortly."}
+          </p>
+        </div>
       </PublisherShell>
     );
   }

@@ -199,7 +199,9 @@ describe("rights-passport-documents.functions.ts — owner-scoped, verified uplo
       "listDocuments",
       "getDocumentSignedUrl",
     ]) {
-      expect(bodyOf(documentsFn, name)).toContain(".middleware([requireSupabaseAuth])");
+      expect(bodyOf(documentsFn, name)).toMatch(
+        /\.middleware\(\[(?:requireRightsPassport\w+,\s*)?requireSupabaseAuth\]\)/,
+      );
     }
   });
 
@@ -266,7 +268,9 @@ describe("rights-passport-analysis.functions.ts — owner-scoped analysis pipeli
       "listFindings",
       "reviewFinding",
     ]) {
-      expect(bodyOf(analysisFn, name)).toContain(".middleware([requireSupabaseAuth])");
+      expect(bodyOf(analysisFn, name)).toMatch(
+        /\.middleware\(\[(?:requireRightsPassport\w+,\s*)?requireSupabaseAuth\]\)/,
+      );
     }
   });
 

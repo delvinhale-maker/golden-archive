@@ -47,7 +47,9 @@ function bodyOf(source: string, exportName: string): string {
 describe("rights-passport-proposals.functions.ts — auth and ownership", () => {
   it("both client-facing functions require requireSupabaseAuth", () => {
     for (const name of ["listProposals", "applyProposal"]) {
-      expect(bodyOf(proposalsFn, name)).toContain(".middleware([requireSupabaseAuth])");
+      expect(bodyOf(proposalsFn, name)).toMatch(
+        /\.middleware\(\[(?:requireRightsPassport\w+,\s*)?requireSupabaseAuth\]\)/,
+      );
     }
   });
 
@@ -70,7 +72,9 @@ describe("rights-passport-proposals.functions.ts — auth and ownership", () => 
     expect(body).toMatch(/\.eq\(\s*"owner_user_id"[^)]*userId\s*\)/);
     expect(body).toMatch(/\.eq\(\s*"document_id"[^)]*doc\.id\s*\)/);
     expect(body).toContain("findings.length !== data.sourceFindingIds.length");
-    expect(body).toContain("One or more findings in this proposal could not be verified for this document.");
+    expect(body).toContain(
+      "One or more findings in this proposal could not be verified for this document.",
+    );
   });
 
   it("(check 2) assertAssetOwnership scopes the target asset by id, passport_key, AND owner_user_id — a foreign asset cannot be selected as a match/update target", () => {
@@ -139,7 +143,9 @@ describe("applyProposal — idempotency (check 4, 5)", () => {
     expect(body).toMatch(
       /assembleProposals\(\s*doc\.id,\s*doc\.original_file_name,\s*findings\.map\(toAssemblyFinding\),?\s*\)/,
     );
-    expect(body).toMatch(/\.\.\.recomputed\.proposedRecord,\s*\n?\s*\.\.\.\(data\.editedRecord \?\? \{\}\)/);
+    expect(body).toMatch(
+      /\.\.\.recomputed\.proposedRecord,\s*\n?\s*\.\.\.\(data\.editedRecord \?\? \{\}\)/,
+    );
   });
 });
 
@@ -256,7 +262,9 @@ describe("applyProposal — reconciles risk flags after every successful structu
     const reconcileIdx = body.indexOf(
       "reconcileReviewFlagsForPassportKey(supabase, userId, doc.passport_key)",
     );
-    const stampMatch = body.match(/await stampFindings\(\s*supabase,\s*userId,\s*doc\.id,\s*data\.sourceFindingIds,\s*reviewStatus/);
+    const stampMatch = body.match(
+      /await stampFindings\(\s*supabase,\s*userId,\s*doc\.id,\s*data\.sourceFindingIds,\s*reviewStatus/,
+    );
     expect(stampMatch).not.toBeNull();
     const stampIdx = body.indexOf(stampMatch![0]);
     expect(stampIdx).toBeGreaterThan(-1);

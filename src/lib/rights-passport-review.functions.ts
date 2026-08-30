@@ -21,6 +21,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireRightsPassportEnabled } from "@/lib/rights-passport-feature-flags.middleware";
 import {
   PASSPORT_COLS,
   ASSET_COLS,
@@ -182,7 +183,7 @@ export async function reconcileReviewFlagsForPassportKey(
 
 export const syncReviewFlags = createServerFn({ method: "POST" })
   .inputValidator((input: { id: string }) => z.object({ id: z.string().uuid() }).parse(input))
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .handler(async ({ data, context }): Promise<ReviewFlagRow[]> => {
     const { supabase, userId } = context;
     const { data: passportRow, error: passportErr } = await supabase
@@ -201,7 +202,7 @@ export const listReviewFlags = createServerFn({ method: "GET" })
   .inputValidator((input: { passportKey: string }) =>
     z.object({ passportKey: z.string().uuid() }).parse(input),
   )
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .handler(async ({ data, context }): Promise<ReviewFlagRow[]> => {
     const { supabase, userId } = context;
     const { data: rows, error } = await supabase
@@ -220,7 +221,7 @@ export const setReviewFlagStatus = createServerFn({ method: "POST" })
   .inputValidator((input: { id: string; status: string }) =>
     z.object({ id: z.string().uuid(), status: flagStatusSchema }).parse(input),
   )
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .handler(async ({ data, context }): Promise<ReviewFlagRow> => {
     const { supabase, userId } = context;
     const patch: Record<string, unknown> = { status: data.status };

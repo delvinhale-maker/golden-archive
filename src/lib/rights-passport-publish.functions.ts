@@ -25,6 +25,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
+  requireRightsPassportEnabled,
+  requireRightsPassportPublicPublishEnabled,
+} from "@/lib/rights-passport-feature-flags.middleware";
+import { isRightsPassportPublicPublishEnabled } from "@/lib/rights-passport-feature-flags";
+import { logRightsPassportEvent } from "@/lib/rights-passport-events.functions";
+import { sanitizeDbErrorMessage } from "@/lib/rights-passport-safe-error";
+import {
   PASSPORT_COLS,
   ASSET_COLS,
   type PassportRow,
@@ -205,7 +212,7 @@ export function buildSerializeInput(
 // ---------------------------------------------------------------------------
 
 export const getVerifyStatus = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: { passportKey: string }) =>
     z.object({ passportKey: z.string().uuid() }).parse(input),
   )
@@ -240,7 +247,7 @@ export type PublishResult = {
 };
 
 export const publishPassport = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportPublicPublishEnabled, requireSupabaseAuth])
   .inputValidator((input: { passportKey: string }) =>
     z.object({ passportKey: z.string().uuid() }).parse(input),
   )
@@ -259,6 +266,10 @@ export const publishPassport = createServerFn({ method: "POST" })
       updatedAt: workspace.passport.updated_at,
     });
     if (!verification.readyToPublish) {
+      await logRightsPassportEvent(supabase, userId, "rights_publish_blocked", {
+        passportKey: data.passportKey,
+        detail: { blockerCount: verification.blockers.length },
+      });
       throw new Error(`This passport cannot be published yet: ${verification.blockers.join(" ")}`);
     }
 
@@ -269,7 +280,7 @@ export const publishPassport = createServerFn({ method: "POST" })
       .eq("passport_key" as never, data.passportKey)
       .eq("owner_user_id" as never, userId)
       .maybeSingle();
-    if (identityErr) throw new Error(identityErr.message);
+    if (identityErr) throw new Error(sanitizeDbErrorMessage(identityErr.message));
 
     let publicId = (existingIdentity as unknown as { public_id: string } | null)?.public_id ?? null;
     if (!publicId) {
@@ -277,7 +288,7 @@ export const publishPassport = createServerFn({ method: "POST" })
       const { error: insertIdentityErr } = await (
         supabase.from("rights_passport_public_identities" as never) as any
       ).insert({ owner_user_id: userId, passport_key: data.passportKey, public_id: publicId });
-      if (insertIdentityErr) throw new Error(insertIdentityErr.message);
+      if (insertIdentityErr) throw new Error(sanitizeDbErrorMessage(insertIdentityErr.message));
     }
 
     const publishedAt = new Date().toISOString();
@@ -302,7 +313,7 @@ export const publishPassport = createServerFn({ method: "POST" })
         .eq("id", previousActiveId)
         .eq("owner_user_id", userId)
         .eq("status", "ACTIVE");
-      if (supersedeErr) throw new Error(supersedeErr.message);
+      if (supersedeErr) throw new Error(sanitizeDbErrorMessage(supersedeErr.message));
     }
 
     const { data: snapshotRow, error: insertErr } = await (
@@ -330,7 +341,14 @@ export const publishPassport = createServerFn({ method: "POST" })
       .select("id,published_at")
       .single();
     if (insertErr || !snapshotRow)
-      throw new Error(insertErr?.message ?? "Couldn't publish this passport");
+      throw new Error(
+        insertErr ? sanitizeDbErrorMessage(insertErr.message) : "Couldn't publish this passport",
+      );
+
+    await logRightsPassportEvent(supabase, userId, "rights_passport_published", {
+      passportKey: data.passportKey,
+      detail: { passportVersion: workspace.passport.version },
+    });
 
     return {
       snapshotId: snapshotRow.id,
@@ -359,7 +377,7 @@ export type SnapshotSummary = {
 } | null;
 
 export const getPublishedSnapshotStatus = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: { passportKey: string }) =>
     z.object({ passportKey: z.string().uuid() }).parse(input),
   )
@@ -399,7 +417,7 @@ export const getPublishedSnapshotStatus = createServerFn({ method: "GET" })
 // ---------------------------------------------------------------------------
 
 export const revokeSnapshot = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportPublicPublishEnabled, requireSupabaseAuth])
   .inputValidator((input: { passportKey: string }) =>
     z.object({ passportKey: z.string().uuid() }).parse(input),
   )
@@ -410,7 +428,10 @@ export const revokeSnapshot = createServerFn({ method: "POST" })
       .eq("passport_key", data.passportKey)
       .eq("owner_user_id", userId)
       .eq("status", "ACTIVE");
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(sanitizeDbErrorMessage(error.message));
+    await logRightsPassportEvent(supabase, userId, "rights_passport_revoked", {
+      passportKey: data.passportKey,
+    });
     return { ok: true };
   });
 
@@ -424,7 +445,7 @@ export type ExportJsonResult =
   | { mode: "preview"; payload: unknown };
 
 export const downloadPublicJson = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: { passportKey: string }) =>
     z.object({ passportKey: z.string().uuid() }).parse(input),
   )
@@ -462,7 +483,7 @@ export const downloadPublicJson = createServerFn({ method: "GET" })
   });
 
 export const downloadPrivateJson = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: { passportKey: string }) =>
     z.object({ passportKey: z.string().uuid() }).parse(input),
   )
@@ -501,6 +522,7 @@ export const downloadPrivateJson = createServerFn({ method: "GET" })
 
 export type PublicRightsCardResult =
   | { found: false }
+  | { disabled: true }
   | {
       found: true;
       revoked: boolean;
@@ -514,6 +536,15 @@ const publicIdSchema = z.object({ publicId: z.string().trim().min(1).max(200) })
 export const getPublicRightsCard = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => publicIdSchema.parse(input))
   .handler(async ({ data }): Promise<PublicRightsCardResult> => {
+    // No requireSupabaseAuth exists on this route to attach a flag
+    // middleware to (it's the public route, by design) — so the kill
+    // switch is a plain check at the top of the handler instead. Returns a
+    // safe, generic "disabled" result rather than exposing whether a
+    // public_id would otherwise have resolved.
+    if (!isRightsPassportPublicPublishEnabled(process.env)) {
+      return { disabled: true };
+    }
+
     // Reject anything that doesn't look like a real public_id up front —
     // cheap, and avoids handing a malformed string to the database at all.
     if (!/^drp_[0-9a-f]{40}$/.test(data.publicId)) {

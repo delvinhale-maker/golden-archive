@@ -15,6 +15,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import QRCode from "qrcode";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireRightsPassportEnabled } from "@/lib/rights-passport-feature-flags.middleware";
 import { validateQrColors, resolveQrSizePx } from "@/lib/qr";
 import {
   gatherWorkspaceForVerification,
@@ -64,7 +65,7 @@ const passportKeySchema = z.object({ passportKey: z.string().uuid() });
 export type QrRenderResult = { format: "png"; data: string } | { format: "svg"; data: string };
 
 export const renderPassportQr = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -143,7 +144,7 @@ function bytesToBase64(bytes: Uint8Array): string {
 }
 
 export const downloadPublicPassportPdf = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => passportKeySchema.parse(input))
   .handler(async ({ data, context }): Promise<{ pdfBase64: string }> => {
     const { supabase, userId } = context;
@@ -159,7 +160,7 @@ export const downloadPublicPassportPdf = createServerFn({ method: "POST" })
   });
 
 export const downloadPrivatePassportPdf = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => passportKeySchema.parse(input))
   .handler(async ({ data, context }): Promise<{ pdfBase64: string }> => {
     const { supabase, userId } = context;

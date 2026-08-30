@@ -14,6 +14,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireRightsPassportEnabled } from "@/lib/rights-passport-feature-flags.middleware";
 import {
   licenseUpsertSchema,
   LICENSE_COLS,
@@ -60,7 +61,7 @@ async function assertOwnsPassportKey(
 const createSchema = licenseUpsertSchema.extend({ passportKey: z.string().uuid() });
 
 export const createLicense = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => createSchema.parse(input))
   .handler(async ({ data, context }): Promise<LicenseRow> => {
     const { supabase, userId } = context;
@@ -79,7 +80,7 @@ export const createLicense = createServerFn({ method: "POST" })
 const updateSchema = licenseUpsertSchema.partial().extend({ id: z.string().uuid() });
 
 export const updateLicense = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => updateSchema.parse(input))
   .handler(async ({ data, context }): Promise<LicenseRow> => {
     const { supabase, userId } = context;
@@ -102,7 +103,7 @@ export const listLicenses = createServerFn({ method: "GET" })
   .inputValidator((input: { passportKey: string }) =>
     z.object({ passportKey: z.string().uuid() }).parse(input),
   )
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .handler(async ({ data, context }): Promise<LicenseRow[]> => {
     const { supabase, userId } = context;
     const { data: rows, error } = await supabase

@@ -178,6 +178,21 @@ BEGIN
   IF NEW.source_passport_id IS DISTINCT FROM OLD.source_passport_id THEN
     RAISE EXCEPTION 'A published snapshot''s source is immutable';
   END IF;
+  IF NEW.schema_version IS DISTINCT FROM OLD.schema_version THEN
+    RAISE EXCEPTION 'A published snapshot''s schema_version is immutable';
+  END IF;
+  IF NEW.supersedes_snapshot_id IS DISTINCT FROM OLD.supersedes_snapshot_id THEN
+    RAISE EXCEPTION 'A published snapshot''s supersedes_snapshot_id is immutable';
+  END IF;
+  IF NEW.published_at IS DISTINCT FROM OLD.published_at THEN
+    RAISE EXCEPTION 'A published snapshot''s published_at is immutable';
+  END IF;
+  IF NEW.effective_at IS DISTINCT FROM OLD.effective_at THEN
+    RAISE EXCEPTION 'A published snapshot''s effective_at is immutable';
+  END IF;
+  IF NEW.private_snapshot_metadata IS DISTINCT FROM OLD.private_snapshot_metadata THEN
+    RAISE EXCEPTION 'A published snapshot''s private_snapshot_metadata is immutable';
+  END IF;
   RETURN NEW;
 END;
 $$;

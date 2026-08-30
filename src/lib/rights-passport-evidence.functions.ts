@@ -12,6 +12,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireRightsPassportEnabled } from "@/lib/rights-passport-feature-flags.middleware";
 import {
   evidenceUpsertSchema,
   EVIDENCE_COLS,
@@ -59,7 +60,7 @@ async function assertOwnsPassportKey(
 const createSchema = evidenceUpsertSchema.extend({ passportKey: z.string().uuid() });
 
 export const createEvidence = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => createSchema.parse(input))
   .handler(async ({ data, context }): Promise<EvidenceRow> => {
     const { supabase, userId } = context;
@@ -78,7 +79,7 @@ export const createEvidence = createServerFn({ method: "POST" })
 const updateSchema = evidenceUpsertSchema.partial().extend({ id: z.string().uuid() });
 
 export const updateEvidence = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => updateSchema.parse(input))
   .handler(async ({ data, context }): Promise<EvidenceRow> => {
     const { supabase, userId } = context;
@@ -101,7 +102,7 @@ export const listEvidence = createServerFn({ method: "GET" })
   .inputValidator((input: { passportKey: string }) =>
     z.object({ passportKey: z.string().uuid() }).parse(input),
   )
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .handler(async ({ data, context }): Promise<EvidenceRow[]> => {
     const { supabase, userId } = context;
     const { data: rows, error } = await supabase

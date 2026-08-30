@@ -141,7 +141,9 @@ describe("migration — additive only, staged (not auto-applied)", () => {
 describe("rights-passport-ai-consent.functions.ts — owner-scoped, passport-bound", () => {
   it("every function requires requireSupabaseAuth", () => {
     for (const name of ["upsertAiConsent", "listAiConsents"]) {
-      expect(bodyOf(aiConsentFn, name)).toContain(".middleware([requireSupabaseAuth])");
+      expect(bodyOf(aiConsentFn, name)).toMatch(
+        /\.middleware\(\[(?:requireRightsPassport\w+,\s*)?requireSupabaseAuth\]\)/,
+      );
     }
   });
 
@@ -175,7 +177,9 @@ describe("rights-passport-ai-consent.functions.ts — owner-scoped, passport-bou
 describe("rights-passport-licenses.functions.ts — owner-scoped, passport-bound", () => {
   it("every function requires requireSupabaseAuth", () => {
     for (const name of ["createLicense", "updateLicense", "listLicenses"]) {
-      expect(bodyOf(licenseFn, name)).toContain(".middleware([requireSupabaseAuth])");
+      expect(bodyOf(licenseFn, name)).toMatch(
+        /\.middleware\(\[(?:requireRightsPassport\w+,\s*)?requireSupabaseAuth\]\)/,
+      );
     }
   });
 
@@ -211,7 +215,9 @@ describe("rights-passport-licenses.functions.ts — owner-scoped, passport-bound
 describe("rights-passport-evidence.functions.ts — owner-scoped, passport-bound", () => {
   it("every function requires requireSupabaseAuth", () => {
     for (const name of ["createEvidence", "updateEvidence", "listEvidence"]) {
-      expect(bodyOf(evidenceFn, name)).toContain(".middleware([requireSupabaseAuth])");
+      expect(bodyOf(evidenceFn, name)).toMatch(
+        /\.middleware\(\[(?:requireRightsPassport\w+,\s*)?requireSupabaseAuth\]\)/,
+      );
     }
   });
 
@@ -246,7 +252,9 @@ function reconcileFnBody(source: string): string {
 describe("rights-passport-review.functions.ts — deterministic sync, owner-scoped", () => {
   it("every function requires requireSupabaseAuth", () => {
     for (const name of ["syncReviewFlags", "listReviewFlags", "setReviewFlagStatus"]) {
-      expect(bodyOf(reviewFn, name)).toContain(".middleware([requireSupabaseAuth])");
+      expect(bodyOf(reviewFn, name)).toMatch(
+        /\.middleware\(\[(?:requireRightsPassport\w+,\s*)?requireSupabaseAuth\]\)/,
+      );
     }
   });
 

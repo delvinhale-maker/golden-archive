@@ -21,6 +21,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireRightsPassportAiEnabled } from "@/lib/rights-passport-feature-flags.middleware";
 import { AI_POLICIES } from "@/lib/rights-passport.schema";
 import { getDocumentInternal } from "@/lib/rights-passport-documents.functions";
 import {
@@ -71,7 +72,7 @@ async function assertOwnsPassportKey(
 const parseSchema = z.object({ documentId: z.string().uuid() });
 
 export const parseDocument = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportAiEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => parseSchema.parse(input))
   .handler(async ({ data, context }): Promise<DocumentRow> => {
     const { supabase, userId } = context;
@@ -149,7 +150,7 @@ export const parseDocument = createServerFn({ method: "POST" })
 const createRunSchema = z.object({ documentId: z.string().uuid() });
 
 export const createAnalysisRun = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportAiEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => createRunSchema.parse(input))
   .handler(async ({ data, context }): Promise<AnalysisRunRow> => {
     const { supabase, userId } = context;
@@ -185,7 +186,7 @@ export const listAnalysisRuns = createServerFn({ method: "GET" })
   .inputValidator((input: { documentId: string }) =>
     z.object({ documentId: z.string().uuid() }).parse(input),
   )
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportAiEnabled, requireSupabaseAuth])
   .handler(async ({ data, context }): Promise<AnalysisRunRow[]> => {
     const { supabase, userId } = context;
     const { data: rows, error } = await supabase
@@ -269,7 +270,7 @@ export type RunPassResult =
   | { ok: false; errorCode: string; errorMessageSafe: string };
 
 export const runAnalysisPass = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportAiEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => runPassSchema.parse(input))
   .handler(async ({ data, context }): Promise<RunPassResult> => {
     const { supabase, userId } = context;
@@ -455,7 +456,7 @@ export const listFindings = createServerFn({ method: "GET" })
   .inputValidator((input: { documentId: string }) =>
     z.object({ documentId: z.string().uuid() }).parse(input),
   )
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportAiEnabled, requireSupabaseAuth])
   .handler(async ({ data, context }): Promise<FindingRow[]> => {
     const { supabase, userId } = context;
     const { data: rows, error } = await supabase
@@ -572,7 +573,7 @@ async function applyFindingToTarget(
 }
 
 export const reviewFinding = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportAiEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => reviewSchema.parse(input))
   .handler(async ({ data, context }): Promise<FindingRow> => {
     const { supabase, userId } = context;

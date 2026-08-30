@@ -14,6 +14,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireRightsPassportEnabled } from "@/lib/rights-passport-feature-flags.middleware";
 import {
   aiConsentUpsertSchema,
   AI_CONSENT_COLS,
@@ -67,7 +68,7 @@ const createSchema = aiConsentUpsertSchema.extend({ passportKey: z.string().uuid
  * updates the existing row rather than creating a duplicate.
  */
 export const upsertAiConsent = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => createSchema.parse(input))
   .handler(async ({ data, context }): Promise<AiConsentRow> => {
     const { supabase, userId } = context;
@@ -95,7 +96,7 @@ export const listAiConsents = createServerFn({ method: "GET" })
   .inputValidator((input: { passportKey: string }) =>
     z.object({ passportKey: z.string().uuid() }).parse(input),
   )
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .handler(async ({ data, context }): Promise<AiConsentRow[]> => {
     const { supabase, userId } = context;
     const { data: rows, error } = await supabase

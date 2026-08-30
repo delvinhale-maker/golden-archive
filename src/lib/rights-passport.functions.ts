@@ -17,6 +17,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireRightsPassportEnabled } from "@/lib/rights-passport-feature-flags.middleware";
+import { assertRightsPassportCapability } from "@/lib/rights-passport-entitlements.functions";
+import { sanitizeDbErrorMessage } from "@/lib/rights-passport-safe-error";
 import {
   passportUpsertSchema,
   PASSPORT_COLS,
@@ -70,11 +73,18 @@ function toPatch(input: Partial<Record<string, unknown>>): Record<string, unknow
 
 /** Creates the first DRAFT version of a brand-new passport lineage. */
 export const createPassport = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => passportUpsertSchema.parse(input))
   .handler(async ({ data, context }): Promise<PassportRow> => {
     const { supabase, userId } = context;
     const patch = toPatch(data);
+
+    // Each call mints a brand-new passport_key lineage, so the relevant cap
+    // is how many separate identities the plan allows — not how many are
+    // currently ACTIVE (a lineage starts as DRAFT and may never be
+    // activated, so gating on ACTIVE here would let a user create
+    // unbounded DRAFT lineages).
+    await assertRightsPassportCapability(supabase, userId, "MANAGED_IDENTITIES");
 
     const { data: row, error } = await (supabase.from("rights_passports" as never) as any)
       .insert({
@@ -85,7 +95,8 @@ export const createPassport = createServerFn({ method: "POST" })
       })
       .select(PASSPORT_COLS)
       .single();
-    if (error || !row) throw new Error(error?.message ?? "Couldn't create passport");
+    if (error || !row)
+      throw new Error(error ? sanitizeDbErrorMessage(error.message) : "Couldn't create passport");
     return row;
   });
 
@@ -102,7 +113,7 @@ const updateSchema = passportUpsertSchema.extend({
  * violated at any point, without needing a hand-rolled transaction).
  */
 export const updatePassport = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => updateSchema.parse(input))
   .handler(async ({ data, context }): Promise<PassportRow> => {
     const { supabase, userId } = context;
@@ -143,7 +154,7 @@ export const updatePassport = createServerFn({ method: "POST" })
 
 export const getPassport = createServerFn({ method: "GET" })
   .inputValidator((input: { id: string }) => z.object({ id: z.string().uuid() }).parse(input))
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .handler(async ({ data, context }): Promise<PassportRow> => {
     const { supabase, userId } = context;
     const { data: row, error } = await supabase
@@ -165,7 +176,7 @@ export type PassportVersionSummary = {
 };
 
 export const listMyPassportVersions = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .handler(async ({ context }): Promise<PassportVersionSummary[]> => {
     const { supabase, userId } = context;
     const { data, error } = await supabase
@@ -183,7 +194,7 @@ export const listMyPassportVersions = createServerFn({ method: "GET" })
  * source row is left completely untouched (still ACTIVE if it was).
  */
 export const createNewPassportVersion = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: { id: string }) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }): Promise<PassportRow> => {
     const { supabase, userId } = context;
@@ -248,7 +259,7 @@ export type PassportHome = {
  * that writes them; Home reads whatever is currently OPEN/ACKNOWLEDGED.
  */
 export const getPassportHome = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .handler(async ({ context }): Promise<PassportHome> => {
     const { supabase, userId } = context;
 

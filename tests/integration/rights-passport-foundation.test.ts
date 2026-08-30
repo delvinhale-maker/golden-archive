@@ -88,7 +88,9 @@ describe("rights-passport.functions.ts — authenticated and owner-derived", () 
       "createNewPassportVersion",
       "getPassportHome",
     ]) {
-      expect(bodyOf(passportFn, name)).toContain(".middleware([requireSupabaseAuth])");
+      expect(bodyOf(passportFn, name)).toMatch(
+        /\.middleware\(\[(?:requireRightsPassport\w+,\s*)?requireSupabaseAuth\]\)/,
+      );
     }
   });
 
@@ -127,7 +129,7 @@ describe("rights-passport.functions.ts — authenticated and owner-derived", () 
     expect(supersedeBlock).toContain('.eq("passport_key", passportKey)');
     expect(supersedeBlock).toContain('.eq("owner_user_id", userId)');
     expect(supersedeBlock).toContain('.eq("status", "ACTIVE")');
-    expect(supersedeBlock).toContain(".neq(\"id\", id)");
+    expect(supersedeBlock).toContain('.neq("id", id)');
   });
 
   it("createNewPassportVersion re-derives the source row scoped to the caller before cloning it", () => {
@@ -159,7 +161,9 @@ describe("rights-passport.functions.ts — authenticated and owner-derived", () 
 describe("rights-passport-assets.functions.ts — owner-scoped, passport-bound", () => {
   it("every function requires requireSupabaseAuth", () => {
     for (const name of ["createAsset", "updateAsset", "listAssets", "archiveAsset"]) {
-      expect(bodyOf(assetFn, name)).toContain(".middleware([requireSupabaseAuth])");
+      expect(bodyOf(assetFn, name)).toMatch(
+        /\.middleware\(\[(?:requireRightsPassport\w+,\s*)?requireSupabaseAuth\]\)/,
+      );
     }
   });
 

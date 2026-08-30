@@ -127,13 +127,17 @@ describe("rights-passport-publish.functions.ts — auth and ownership", () => {
       "downloadPublicJson",
       "downloadPrivateJson",
     ]) {
-      expect(bodyOf(publishFn, name)).toContain(".middleware([requireSupabaseAuth])");
+      expect(bodyOf(publishFn, name)).toMatch(
+        /\.middleware\(\[(?:requireRightsPassport\w+,\s*)?requireSupabaseAuth\]\)/,
+      );
     }
   });
 
   it("getPublicRightsCard — the actual public route — has NO requireSupabaseAuth middleware (it must be callable anonymously)", () => {
     const body = bodyOf(publishFn, "getPublicRightsCard");
-    expect(body).not.toContain(".middleware([requireSupabaseAuth])");
+    expect(body).not.toMatch(
+      /\.middleware\(\[(?:requireRightsPassport\w+,\s*)?requireSupabaseAuth\]\)/,
+    );
   });
 
   it("(check: foreign user cannot publish / cannot publish someone else's passport) gatherWorkspaceForVerification scopes the ACTIVE workspace row by both passport_key and owner_user_id", () => {
@@ -283,7 +287,9 @@ describe("rights-passport-generate.functions.ts — QR reuses the one existing Q
 
   it("PDF downloads are owner-scoped through gatherWorkspaceForVerification/resolvePayloadForPdf, reusing the same shared helpers publishPassport uses rather than a separate data path", () => {
     for (const name of ["downloadPublicPassportPdf", "downloadPrivatePassportPdf"]) {
-      expect(bodyOf(generateFn, name)).toContain(".middleware([requireSupabaseAuth])");
+      expect(bodyOf(generateFn, name)).toMatch(
+        /\.middleware\(\[(?:requireRightsPassport\w+,\s*)?requireSupabaseAuth\]\)/,
+      );
     }
     expect(generateFn).toMatch(/resolvePayloadForPdf\(\s*supabase,\s*userId,\s*data\.passportKey/);
   });

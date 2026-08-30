@@ -22,6 +22,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireRightsPassportEnabled } from "@/lib/rights-passport-feature-flags.middleware";
 import {
   CONTROL_BASES,
   ASSET_TYPES,
@@ -84,7 +85,7 @@ export type ListedProposal = StructuredProposal & {
 };
 
 export const listProposals = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => listSchema.parse(input))
   .handler(async ({ data, context }): Promise<ListedProposal[]> => {
     const { supabase, userId } = context;
@@ -192,7 +193,7 @@ async function assertAssetOwnership(
 }
 
 export const applyProposal = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => applyProposalSchema.parse(input))
   .handler(async ({ data, context }): Promise<ApplyProposalResult> => {
     const { supabase, userId } = context;

@@ -22,6 +22,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireRightsPassportEnabled } from "@/lib/rights-passport-feature-flags.middleware";
 import {
   registerDocumentSchema,
   sanitizeFileName,
@@ -58,7 +59,7 @@ const beginUploadSchema = z.object({
 });
 
 export const beginDocumentUpload = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => beginUploadSchema.parse(input))
   .handler(
     async ({
@@ -79,7 +80,7 @@ export const beginDocumentUpload = createServerFn({ method: "POST" })
 const registerSchema = registerDocumentSchema.extend({ documentId: z.string().uuid() });
 
 export const registerDocument = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => registerSchema.parse(input))
   .handler(async ({ data, context }): Promise<DocumentRow> => {
     const { supabase, userId } = context;
@@ -129,7 +130,7 @@ export const listDocuments = createServerFn({ method: "GET" })
   .inputValidator((input: { passportKey: string }) =>
     z.object({ passportKey: z.string().uuid() }).parse(input),
   )
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .handler(async ({ data, context }): Promise<DocumentRow[]> => {
     const { supabase, userId } = context;
     const { data: rows, error } = await supabase
@@ -146,7 +147,7 @@ export const getDocumentSignedUrl = createServerFn({ method: "POST" })
   .inputValidator((input: { documentId: string }) =>
     z.object({ documentId: z.string().uuid() }).parse(input),
   )
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .handler(async ({ data, context }): Promise<{ signedUrl: string; expiresIn: number }> => {
     const { supabase, userId } = context;
     const { data: row, error } = await supabase

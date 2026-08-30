@@ -11,6 +11,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireRightsPassportEnabled } from "@/lib/rights-passport-feature-flags.middleware";
 import { assetUpsertSchema, ASSET_COLS, type AssetRow } from "@/lib/rights-passport.schema";
 
 function toPatch(input: Partial<Record<string, unknown>>): Record<string, unknown> {
@@ -62,7 +63,7 @@ async function assertOwnsPassportKey(
 const createSchema = assetUpsertSchema.extend({ passportKey: z.string().uuid() });
 
 export const createAsset = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => createSchema.parse(input))
   .handler(async ({ data, context }): Promise<AssetRow> => {
     const { supabase, userId } = context;
@@ -85,7 +86,7 @@ export const createAsset = createServerFn({ method: "POST" })
 const updateSchema = assetUpsertSchema.partial().extend({ id: z.string().uuid() });
 
 export const updateAsset = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => updateSchema.parse(input))
   .handler(async ({ data, context }): Promise<AssetRow> => {
     const { supabase, userId } = context;
@@ -108,7 +109,7 @@ export const listAssets = createServerFn({ method: "GET" })
   .inputValidator((input: { passportKey: string }) =>
     z.object({ passportKey: z.string().uuid() }).parse(input),
   )
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .handler(async ({ data, context }): Promise<AssetRow[]> => {
     const { supabase, userId } = context;
     const { data: rows, error } = await supabase
@@ -123,7 +124,7 @@ export const listAssets = createServerFn({ method: "GET" })
 
 /** Soft-delete: assets are archived, never hard-deleted (no DELETE grant exists on this table at all). */
 export const archiveAsset = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
   .inputValidator((input: { id: string }) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     const { supabase, userId } = context;
