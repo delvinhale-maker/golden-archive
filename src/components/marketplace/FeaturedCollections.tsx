@@ -3,8 +3,10 @@ import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import financialImg from "@/assets/coll-planners-clean.jpg";
 import leadershipImg from "@/assets/coll-journals-clean.jpg";
-import businessImg from "@/assets/coll-business.jpg";
-import aiImg from "@/assets/coll-ai-clean.jpg";
+import businessSystemsImg from "@/assets/coll-business-systems.jpg";
+import businessToolsImg from "@/assets/coll-business-tools.jpg";
+import qrImg from "@/assets/coll-qr.jpg";
+import aiStudioImg from "@/assets/coll-ai-studio.jpg";
 import faithImg from "@/assets/coll-faith.jpg";
 import { accentFor } from "@/lib/categories";
 
@@ -16,53 +18,64 @@ type Collection = {
   alt: string;
   to: string;
   search?: Record<string, string>;
-  size: "lg" | "md";
   accentSlug: string;
 };
 
 const COLLECTIONS: Collection[] = [
   {
-    title: "Planners",
+    title: "Business Systems",
+    kicker: "Build & Scale",
+    blurb: "Ready-to-use digital systems, dashboards, and operator playbooks.",
+    image: businessSystemsImg,
+    alt: "Premium business dashboard on a laptop in a dark luxury office",
+    to: "/business-systems",
+    accentSlug: "business_operating_systems",
+  },
+  {
+    title: "Interactive Planners",
     kicker: "The Wealth Vault",
     blurb: "Playbooks and systems from operators who've built lasting wealth.",
     image: financialImg,
-    alt: "Financial planners and wealth-building organizers on a clean workspace",
+    alt: "Interactive planners and wealth-building organizers on a clean workspace",
     to: "/products",
     search: { category: "Planners" },
-    size: "lg",
     accentSlug: "financial_planners",
   },
   {
-    title: "Journals",
+    title: "Interactive Journals",
     kicker: "Reflect & Record",
-    blurb: "Beautiful printable journals for reflection, gratitude, prayer, and creative practice.",
+    blurb: "Interactive journals for reflection, gratitude, prayer, and creative practice.",
     image: leadershipImg,
-    alt: "Beautiful printable journals for reflection, gratitude, and creative practice",
+    alt: "Interactive journals for reflection, gratitude, and creative practice",
     to: "/products",
     search: { category: "Journals" },
-    size: "md",
     accentSlug: "printable_journals",
   },
   {
-    title: "Business Systems",
-    kicker: "Build & Scale",
-    blurb: "Money, credit, and operator playbooks from real builders.",
-    image: businessImg,
-    alt: "Digital business systems and money playbooks for entrepreneurs",
-    to: "/products",
-    search: { category: "eBooks" },
-    size: "md",
-    accentSlug: "ebooks",
+    title: "Business Tools",
+    kicker: "Creator Toolkit",
+    blurb: "Professional tools for creators turning content into business.",
+    image: businessToolsImg,
+    alt: "Premium black and gold professional business tools flat lay",
+    to: "/creator-business-tools",
+    accentSlug: "business_operating_systems",
   },
   {
-    title: "AI Prompt Vault",
+    title: "QR Code Generator",
+    kicker: "Reach & Track",
+    blurb: "Create branded QR codes and campaigns for your products.",
+    image: qrImg,
+    alt: "Gold embossed QR code card being scanned by a phone on black marble",
+    to: "/dashboard/qr",
+    accentSlug: "ai_prompt_packs",
+  },
+  {
+    title: "AI Studio",
     kicker: "New Frontier",
-    blurb: "Curated prompt libraries and AI toolkits for modern builders.",
-    image: aiImg,
-    alt: "AI prompt packs and toolkits for modern creators and builders",
-    to: "/products",
-    search: { category: "AI Prompt Packs" },
-    size: "md",
+    blurb: "Generate, refine, and package products with AI assistance.",
+    image: aiStudioImg,
+    alt: "Designer workstation with glowing gold AI network visualization",
+    to: "/dashboard/ai-studio",
     accentSlug: "ai_prompt_packs",
   },
   {
@@ -73,13 +86,11 @@ const COLLECTIONS: Collection[] = [
     alt: "Faith-based devotionals and personal growth resources",
     to: "/products",
     search: { category: "eBooks" },
-    size: "md",
     accentSlug: "ebooks",
   },
 ];
 
 function CollectionCard({ c, index }: { c: Collection; index: number }) {
-  const isLarge = c.size === "lg";
   const accent = accentFor(c.accentSlug);
   return (
     <motion.div
@@ -88,11 +99,7 @@ function CollectionCard({ c, index }: { c: Collection; index: number }) {
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.55, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
       style={{ ["--cat-accent" as string]: accent } as Record<string, string>}
-      className={
-        isLarge
-          ? "group relative col-span-2 row-span-2 overflow-hidden rounded-3xl bg-navy shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)] ring-1 ring-white/10 transition-shadow duration-500 hover:shadow-[0_0_0_1px_var(--cat-accent),0_24px_60px_-20px_var(--cat-accent)]"
-          : "group relative overflow-hidden rounded-3xl bg-navy shadow-[0_16px_44px_-18px_rgba(0,0,0,0.5)] ring-1 ring-white/10 transition-shadow duration-500 hover:shadow-[0_0_0_1px_var(--cat-accent),0_20px_48px_-20px_var(--cat-accent)]"
-      }
+      className="group relative overflow-hidden rounded-2xl bg-navy shadow-[0_16px_44px_-18px_rgba(0,0,0,0.5)] ring-1 ring-white/10 transition-shadow duration-500 hover:shadow-[0_0_0_1px_var(--cat-accent),0_20px_48px_-20px_var(--cat-accent)] md:rounded-3xl"
     >
       <span
         aria-hidden
@@ -106,37 +113,31 @@ function CollectionCard({ c, index }: { c: Collection; index: number }) {
         className="block h-full"
         aria-label={`${c.title} collection`}
       >
-        <div className={isLarge ? "relative h-[520px] w-full" : "relative h-[300px] w-full"}>
+        <div className="relative h-[168px] w-full sm:h-[220px] md:h-[280px]">
           <img
             src={c.image}
             alt={c.alt}
             loading="lazy"
+            width={1024}
+            height={1024}
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#08101D] via-[#08101D]/40 to-transparent" />
-          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/30 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#08101D] via-[#08101D]/45 to-transparent" />
+          <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/30 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-3 md:p-6">
+            <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-gold md:text-[10px]">
               {c.kicker}
             </div>
-            <h3
-              className={
-                isLarge
-                  ? "mt-2 font-display text-3xl leading-tight text-white md:text-4xl"
-                  : "mt-2 font-display text-2xl leading-tight text-white md:text-[26px]"
-              }
-            >
+            <h3 className="mt-1 font-display text-base leading-tight text-white sm:text-xl md:text-2xl">
               {c.title}
             </h3>
-            {isLarge && (
-              <p className="mt-3 max-w-md text-sm text-white/75 md:text-base">
-                {c.blurb}
-              </p>
-            )}
-            <div className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-white/90 transition-colors group-hover:text-gold">
-              Explore collection
+            <p className="mt-1.5 hidden max-w-md text-sm text-white/75 md:block">
+              {c.blurb}
+            </p>
+            <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-white/90 transition-colors group-hover:text-gold md:mt-4 md:gap-1.5 md:text-[12px]">
+              Explore
               <ArrowUpRight
-                size={14}
+                size={12}
                 className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
               />
             </div>
@@ -146,6 +147,7 @@ function CollectionCard({ c, index }: { c: Collection; index: number }) {
     </motion.div>
   );
 }
+
 
 export function FeaturedCollections() {
   return (
@@ -170,7 +172,7 @@ export function FeaturedCollections() {
           <span className="mt-5 block h-[2px] w-10 bg-gold" />
         </div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-4 md:grid-rows-2 md:gap-6">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 md:gap-6">
           {COLLECTIONS.map((c, i) => (
             <CollectionCard key={c.title} c={c} index={i} />
           ))}
