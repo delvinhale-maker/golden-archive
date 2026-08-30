@@ -369,7 +369,7 @@ describe("rights-passport-analysis.functions.ts — owner-scoped analysis pipeli
       body.indexOf('} else if (data.action === "EDIT")'),
     );
     expect(acceptBranch).toMatch(
-      /applyFindingToTarget\(\s*supabase,\s*userId,\s*finding,\s*finding\.normalized_value,?\s*\)/,
+      /applyFindingToTarget\(\s*supabase,\s*userId,\s*finding,\s*finding\.normalized_value,[\s\S]*?\)/,
     );
   });
 
@@ -377,10 +377,10 @@ describe("rights-passport-analysis.functions.ts — owner-scoped analysis pipeli
     const body = bodyOf(analysisFn, "reviewFinding");
     const editBranch = body.slice(body.indexOf('} else if (data.action === "EDIT")'));
     expect(editBranch).toMatch(
-      /applyFindingToTarget\(\s*supabase,\s*userId,\s*finding,\s*data\.editedValue,?\s*\)/,
+      /applyFindingToTarget\(\s*supabase,\s*userId,\s*finding,\s*data\.editedValue,[\s\S]*?\)/,
     );
     expect(editBranch).not.toMatch(
-      /applyFindingToTarget\(\s*supabase,\s*userId,\s*finding,\s*finding\.normalized_value,?\s*\)/,
+      /applyFindingToTarget\(\s*supabase,\s*userId,\s*finding,\s*finding\.normalized_value,[\s\S]*?\)/,
     );
   });
 

@@ -32,6 +32,12 @@ import {
   reviewFinding,
 } from "@/lib/rights-passport-analysis.functions";
 import {
+  listProposals,
+  applyProposal,
+  type ListedProposal,
+} from "@/lib/rights-passport-proposals.functions";
+import { listAssets } from "@/lib/rights-passport-assets.functions";
+import {
   DOCUMENT_TYPES,
   DOCUMENT_TYPE_LABELS,
   ALLOWED_MIME_TYPES,
@@ -116,6 +122,9 @@ function AnalyzePage() {
   const listRunsFn = useServerFn(listAnalysisRuns);
   const listFindingsFn = useServerFn(listFindings);
   const reviewFn = useServerFn(reviewFinding);
+  const listProposalsFn = useServerFn(listProposals);
+  const applyProposalFn = useServerFn(applyProposal);
+  const listAssetsFn = useServerFn(listAssets);
 
   const [passportKey, setPassportKey] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -156,6 +165,20 @@ function AnalyzePage() {
     queryKey: findingsQueryKey,
     queryFn: () => listFindingsFn({ data: { documentId: expandedDoc! } }),
     enabled: !!expandedDoc,
+  });
+
+  const proposalsQueryKey = ["rights-passport", "proposals", expandedDoc];
+  const { data: proposals } = useQuery({
+    queryKey: proposalsQueryKey,
+    queryFn: () => listProposalsFn({ data: { documentId: expandedDoc! } }),
+    enabled: !!expandedDoc,
+  });
+
+  const assetsQueryKey = ["rights-passport", "assets-for-matching", passportKey];
+  const { data: existingAssets } = useQuery({
+    queryKey: assetsQueryKey,
+    queryFn: () => listAssetsFn({ data: { passportKey: passportKey! } }),
+    enabled: !!passportKey,
   });
 
   async function handleFileChosen(file: File) {
@@ -259,6 +282,21 @@ function AnalyzePage() {
       queryClient.invalidateQueries({ queryKey: ["rights-passport", "findings", documentId] });
       toast.success(action === "ACCEPT" ? "Applied to your passport" : "Updated");
     } catch (e: any) {
+      if (
+        action === "ACCEPT" &&
+        e?.message?.includes("already set to") &&
+        window.confirm(`${e.message}\n\nReplace it?`)
+      ) {
+        try {
+          await reviewFn({ data: { findingId, action, confirmOverwrite: true } });
+          queryClient.invalidateQueries({ queryKey: ["rights-passport", "findings", documentId] });
+          toast.success("Replaced with the new value");
+          return;
+        } catch (e2: any) {
+          toast.error(e2?.message ?? "Couldn't update this finding");
+          return;
+        }
+      }
       toast.error(e?.message ?? "Couldn't update this finding");
     }
   }
@@ -269,7 +307,66 @@ function AnalyzePage() {
       queryClient.invalidateQueries({ queryKey: ["rights-passport", "findings", documentId] });
       toast.success("Correction applied");
     } catch (e: any) {
+      if (e?.message?.includes("already set to") && window.confirm(`${e.message}\n\nReplace it?`)) {
+        try {
+          await reviewFn({
+            data: { findingId, action: "EDIT", editedValue, confirmOverwrite: true },
+          });
+          queryClient.invalidateQueries({ queryKey: ["rights-passport", "findings", documentId] });
+          toast.success("Replaced with the new value");
+          return;
+        } catch (e2: any) {
+          toast.error(e2?.message ?? "Couldn't save your correction");
+          return;
+        }
+      }
       toast.error(e?.message ?? "Couldn't save your correction");
+    }
+  }
+
+  async function handleApplyProposal(
+    proposal: ListedProposal,
+    documentId: string,
+    action: "ACCEPT" | "REJECT" | "DEFER",
+    opts: {
+      editedRecord?: Record<string, unknown>;
+      assetSelection?: { mode: "CREATE_NEW" } | { mode: "MATCH_EXISTING"; assetId: string };
+      confirmHighImpact?: boolean;
+      confirmOverwrite?: boolean;
+    } = {},
+  ) {
+    try {
+      await applyProposalFn({
+        data: {
+          documentId,
+          proposalType: proposal.proposalType,
+          sourceFindingIds: proposal.sourceFindingIds,
+          action,
+          ...opts,
+        },
+      });
+      queryClient.invalidateQueries({ queryKey: ["rights-passport", "proposals", documentId] });
+      queryClient.invalidateQueries({ queryKey: ["rights-passport", "findings", documentId] });
+      queryClient.invalidateQueries({ queryKey: assetsQueryKey });
+      toast.success(action === "ACCEPT" ? "Added to your passport" : "Updated");
+    } catch (e: any) {
+      const msg: string = e?.message ?? "Couldn't apply this proposal";
+      if (msg.includes("high-impact rights finding") && window.confirm(`${msg}\n\nContinue?`)) {
+        return handleApplyProposal(proposal, documentId, action, {
+          ...opts,
+          confirmHighImpact: true,
+        });
+      }
+      if (
+        (msg.includes("already has a value") || msg.includes("Confirm you want to replace")) &&
+        window.confirm(`${msg}\n\nReplace it?`)
+      ) {
+        return handleApplyProposal(proposal, documentId, action, {
+          ...opts,
+          confirmOverwrite: true,
+        });
+      }
+      toast.error(msg);
     }
   }
 
@@ -426,6 +523,22 @@ function AnalyzePage() {
                           </span>
                         );
                       })}
+                    </div>
+                  )}
+
+                  {(proposals ?? []).length > 0 && (
+                    <div className="mb-6 space-y-3">
+                      <p className="text-xs font-bold uppercase tracking-wide text-mute">
+                        Structured proposals ({(proposals ?? []).length})
+                      </p>
+                      {(proposals ?? []).map((p) => (
+                        <ProposalCard
+                          key={p.proposalKey}
+                          proposal={p}
+                          existingAssets={existingAssets ?? []}
+                          onApply={(action, opts) => handleApplyProposal(p, doc.id, action, opts)}
+                        />
+                      ))}
                     </div>
                   )}
 
@@ -598,6 +711,295 @@ function FindingCard({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+const PROPOSAL_TYPE_LABELS: Record<string, string> = {
+  ASSET: "Rights Asset",
+  LICENSE: "License",
+  EVIDENCE: "Evidence",
+  PROFILE_UPDATE: "Profile Update",
+};
+
+const NEEDS_ASSET_TYPES = new Set(["ASSET", "LICENSE", "EVIDENCE"]);
+
+function ProposalCard({
+  proposal,
+  existingAssets,
+  onApply,
+}: {
+  proposal: ListedProposal;
+  existingAssets: Array<{ id: string; name: string }>;
+  onApply: (
+    action: "ACCEPT" | "REJECT" | "DEFER",
+    opts: {
+      editedRecord?: Record<string, unknown>;
+      assetSelection?: { mode: "CREATE_NEW" } | { mode: "MATCH_EXISTING"; assetId: string };
+    },
+  ) => void;
+}) {
+  const record = proposal.proposedRecord as Record<string, unknown>;
+  const [name, setName] = useState(typeof record.name === "string" ? record.name : "");
+  const [licensee, setLicensee] = useState(
+    typeof record.licensee === "string" ? record.licensee : "",
+  );
+  const [exactUse, setExactUse] = useState(
+    typeof record.exactUse === "string" ? record.exactUse : "",
+  );
+  const [assetMode, setAssetMode] = useState<"CREATE_NEW" | "MATCH_EXISTING">(
+    existingAssets.length > 0 && proposal.proposalType !== "ASSET"
+      ? "MATCH_EXISTING"
+      : "CREATE_NEW",
+  );
+  const [selectedAssetId, setSelectedAssetId] = useState(existingAssets[0]?.id ?? "");
+  const [confirmed, setConfirmed] = useState(false);
+  const decided =
+    proposal.status === "ACCEPTED" ||
+    proposal.status === "EDITED" ||
+    proposal.status === "REJECTED";
+
+  const needsAsset = NEEDS_ASSET_TYPES.has(proposal.proposalType);
+  const canAccept = proposal.proposalType === "ASSET" ? name.trim().length > 0 : true;
+  const highImpactBlocked = proposal.requiresHighImpactConfirmation && !confirmed;
+
+  function buildEditedRecord(): Record<string, unknown> | undefined {
+    if (proposal.proposalType === "ASSET" && name !== record.name) return { name };
+    if (proposal.proposalType === "LICENSE") {
+      const edits: Record<string, unknown> = {};
+      if (licensee !== record.licensee) edits.licensee = licensee;
+      if (exactUse !== record.exactUse) edits.exactUse = exactUse;
+      return Object.keys(edits).length ? edits : undefined;
+    }
+    return undefined;
+  }
+
+  function assetSelection():
+    | { mode: "CREATE_NEW" }
+    | { mode: "MATCH_EXISTING"; assetId: string }
+    | undefined {
+    if (!needsAsset) return undefined;
+    if (proposal.proposalType !== "ASSET" || assetMode === "MATCH_EXISTING") {
+      if (!selectedAssetId) return undefined;
+      return { mode: "MATCH_EXISTING", assetId: selectedAssetId };
+    }
+    return { mode: "CREATE_NEW" };
+  }
+
+  return (
+    <div
+      className={`rounded-xl border bg-white p-4 ${proposal.requiresHighImpactConfirmation ? "border-amber-300" : "border-ink/10"}`}
+    >
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="rounded-full bg-navy/5 px-2 py-0.5 text-[10px] font-bold text-navy">
+          {PROPOSAL_TYPE_LABELS[proposal.proposalType] ?? proposal.proposalType}
+        </span>
+        <span className="rounded-full bg-ink/5 px-2 py-0.5 text-[10px] font-bold text-mute">
+          {proposal.status.replace(/_/g, " ")}
+        </span>
+        {proposal.requiresHighImpactConfirmation && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+            <AlertTriangle size={10} /> HIGH IMPACT
+          </span>
+        )}
+        <span className="text-xs text-mute">Sources: {proposal.sourceFindingIds.length}</span>
+      </div>
+
+      {proposal.proposalType === "PROFILE_UPDATE" ? (
+        <div className="mt-2 text-sm text-navy">
+          <p>
+            <strong>{humanizeField((record.field as string) ?? "")}</strong>
+          </p>
+          <p className="text-xs text-mute mt-1">
+            Current value: {String(proposal.existingValue ?? "Not set")}
+          </p>
+          <p className="text-xs text-navy mt-1">
+            Suggested value: {String(record.suggestedValue ?? "Not found")}
+          </p>
+        </div>
+      ) : (
+        <div className="mt-2 text-sm text-navy space-y-1">
+          {proposal.proposalType === "ASSET" && (
+            <>
+              <label className="block text-xs text-mute">Asset name (required)</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={decided}
+                placeholder="Name this asset"
+                className="rounded-lg border border-ink/15 px-2 py-1.5 text-sm w-full max-w-xs"
+              />
+              <p className="text-xs text-mute">
+                Territory: {String(record.territory ?? "Not found")}
+              </p>
+              <p className="text-xs text-mute">Control basis: {String(record.controlBasis)}</p>
+              {record.description && (
+                <p className="text-xs text-mute italic">{String(record.description)}</p>
+              )}
+            </>
+          )}
+          {proposal.proposalType === "LICENSE" && (
+            <>
+              <label className="block text-xs text-mute">Licensee</label>
+              <input
+                value={licensee}
+                onChange={(e) => setLicensee(e.target.value)}
+                disabled={decided}
+                className="rounded-lg border border-ink/15 px-2 py-1.5 text-sm w-full max-w-xs"
+              />
+              <label className="block text-xs text-mute mt-1">Use</label>
+              <input
+                value={exactUse}
+                onChange={(e) => setExactUse(e.target.value)}
+                disabled={decided}
+                className="rounded-lg border border-ink/15 px-2 py-1.5 text-sm w-full max-w-xs"
+              />
+              <p className="text-xs text-mute">
+                Territory: {String(record.territory ?? "Not found")}
+              </p>
+              <p className="text-xs text-mute">
+                Exclusive:{" "}
+                {record.isExclusive === true
+                  ? "Yes"
+                  : record.isExclusive === false
+                    ? "No"
+                    : "Not found"}
+              </p>
+              <p className="text-xs text-mute">
+                AI Rights:{" "}
+                {record.aiSyntheticRightsIncluded === null
+                  ? "Not found"
+                  : String(record.aiSyntheticRightsIncluded)}
+              </p>
+              <p className="text-xs text-mute">
+                Compensation: {String(record.compensation ?? "Not found")}
+              </p>
+              <p className="text-xs text-mute">
+                Status: {String(record.status)} (activation is a separate, later step)
+              </p>
+            </>
+          )}
+          {proposal.proposalType === "EVIDENCE" && (
+            <>
+              <p className="text-xs text-mute">Type: {String(record.evidenceType)}</p>
+              <p className="text-xs text-mute">Status: {String(record.status)}</p>
+              <p className="text-xs text-mute">{String(record.notes ?? "")}</p>
+            </>
+          )}
+          {proposal.missingFields.length > 0 && (
+            <p className="text-xs text-amber-700">Missing: {proposal.missingFields.join(", ")}</p>
+          )}
+        </div>
+      )}
+
+      {needsAsset && !decided && (
+        <div className="mt-3 rounded-lg bg-ink/5 p-3">
+          {proposal.proposalType === "ASSET" ? (
+            <div className="flex items-center gap-3 text-xs">
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  checked={assetMode === "CREATE_NEW"}
+                  onChange={() => setAssetMode("CREATE_NEW")}
+                />{" "}
+                Create new asset
+              </label>
+              {existingAssets.length > 0 && (
+                <label className="flex items-center gap-1">
+                  <input
+                    type="radio"
+                    checked={assetMode === "MATCH_EXISTING"}
+                    onChange={() => setAssetMode("MATCH_EXISTING")}
+                  />{" "}
+                  Match existing
+                </label>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-mute mb-1">Which asset does this apply to?</p>
+          )}
+          {(proposal.proposalType !== "ASSET" || assetMode === "MATCH_EXISTING") && (
+            <select
+              value={selectedAssetId}
+              onChange={(e) => setSelectedAssetId(e.target.value)}
+              className="mt-1 rounded-lg border border-ink/15 px-2 py-1.5 text-xs w-full max-w-xs"
+            >
+              <option value="">Select an asset…</option>
+              {existingAssets.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
+
+      {proposal.requiresHighImpactConfirmation && !decided && (
+        <label className="mt-3 flex items-start gap-2 text-xs text-amber-800">
+          <input
+            type="checkbox"
+            checked={confirmed}
+            onChange={(e) => setConfirmed(e.target.checked)}
+            className="mt-0.5"
+          />
+          This is a high-impact rights finding. Recording it does not determine legal ownership or
+          enforceability.
+        </label>
+      )}
+
+      {!decided && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {proposal.proposalType === "PROFILE_UPDATE" ? (
+            <>
+              <button
+                type="button"
+                onClick={() => onApply("ACCEPT", {})}
+                className="rounded-full bg-gold px-3 py-1.5 text-xs font-bold text-navy hover:brightness-105"
+              >
+                Use Suggested
+              </button>
+              <button
+                type="button"
+                onClick={() => onApply("DEFER", {})}
+                className="rounded-full border border-ink/15 px-3 py-1.5 text-xs font-semibold text-navy"
+              >
+                Keep Current
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled={!canAccept || highImpactBlocked || (needsAsset && !assetSelection())}
+                onClick={() =>
+                  onApply("ACCEPT", {
+                    editedRecord: buildEditedRecord(),
+                    assetSelection: assetSelection(),
+                  })
+                }
+                className="rounded-full bg-gold px-3 py-1.5 text-xs font-bold text-navy hover:brightness-105 disabled:opacity-50"
+              >
+                Accept &amp; Add
+              </button>
+              <button
+                type="button"
+                onClick={() => onApply("REJECT", {})}
+                className="rounded-full border border-ink/15 px-3 py-1.5 text-xs font-semibold text-navy"
+              >
+                Reject
+              </button>
+              <button
+                type="button"
+                onClick={() => onApply("DEFER", {})}
+                className="rounded-full border border-ink/15 px-3 py-1.5 text-xs font-semibold text-mute"
+              >
+                Defer
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

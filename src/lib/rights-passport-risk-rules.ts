@@ -347,6 +347,37 @@ export function evaluateRiskRules(input: RiskRuleInput): RiskFlag[] {
     }
   }
 
+  // Conflict: more than one live (ACTIVE/PENDING) exclusive license exists
+  // on the same asset — flagged rather than silently overwritten or
+  // silently allowed to coexist (Round 3.5 spec §D: "existing exclusive
+  // license + proposed competing license -> flag").
+  const exclusiveLicensesByAsset = new Map<string, typeof licenses>();
+  for (const license of licenses) {
+    if (!license.is_exclusive || (license.status !== "ACTIVE" && license.status !== "PENDING"))
+      continue;
+    const list = exclusiveLicensesByAsset.get(license.asset_id) ?? [];
+    list.push(license);
+    exclusiveLicensesByAsset.set(license.asset_id, list);
+  }
+  for (const [assetId, group] of exclusiveLicensesByAsset) {
+    if (group.length < 2) continue;
+    const asset = assetById.get(assetId);
+    for (const license of group) {
+      flags.push({
+        ruleCode: "LICENSE_COMPETING_EXCLUSIVE",
+        title: `Multiple exclusive licenses on "${asset?.name ?? "this asset"}"`,
+        description:
+          "More than one active or pending exclusive license exists for the same asset — these may conflict with each other.",
+        severity: "HIGH",
+        entityType: "license",
+        entityId: license.id,
+        evidenceContext: null,
+        recommendedAction:
+          "Review all exclusive licenses on this asset and resolve the conflict — this is a conflict flag, not a legal determination.",
+      });
+    }
+  }
+
   // ---- EVIDENCE ----
   for (const ev of evidence) {
     if (ev.status === "DISPUTED") {

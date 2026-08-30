@@ -44,6 +44,7 @@ import {
 } from "@/lib/rights-passport-analysis-schema";
 import { applyReviewOverride, buildFindingKey } from "@/lib/rights-passport-analysis-confidence";
 import { buildSystemPrompt, buildUserPrompt } from "@/lib/rights-passport-analysis-prompts";
+import { hasConflictingExistingValue } from "@/lib/rights-passport-proposal-assembly";
 
 const DOCUMENT_BUCKET = "digital-rights-evidence";
 const MAX_PASS_CHARS = 60_000;
@@ -473,7 +474,22 @@ const reviewSchema = z.object({
   findingId: z.string().uuid(),
   action: z.enum(REVIEW_ACTIONS),
   editedValue: z.unknown().optional(),
+  // Round 3.5 §D/§5: an existing, DIFFERENT AI consent value is never
+  // silently overwritten — the caller must re-submit with this explicitly
+  // true after the user has seen and confirmed the replacement.
+  confirmOverwrite: z.boolean().optional(),
 });
+
+/** Thrown when an accept/edit would silently overwrite a differing, already-declared value — never auto-caught, always surfaced to the caller. */
+export class ExistingValueConflictError extends Error {
+  constructor(
+    message: string,
+    public readonly existingValue: unknown,
+  ) {
+    super(message);
+    this.name = "ExistingValueConflictError";
+  }
+}
 
 /**
  * Applies an ACCEPT/EDIT'd value to its structured target, if — and only
@@ -485,12 +501,19 @@ const reviewSchema = z.object({
  * guessing at a multi-field record (a License/Evidence row needs fields no
  * single finding carries, like `licensee` or `asset_id`) with fabricated
  * defaults.
+ *
+ * Round 3.5 hardening: if a consent already exists for this
+ * (passport_key, asset_id, use_case) with a DIFFERENT permission than the
+ * one being applied, the write is refused (ExistingValueConflictError)
+ * unless confirmOverwrite=true — an existing, user-entered decision is
+ * never silently replaced by a re-run or re-accepted finding.
  */
 async function applyFindingToTarget(
   supabase: any,
   userId: string,
   finding: FindingRow,
   value: unknown,
+  confirmOverwrite: boolean,
 ): Promise<{ appliedEntityType: string | null; appliedEntityId: string | null }> {
   const target = finding.suggested_target;
   if (!target || target.entity !== "ai_consent") {
@@ -504,6 +527,27 @@ async function applyFindingToTarget(
   if (!permissionCheck.success) {
     throw new Error(
       `This finding's value ("${String(value)}") isn't a recognized AI permission — edit it to one of: ${AI_POLICIES.join(", ")}.`,
+    );
+  }
+
+  const { data: existing, error: existingErr } = await supabase
+    .from("rights_ai_consents" as never)
+    .select("id,permission" as never)
+    .eq("passport_key" as never, finding.passport_key)
+    .eq("owner_user_id" as never, userId)
+    .is("asset_id" as never, null)
+    .eq("use_case" as never, useCase)
+    .maybeSingle();
+  if (existingErr) throw new Error(existingErr.message);
+  const existingRow = existing as unknown as { id: string; permission: string } | null;
+  if (
+    existingRow &&
+    hasConflictingExistingValue(existingRow.permission, permissionCheck.data) &&
+    !confirmOverwrite
+  ) {
+    throw new ExistingValueConflictError(
+      `AI Consent for ${useCase} is already set to ${existingRow.permission}. Confirm you want to replace it with ${permissionCheck.data}.`,
+      existingRow.permission,
     );
   }
 
@@ -564,6 +608,7 @@ export const reviewFinding = createServerFn({ method: "POST" })
         userId,
         finding,
         finding.normalized_value,
+        data.confirmOverwrite ?? false,
       );
       patch.applied_entity_type = applied.appliedEntityType;
       patch.applied_entity_id = applied.appliedEntityId;
@@ -572,7 +617,13 @@ export const reviewFinding = createServerFn({ method: "POST" })
       patch.edited_value = data.editedValue;
       // EDIT always applies the user's corrected value, never the
       // original AI-suggested normalized_value.
-      const applied = await applyFindingToTarget(supabase, userId, finding, data.editedValue);
+      const applied = await applyFindingToTarget(
+        supabase,
+        userId,
+        finding,
+        data.editedValue,
+        data.confirmOverwrite ?? false,
+      );
       patch.applied_entity_type = applied.appliedEntityType;
       patch.applied_entity_id = applied.appliedEntityId;
     }

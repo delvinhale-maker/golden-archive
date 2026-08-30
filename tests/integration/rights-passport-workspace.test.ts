@@ -29,7 +29,9 @@ import { join } from "node:path";
 const ROOT = process.cwd();
 const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
 
-const migration = read("docs/proposed-migrations/20260830013807_rights_passport_control_workspace.sql");
+const migration = read(
+  "docs/proposed-migrations/20260830013807_rights_passport_control_workspace.sql",
+);
 const aiConsentFn = read("src/lib/rights-passport-ai-consent.functions.ts");
 const licenseFn = read("src/lib/rights-passport-licenses.functions.ts");
 const evidenceFn = read("src/lib/rights-passport-evidence.functions.ts");
@@ -52,11 +54,18 @@ describe("migration — additive only, staged (not auto-applied)", () => {
     expect(migration).not.toMatch(/DROP TABLE/i);
     expect(migration).not.toMatch(/^\s*TRUNCATE TABLE/im);
     expect(migration).not.toMatch(/DELETE FROM/i);
-    expect(migration).not.toMatch(/^ALTER TABLE public\.(rights_passports|rights_passport_assets)\b/im);
+    expect(migration).not.toMatch(
+      /^ALTER TABLE public\.(rights_passports|rights_passport_assets)\b/im,
+    );
   });
 
   it("creates all 4 new tables with RLS enabled and no anon grant", () => {
-    for (const table of ["rights_ai_consents", "rights_licenses", "rights_evidence", "rights_review_flags"]) {
+    for (const table of [
+      "rights_ai_consents",
+      "rights_licenses",
+      "rights_evidence",
+      "rights_review_flags",
+    ]) {
       expect(migration).toContain(`CREATE TABLE public.${table}`);
       expect(migration).toContain(`ALTER TABLE public.${table} ENABLE ROW LEVEL SECURITY`);
       expect(migration).toContain(`REVOKE ALL ON public.${table} FROM anon`);
@@ -64,7 +73,12 @@ describe("migration — additive only, staged (not auto-applied)", () => {
   });
 
   it("every new table's SELECT policy is scoped to owner_user_id = auth.uid() (no public/anon read path)", () => {
-    for (const table of ["rights_ai_consents", "rights_licenses", "rights_evidence", "rights_review_flags"]) {
+    for (const table of [
+      "rights_ai_consents",
+      "rights_licenses",
+      "rights_evidence",
+      "rights_review_flags",
+    ]) {
       const policyIdx = migration.indexOf(`"${table}_owner_read" ON public.${table}`);
       expect(policyIdx, `${table} owner_read policy should exist`).toBeGreaterThan(-1);
       const policyBlock = migration.slice(policyIdx, policyIdx + 300);
@@ -78,11 +92,18 @@ describe("migration — additive only, staged (not auto-applied)", () => {
   });
 
   it("a passport-ownership guard trigger runs on insert/update for all 4 tables, blocking writes against a passport the caller does not own", () => {
-    for (const table of ["rights_ai_consents", "rights_licenses", "rights_evidence", "rights_review_flags"]) {
+    for (const table of [
+      "rights_ai_consents",
+      "rights_licenses",
+      "rights_evidence",
+      "rights_review_flags",
+    ]) {
       expect(migration).toContain(`${table}_guard_passport_owner_trg`);
     }
     expect(migration).toMatch(/passport_owner IS DISTINCT FROM NEW\.owner_user_id/);
-    expect(migration).toContain("RAISE EXCEPTION 'A record can only be attached to a passport you own'");
+    expect(migration).toContain(
+      "RAISE EXCEPTION 'A record can only be attached to a passport you own'",
+    );
   });
 
   it("an asset-ownership guard trigger runs on the 3 asset-referencing tables, blocking evidence/consent/license attachment to an asset outside the same passport", () => {
@@ -94,8 +115,15 @@ describe("migration — additive only, staged (not auto-applied)", () => {
   });
 
   it("no new table grants DELETE to authenticated — records are archived/resolved, never hard-deleted", () => {
-    for (const table of ["rights_ai_consents", "rights_licenses", "rights_evidence", "rights_review_flags"]) {
-      expect(migration).toContain(`REVOKE DELETE, TRUNCATE, REFERENCES, TRIGGER ON public.${table} FROM authenticated`);
+    for (const table of [
+      "rights_ai_consents",
+      "rights_licenses",
+      "rights_evidence",
+      "rights_review_flags",
+    ]) {
+      expect(migration).toContain(
+        `REVOKE DELETE, TRUNCATE, REFERENCES, TRIGGER ON public.${table} FROM authenticated`,
+      );
     }
   });
 
@@ -138,7 +166,9 @@ describe("rights-passport-ai-consent.functions.ts — owner-scoped, passport-bou
   });
 
   it("listAiConsents scopes by owner_user_id — a user cannot list another user's AI consent rows", () => {
-    expect(bodyOf(aiConsentFn, "listAiConsents")).toMatch(/\.eq\(\s*"owner_user_id"[^)]*userId\s*\)/);
+    expect(bodyOf(aiConsentFn, "listAiConsents")).toMatch(
+      /\.eq\(\s*"owner_user_id"[^)]*userId\s*\)/,
+    );
   });
 });
 
@@ -206,6 +236,13 @@ describe("rights-passport-evidence.functions.ts — owner-scoped, passport-bound
   });
 });
 
+function reconcileFnBody(source: string): string {
+  const start = source.indexOf("export async function reconcileReviewFlagsForPassportKey");
+  expect(start, "reconcileReviewFlagsForPassportKey should exist").toBeGreaterThan(-1);
+  const end = source.indexOf("\nexport const syncReviewFlags", start);
+  return source.slice(start, end === -1 ? undefined : end);
+}
+
 describe("rights-passport-review.functions.ts — deterministic sync, owner-scoped", () => {
   it("every function requires requireSupabaseAuth", () => {
     for (const name of ["syncReviewFlags", "listReviewFlags", "setReviewFlagStatus"]) {
@@ -213,16 +250,23 @@ describe("rights-passport-review.functions.ts — deterministic sync, owner-scop
     }
   });
 
-  it("syncReviewFlags re-derives the passport scoped to (id, owner_user_id) before reading any child records — a user cannot sync flags for a passport ID that isn't theirs, so passport IDs cannot be enumerated this way", () => {
+  it("syncReviewFlags re-derives the passport_key scoped to (id, owner_user_id) before delegating to the reconciliation core — a user cannot sync flags for a passport ID that isn't theirs, so passport IDs cannot be enumerated this way", () => {
     const body = bodyOf(reviewFn, "syncReviewFlags");
     expect(body).toMatch(/\.eq\(\s*"id"[^)]*data\.id\s*\)/);
     expect(body).toMatch(/\.eq\(\s*"owner_user_id"[^)]*userId\s*\)/);
     expect(body).toContain('if (!passportRow) throw new Error("Passport not found")');
+    expect(body).toContain("reconcileReviewFlagsForPassportKey(supabase, userId, passportKey)");
   });
 
-  it("syncReviewFlags scopes every child-table read by both passport_key and owner_user_id", () => {
-    const body = bodyOf(reviewFn, "syncReviewFlags");
-    for (const table of ["rights_passport_assets", "rights_ai_consents", "rights_licenses", "rights_evidence", "rights_review_flags"]) {
+  it("reconcileReviewFlagsForPassportKey (the shared core, also used by applyProposal) scopes every child-table read by both passport_key and owner_user_id", () => {
+    const body = reconcileFnBody(reviewFn);
+    for (const table of [
+      "rights_passport_assets",
+      "rights_ai_consents",
+      "rights_licenses",
+      "rights_evidence",
+      "rights_review_flags",
+    ]) {
       const tableIdx = body.indexOf(`"${table}"`);
       expect(tableIdx, `${table} should be queried`).toBeGreaterThan(-1);
     }
@@ -230,14 +274,14 @@ describe("rights-passport-review.functions.ts — deterministic sync, owner-scop
     expect(ownerMatches.length).toBeGreaterThanOrEqual(5);
   });
 
-  it("syncReviewFlags never resets an existing OPEN/ACKNOWLEDGED/ACCEPTED_RISK row's status when the same rule re-fires — user triage state survives re-evaluation", () => {
-    const body = bodyOf(reviewFn, "syncReviewFlags");
+  it("reconcileReviewFlagsForPassportKey never resets an existing OPEN/ACKNOWLEDGED/ACCEPTED_RISK row's status when the same rule re-fires — user triage state survives re-evaluation", () => {
+    const body = reconcileFnBody(reviewFn);
     expect(body).toContain("Existing OPEN/ACKNOWLEDGED/ACCEPTED_RISK rows are intentionally");
     expect(body).toContain("left untouched");
   });
 
-  it("syncReviewFlags marks a stored non-RESOLVED row RESOLVED once its rule no longer computes, and never touches rows outside the caller's own passport_key/owner_user_id", () => {
-    const body = bodyOf(reviewFn, "syncReviewFlags");
+  it("reconcileReviewFlagsForPassportKey marks a stored non-RESOLVED row RESOLVED once its rule no longer computes, and never touches rows outside the caller's own passport_key/owner_user_id", () => {
+    const body = reconcileFnBody(reviewFn);
     expect(body).toContain('status: "RESOLVED"');
     const updateIdx = body.indexOf('status: "RESOLVED"');
     const scopeBlock = body.slice(updateIdx, updateIdx + 300);
@@ -245,8 +289,12 @@ describe("rights-passport-review.functions.ts — deterministic sync, owner-scop
   });
 
   it("inserted flag rows always set owner_user_id from context, never from computed/client data", () => {
-    const body = bodyOf(reviewFn, "syncReviewFlags");
+    const body = reconcileFnBody(reviewFn);
     expect(body).toContain("owner_user_id: userId,");
+  });
+
+  it("reconcileReviewFlagsForPassportKey is exported as a plain function (not a createServerFn) so it can be called directly from applyProposal", () => {
+    expect(reviewFn).toContain("export async function reconcileReviewFlagsForPassportKey(");
   });
 
   it("setReviewFlagStatus scopes its update by both id and owner_user_id — a user cannot change another user's flag status", () => {
@@ -257,7 +305,9 @@ describe("rights-passport-review.functions.ts — deterministic sync, owner-scop
 
   it("flagKey/rowKey both key on (ruleCode, entityType, entityId) — the same idempotency shape as the DB's unique constraint, so sync cannot create duplicate flags", () => {
     expect(reviewFn).toMatch(/`\$\{f\.ruleCode\}::\$\{f\.entityType\}::\$\{f\.entityId \?\? ""\}`/);
-    expect(reviewFn).toMatch(/`\$\{r\.rule_code\}::\$\{r\.affected_entity_type\}::\$\{r\.affected_entity_id \?\? ""\}`/);
+    expect(reviewFn).toMatch(
+      /`\$\{r\.rule_code\}::\$\{r\.affected_entity_type\}::\$\{r\.affected_entity_id \?\? ""\}`/,
+    );
   });
 });
 
@@ -280,7 +330,9 @@ describe("rights-passport-workspace.schema.ts — safety-rule enforcement in the
   });
 
   it("every AI use case has plain-language copy with no legal conclusion language", () => {
-    expect(workspaceSchema).not.toMatch(/is legally|constitutes ownership|proves? (you own|ownership)/i);
+    expect(workspaceSchema).not.toMatch(
+      /is legally|constitutes ownership|proves? (you own|ownership)/i,
+    );
   });
 
   it("exports the exact evidence disclaimer wording required verbatim", () => {
@@ -290,11 +342,19 @@ describe("rights-passport-workspace.schema.ts — safety-rule enforcement in the
   });
 
   it("high-risk AI use cases list matches the 5 required use cases", () => {
-    const match = workspaceSchema.match(/export const HIGH_RISK_AI_USE_CASES: AiUseCase\[\] = \[([\s\S]*?)\];/);
+    const match = workspaceSchema.match(
+      /export const HIGH_RISK_AI_USE_CASES: AiUseCase\[\] = \[([\s\S]*?)\];/,
+    );
     expect(match).not.toBeNull();
     const items = (match![1].match(/"[A-Z_]+"/g) ?? []).map((s) => s.replace(/"/g, ""));
     expect(items.sort()).toEqual(
-      ["COMMERCIAL_MODEL_OUTPUT", "DIGITAL_REPLICA", "GENERATED_ADVERTISEMENT", "POSTHUMOUS_ESTATE_USE", "VOICE_CLONE"].sort(),
+      [
+        "COMMERCIAL_MODEL_OUTPUT",
+        "DIGITAL_REPLICA",
+        "GENERATED_ADVERTISEMENT",
+        "POSTHUMOUS_ESTATE_USE",
+        "VOICE_CLONE",
+      ].sort(),
     );
   });
 });

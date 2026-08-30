@@ -46,7 +46,9 @@ describe("evaluateRiskRules — identity", () => {
   });
 });
 
-function asset(overrides: Partial<RiskRuleInput["assets"][number]> = {}): RiskRuleInput["assets"][number] {
+function asset(
+  overrides: Partial<RiskRuleInput["assets"][number]> = {},
+): RiskRuleInput["assets"][number] {
   return {
     id: "asset-1",
     name: "Test Asset",
@@ -71,7 +73,9 @@ describe("evaluateRiskRules — assets", () => {
   });
 
   it("flags REVIEW_REQUIRED control basis as CRITICAL — unresolved ownership", () => {
-    const flags = evaluateRiskRules(baseInput({ assets: [asset({ control_basis: "REVIEW_REQUIRED" })] }));
+    const flags = evaluateRiskRules(
+      baseInput({ assets: [asset({ control_basis: "REVIEW_REQUIRED" })] }),
+    );
     const flag = flags.find((f) => f.ruleCode === "ASSET_CONTROL_BASIS_REVIEW_REQUIRED");
     expect(flag).toBeDefined();
     expect(flag!.severity).toBe("CRITICAL");
@@ -86,7 +90,9 @@ describe("evaluateRiskRules — assets", () => {
     const flags = evaluateRiskRules(
       baseInput({
         assets: [asset()],
-        evidence: [{ id: "e1", asset_id: "asset-1", evidence_type: "SOURCE_FILE", status: "SELF_DECLARED" }],
+        evidence: [
+          { id: "e1", asset_id: "asset-1", evidence_type: "SOURCE_FILE", status: "SELF_DECLARED" },
+        ],
       }),
     );
     expect(flags.some((f) => f.ruleCode === "ASSET_MISSING_EVIDENCE")).toBe(false);
@@ -109,7 +115,16 @@ describe("evaluateRiskRules — AI consent", () => {
   it("does not flag a high-risk use case once it has any declared permission", () => {
     const flags = evaluateRiskRules(
       baseInput({
-        aiConsents: [{ id: "c1", asset_id: null, use_case: "VOICE_CLONE", permission: "PROHIBIT", term: null, revocation_rule: null }],
+        aiConsents: [
+          {
+            id: "c1",
+            asset_id: null,
+            use_case: "VOICE_CLONE",
+            permission: "PROHIBIT",
+            term: null,
+            revocation_rule: null,
+          },
+        ],
       }),
     );
     const voiceCloneFlags = flags.filter(
@@ -121,7 +136,16 @@ describe("evaluateRiskRules — AI consent", () => {
   it("flags a REVIEW_REQUIRED consent permission", () => {
     const flags = evaluateRiskRules(
       baseInput({
-        aiConsents: [{ id: "c1", asset_id: null, use_case: "GENERAL_AI_TRAINING", permission: "REVIEW_REQUIRED", term: null, revocation_rule: null }],
+        aiConsents: [
+          {
+            id: "c1",
+            asset_id: null,
+            use_case: "GENERAL_AI_TRAINING",
+            permission: "REVIEW_REQUIRED",
+            term: null,
+            revocation_rule: null,
+          },
+        ],
       }),
     );
     expect(flags.some((f) => f.ruleCode === "AI_PERMISSION_REVIEW_REQUIRED")).toBe(true);
@@ -130,7 +154,16 @@ describe("evaluateRiskRules — AI consent", () => {
   it("flags DIGITAL_REPLICA/VOICE_CLONE allowed without documented term or revocation rule", () => {
     const flags = evaluateRiskRules(
       baseInput({
-        aiConsents: [{ id: "c1", asset_id: null, use_case: "DIGITAL_REPLICA", permission: "ALLOW", term: null, revocation_rule: null }],
+        aiConsents: [
+          {
+            id: "c1",
+            asset_id: null,
+            use_case: "DIGITAL_REPLICA",
+            permission: "ALLOW",
+            term: null,
+            revocation_rule: null,
+          },
+        ],
       }),
     );
     expect(flags.some((f) => f.ruleCode === "AI_HIGH_RISK_ALLOWED_WITHOUT_TERMS")).toBe(true);
@@ -140,7 +173,14 @@ describe("evaluateRiskRules — AI consent", () => {
     const flags = evaluateRiskRules(
       baseInput({
         aiConsents: [
-          { id: "c1", asset_id: null, use_case: "DIGITAL_REPLICA", permission: "ALLOW", term: "1 year", revocation_rule: "30 days notice" },
+          {
+            id: "c1",
+            asset_id: null,
+            use_case: "DIGITAL_REPLICA",
+            permission: "ALLOW",
+            term: "1 year",
+            revocation_rule: "30 days notice",
+          },
         ],
       }),
     );
@@ -150,14 +190,25 @@ describe("evaluateRiskRules — AI consent", () => {
   it("does not flag a non-high-risk use case ALLOW without terms", () => {
     const flags = evaluateRiskRules(
       baseInput({
-        aiConsents: [{ id: "c1", asset_id: null, use_case: "TRANSLATION_DUBBING", permission: "ALLOW", term: null, revocation_rule: null }],
+        aiConsents: [
+          {
+            id: "c1",
+            asset_id: null,
+            use_case: "TRANSLATION_DUBBING",
+            permission: "ALLOW",
+            term: null,
+            revocation_rule: null,
+          },
+        ],
       }),
     );
     expect(flags.some((f) => f.ruleCode === "AI_HIGH_RISK_ALLOWED_WITHOUT_TERMS")).toBe(false);
   });
 });
 
-function license(overrides: Partial<RiskRuleInput["licenses"][number]> = {}): RiskRuleInput["licenses"][number] {
+function license(
+  overrides: Partial<RiskRuleInput["licenses"][number]> = {},
+): RiskRuleInput["licenses"][number] {
   return {
     id: "lic-1",
     asset_id: "asset-1",
@@ -172,8 +223,58 @@ function license(overrides: Partial<RiskRuleInput["licenses"][number]> = {}): Ri
 
 describe("evaluateRiskRules — licenses", () => {
   it("flags an active exclusive license", () => {
-    const flags = evaluateRiskRules(baseInput({ assets: [asset()], licenses: [license({ is_exclusive: true })] }));
+    const flags = evaluateRiskRules(
+      baseInput({ assets: [asset()], licenses: [license({ is_exclusive: true })] }),
+    );
     expect(flags.some((f) => f.ruleCode === "LICENSE_ACTIVE_EXCLUSIVE")).toBe(true);
+  });
+
+  it("flags competing exclusive licenses on the same asset (Round 3.5: conflict-safe application)", () => {
+    const flags = evaluateRiskRules(
+      baseInput({
+        assets: [asset()],
+        licenses: [
+          license({ id: "lic-1", is_exclusive: true, status: "ACTIVE" }),
+          license({ id: "lic-2", is_exclusive: true, status: "PENDING" }),
+        ],
+      }),
+    );
+    const competing = flags.filter((f) => f.ruleCode === "LICENSE_COMPETING_EXCLUSIVE");
+    expect(competing.length).toBe(2);
+    expect(competing.map((f) => f.entityId).sort()).toEqual(["lic-1", "lic-2"]);
+  });
+
+  it("does not flag a single exclusive license as competing", () => {
+    const flags = evaluateRiskRules(
+      baseInput({ assets: [asset()], licenses: [license({ is_exclusive: true })] }),
+    );
+    expect(flags.some((f) => f.ruleCode === "LICENSE_COMPETING_EXCLUSIVE")).toBe(false);
+  });
+
+  it("does not flag two exclusive licenses on DIFFERENT assets as competing", () => {
+    const flags = evaluateRiskRules(
+      baseInput({
+        assets: [asset({ id: "asset-1" }), asset({ id: "asset-2", name: "Second Asset" })],
+        licenses: [
+          license({ id: "lic-1", asset_id: "asset-1", is_exclusive: true }),
+          license({ id: "lic-2", asset_id: "asset-2", is_exclusive: true }),
+        ],
+      }),
+    );
+    expect(flags.some((f) => f.ruleCode === "LICENSE_COMPETING_EXCLUSIVE")).toBe(false);
+  });
+
+  it("does not flag two exclusive licenses on the same asset when one is EXPIRED/REVOKED (not live)", () => {
+    const flags = evaluateRiskRules(
+      baseInput({
+        assets: [asset()],
+        licenses: [
+          license({ id: "lic-1", is_exclusive: true, status: "ACTIVE" }),
+          license({ id: "lic-2", is_exclusive: true, status: "REVOKED" }),
+        ],
+      }),
+    );
+    expect(flags.some((f) => f.ruleCode === "LICENSE_COMPETING_EXCLUSIVE")).toBe(false);
   });
 
   it("flags an expired-but-still-active license", () => {
@@ -185,13 +286,18 @@ describe("evaluateRiskRules — licenses", () => {
 
   it("does not flag expiration for a future end date", () => {
     const future = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    const flags = evaluateRiskRules(baseInput({ assets: [asset()], licenses: [license({ end_date: future })] }));
+    const flags = evaluateRiskRules(
+      baseInput({ assets: [asset()], licenses: [license({ end_date: future })] }),
+    );
     expect(flags.some((f) => f.ruleCode === "LICENSE_EXPIRED_STILL_ACTIVE")).toBe(false);
   });
 
   it("does not flag expiration for a non-ACTIVE license even with a past end date", () => {
     const flags = evaluateRiskRules(
-      baseInput({ assets: [asset()], licenses: [license({ status: "EXPIRED", end_date: "2020-01-01" })] }),
+      baseInput({
+        assets: [asset()],
+        licenses: [license({ status: "EXPIRED", end_date: "2020-01-01" })],
+      }),
     );
     expect(flags.some((f) => f.ruleCode === "LICENSE_EXPIRED_STILL_ACTIVE")).toBe(false);
   });
@@ -205,7 +311,10 @@ describe("evaluateRiskRules — licenses", () => {
 
   it("flags a missing controlling document reference", () => {
     const flags = evaluateRiskRules(
-      baseInput({ assets: [asset()], licenses: [license({ controlling_document_reference: null })] }),
+      baseInput({
+        assets: [asset()],
+        licenses: [license({ controlling_document_reference: null })],
+      }),
     );
     expect(flags.some((f) => f.ruleCode === "LICENSE_MISSING_CONTROLLING_DOCUMENT")).toBe(true);
   });
@@ -252,14 +361,18 @@ describe("evaluateRiskRules — licenses", () => {
 describe("evaluateRiskRules — evidence", () => {
   it("flags disputed evidence", () => {
     const flags = evaluateRiskRules(
-      baseInput({ evidence: [{ id: "e1", asset_id: "a1", evidence_type: "CONTRACT", status: "DISPUTED" }] }),
+      baseInput({
+        evidence: [{ id: "e1", asset_id: "a1", evidence_type: "CONTRACT", status: "DISPUTED" }],
+      }),
     );
     expect(flags.some((f) => f.ruleCode === "EVIDENCE_DISPUTED")).toBe(true);
   });
 
   it("flags expired evidence", () => {
     const flags = evaluateRiskRules(
-      baseInput({ evidence: [{ id: "e1", asset_id: "a1", evidence_type: "CONTRACT", status: "EXPIRED" }] }),
+      baseInput({
+        evidence: [{ id: "e1", asset_id: "a1", evidence_type: "CONTRACT", status: "EXPIRED" }],
+      }),
     );
     expect(flags.some((f) => f.ruleCode === "EVIDENCE_EXPIRED")).toBe(true);
   });
@@ -268,25 +381,45 @@ describe("evaluateRiskRules — evidence", () => {
     const flags = evaluateRiskRules(
       baseInput({
         assets: [asset({ id: "asset-1", is_public: true })],
-        evidence: [{ id: "e1", asset_id: "asset-1", evidence_type: "IDENTITY_DOCUMENT", status: "SELF_DECLARED" }],
+        evidence: [
+          {
+            id: "e1",
+            asset_id: "asset-1",
+            evidence_type: "IDENTITY_DOCUMENT",
+            status: "SELF_DECLARED",
+          },
+        ],
       }),
     );
-    expect(flags.some((f) => f.ruleCode === "EVIDENCE_IDENTITY_DOCUMENT_ON_PUBLIC_ASSET")).toBe(true);
+    expect(flags.some((f) => f.ruleCode === "EVIDENCE_IDENTITY_DOCUMENT_ON_PUBLIC_ASSET")).toBe(
+      true,
+    );
   });
 
   it("does not flag identity-document evidence on a private asset", () => {
     const flags = evaluateRiskRules(
       baseInput({
         assets: [asset({ id: "asset-1", is_public: false })],
-        evidence: [{ id: "e1", asset_id: "asset-1", evidence_type: "IDENTITY_DOCUMENT", status: "SELF_DECLARED" }],
+        evidence: [
+          {
+            id: "e1",
+            asset_id: "asset-1",
+            evidence_type: "IDENTITY_DOCUMENT",
+            status: "SELF_DECLARED",
+          },
+        ],
       }),
     );
-    expect(flags.some((f) => f.ruleCode === "EVIDENCE_IDENTITY_DOCUMENT_ON_PUBLIC_ASSET")).toBe(false);
+    expect(flags.some((f) => f.ruleCode === "EVIDENCE_IDENTITY_DOCUMENT_ON_PUBLIC_ASSET")).toBe(
+      false,
+    );
   });
 
   it("never claims evidence establishes ownership", () => {
     const flags = evaluateRiskRules(
-      baseInput({ evidence: [{ id: "e1", asset_id: "a1", evidence_type: "CONTRACT", status: "VERIFIED" }] }),
+      baseInput({
+        evidence: [{ id: "e1", asset_id: "a1", evidence_type: "CONTRACT", status: "VERIFIED" }],
+      }),
     );
     const serialized = JSON.stringify(flags);
     expect(serialized).not.toMatch(/establishes? ownership|proves? ownership/i);
@@ -300,7 +433,9 @@ describe("evaluateRiskRules — version/governance and legacy", () => {
   });
 
   it("flags an ACTIVE passport missing core identity fields", () => {
-    const flags = evaluateRiskRules(baseInput({ passport: { ...emptyPassport, status: "ACTIVE" } }));
+    const flags = evaluateRiskRules(
+      baseInput({ passport: { ...emptyPassport, status: "ACTIVE" } }),
+    );
     expect(flags.some((f) => f.ruleCode === "VERSION_ACTIVE_BUT_INCOMPLETE")).toBe(true);
   });
 
@@ -322,7 +457,14 @@ describe("evaluateRiskRules — version/governance and legacy", () => {
         passport: fullPassport,
         assets: [asset()],
         aiConsents: [
-          { id: "c1", asset_id: null, use_case: "POSTHUMOUS_ESTATE_USE", permission: "PROHIBIT", term: null, revocation_rule: null },
+          {
+            id: "c1",
+            asset_id: null,
+            use_case: "POSTHUMOUS_ESTATE_USE",
+            permission: "PROHIBIT",
+            term: null,
+            revocation_rule: null,
+          },
         ],
       }),
     );
