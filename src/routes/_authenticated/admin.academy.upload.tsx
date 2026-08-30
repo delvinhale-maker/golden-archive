@@ -6,6 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { Loader2, Upload, ArrowLeft, FileJson, CheckCircle2, AlertTriangle } from "lucide-react";
+import {
+  ACADEMY_CATEGORIES,
+  ACADEMY_CATEGORY_ALIASES,
+  ACADEMY_CATEGORY_VALUES,
+} from "@/lib/academy-categories";
 
 export const Route = createFileRoute("/_authenticated/admin/academy/upload")({
   head: () => ({
@@ -20,12 +25,6 @@ export const Route = createFileRoute("/_authenticated/admin/academy/upload")({
 /* ------------------------------------------------------------------ */
 /* Config                                                              */
 /* ------------------------------------------------------------------ */
-
-import {
-  ACADEMY_CATEGORIES,
-  ACADEMY_CATEGORY_ALIASES,
-  ACADEMY_CATEGORY_VALUES,
-} from "@/lib/academy-categories";
 
 const CATEGORIES = ACADEMY_CATEGORIES;
 const CATEGORY_VALUES = ACADEMY_CATEGORY_VALUES;
