@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
 import {
   validateExportPayload,
   PASSPORT_EXPORT_JSON_SCHEMA,

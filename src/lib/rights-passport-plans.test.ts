@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
 import {
   RIGHTS_PASSPORT_PLANS,
   PLAN_CAPABILITY_LIMITS,

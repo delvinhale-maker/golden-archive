@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
 import {
   computeVerificationChecklist,
   VERIFY_HIGH_RISK_AI_USE_CASES,
