@@ -262,7 +262,7 @@ export type FindingRow = {
   review_status: FindingReviewStatus;
   reviewed_by: string | null;
   reviewed_at: string | null;
-  edited_value: unknown;
+  edited_value: JsonValue;
   applied_entity_type: string | null;
   applied_entity_id: string | null;
   created_at: string;
