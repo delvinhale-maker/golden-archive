@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { CanvaHomeBanner } from "@/components/marketplace/CanvaHomeBanner";
+import { QrCodeHomeBanner } from "@/components/marketplace/QrCodeHomeBanner";
 import {
   ProductCard,
   ProductCardSkeleton,
