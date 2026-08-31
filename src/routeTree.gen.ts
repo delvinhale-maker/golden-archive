@@ -72,6 +72,7 @@ import { Route as InsiderSlugRouteImport } from './routes/insider.$slug'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as QPublicIdRouteImport } from './routes/q.$publicId'
+import { Route as RightsPublicIdRouteImport } from './routes/rights.$publicId'
 import { Route as StoreSlugRouteImport } from './routes/store.$slug'
 import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm'
 import { Route as ToolsRevenueCalculatorRouteImport } from './routes/tools.revenue-calculator'
@@ -122,6 +123,8 @@ import { Route as AuthenticatedDashboardPreorderIdRouteImport } from './routes/_
 import { Route as AuthenticatedDashboardQrIndexRouteImport } from './routes/_authenticated/dashboard.qr.index'
 import { Route as AuthenticatedDashboardQrIdRouteImport } from './routes/_authenticated/dashboard.qr.$id'
 import { Route as AuthenticatedDashboardQrNewRouteImport } from './routes/_authenticated/dashboard.qr.new'
+import { Route as AuthenticatedDashboardRightsPassportIndexRouteImport } from './routes/_authenticated/dashboard.rights-passport.index'
+import { Route as AuthenticatedDashboardRightsPassportPassportIdRouteImport } from './routes/_authenticated/dashboard.rights-passport.$passportId'
 import { Route as AuthenticatedDashboardVariantsIdRouteImport } from './routes/_authenticated/dashboard.variants.$id'
 import { Route as ApiPublicAcademyReceiveArticleRouteImport } from './routes/api/public/academy/receive-article'
 import { Route as ApiPublicCronReleasePreordersRouteImport } from './routes/api/public/cron/release-preorders'
@@ -141,6 +144,14 @@ import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lova
 import { Route as AuthenticatedAdminHealthCoversAlertsRouteImport } from './routes/_authenticated/admin.health.covers.alerts'
 import { Route as AuthenticatedDashboardQrCampaignsIndexRouteImport } from './routes/_authenticated/dashboard.qr.campaigns.index'
 import { Route as AuthenticatedDashboardQrCampaignsIdRouteImport } from './routes/_authenticated/dashboard.qr.campaigns.$id'
+import { Route as AuthenticatedDashboardRightsPassportPassportIdAiConsentRouteImport } from './routes/_authenticated/dashboard.rights-passport.$passportId.ai-consent'
+import { Route as AuthenticatedDashboardRightsPassportPassportIdAnalyzeRouteImport } from './routes/_authenticated/dashboard.rights-passport.$passportId.analyze'
+import { Route as AuthenticatedDashboardRightsPassportPassportIdAssetsRouteImport } from './routes/_authenticated/dashboard.rights-passport.$passportId.assets'
+import { Route as AuthenticatedDashboardRightsPassportPassportIdEvidenceRouteImport } from './routes/_authenticated/dashboard.rights-passport.$passportId.evidence'
+import { Route as AuthenticatedDashboardRightsPassportPassportIdGenerateRouteImport } from './routes/_authenticated/dashboard.rights-passport.$passportId.generate'
+import { Route as AuthenticatedDashboardRightsPassportPassportIdLicensesRouteImport } from './routes/_authenticated/dashboard.rights-passport.$passportId.licenses'
+import { Route as AuthenticatedDashboardRightsPassportPassportIdReviewRouteImport } from './routes/_authenticated/dashboard.rights-passport.$passportId.review'
+import { Route as AuthenticatedDashboardRightsPassportPassportIdVerifyRouteImport } from './routes/_authenticated/dashboard.rights-passport.$passportId.verify'
 import { Route as ApiPublicIntegrationsCanvaCallbackRouteImport } from './routes/api/public/integrations/canva/callback'
 import { Route as ApiPublicIntegrationsTiktokShopCallbackRouteImport } from './routes/api/public/integrations/tiktok-shop/callback'
 
@@ -461,6 +472,11 @@ const QPublicIdRoute = QPublicIdRouteImport.update({
   path: '/q/$publicId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RightsPublicIdRoute = RightsPublicIdRouteImport.update({
+  id: '/rights/$publicId',
+  path: '/rights/$publicId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StoreSlugRoute = StoreSlugRouteImport.update({
   id: '/store/$slug',
   path: '/store/$slug',
@@ -754,6 +770,18 @@ const AuthenticatedDashboardQrNewRoute =
     path: '/dashboard/qr/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardRightsPassportIndexRoute =
+  AuthenticatedDashboardRightsPassportIndexRouteImport.update({
+    id: '/dashboard/rights-passport/',
+    path: '/dashboard/rights-passport/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardRightsPassportPassportIdRoute =
+  AuthenticatedDashboardRightsPassportPassportIdRouteImport.update({
+    id: '/dashboard/rights-passport/$passportId',
+    path: '/dashboard/rights-passport/$passportId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardVariantsIdRoute =
   AuthenticatedDashboardVariantsIdRouteImport.update({
     id: '/dashboard/variants/$id',
@@ -868,6 +896,54 @@ const AuthenticatedDashboardQrCampaignsIdRoute =
     path: '/dashboard/qr/campaigns/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardRightsPassportPassportIdAiConsentRoute =
+  AuthenticatedDashboardRightsPassportPassportIdAiConsentRouteImport.update({
+    id: '/ai-consent',
+    path: '/ai-consent',
+    getParentRoute: () => AuthenticatedDashboardRightsPassportPassportIdRoute,
+  } as any)
+const AuthenticatedDashboardRightsPassportPassportIdAnalyzeRoute =
+  AuthenticatedDashboardRightsPassportPassportIdAnalyzeRouteImport.update({
+    id: '/analyze',
+    path: '/analyze',
+    getParentRoute: () => AuthenticatedDashboardRightsPassportPassportIdRoute,
+  } as any)
+const AuthenticatedDashboardRightsPassportPassportIdAssetsRoute =
+  AuthenticatedDashboardRightsPassportPassportIdAssetsRouteImport.update({
+    id: '/assets',
+    path: '/assets',
+    getParentRoute: () => AuthenticatedDashboardRightsPassportPassportIdRoute,
+  } as any)
+const AuthenticatedDashboardRightsPassportPassportIdEvidenceRoute =
+  AuthenticatedDashboardRightsPassportPassportIdEvidenceRouteImport.update({
+    id: '/evidence',
+    path: '/evidence',
+    getParentRoute: () => AuthenticatedDashboardRightsPassportPassportIdRoute,
+  } as any)
+const AuthenticatedDashboardRightsPassportPassportIdGenerateRoute =
+  AuthenticatedDashboardRightsPassportPassportIdGenerateRouteImport.update({
+    id: '/generate',
+    path: '/generate',
+    getParentRoute: () => AuthenticatedDashboardRightsPassportPassportIdRoute,
+  } as any)
+const AuthenticatedDashboardRightsPassportPassportIdLicensesRoute =
+  AuthenticatedDashboardRightsPassportPassportIdLicensesRouteImport.update({
+    id: '/licenses',
+    path: '/licenses',
+    getParentRoute: () => AuthenticatedDashboardRightsPassportPassportIdRoute,
+  } as any)
+const AuthenticatedDashboardRightsPassportPassportIdReviewRoute =
+  AuthenticatedDashboardRightsPassportPassportIdReviewRouteImport.update({
+    id: '/review',
+    path: '/review',
+    getParentRoute: () => AuthenticatedDashboardRightsPassportPassportIdRoute,
+  } as any)
+const AuthenticatedDashboardRightsPassportPassportIdVerifyRoute =
+  AuthenticatedDashboardRightsPassportPassportIdVerifyRouteImport.update({
+    id: '/verify',
+    path: '/verify',
+    getParentRoute: () => AuthenticatedDashboardRightsPassportPassportIdRoute,
+  } as any)
 const ApiPublicIntegrationsCanvaCallbackRoute =
   ApiPublicIntegrationsCanvaCallbackRouteImport.update({
     id: '/api/public/integrations/canva/callback',
@@ -939,6 +1015,7 @@ export interface FileRoutesByFullPath {
   '/insider/$slug': typeof InsiderSlugRoute
   '/products/$id': typeof ProductsIdRoute
   '/q/$publicId': typeof QPublicIdRoute
+  '/rights/$publicId': typeof RightsPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
@@ -992,6 +1069,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
   '/dashboard/qr/$id': typeof AuthenticatedDashboardQrIdRoute
   '/dashboard/qr/new': typeof AuthenticatedDashboardQrNewRoute
+  '/dashboard/rights-passport/$passportId': typeof AuthenticatedDashboardRightsPassportPassportIdRouteWithChildren
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
@@ -1010,8 +1088,17 @@ export interface FileRoutesByFullPath {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/admin/academy/': typeof AuthenticatedAdminAcademyIndexRoute
   '/dashboard/qr/': typeof AuthenticatedDashboardQrIndexRoute
+  '/dashboard/rights-passport/': typeof AuthenticatedDashboardRightsPassportIndexRoute
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
   '/dashboard/qr/campaigns/$id': typeof AuthenticatedDashboardQrCampaignsIdRoute
+  '/dashboard/rights-passport/$passportId/ai-consent': typeof AuthenticatedDashboardRightsPassportPassportIdAiConsentRoute
+  '/dashboard/rights-passport/$passportId/analyze': typeof AuthenticatedDashboardRightsPassportPassportIdAnalyzeRoute
+  '/dashboard/rights-passport/$passportId/assets': typeof AuthenticatedDashboardRightsPassportPassportIdAssetsRoute
+  '/dashboard/rights-passport/$passportId/evidence': typeof AuthenticatedDashboardRightsPassportPassportIdEvidenceRoute
+  '/dashboard/rights-passport/$passportId/generate': typeof AuthenticatedDashboardRightsPassportPassportIdGenerateRoute
+  '/dashboard/rights-passport/$passportId/licenses': typeof AuthenticatedDashboardRightsPassportPassportIdLicensesRoute
+  '/dashboard/rights-passport/$passportId/review': typeof AuthenticatedDashboardRightsPassportPassportIdReviewRoute
+  '/dashboard/rights-passport/$passportId/verify': typeof AuthenticatedDashboardRightsPassportPassportIdVerifyRoute
   '/api/public/integrations/canva/callback': typeof ApiPublicIntegrationsCanvaCallbackRoute
   '/api/public/integrations/tiktok-shop/callback': typeof ApiPublicIntegrationsTiktokShopCallbackRoute
   '/dashboard/qr/campaigns/': typeof AuthenticatedDashboardQrCampaignsIndexRoute
@@ -1071,6 +1158,7 @@ export interface FileRoutesByTo {
   '/insider/$slug': typeof InsiderSlugRoute
   '/products/$id': typeof ProductsIdRoute
   '/q/$publicId': typeof QPublicIdRoute
+  '/rights/$publicId': typeof RightsPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
@@ -1124,6 +1212,7 @@ export interface FileRoutesByTo {
   '/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
   '/dashboard/qr/$id': typeof AuthenticatedDashboardQrIdRoute
   '/dashboard/qr/new': typeof AuthenticatedDashboardQrNewRoute
+  '/dashboard/rights-passport/$passportId': typeof AuthenticatedDashboardRightsPassportPassportIdRouteWithChildren
   '/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
@@ -1142,8 +1231,17 @@ export interface FileRoutesByTo {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/admin/academy': typeof AuthenticatedAdminAcademyIndexRoute
   '/dashboard/qr': typeof AuthenticatedDashboardQrIndexRoute
+  '/dashboard/rights-passport': typeof AuthenticatedDashboardRightsPassportIndexRoute
   '/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
   '/dashboard/qr/campaigns/$id': typeof AuthenticatedDashboardQrCampaignsIdRoute
+  '/dashboard/rights-passport/$passportId/ai-consent': typeof AuthenticatedDashboardRightsPassportPassportIdAiConsentRoute
+  '/dashboard/rights-passport/$passportId/analyze': typeof AuthenticatedDashboardRightsPassportPassportIdAnalyzeRoute
+  '/dashboard/rights-passport/$passportId/assets': typeof AuthenticatedDashboardRightsPassportPassportIdAssetsRoute
+  '/dashboard/rights-passport/$passportId/evidence': typeof AuthenticatedDashboardRightsPassportPassportIdEvidenceRoute
+  '/dashboard/rights-passport/$passportId/generate': typeof AuthenticatedDashboardRightsPassportPassportIdGenerateRoute
+  '/dashboard/rights-passport/$passportId/licenses': typeof AuthenticatedDashboardRightsPassportPassportIdLicensesRoute
+  '/dashboard/rights-passport/$passportId/review': typeof AuthenticatedDashboardRightsPassportPassportIdReviewRoute
+  '/dashboard/rights-passport/$passportId/verify': typeof AuthenticatedDashboardRightsPassportPassportIdVerifyRoute
   '/api/public/integrations/canva/callback': typeof ApiPublicIntegrationsCanvaCallbackRoute
   '/api/public/integrations/tiktok-shop/callback': typeof ApiPublicIntegrationsTiktokShopCallbackRoute
   '/dashboard/qr/campaigns': typeof AuthenticatedDashboardQrCampaignsIndexRoute
@@ -1208,6 +1306,7 @@ export interface FileRoutesById {
   '/insider/$slug': typeof InsiderSlugRoute
   '/products/$id': typeof ProductsIdRoute
   '/q/$publicId': typeof QPublicIdRoute
+  '/rights/$publicId': typeof RightsPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
@@ -1261,6 +1360,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/preorder/$id': typeof AuthenticatedDashboardPreorderIdRoute
   '/_authenticated/dashboard/qr/$id': typeof AuthenticatedDashboardQrIdRoute
   '/_authenticated/dashboard/qr/new': typeof AuthenticatedDashboardQrNewRoute
+  '/_authenticated/dashboard/rights-passport/$passportId': typeof AuthenticatedDashboardRightsPassportPassportIdRouteWithChildren
   '/_authenticated/dashboard/variants/$id': typeof AuthenticatedDashboardVariantsIdRoute
   '/api/public/academy/receive-article': typeof ApiPublicAcademyReceiveArticleRoute
   '/api/public/cron/release-preorders': typeof ApiPublicCronReleasePreordersRoute
@@ -1279,8 +1379,17 @@ export interface FileRoutesById {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/admin/academy/': typeof AuthenticatedAdminAcademyIndexRoute
   '/_authenticated/dashboard/qr/': typeof AuthenticatedDashboardQrIndexRoute
+  '/_authenticated/dashboard/rights-passport/': typeof AuthenticatedDashboardRightsPassportIndexRoute
   '/_authenticated/admin/health/covers/alerts': typeof AuthenticatedAdminHealthCoversAlertsRoute
   '/_authenticated/dashboard/qr/campaigns/$id': typeof AuthenticatedDashboardQrCampaignsIdRoute
+  '/_authenticated/dashboard/rights-passport/$passportId/ai-consent': typeof AuthenticatedDashboardRightsPassportPassportIdAiConsentRoute
+  '/_authenticated/dashboard/rights-passport/$passportId/analyze': typeof AuthenticatedDashboardRightsPassportPassportIdAnalyzeRoute
+  '/_authenticated/dashboard/rights-passport/$passportId/assets': typeof AuthenticatedDashboardRightsPassportPassportIdAssetsRoute
+  '/_authenticated/dashboard/rights-passport/$passportId/evidence': typeof AuthenticatedDashboardRightsPassportPassportIdEvidenceRoute
+  '/_authenticated/dashboard/rights-passport/$passportId/generate': typeof AuthenticatedDashboardRightsPassportPassportIdGenerateRoute
+  '/_authenticated/dashboard/rights-passport/$passportId/licenses': typeof AuthenticatedDashboardRightsPassportPassportIdLicensesRoute
+  '/_authenticated/dashboard/rights-passport/$passportId/review': typeof AuthenticatedDashboardRightsPassportPassportIdReviewRoute
+  '/_authenticated/dashboard/rights-passport/$passportId/verify': typeof AuthenticatedDashboardRightsPassportPassportIdVerifyRoute
   '/api/public/integrations/canva/callback': typeof ApiPublicIntegrationsCanvaCallbackRoute
   '/api/public/integrations/tiktok-shop/callback': typeof ApiPublicIntegrationsTiktokShopCallbackRoute
   '/_authenticated/dashboard/qr/campaigns/': typeof AuthenticatedDashboardQrCampaignsIndexRoute
@@ -1345,6 +1454,7 @@ export interface FileRouteTypes {
     | '/insider/$slug'
     | '/products/$id'
     | '/q/$publicId'
+    | '/rights/$publicId'
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/tools/revenue-calculator'
@@ -1398,6 +1508,7 @@ export interface FileRouteTypes {
     | '/dashboard/preorder/$id'
     | '/dashboard/qr/$id'
     | '/dashboard/qr/new'
+    | '/dashboard/rights-passport/$passportId'
     | '/dashboard/variants/$id'
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
@@ -1416,8 +1527,17 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/admin/academy/'
     | '/dashboard/qr/'
+    | '/dashboard/rights-passport/'
     | '/admin/health/covers/alerts'
     | '/dashboard/qr/campaigns/$id'
+    | '/dashboard/rights-passport/$passportId/ai-consent'
+    | '/dashboard/rights-passport/$passportId/analyze'
+    | '/dashboard/rights-passport/$passportId/assets'
+    | '/dashboard/rights-passport/$passportId/evidence'
+    | '/dashboard/rights-passport/$passportId/generate'
+    | '/dashboard/rights-passport/$passportId/licenses'
+    | '/dashboard/rights-passport/$passportId/review'
+    | '/dashboard/rights-passport/$passportId/verify'
     | '/api/public/integrations/canva/callback'
     | '/api/public/integrations/tiktok-shop/callback'
     | '/dashboard/qr/campaigns/'
@@ -1477,6 +1597,7 @@ export interface FileRouteTypes {
     | '/insider/$slug'
     | '/products/$id'
     | '/q/$publicId'
+    | '/rights/$publicId'
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/tools/revenue-calculator'
@@ -1530,6 +1651,7 @@ export interface FileRouteTypes {
     | '/dashboard/preorder/$id'
     | '/dashboard/qr/$id'
     | '/dashboard/qr/new'
+    | '/dashboard/rights-passport/$passportId'
     | '/dashboard/variants/$id'
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
@@ -1548,8 +1670,17 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/admin/academy'
     | '/dashboard/qr'
+    | '/dashboard/rights-passport'
     | '/admin/health/covers/alerts'
     | '/dashboard/qr/campaigns/$id'
+    | '/dashboard/rights-passport/$passportId/ai-consent'
+    | '/dashboard/rights-passport/$passportId/analyze'
+    | '/dashboard/rights-passport/$passportId/assets'
+    | '/dashboard/rights-passport/$passportId/evidence'
+    | '/dashboard/rights-passport/$passportId/generate'
+    | '/dashboard/rights-passport/$passportId/licenses'
+    | '/dashboard/rights-passport/$passportId/review'
+    | '/dashboard/rights-passport/$passportId/verify'
     | '/api/public/integrations/canva/callback'
     | '/api/public/integrations/tiktok-shop/callback'
     | '/dashboard/qr/campaigns'
@@ -1613,6 +1744,7 @@ export interface FileRouteTypes {
     | '/insider/$slug'
     | '/products/$id'
     | '/q/$publicId'
+    | '/rights/$publicId'
     | '/store/$slug'
     | '/subscribe/confirm'
     | '/tools/revenue-calculator'
@@ -1666,6 +1798,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/preorder/$id'
     | '/_authenticated/dashboard/qr/$id'
     | '/_authenticated/dashboard/qr/new'
+    | '/_authenticated/dashboard/rights-passport/$passportId'
     | '/_authenticated/dashboard/variants/$id'
     | '/api/public/academy/receive-article'
     | '/api/public/cron/release-preorders'
@@ -1684,8 +1817,17 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/_authenticated/admin/academy/'
     | '/_authenticated/dashboard/qr/'
+    | '/_authenticated/dashboard/rights-passport/'
     | '/_authenticated/admin/health/covers/alerts'
     | '/_authenticated/dashboard/qr/campaigns/$id'
+    | '/_authenticated/dashboard/rights-passport/$passportId/ai-consent'
+    | '/_authenticated/dashboard/rights-passport/$passportId/analyze'
+    | '/_authenticated/dashboard/rights-passport/$passportId/assets'
+    | '/_authenticated/dashboard/rights-passport/$passportId/evidence'
+    | '/_authenticated/dashboard/rights-passport/$passportId/generate'
+    | '/_authenticated/dashboard/rights-passport/$passportId/licenses'
+    | '/_authenticated/dashboard/rights-passport/$passportId/review'
+    | '/_authenticated/dashboard/rights-passport/$passportId/verify'
     | '/api/public/integrations/canva/callback'
     | '/api/public/integrations/tiktok-shop/callback'
     | '/_authenticated/dashboard/qr/campaigns/'
@@ -1745,6 +1887,7 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   InsiderSlugRoute: typeof InsiderSlugRoute
   QPublicIdRoute: typeof QPublicIdRoute
+  RightsPublicIdRoute: typeof RightsPublicIdRoute
   StoreSlugRoute: typeof StoreSlugRoute
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
   ToolsRevenueCalculatorRoute: typeof ToolsRevenueCalculatorRoute
@@ -2214,6 +2357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QPublicIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rights/$publicId': {
+      id: '/rights/$publicId'
+      path: '/rights/$publicId'
+      fullPath: '/rights/$publicId'
+      preLoaderRoute: typeof RightsPublicIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/store/$slug': {
       id: '/store/$slug'
       path: '/store/$slug'
@@ -2564,6 +2714,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardQrNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/rights-passport/': {
+      id: '/_authenticated/dashboard/rights-passport/'
+      path: '/dashboard/rights-passport'
+      fullPath: '/dashboard/rights-passport/'
+      preLoaderRoute: typeof AuthenticatedDashboardRightsPassportIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/rights-passport/$passportId': {
+      id: '/_authenticated/dashboard/rights-passport/$passportId'
+      path: '/dashboard/rights-passport/$passportId'
+      fullPath: '/dashboard/rights-passport/$passportId'
+      preLoaderRoute: typeof AuthenticatedDashboardRightsPassportPassportIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/variants/$id': {
       id: '/_authenticated/dashboard/variants/$id'
       path: '/dashboard/variants/$id'
@@ -2697,6 +2861,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardQrCampaignsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/rights-passport/$passportId/ai-consent': {
+      id: '/_authenticated/dashboard/rights-passport/$passportId/ai-consent'
+      path: '/ai-consent'
+      fullPath: '/dashboard/rights-passport/$passportId/ai-consent'
+      preLoaderRoute: typeof AuthenticatedDashboardRightsPassportPassportIdAiConsentRouteImport
+      parentRoute: typeof AuthenticatedDashboardRightsPassportPassportIdRoute
+    }
+    '/_authenticated/dashboard/rights-passport/$passportId/analyze': {
+      id: '/_authenticated/dashboard/rights-passport/$passportId/analyze'
+      path: '/analyze'
+      fullPath: '/dashboard/rights-passport/$passportId/analyze'
+      preLoaderRoute: typeof AuthenticatedDashboardRightsPassportPassportIdAnalyzeRouteImport
+      parentRoute: typeof AuthenticatedDashboardRightsPassportPassportIdRoute
+    }
+    '/_authenticated/dashboard/rights-passport/$passportId/assets': {
+      id: '/_authenticated/dashboard/rights-passport/$passportId/assets'
+      path: '/assets'
+      fullPath: '/dashboard/rights-passport/$passportId/assets'
+      preLoaderRoute: typeof AuthenticatedDashboardRightsPassportPassportIdAssetsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRightsPassportPassportIdRoute
+    }
+    '/_authenticated/dashboard/rights-passport/$passportId/evidence': {
+      id: '/_authenticated/dashboard/rights-passport/$passportId/evidence'
+      path: '/evidence'
+      fullPath: '/dashboard/rights-passport/$passportId/evidence'
+      preLoaderRoute: typeof AuthenticatedDashboardRightsPassportPassportIdEvidenceRouteImport
+      parentRoute: typeof AuthenticatedDashboardRightsPassportPassportIdRoute
+    }
+    '/_authenticated/dashboard/rights-passport/$passportId/generate': {
+      id: '/_authenticated/dashboard/rights-passport/$passportId/generate'
+      path: '/generate'
+      fullPath: '/dashboard/rights-passport/$passportId/generate'
+      preLoaderRoute: typeof AuthenticatedDashboardRightsPassportPassportIdGenerateRouteImport
+      parentRoute: typeof AuthenticatedDashboardRightsPassportPassportIdRoute
+    }
+    '/_authenticated/dashboard/rights-passport/$passportId/licenses': {
+      id: '/_authenticated/dashboard/rights-passport/$passportId/licenses'
+      path: '/licenses'
+      fullPath: '/dashboard/rights-passport/$passportId/licenses'
+      preLoaderRoute: typeof AuthenticatedDashboardRightsPassportPassportIdLicensesRouteImport
+      parentRoute: typeof AuthenticatedDashboardRightsPassportPassportIdRoute
+    }
+    '/_authenticated/dashboard/rights-passport/$passportId/review': {
+      id: '/_authenticated/dashboard/rights-passport/$passportId/review'
+      path: '/review'
+      fullPath: '/dashboard/rights-passport/$passportId/review'
+      preLoaderRoute: typeof AuthenticatedDashboardRightsPassportPassportIdReviewRouteImport
+      parentRoute: typeof AuthenticatedDashboardRightsPassportPassportIdRoute
+    }
+    '/_authenticated/dashboard/rights-passport/$passportId/verify': {
+      id: '/_authenticated/dashboard/rights-passport/$passportId/verify'
+      path: '/verify'
+      fullPath: '/dashboard/rights-passport/$passportId/verify'
+      preLoaderRoute: typeof AuthenticatedDashboardRightsPassportPassportIdVerifyRouteImport
+      parentRoute: typeof AuthenticatedDashboardRightsPassportPassportIdRoute
+    }
     '/api/public/integrations/canva/callback': {
       id: '/api/public/integrations/canva/callback'
       path: '/api/public/integrations/canva/callback'
@@ -2727,6 +2947,42 @@ const AuthenticatedAdminHealthCoversRouteChildren: AuthenticatedAdminHealthCover
 const AuthenticatedAdminHealthCoversRouteWithChildren =
   AuthenticatedAdminHealthCoversRoute._addFileChildren(
     AuthenticatedAdminHealthCoversRouteChildren,
+  )
+
+interface AuthenticatedDashboardRightsPassportPassportIdRouteChildren {
+  AuthenticatedDashboardRightsPassportPassportIdAiConsentRoute: typeof AuthenticatedDashboardRightsPassportPassportIdAiConsentRoute
+  AuthenticatedDashboardRightsPassportPassportIdAnalyzeRoute: typeof AuthenticatedDashboardRightsPassportPassportIdAnalyzeRoute
+  AuthenticatedDashboardRightsPassportPassportIdAssetsRoute: typeof AuthenticatedDashboardRightsPassportPassportIdAssetsRoute
+  AuthenticatedDashboardRightsPassportPassportIdEvidenceRoute: typeof AuthenticatedDashboardRightsPassportPassportIdEvidenceRoute
+  AuthenticatedDashboardRightsPassportPassportIdGenerateRoute: typeof AuthenticatedDashboardRightsPassportPassportIdGenerateRoute
+  AuthenticatedDashboardRightsPassportPassportIdLicensesRoute: typeof AuthenticatedDashboardRightsPassportPassportIdLicensesRoute
+  AuthenticatedDashboardRightsPassportPassportIdReviewRoute: typeof AuthenticatedDashboardRightsPassportPassportIdReviewRoute
+  AuthenticatedDashboardRightsPassportPassportIdVerifyRoute: typeof AuthenticatedDashboardRightsPassportPassportIdVerifyRoute
+}
+
+const AuthenticatedDashboardRightsPassportPassportIdRouteChildren: AuthenticatedDashboardRightsPassportPassportIdRouteChildren =
+  {
+    AuthenticatedDashboardRightsPassportPassportIdAiConsentRoute:
+      AuthenticatedDashboardRightsPassportPassportIdAiConsentRoute,
+    AuthenticatedDashboardRightsPassportPassportIdAnalyzeRoute:
+      AuthenticatedDashboardRightsPassportPassportIdAnalyzeRoute,
+    AuthenticatedDashboardRightsPassportPassportIdAssetsRoute:
+      AuthenticatedDashboardRightsPassportPassportIdAssetsRoute,
+    AuthenticatedDashboardRightsPassportPassportIdEvidenceRoute:
+      AuthenticatedDashboardRightsPassportPassportIdEvidenceRoute,
+    AuthenticatedDashboardRightsPassportPassportIdGenerateRoute:
+      AuthenticatedDashboardRightsPassportPassportIdGenerateRoute,
+    AuthenticatedDashboardRightsPassportPassportIdLicensesRoute:
+      AuthenticatedDashboardRightsPassportPassportIdLicensesRoute,
+    AuthenticatedDashboardRightsPassportPassportIdReviewRoute:
+      AuthenticatedDashboardRightsPassportPassportIdReviewRoute,
+    AuthenticatedDashboardRightsPassportPassportIdVerifyRoute:
+      AuthenticatedDashboardRightsPassportPassportIdVerifyRoute,
+  }
+
+const AuthenticatedDashboardRightsPassportPassportIdRouteWithChildren =
+  AuthenticatedDashboardRightsPassportPassportIdRoute._addFileChildren(
+    AuthenticatedDashboardRightsPassportPassportIdRouteChildren,
   )
 
 interface AuthenticatedRouteRouteChildren {
@@ -2773,9 +3029,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardPreorderIdRoute: typeof AuthenticatedDashboardPreorderIdRoute
   AuthenticatedDashboardQrIdRoute: typeof AuthenticatedDashboardQrIdRoute
   AuthenticatedDashboardQrNewRoute: typeof AuthenticatedDashboardQrNewRoute
+  AuthenticatedDashboardRightsPassportPassportIdRoute: typeof AuthenticatedDashboardRightsPassportPassportIdRouteWithChildren
   AuthenticatedDashboardVariantsIdRoute: typeof AuthenticatedDashboardVariantsIdRoute
   AuthenticatedAdminAcademyIndexRoute: typeof AuthenticatedAdminAcademyIndexRoute
   AuthenticatedDashboardQrIndexRoute: typeof AuthenticatedDashboardQrIndexRoute
+  AuthenticatedDashboardRightsPassportIndexRoute: typeof AuthenticatedDashboardRightsPassportIndexRoute
   AuthenticatedDashboardQrCampaignsIdRoute: typeof AuthenticatedDashboardQrCampaignsIdRoute
   AuthenticatedDashboardQrCampaignsIndexRoute: typeof AuthenticatedDashboardQrCampaignsIndexRoute
 }
@@ -2830,9 +3088,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardPreorderIdRoute: AuthenticatedDashboardPreorderIdRoute,
   AuthenticatedDashboardQrIdRoute: AuthenticatedDashboardQrIdRoute,
   AuthenticatedDashboardQrNewRoute: AuthenticatedDashboardQrNewRoute,
+  AuthenticatedDashboardRightsPassportPassportIdRoute:
+    AuthenticatedDashboardRightsPassportPassportIdRouteWithChildren,
   AuthenticatedDashboardVariantsIdRoute: AuthenticatedDashboardVariantsIdRoute,
   AuthenticatedAdminAcademyIndexRoute: AuthenticatedAdminAcademyIndexRoute,
   AuthenticatedDashboardQrIndexRoute: AuthenticatedDashboardQrIndexRoute,
+  AuthenticatedDashboardRightsPassportIndexRoute:
+    AuthenticatedDashboardRightsPassportIndexRoute,
   AuthenticatedDashboardQrCampaignsIdRoute:
     AuthenticatedDashboardQrCampaignsIdRoute,
   AuthenticatedDashboardQrCampaignsIndexRoute:
@@ -2950,6 +3212,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   InsiderSlugRoute: InsiderSlugRoute,
   QPublicIdRoute: QPublicIdRoute,
+  RightsPublicIdRoute: RightsPublicIdRoute,
   StoreSlugRoute: StoreSlugRoute,
   SubscribeConfirmRoute: SubscribeConfirmRoute,
   ToolsRevenueCalculatorRoute: ToolsRevenueCalculatorRoute,
