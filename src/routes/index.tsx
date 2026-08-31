@@ -281,6 +281,10 @@ function Home() {
         <CanvaHomeBanner />
       </div>
 
+      <div className="mx-auto w-full max-w-7xl px-6 pt-6 lg:px-8">
+        <QrCodeHomeBanner />
+      </div>
+
       <RefreshHighlightsBar />
       <ContinueBrowsingRow />
 
