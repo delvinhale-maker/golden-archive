@@ -56,6 +56,7 @@ import {
 } from "@/lib/rights-passport-serialize";
 import { hashCanonicalPayload, shortIntegrityId } from "@/lib/rights-passport-canonical-json";
 import { generateQrPublicId, SITE_URL } from "@/lib/qr";
+import type { JsonValue } from "@/lib/rights-passport-json";
 
 const RIGHTS_CARD_BASE = `${SITE_URL}/rights`;
 
@@ -441,8 +442,8 @@ export const revokeSnapshot = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 
 export type ExportJsonResult =
-  | { mode: "published"; payload: unknown; contentHash: string; publishedAt: string }
-  | { mode: "preview"; payload: unknown };
+  | { mode: "published"; payload: JsonValue; contentHash: string; publishedAt: string }
+  | { mode: "preview"; payload: JsonValue };
 
 export const downloadPublicJson = createServerFn({ method: "GET" })
   .middleware([requireRightsPassportEnabled, requireSupabaseAuth])
@@ -460,7 +461,7 @@ export const downloadPublicJson = createServerFn({ method: "GET" })
       .maybeSingle();
     if (snapshot) {
       const s = snapshot as unknown as {
-        public_payload: unknown;
+        public_payload: JsonValue;
         content_hash: string;
         published_at: string;
       };
@@ -487,7 +488,7 @@ export const downloadPrivateJson = createServerFn({ method: "GET" })
   .inputValidator((input: { passportKey: string }) =>
     z.object({ passportKey: z.string().uuid() }).parse(input),
   )
-  .handler(async ({ data, context }): Promise<{ payload: unknown }> => {
+  .handler(async ({ data, context }): Promise<{ payload: JsonValue }> => {
     const { supabase, userId } = context;
     const workspace = await gatherWorkspaceForVerification(supabase, userId, data.passportKey);
 
@@ -526,7 +527,7 @@ export type PublicRightsCardResult =
   | {
       found: true;
       revoked: boolean;
-      payload: unknown;
+      payload: JsonValue;
       shortIntegrityId: string;
       publishedAt: string;
     };
@@ -562,7 +563,7 @@ export const getPublicRightsCard = createServerFn({ method: "GET" })
 
     if (activeRow) {
       const r = activeRow as unknown as {
-        public_payload: unknown;
+        public_payload: JsonValue;
         content_hash: string;
         published_at: string;
       };
@@ -586,7 +587,7 @@ export const getPublicRightsCard = createServerFn({ method: "GET" })
 
     if (revokedRow) {
       const r = revokedRow as unknown as {
-        public_payload: unknown;
+        public_payload: JsonValue;
         content_hash: string;
         published_at: string;
       };

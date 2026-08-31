@@ -20,6 +20,7 @@
  * exists (rights-passport-analysis.functions.ts).
  */
 import { z } from "zod";
+import type { JsonValue } from "@/lib/rights-passport-json";
 
 export const ANALYSIS_PASS_TYPES = [
   "DOCUMENT_STRUCTURE",
@@ -246,7 +247,7 @@ export type FindingRow = {
   finding_key: string;
   pass_type: AnalysisPassType;
   field: string;
-  normalized_value: unknown;
+  normalized_value: JsonValue;
   raw_value: string | null;
   confidence: number;
   source: {

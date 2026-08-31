@@ -23,6 +23,7 @@
  * ownership/assignment language as a confirmed basis (Round 3.5 spec §1).
  */
 import { isHighImpactField } from "@/lib/rights-passport-analysis-confidence";
+import type { JsonValue } from "@/lib/rights-passport-json";
 
 export const PROPOSAL_TYPES = [
   "ASSET",
@@ -66,7 +67,7 @@ export type StructuredProposal = {
   proposalType: ProposalType;
   documentId: string;
   sourceFindingIds: string[];
-  proposedRecord: Record<string, unknown>;
+  proposedRecord: Record<string, JsonValue>;
   missingFields: string[];
   requiresHighImpactConfirmation: boolean;
   status: ProposalStatus;
@@ -242,7 +243,7 @@ function assembleAssetProposal(
       `The document appears to state (assignment): "${effectiveText(assignment)}"`,
     );
 
-  const proposedRecord: Record<string, unknown> = {
+  const proposedRecord: Record<string, JsonValue> = {
     name: null, // never guessed — the user must supply/confirm this
     assetType: "OTHER",
     claimedOwnerController: effectiveText(parties),
@@ -321,7 +322,7 @@ function assembleLicenseProposal(
     compensation,
   ].filter((f): f is AssemblyFinding => f !== null);
 
-  const proposedRecord: Record<string, unknown> = {
+  const proposedRecord: Record<string, JsonValue> = {
     licensee: effectiveText(parties),
     exactUse: effectiveText(licensesGranted),
     permissionType: "LICENSE",
@@ -377,7 +378,7 @@ function assembleEvidenceProposal(
     (f): f is AssemblyFinding => f !== null,
   );
 
-  const proposedRecord: Record<string, unknown> = {
+  const proposedRecord: Record<string, JsonValue> = {
     evidenceType: "CONTRACT",
     sourceCreator: effectiveText(parties),
     issuedDate: effectiveText(executionDate),
