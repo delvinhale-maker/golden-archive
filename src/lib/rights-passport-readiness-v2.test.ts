@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
 import { computeReadinessScoreV2, type ReadinessInputV2 } from "./rights-passport-readiness-v2";
 
 const blankPassport: ReadinessInputV2["passport"] = {

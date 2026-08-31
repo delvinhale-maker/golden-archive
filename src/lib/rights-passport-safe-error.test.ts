@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
 import { sanitizeDbErrorMessage, SAFE_GENERIC_ERROR_MESSAGE } from "./rights-passport-safe-error";
 
 describe("sanitizeDbErrorMessage — strips raw Postgres/PostgREST internals", () => {

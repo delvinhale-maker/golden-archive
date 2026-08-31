@@ -47,6 +47,7 @@ import {
   type AssemblyFinding,
 } from "@/lib/rights-passport-proposal-assembly";
 import { reconcileReviewFlagsForPassportKey } from "@/lib/rights-passport-review.functions";
+import type { JsonValue } from "@/lib/rights-passport-json";
 
 function toAssemblyFinding(f: FindingRow): AssemblyFinding {
   return {
@@ -81,7 +82,7 @@ async function fetchDocumentFindings(
 const listSchema = z.object({ documentId: z.string().uuid() });
 
 export type ListedProposal = StructuredProposal & {
-  existingValue: unknown;
+  existingValue: JsonValue;
 };
 
 export const listProposals = createServerFn({ method: "GET" })
@@ -113,11 +114,11 @@ export const listProposals = createServerFn({ method: "GET" })
     const passport = passportRow as unknown as PassportRow | null;
 
     return grouped.map((p) => {
-      let existingValue: unknown = null;
+      let existingValue: JsonValue = null;
       if (p.proposalType === "PROFILE_UPDATE" && passport) {
         const field = (p.proposedRecord as { field: string }).field;
         const column = field === "jurisdiction" ? "jurisdiction" : "effective_date";
-        existingValue = (passport as unknown as Record<string, unknown>)[column] ?? null;
+        existingValue = (passport as unknown as Record<string, JsonValue>)[column] ?? null;
       }
       return { ...p, existingValue };
     });
