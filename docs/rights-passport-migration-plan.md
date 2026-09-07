@@ -351,3 +351,39 @@ and report."* — **No destructive operation exists in any of the four
 migrations.** This check does not trigger a stop. The reason none of these
 are applied is the **backend safety classification** (SHARED_BACKEND, see
 Phase 4 in the release report), not any defect found in the SQL itself.
+
+## Addendum — migration #7: `20260907120000_rights_passport_delete_hardening.sql`
+
+**Purpose.** Targeted RLS hardening, added after migrations 1–6 were
+confirmed already applied to the isolated staging project (Supabase ref
+`ypelutaddlibqvpaekyq`, "aurumvault-staging"). Replaces the `FOR ALL`
+policies `rights_passports_owner_write` and
+`rights_passport_snapshots_owner_write` with explicit `INSERT`/`UPDATE`
+policies carrying the identical owner/admin predicate, and creates no
+`DELETE` policy for either table — removing the latent risk that a future
+`ALL` policy would silently authorize `DELETE` the moment any migration
+ever granted that table privilege to `authenticated`, without a
+Rights-Passport-specific migration author having to think about it.
+
+**Verified against live staging before writing this file** (via the
+Supabase MCP tools, read-only queries against `pg_policies` and
+`information_schema.role_table_grants` on `ypelutaddlibqvpaekyq`): both
+`_owner_write` policies exist exactly as described, `authenticated` holds
+no `DELETE` privilege on either table today (only `service_role` does,
+which bypasses RLS entirely and is unaffected by this change), and
+`rights_passport_public_identities` already uses explicit `INSERT`+`SELECT`
+policies with no `ALL` policy — confirmed untouched, not part of this
+migration.
+
+**Additive/non-destructive:** yes — two `DROP POLICY` statements (policy
+drops, not table/column drops) followed by four `CREATE POLICY`
+statements. No `REVOKE` (independently verified unnecessary — see above),
+no schema/trigger/index change.
+
+**Dependency:** requires `rights_passports` (migration 1) and
+`rights_passport_snapshots` (migration 4) to already exist.
+
+**Status:** written and staged only. **Not applied** to staging or
+production by the session that authored it — see the accompanying delivery
+report for the exact verification performed and what remains for a
+separate, explicitly authorized apply step.
