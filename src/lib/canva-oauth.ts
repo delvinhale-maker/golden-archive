@@ -477,6 +477,7 @@ export type CanvaApiFailureReason =
   | "design_unavailable"
   | "export_failed"
   | "export_timeout"
+  | "invalid_export_file"
   | "api_error";
 
 export class CanvaApiError extends Error {
@@ -558,31 +559,44 @@ async function canvaApiFetch(
  * and the caller is expected to use the token in the same request and
  * discard it.
  */
-export async function getValidCanvaAccessToken(userId: string): Promise<string> {
-  const supabase = await integrationAdminClient();
+type CanvaConnectionRow = {
+  id: string;
+  status: string;
+  access_token_enc: unknown;
+  refresh_token_enc: unknown;
+  access_token_expires_at: string | null;
+  updated_at: string;
+};
+
+async function readCanvaConnectionRow(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<CanvaConnectionRow | null> {
   const { data } = await supabase
     .from("integration_connections")
-    .select("id, status, access_token_enc, refresh_token_enc, access_token_expires_at")
+    .select("id, status, access_token_enc, refresh_token_enc, access_token_expires_at, updated_at")
     .eq("provider", CANVA_PROVIDER)
     .eq("user_id", userId)
     .maybeSingle();
+  return data as CanvaConnectionRow | null;
+}
 
-  const row = data as {
-    id: string;
-    status: string;
-    access_token_enc: unknown;
-    refresh_token_enc: unknown;
-    access_token_expires_at: string | null;
-  } | null;
+const NEAR_EXPIRY_WINDOW_MS = 60_000;
+
+function isNearExpiry(row: Pick<CanvaConnectionRow, "access_token_expires_at">): boolean {
+  const expiresAt = row.access_token_expires_at ? Date.parse(row.access_token_expires_at) : null;
+  return expiresAt !== null && expiresAt - Date.now() < NEAR_EXPIRY_WINDOW_MS;
+}
+
+export async function getValidCanvaAccessToken(userId: string): Promise<string> {
+  const supabase = await integrationAdminClient();
+  const row = await readCanvaConnectionRow(supabase, userId);
 
   if (!row || row.status !== "connected" || !row.access_token_enc) {
     throw new CanvaApiError("not_connected", "Canva is not connected");
   }
 
-  const expiresAt = row.access_token_expires_at ? Date.parse(row.access_token_expires_at) : null;
-  const nearExpiry = expiresAt !== null && expiresAt - Date.now() < 60_000;
-
-  if (!nearExpiry) {
+  if (!isNearExpiry(row)) {
     return decryptOAuthSecret(row.access_token_enc);
   }
 
@@ -592,16 +606,180 @@ export async function getValidCanvaAccessToken(userId: string): Promise<string> 
     throw new CanvaApiError("reauth_required", "Canva authorization has expired");
   }
 
+  return refreshAccessTokenConcurrencySafe(supabase, userId, row);
+}
+
+/**
+ * Concurrency-safe refresh.
+ *
+ * Canva refresh tokens are one-time use: sending the same refresh token
+ * twice doesn't just fail the loser, it revokes the ENTIRE grant ("Refresh
+ * token used twice. All access tokens granted from this flow are now
+ * revoked."). Two concurrent requests hitting the same expired connection
+ * must never both call Canva's refresh endpoint with the same token.
+ *
+ * This is enforced with a database-backed compare-and-swap on
+ * integration_connections.updated_at — no new column, no in-memory lock (an
+ * in-process mutex wouldn't help anyway across multiple server instances).
+ * Only the request whose conditional UPDATE actually matches a row (i.e.
+ * nobody else has touched it since we read it) proceeds to call Canva.
+ * Every other concurrent request polls the row instead and reuses whatever
+ * token the winner stores, rather than racing Canva directly.
+ */
+async function refreshAccessTokenConcurrencySafe(
+  supabase: SupabaseClient,
+  userId: string,
+  row: CanvaConnectionRow,
+): Promise<string> {
+  const claimedUpdatedAt = await claimCanvaRefreshSlot(supabase, row.id, row.updated_at);
+
+  if (!claimedUpdatedAt) {
+    // Someone else already claimed the refresh for this connection state —
+    // wait for their result instead of also calling Canva.
+    return awaitConcurrentCanvaRefresh(supabase, userId);
+  }
+
+  let tokens: CanvaTokenResponse;
   try {
     const refreshToken = await decryptOAuthSecret(row.refresh_token_enc);
-    const tokens = await refreshCanvaToken(refreshToken);
+    tokens = await refreshCanvaToken(refreshToken);
     if (!tokens.access_token) throw new Error("no_access_token");
-    await storeCanvaConnection(supabase, { rowId: row.id, ownerUserId: userId, tokens });
-    return tokens.access_token;
   } catch {
-    await markCanvaError(supabase, row.id, "token_refresh_failed");
+    // We hold the claim, so this is a genuine failure, not a race loss:
+    // nobody else could have already consumed this refresh token. Only mark
+    // the connection errored if it still matches the state we claimed —
+    // guards against a disconnect (or anything else) landing in the instant
+    // between our claim and this catch from clobbering that newer state
+    // with a stale failure.
+    await markCanvaErrorIfUnchanged(supabase, row.id, claimedUpdatedAt, "token_refresh_failed");
     throw new CanvaApiError("reauth_required", "Canva authorization could not be refreshed");
   }
+
+  const stored = await storeRefreshedCanvaTokenIfUnchanged(supabase, {
+    rowId: row.id,
+    ownerUserId: userId,
+    tokens,
+    expectedUpdatedAt: claimedUpdatedAt,
+    fallbackRefreshTokenEnc: row.refresh_token_enc,
+  });
+
+  if (!stored) {
+    // We hold the claim and have a token Canva just issued to us — write it
+    // unconditionally rather than discarding a successfully refreshed token.
+    await storeCanvaConnection(supabase, { rowId: row.id, ownerUserId: userId, tokens });
+  }
+
+  return tokens.access_token;
+}
+
+/**
+ * Attempts to claim the exclusive right to refresh this connection by
+ * touching the row only if `updated_at` still matches `expectedUpdatedAt`
+ * (optimistic concurrency). Returns the row's new `updated_at` (the CAS
+ * token for the follow-up store) on success, or null if another request
+ * already changed the row first.
+ */
+async function claimCanvaRefreshSlot(
+  supabase: SupabaseClient,
+  rowId: string,
+  expectedUpdatedAt: string,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("integration_connections")
+    .update({ last_error: null })
+    .eq("id", rowId)
+    .eq("updated_at", expectedUpdatedAt)
+    .select("updated_at")
+    .maybeSingle();
+  if (error || !data) return null;
+  return (data as { updated_at: string }).updated_at;
+}
+
+/** Persists a refreshed token, but only if the row hasn't moved since the claim. */
+async function storeRefreshedCanvaTokenIfUnchanged(
+  supabase: SupabaseClient,
+  args: {
+    rowId: string;
+    ownerUserId: string;
+    tokens: CanvaTokenResponse;
+    expectedUpdatedAt: string;
+    fallbackRefreshTokenEnc: unknown;
+  },
+): Promise<boolean> {
+  const expiresAt = args.tokens.expires_in
+    ? new Date(Date.now() + args.tokens.expires_in * 1000).toISOString()
+    : null;
+  const { data, error } = await supabase
+    .from("integration_connections")
+    .update({
+      status: "connected",
+      access_token_enc: await encryptOAuthSecret(args.tokens.access_token),
+      // Canva rotates the refresh token on every use. Always store the new
+      // one when returned; if a response ever omits it, keep the previous
+      // (still valid, not-yet-consumed) refresh token rather than wiping it
+      // to null, which would strand the connection with no way to refresh
+      // again.
+      refresh_token_enc: args.tokens.refresh_token
+        ? await encryptOAuthSecret(args.tokens.refresh_token)
+        : args.fallbackRefreshTokenEnc,
+      access_token_expires_at: expiresAt,
+      last_connected_at: new Date().toISOString(),
+      last_error: null,
+    })
+    .eq("id", args.rowId)
+    .eq("user_id", args.ownerUserId)
+    .eq("updated_at", args.expectedUpdatedAt)
+    .select("id")
+    .maybeSingle();
+  return !error && !!data;
+}
+
+/** Same as markCanvaError, but only writes if the row still matches the claimed version. */
+async function markCanvaErrorIfUnchanged(
+  supabase: SupabaseClient,
+  rowId: string,
+  expectedUpdatedAt: string,
+  reason: string,
+): Promise<void> {
+  await supabase
+    .from("integration_connections")
+    .update({
+      status: "error",
+      last_error: reason.slice(0, 300),
+      oauth_state: null,
+      code_verifier_enc: null,
+      state_expires_at: null,
+    })
+    .eq("id", rowId)
+    .eq("updated_at", expectedUpdatedAt);
+}
+
+const CONCURRENT_REFRESH_POLL_INTERVAL_MS = 150;
+const CONCURRENT_REFRESH_POLL_ATTEMPTS = 6;
+
+/**
+ * For a request that lost the refresh claim: re-reads the connection until
+ * it sees the winning request's result (checking immediately before every
+ * wait, so an already-finished winner resolves with no delay at all) rather
+ * than attempting its own Canva refresh call with the same token.
+ */
+async function awaitConcurrentCanvaRefresh(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string> {
+  for (let attempt = 0; attempt < CONCURRENT_REFRESH_POLL_ATTEMPTS; attempt++) {
+    const fresh = await readCanvaConnectionRow(supabase, userId);
+    if (fresh?.status === "connected" && fresh.access_token_enc && !isNearExpiry(fresh)) {
+      return decryptOAuthSecret(fresh.access_token_enc);
+    }
+    if (fresh?.status === "error") {
+      throw new CanvaApiError("reauth_required", "Canva authorization could not be refreshed");
+    }
+    if (attempt < CONCURRENT_REFRESH_POLL_ATTEMPTS - 1) {
+      await new Promise((resolve) => setTimeout(resolve, CONCURRENT_REFRESH_POLL_INTERVAL_MS));
+    }
+  }
+  throw new CanvaApiError("reauth_required", "Canva authorization could not be refreshed");
 }
 
 export type CanvaDesignThumbnail = { url: string; width: number | null; height: number | null };
@@ -694,16 +872,29 @@ function mapExportJob(raw: unknown): CanvaExportJob {
   };
 }
 
-/** POST /v1/exports — requires design:content:read (per Canva Connect docs, not content:write). */
+/**
+ * POST /v1/exports — requires design:content:read (per Canva Connect docs,
+ * not content:write).
+ *
+ * `pages` defaults to [1]: this workflow imports a single product COVER
+ * image, not the whole design. Canva's export API defaults to exporting
+ * every page as a separate file (`as_single_image` defaults to false, and
+ * omitting `pages` exports all of them) — without an explicit `pages: [1]`,
+ * a multi-page design would come back with multiple URLs and blindly taking
+ * `urls[0]` would silently pick an arbitrary page, not "the design". Pass a
+ * longer `pages` array only for a future feature that actually wants more
+ * than the cover.
+ */
 export async function createCanvaExportJob(
   accessToken: string,
   designId: string,
   format: CanvaExportFormat = "png",
+  pages: number[] = [1],
 ): Promise<CanvaExportJob> {
   const body = (await canvaApiFetch("/exports", accessToken, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ design_id: designId, format: { type: format } }),
+    body: JSON.stringify({ design_id: designId, format: { type: format, pages } }),
   })) as { job?: unknown };
   if (!body.job) throw new CanvaApiError("export_failed", "Canva did not return an export job");
   return mapExportJob(body.job);
@@ -724,10 +915,11 @@ const EXPORT_POLL_INTERVAL_MS = 1500;
 const EXPORT_POLL_TIMEOUT_MS = 45_000;
 
 /**
- * Creates an export job and polls it to completion. Bounded by
- * EXPORT_POLL_TIMEOUT_MS so a stuck Canva job can never hang the import
- * request forever — times out into a typed "export_timeout" error the
- * caller can show as a retryable failure, never a false success.
+ * Creates an export job (page 1 only — see createCanvaExportJob) and polls
+ * it to completion. Bounded by EXPORT_POLL_TIMEOUT_MS so a stuck Canva job
+ * can never hang the import request forever — times out into a typed
+ * "export_timeout" error the caller can show as a retryable failure, never
+ * a false success.
  */
 export async function exportCanvaDesign(
   accessToken: string,
@@ -751,6 +943,131 @@ export async function exportCanvaDesign(
   }
 
   return { url: current.urls[0]! };
+}
+
+/**
+ * Conservative cap for a single product cover image. Well above what a
+ * PNG export of one design page should ever need, small enough that a
+ * misbehaving or malicious response can't exhaust server memory.
+ */
+export const MAX_EXPORT_ASSET_BYTES = 10 * 1024 * 1024; // 10 MiB
+
+/** Content types this workflow will ever accept from a Canva export URL. */
+const EXPORT_CONTENT_TYPE_ALLOWLIST = new Set(["image/png"]);
+
+/** First 8 bytes of every valid PNG file (the PNG file signature, RFC 2083). */
+const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+function hasPngSignature(bytes: Uint8Array): boolean {
+  if (bytes.length < PNG_SIGNATURE.length) return false;
+  return PNG_SIGNATURE.every((b, i) => bytes[i] === b);
+}
+
+/**
+ * Reads a response body with a hard byte cap, aborting the stream the
+ * moment the cap is exceeded instead of buffering an unbounded response
+ * first and checking afterward. Falls back to a single bounded read only
+ * when the runtime doesn't expose a streamable body (checked afterward,
+ * since some fetch implementations don't support incremental reads).
+ */
+async function readBoundedBody(res: Response, maxBytes: number): Promise<Uint8Array> {
+  if (!res.body || typeof res.body.getReader !== "function") {
+    const buf = new Uint8Array(await res.arrayBuffer());
+    if (buf.length > maxBytes) {
+      throw new CanvaApiError("invalid_export_file", "Export exceeded the maximum allowed size");
+    }
+    return buf;
+  }
+
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+    total += value.length;
+    if (total > maxBytes) {
+      await reader.cancel().catch(() => undefined);
+      throw new CanvaApiError("invalid_export_file", "Export exceeded the maximum allowed size");
+    }
+    chunks.push(value);
+  }
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return out;
+}
+
+/**
+ * Downloads a Canva export result with defense-in-depth validation before
+ * anything is trusted or stored:
+ *   A. HTTPS only — never follow/accept a non-HTTPS export URL.
+ *   B. Bounded, streamed read — a lying or absent Content-Length can't force
+ *      an unbounded buffer; the stream is cut the moment MAX_EXPORT_ASSET_BYTES
+ *      is exceeded.
+ *   C. Non-empty body.
+ *   D. Content-Type allow-list (image/png only, for this release).
+ *   E. PNG magic-byte check on the actual bytes — the Content-Type header is
+ *      attacker/misconfiguration-controllable and is never trusted alone.
+ *   F. The remote filename (if any, via Content-Disposition) is never read
+ *      or used — the caller always generates its own storage path.
+ * Throws a typed CanvaApiError("invalid_export_file", ...) on any violation.
+ */
+export async function downloadValidatedExportAsset(
+  url: string,
+): Promise<{ bytes: Uint8Array; contentType: string }> {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new CanvaApiError("invalid_export_file", "Export URL was malformed");
+  }
+  if (parsed.protocol !== "https:") {
+    throw new CanvaApiError("invalid_export_file", "Export URL was not HTTPS");
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(url);
+  } catch (err) {
+    throw new CanvaApiError(
+      "invalid_export_file",
+      err instanceof Error ? err.message : "Export download failed",
+    );
+  }
+  if (!res.ok) {
+    throw new CanvaApiError("invalid_export_file", `Export download failed (${res.status})`);
+  }
+
+  const contentType = (res.headers.get("content-type") ?? "").split(";")[0]!.trim().toLowerCase();
+  if (!EXPORT_CONTENT_TYPE_ALLOWLIST.has(contentType)) {
+    await res.body?.cancel?.().catch(() => undefined);
+    throw new CanvaApiError(
+      "invalid_export_file",
+      `Unsupported export content type: ${contentType || "unknown"}`,
+    );
+  }
+
+  const declaredLength = Number(res.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_EXPORT_ASSET_BYTES) {
+    await res.body?.cancel?.().catch(() => undefined);
+    throw new CanvaApiError("invalid_export_file", "Export exceeded the maximum allowed size");
+  }
+
+  const bytes = await readBoundedBody(res, MAX_EXPORT_ASSET_BYTES);
+
+  if (bytes.length === 0) {
+    throw new CanvaApiError("invalid_export_file", "Export returned an empty file");
+  }
+  if (!hasPngSignature(bytes)) {
+    throw new CanvaApiError("invalid_export_file", "Export did not contain a valid PNG file");
+  }
+
+  return { bytes, contentType };
 }
 
 /** GET /v1/users/me/profile — requires profile:read. Best-effort display name for the connection row. */

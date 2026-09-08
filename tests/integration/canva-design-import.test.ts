@@ -16,7 +16,7 @@
  * Run with: bun test tests/integration/canva-design-import.test.ts
  */
 import { describe, it, expect } from "bun:test";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 
 const fns = readFileSync("src/lib/canva-designs.functions.ts", "utf8");
 const picker = readFileSync("src/components/dashboard/CanvaDesignPicker.tsx", "utf8");
@@ -72,7 +72,10 @@ describe("canva-designs.functions.ts: duplicate-import protection", () => {
   });
 
   it("scopes the duplicate check by user_id AND canva_design_id together", () => {
-    const block = fns.slice(fns.indexOf('.from("canva_design_products")\n      .select'), fns.indexOf("existingMapping) {"));
+    const block = fns.slice(
+      fns.indexOf('.from("canva_design_products")\n      .select'),
+      fns.indexOf("existingMapping) {"),
+    );
     expect(block).toContain('.eq("user_id", context.userId)');
     expect(block).toContain('.eq("canva_design_id", designId)');
   });
@@ -86,7 +89,9 @@ describe("canva-designs.functions.ts: never a false success / draft never publis
   });
 
   it("uses the RLS-bound session client for the product insert, not the admin client", () => {
-    expect(fns).toContain("context.supabase\n        .from(\"marketplace_products\")\n        .insert(");
+    expect(fns).toContain(
+      'context.supabase\n        .from("marketplace_products")\n        .insert(',
+    );
   });
 
   it("rolls back the draft product if the mapping insert fails (no orphan product)", () => {
@@ -106,6 +111,20 @@ describe("canva-designs.functions.ts: never a false success / draft never publis
     for (const reason of ["storage_failed", "draft_failed", "mapping_failed"]) {
       expect(fns).toContain(`reason: "${reason}"`);
     }
+  });
+});
+
+describe("canva-designs.functions.ts: exported file is validated, not trusted raw", () => {
+  it("downloads the export through downloadValidatedExportAsset, not a raw fetch", () => {
+    expect(fns).toContain("downloadValidatedExportAsset");
+    expect(fns).not.toMatch(/await fetch\(exported\.url\)/);
+  });
+
+  it("maps a validation failure to the typed invalid_export_file reason via toFailure", () => {
+    const downloadIdx = fns.indexOf("downloadValidatedExportAsset(exported.url)");
+    const catchIdx = fns.indexOf("toFailure(err)", downloadIdx);
+    expect(downloadIdx).toBeGreaterThan(-1);
+    expect(catchIdx).toBeGreaterThan(downloadIdx);
   });
 });
 
@@ -133,10 +152,15 @@ describe("CanvaDesignPicker.tsx: no secrets, honest states, correct routing", ()
       "design_unavailable",
       "export_failed",
       "export_timeout",
+      "invalid_export_file",
       "api_error",
     ]) {
       expect(picker).toContain(`${reason}:`);
     }
+  });
+
+  it("tells the creator AurumVault imports the first page as the cover", () => {
+    expect(picker).toMatch(/first page/i);
   });
 
   it("routes Turn Into Product success into the existing product editor with id + type", () => {
@@ -202,10 +226,9 @@ describe("canva_design_products migration is additive-only", () => {
   });
 
   it("is not staged in supabase/migrations (unapplied by design)", () => {
-    const { existsSync } = require("node:fs");
-    expect(
-      existsSync("supabase/migrations/20260908142659_create_canva_design_products.sql"),
-    ).toBe(false);
+    expect(existsSync("supabase/migrations/20260908142659_create_canva_design_products.sql")).toBe(
+      false,
+    );
   });
 
   it("reuses existing helpers without redefining them", () => {
@@ -227,13 +250,26 @@ describe("canva_design_products migration security model", () => {
     expect(migration).toContain("REVOKE ALL ON public.canva_design_products FROM anon;");
   });
 
-  it("grants authenticated read-only access, never INSERT/UPDATE", () => {
+  it("grants authenticated read-only access, never INSERT/UPDATE/DELETE", () => {
     expect(migration).toContain("GRANT SELECT ON public.canva_design_products TO authenticated;");
-    expect(migration).not.toMatch(/GRANT\s+(ALL|INSERT|UPDATE)\s+ON\s+public\.canva_design_products\s+TO\s+authenticated/i);
+    expect(migration).not.toMatch(
+      /GRANT\s+(ALL|INSERT|UPDATE|DELETE)\s+ON\s+public\.canva_design_products\s+TO\s+authenticated/i,
+    );
+  });
+
+  it("declares no authenticated DELETE policy without a matching DELETE grant (internally consistent)", () => {
+    // A DELETE RLS policy with no corresponding GRANT is dead weight that
+    // misstates the table's real authorization model — remove it here
+    // rather than leaving unreachable policy text alongside a SELECT-only
+    // grant. Add both together if a creator-facing "unlink" feature ships.
+    expect(migration).not.toMatch(/FOR DELETE TO authenticated/i);
+    expect(migration).not.toContain("canva_design_products_owner_delete");
   });
 
   it("scopes owner policies by auth.uid() with an admin escape hatch", () => {
-    expect(migration).toContain("USING (user_id = auth.uid() OR public.has_role(auth.uid(), 'admin'))");
+    expect(migration).toContain(
+      "USING (user_id = auth.uid() OR public.has_role(auth.uid(), 'admin'))",
+    );
   });
 
   it("protects owner and design-id reassignment with a guard trigger", () => {

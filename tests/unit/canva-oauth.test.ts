@@ -364,7 +364,9 @@ describe("Canva design client (fetch-level)", () => {
   });
 
   it("classifies a 401 as reauth_required, never a generic failure", async () => {
-    global.fetch = vi.fn(async () => jsonResponse(401, { error: "unauthorized" })) as unknown as typeof fetch;
+    global.fetch = vi.fn(async () =>
+      jsonResponse(401, { error: "unauthorized" }),
+    ) as unknown as typeof fetch;
     await expect(listCanvaDesigns("stale-token")).rejects.toMatchObject({
       reason: "reauth_required",
     });
@@ -381,14 +383,18 @@ describe("Canva design client (fetch-level)", () => {
   });
 
   it("classifies a 404 as design_unavailable", async () => {
-    global.fetch = vi.fn(async () => jsonResponse(404, { error: "not found" })) as unknown as typeof fetch;
+    global.fetch = vi.fn(async () =>
+      jsonResponse(404, { error: "not found" }),
+    ) as unknown as typeof fetch;
     await expect(createCanvaExportJob("token-abc", "missing-design")).rejects.toMatchObject({
       reason: "design_unavailable",
     });
   });
 
   it("classifies any other non-OK status as a generic api_error", async () => {
-    global.fetch = vi.fn(async () => jsonResponse(500, { error: "boom" })) as unknown as typeof fetch;
+    global.fetch = vi.fn(async () =>
+      jsonResponse(500, { error: "boom" }),
+    ) as unknown as typeof fetch;
     await expect(listCanvaDesigns("token-abc")).rejects.toMatchObject({ reason: "api_error" });
   });
 
@@ -399,10 +405,10 @@ describe("Canva design client (fetch-level)", () => {
     await expect(listCanvaDesigns("token-abc")).rejects.toMatchObject({ reason: "api_error" });
   });
 
-  it("creates an export job with the requested design and format", async () => {
+  it("creates an export job with the requested design and format, constrained to page 1", async () => {
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
       const body = JSON.parse(String(init?.body));
-      expect(body).toEqual({ design_id: "DAF-1", format: { type: "png" } });
+      expect(body).toEqual({ design_id: "DAF-1", format: { type: "png", pages: [1] } });
       return jsonResponse(200, { job: { id: "export-1", status: "in_progress" } });
     });
     global.fetch = fetchMock as unknown as typeof fetch;
@@ -412,4 +418,3 @@ describe("Canva design client (fetch-level)", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
-

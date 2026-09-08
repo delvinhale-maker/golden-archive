@@ -113,14 +113,16 @@ GRANT SELECT ON public.canva_design_products TO authenticated;
 
 ALTER TABLE public.canva_design_products ENABLE ROW LEVEL SECURITY;
 
+-- SELECT-only, matching the SELECT-only grant above exactly: no DELETE (or
+-- INSERT/UPDATE) policy is declared for `authenticated`, because no grant
+-- for those operations exists either. Row deletion happens exclusively
+-- through service-role code (e.g. the rollback path in
+-- turnCanvaDesignIntoProductFn), which bypasses RLS by design. Add an owner
+-- DELETE policy only alongside an actual creator-facing "unlink" feature and
+-- its matching GRANT DELETE.
 CREATE POLICY "canva_design_products_owner_read"
   ON public.canva_design_products
   FOR SELECT TO authenticated
-  USING (user_id = auth.uid() OR public.has_role(auth.uid(), 'admin'));
-
-CREATE POLICY "canva_design_products_owner_delete"
-  ON public.canva_design_products
-  FOR DELETE TO authenticated
   USING (user_id = auth.uid() OR public.has_role(auth.uid(), 'admin'));
 
 -- Owner-reassignment protection, mirroring

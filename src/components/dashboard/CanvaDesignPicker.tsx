@@ -33,6 +33,8 @@ const FAILURE_MESSAGES: Record<CanvaApiFailureReason, string> = {
   design_unavailable: "This design is no longer available in Canva.",
   export_failed: "Canva couldn't export this design. Try again, or pick a different design.",
   export_timeout: "The export took too long. Try again in a moment.",
+  invalid_export_file:
+    "Canva returned a file AurumVault couldn't accept. Try again, or pick a different design.",
   api_error: "Canva couldn't complete that request. Try again in a moment.",
 };
 
@@ -340,8 +342,8 @@ function PreviewPane({
         )}
       </div>
       <p className="max-w-sm text-xs text-mute">
-        AurumVault will export this design and create a draft product. Nothing is published — you'll
-        review title, description, category, pricing and rights before publishing.
+        AurumVault imports this design's first page as the draft product cover. Nothing is published
+        — you'll review title, description, category, pricing and rights before publishing.
       </p>
       <button
         type="button"

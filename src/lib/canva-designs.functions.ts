@@ -82,8 +82,13 @@ export const turnCanvaDesignIntoProductFn = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<TurnIntoProductResult> => {
     const designId = data.designId.trim();
 
-    const { integrationAdminClient, getValidCanvaAccessToken, getCanvaDesign, exportCanvaDesign } =
-      await import("./canva-oauth");
+    const {
+      integrationAdminClient,
+      getValidCanvaAccessToken,
+      getCanvaDesign,
+      exportCanvaDesign,
+      downloadValidatedExportAsset,
+    } = await import("./canva-oauth");
     const admin = await integrationAdminClient();
 
     // Duplicate-import protection: one mapping per (creator, design). Checked
@@ -130,15 +135,17 @@ export const turnCanvaDesignIntoProductFn = createServerFn({ method: "POST" })
     // Download the exported asset server-side (the URL is a short-lived,
     // pre-signed Canva link — no bearer token needed) and re-host it in
     // AurumVault storage. The Canva token never leaves this handler.
-    let assetBytes: ArrayBuffer;
-    let contentType = "image/png";
+    // downloadValidatedExportAsset enforces HTTPS, a bounded streamed read,
+    // a non-empty body, an image/png content-type allow-list, and a PNG
+    // magic-byte check on the actual bytes before anything is trusted.
+    let assetBytes: Uint8Array;
+    let contentType: string;
     try {
-      const assetRes = await fetch(exported.url);
-      if (!assetRes.ok) throw new Error(`download failed (${assetRes.status})`);
-      contentType = assetRes.headers.get("content-type") ?? contentType;
-      assetBytes = await assetRes.arrayBuffer();
-    } catch {
-      return { ok: false, reason: "storage_failed" };
+      const validated = await downloadValidatedExportAsset(exported.url);
+      assetBytes = validated.bytes;
+      contentType = validated.contentType;
+    } catch (err) {
+      return { ok: false, ...toFailure(err) };
     }
 
     const ts = Date.now();
