@@ -4,30 +4,12 @@ import { useSubcategoryNames } from "@/lib/subcategories";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import {
-  PublisherShell,
-  ACCENTS,
-  type PublisherAccent,
-} from "@/components/marketplace/PublisherShell";
+import { PublisherShell, ACCENTS, type PublisherAccent } from "@/components/marketplace/PublisherShell";
 import { VerifyPdfUploadButton } from "@/components/marketplace/VerifyPdfUploadButton";
 import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  Image as ImageIcon,
-  FileText,
-  X,
-  CheckCircle2,
-  AlertCircle,
-  Maximize2,
-  Plus,
-  Sparkles,
-  ShieldCheck,
-  Globe,
-  Save,
-  Eye,
-  Loader2,
-  RefreshCw,
+  ArrowLeft, ArrowRight, Check, Image as ImageIcon, FileText, X,
+  CheckCircle2, AlertCircle, Maximize2, Plus, Sparkles, ShieldCheck, Globe,
+  Save, Eye, Loader2, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -38,13 +20,7 @@ import { ManuscriptPreviewer } from "@/components/marketplace/ManuscriptPreviewe
 import { PreviewPagePicker } from "@/components/marketplace/PreviewPagePicker";
 import { ProductDeliveryFilesManager } from "@/components/marketplace/ProductDeliveryFilesManager";
 import { useTheme } from "@/lib/theme/ThemeProvider";
-import {
-  getProductType,
-  getProductTypeKeyByCategory,
-  categoryDisplay,
-  isProductTypeKey,
-  type ProductTypeKey,
-} from "@/lib/product-types";
+import { getProductType, getProductTypeKeyByCategory, categoryDisplay, isProductTypeKey, type ProductTypeKey } from "@/lib/product-types";
 import { getProductTypeDef, resolveProductType } from "@/lib/taxonomy";
 import {
   CategoryField,
@@ -69,6 +45,7 @@ const DESC_MIN = 140;
 const DESC_MAX = 1900;
 const DESC_WARN = 1800;
 
+
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
   validateSearch: (s: Record<string, unknown>) => {
     const rawType = typeof s.type === "string" ? s.type : undefined;
@@ -90,19 +67,11 @@ function PublishFlowRoute() {
   return <PublishFlow editingId={id} productTypeKey={type} invalidType={invalidType} />;
 }
 
-export function PublishFlow({
-  editingId: editingIdProp,
-  productTypeKey,
-  invalidType,
-}: { editingId?: string; productTypeKey?: ProductTypeKey; invalidType?: string } = {}) {
-  return (
-    <PublishFlowImpl
-      editingId={editingIdProp}
-      productTypeKey={productTypeKey}
-      invalidType={invalidType}
-    />
-  );
+export function PublishFlow({ editingId: editingIdProp, productTypeKey, invalidType }: { editingId?: string; productTypeKey?: ProductTypeKey; invalidType?: string } = {}) {
+  return <PublishFlowImpl editingId={editingIdProp} productTypeKey={productTypeKey} invalidType={invalidType} />;
 }
+
+
 
 // Deprecated enum values (`finance`, `leadership`, `purpose`, `business`)
 // are intentionally excluded here — each one is superseded by a newer
@@ -142,18 +111,8 @@ const STEPS = [
 ];
 type StepNum = 1 | 2 | 3 | 4;
 
-function PublishFlowImpl({
-  editingId: editingIdProp,
-  productTypeKey,
-  invalidType,
-}: {
-  editingId?: string;
-  productTypeKey?: ProductTypeKey;
-  invalidType?: string;
-}) {
-  const [editProductTypeKey, setEditProductTypeKey] = useState<ProductTypeKey | undefined>(
-    undefined,
-  );
+function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType }: { editingId?: string; productTypeKey?: ProductTypeKey; invalidType?: string }) {
+  const [editProductTypeKey, setEditProductTypeKey] = useState<ProductTypeKey | undefined>(undefined);
   const typeCfg = getProductType(productTypeKey ?? editProductTypeKey);
   const navigate = useNavigate();
 
@@ -172,20 +131,14 @@ function PublishFlowImpl({
   });
   function setAdminInstantApprove(next: boolean) {
     setAdminInstantApproveState(next);
-    try {
-      window.localStorage.setItem("av:admin-instant-approve", next ? "1" : "0");
-    } catch {
-      /* ignore */
-    }
+    try { window.localStorage.setItem("av:admin-instant-approve", next ? "1" : "0"); } catch { /* ignore */ }
   }
   // Only actually bypass when the user is an admin AND the toggle is on.
   const bypassReview = isAdmin && adminInstantApprove;
 
   useEffect(() => {
     if (invalidType) {
-      toast.warning(
-        `Unknown product type "${invalidType}" — defaulting to ${typeCfg.label}. Choose a category below to continue.`,
-      );
+      toast.warning(`Unknown product type "${invalidType}" — defaulting to ${typeCfg.label}. Choose a category below to continue.`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invalidType]);
@@ -213,9 +166,7 @@ function PublishFlowImpl({
   const [whatsIncluded, setWhatsIncluded] = useState("");
   const [description, setDescription] = useState("");
   const [language, setLanguage] = useState("English");
-  const [category, setCategory] = useState<import("@/lib/product-types").ProductCategoryEnum>(
-    typeCfg.category,
-  );
+  const [category, setCategory] = useState<import("@/lib/product-types").ProductCategoryEnum>(typeCfg.category);
   const [subcategory, setSubcategory] = useState<string | null>(typeCfg.subcategory ?? null);
   // LEVEL 3 taxonomy + delivery descriptor (src/lib/taxonomy.ts)
   const [productTypeSlug, setProductTypeSlug] = useState<string | null>(null);
@@ -243,9 +194,7 @@ function PublishFlowImpl({
   const [previewPages, setPreviewPages] = useState<number[]>([]);
 
   // Step 3
-  const [price, setPrice] = useState<string>(() =>
-    productTypeKey && !editingIdProp ? (typeCfg.suggestedPriceCents / 100).toFixed(2) : "",
-  );
+  const [price, setPrice] = useState<string>(() => (productTypeKey && !editingIdProp ? (typeCfg.suggestedPriceCents / 100).toFixed(2) : ""));
   const [premium, setPremium] = useState(false);
   const [territory] = useState("Worldwide");
 
@@ -257,9 +206,7 @@ function PublishFlowImpl({
   const [fileUploadError, setFileUploadError] = useState<string | null>(null);
   const [uploadedCoverUrl, setUploadedCoverUrl] = useState<string | null>(null);
   const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
-  const [uploadedFileMeta, setUploadedFileMeta] = useState<{ name: string; size: number } | null>(
-    null,
-  );
+  const [uploadedFileMeta, setUploadedFileMeta] = useState<{ name: string; size: number } | null>(null);
   // Per-zone upload state — zones operate independently
   const [coverUploading, setCoverUploading] = useState(false);
   const [coverProgress, setCoverProgress] = useState(0);
@@ -276,24 +223,18 @@ function PublishFlowImpl({
   const [showPreview, setShowPreview] = useState(false);
 
   // Draft banner (offer to resume previous unsaved draft from DB)
-  const [draftBanner, setDraftBanner] = useState<{
-    savedAt: string;
-    productId: string;
-    title: string;
-  } | null>(null);
+  const [draftBanner, setDraftBanner] = useState<{ savedAt: string; productId: string; title: string } | null>(null);
 
   function rememberDraftProductId(next: string | null) {
     draftProductIdRef.current = next;
     setDraftProductId(next);
   }
+  
+
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from("seller_applications")
-      .select("status")
-      .eq("user_id", user.id)
-      .maybeSingle()
+    supabase.from("seller_applications").select("status").eq("user_id", user.id).maybeSingle()
       .then(({ data }) => setCanSell(data?.status === "approved"));
   }, [user]);
 
@@ -322,17 +263,11 @@ function PublishFlowImpl({
 
   function resumeDraft() {
     if (!draftBanner) return;
-    navigate({
-      to: "/dashboard/new",
-      search: { id: draftBanner.productId, type: undefined, invalidType: undefined },
-    });
+    navigate({ to: "/dashboard/new", search: { id: draftBanner.productId, type: undefined, invalidType: undefined } });
   }
 
   async function discardDraft() {
-    if (!draftBanner || !user) {
-      setDraftBanner(null);
-      return;
-    }
+    if (!draftBanner || !user) { setDraftBanner(null); return; }
     await supabase
       .from("marketplace_products")
       .delete()
@@ -354,22 +289,13 @@ function PublishFlowImpl({
     metadata: null,
   });
   const [autosavingKind, setAutosavingKind] = useState<AutosaveKind | null>(null);
-  const lastAutosaveOptsRef = useRef<
-    Record<
-      AutosaveKind,
-      | {
-          coverUrl?: string | null;
-          filePath?: string | null;
-          fileSize?: number | null;
-        }
-      | undefined
-    >
-  >({ cover: undefined, manuscript: undefined, metadata: undefined });
-
-  function classifyKind(opts?: {
+  const lastAutosaveOptsRef = useRef<Record<AutosaveKind, {
     coverUrl?: string | null;
     filePath?: string | null;
-  }): AutosaveKind {
+    fileSize?: number | null;
+  } | undefined>>({ cover: undefined, manuscript: undefined, metadata: undefined });
+
+  function classifyKind(opts?: { coverUrl?: string | null; filePath?: string | null }): AutosaveKind {
     if (opts?.coverUrl !== undefined) return "cover";
     if (opts?.filePath !== undefined) return "manuscript";
     return "metadata";
@@ -403,23 +329,16 @@ function PublishFlowImpl({
     try {
       const priceCents = Math.round((parseFloat(price || "0") || 0) * 100);
       const notes = JSON.stringify({
-        seriesName: seriesName || null,
-        edition: edition || null,
+        seriesName: seriesName || null, edition: edition || null,
         whatsIncluded: whatsIncluded || null,
-        keywords,
-        ageRange,
-        ownsRights,
-        drm,
-        premium,
-        territory: "Worldwide",
+        keywords, ageRange, ownsRights, drm, premium, territory: "Worldwide",
       });
       const payload = {
         title: title.trim(),
         subtitle: subtitle.trim() || null,
         description: description.trim(),
         creator_name: author.trim(),
-        language,
-        category,
+        language, category,
         subcategory: subcategory,
         product_type: effectiveProductType,
         delivery_contents: deliveryContents,
@@ -434,10 +353,7 @@ function PublishFlowImpl({
       };
       const targetId = draftProductIdRef.current ?? editingId;
       if (targetId) {
-        const { error } = await supabase
-          .from("marketplace_products")
-          .update(payload)
-          .eq("id", targetId);
+        const { error } = await supabase.from("marketplace_products").update(payload).eq("id", targetId);
         if (error) throw error;
       } else {
         const { data, error } = await supabase
@@ -459,10 +375,7 @@ function PublishFlowImpl({
       const msg =
         e instanceof Error && e.message
           ? e.message
-          : typeof e === "object" &&
-              e &&
-              "message" in e &&
-              typeof (e as { message?: unknown }).message === "string"
+          : typeof e === "object" && e && "message" in e && typeof (e as { message?: unknown }).message === "string"
             ? (e as { message: string }).message
             : "We couldn't save this change. Check your connection and retry.";
       setAutosaveErrors((prev) => ({ ...prev, [kind]: msg }));
@@ -483,6 +396,8 @@ function PublishFlowImpl({
     await autosaveDraftToDB({ ...(opts ?? {}), silent: false });
   }
 
+
+
   // Debounced auto-save on any field change (2s)
   useEffect(() => {
     if (!user) return;
@@ -494,27 +409,14 @@ function PublishFlowImpl({
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    user,
-    title,
-    subtitle,
-    author,
-    seriesName,
-    edition,
-    whatsIncluded,
-    description,
-    language,
-    category,
-    subcategory,
-    productTypeSlug,
-    deliveryContents,
-    keywords,
-    ageRange,
-    ownsRights,
-    drm,
-    premium,
-    price,
-    previewPages,
+    user, title, subtitle, author, seriesName, edition, whatsIncluded, description,
+    language, category, subcategory, productTypeSlug, deliveryContents,
+    keywords, ageRange, ownsRights, drm, premium, price, previewPages,
   ]);
+
+
+
+
 
   // Load product for editing
   useEffect(() => {
@@ -540,8 +442,8 @@ function PublishFlowImpl({
       setAuthor(data.creator_name ?? "Delvin Hale");
       setDescription(data.description ?? "");
       setLanguage(data.language ?? "English");
-      setCategory((data.category as (typeof CATEGORIES)[number]["value"]) ?? "ebooks");
-      setSubcategory((data as unknown as { subcategory?: string | null }).subcategory ?? null);
+     setCategory((data.category as typeof CATEGORIES[number]["value"]) ?? "ebooks");
+     setSubcategory(((data as unknown as { subcategory?: string | null }).subcategory) ?? null);
       {
         const row = data as unknown as {
           product_type?: string | null;
@@ -557,9 +459,7 @@ function PublishFlowImpl({
             null,
         );
         setDeliveryContents(
-          Array.isArray(row.delivery_contents)
-            ? row.delivery_contents.filter((v) => typeof v === "string")
-            : [],
+          Array.isArray(row.delivery_contents) ? row.delivery_contents.filter((v) => typeof v === "string") : [],
         );
       }
       setEditProductTypeKey(
@@ -573,8 +473,7 @@ function PublishFlowImpl({
       setExistingCoverUrl(data.cover_url ?? null);
       setExistingFilePath(data.file_path ?? null);
       const rowPreview = (data as unknown as { preview_pages?: number[] | null }).preview_pages;
-      if (Array.isArray(rowPreview))
-        setPreviewPages(rowPreview.filter((n) => typeof n === "number"));
+      if (Array.isArray(rowPreview)) setPreviewPages(rowPreview.filter((n) => typeof n === "number"));
       setDbUpdatedAt((data.updated_at as string | null) ?? null);
       // Hydrate "uploaded" state so the confirmation bars persist on refresh
       if (data.cover_url) setUploadedCoverUrl(data.cover_url as string);
@@ -583,10 +482,7 @@ function PublishFlowImpl({
         const cleanName = rawName.replace(/^\d+-/, "");
         const restoredExt = cleanName.toLowerCase().split(".").pop() ?? "";
         setUploadedFilePath(data.file_path as string);
-        setUploadedFileMeta({
-          name: cleanName,
-          size: (data.file_size_bytes as number | null) ?? 0,
-        });
+        setUploadedFileMeta({ name: cleanName, size: (data.file_size_bytes as number | null) ?? 0 });
         if (typeCfg.fileExts.includes(restoredExt)) setFileExt(restoredExt);
       }
       try {
@@ -597,8 +493,7 @@ function PublishFlowImpl({
           if (typeof o.seriesName === "string") setSeriesName(o.seriesName);
           if (typeof o.edition === "string") setEdition(o.edition);
           if (typeof o.whatsIncluded === "string") setWhatsIncluded(o.whatsIncluded);
-          if (Array.isArray(o.keywords))
-            setKeywords(o.keywords.filter((k): k is string => typeof k === "string"));
+          if (Array.isArray(o.keywords)) setKeywords(o.keywords.filter((k): k is string => typeof k === "string"));
           if (typeof o.ageRange === "string") setAgeRange(o.ageRange);
           if (typeof o.ownsRights === "boolean") setOwnsRights(o.ownsRights);
           if (typeof o.drm === "boolean") setDrm(o.drm);
@@ -611,6 +506,7 @@ function PublishFlowImpl({
       rememberDraftProductId(editingId);
       setLoadingEdit(false);
     })();
+
   }, [editingId, user, navigate]);
 
   // Cover preview + dim validation
@@ -658,15 +554,13 @@ function PublishFlowImpl({
   async function sniffPdfHeader(f: File): Promise<boolean> {
     try {
       const head = new Uint8Array(await f.slice(0, 5).arrayBuffer());
-      return (
-        String.fromCharCode(
-          head[0] ?? 0,
-          head[1] ?? 0,
-          head[2] ?? 0,
-          head[3] ?? 0,
-          head[4] ?? 0,
-        ) === "%PDF-"
-      );
+      return String.fromCharCode(
+        head[0] ?? 0,
+        head[1] ?? 0,
+        head[2] ?? 0,
+        head[3] ?? 0,
+        head[4] ?? 0,
+      ) === "%PDF-";
     } catch {
       return false;
     }
@@ -691,31 +585,19 @@ function PublishFlowImpl({
 
   function mimeForUploadExt(ext?: string): string | undefined {
     switch ((ext ?? "").toLowerCase()) {
-      case "pdf":
-        return "application/pdf";
-      case "epub":
-        return "application/epub+zip";
-      case "docx":
-        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-      case "xlsx":
-        return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-      case "txt":
-        return "text/plain";
-      case "json":
-        return "application/json";
-      case "csv":
-        return "text/csv";
-      case "zip":
-        return "application/zip";
-      case "mp4":
-        return "video/mp4";
+      case "pdf": return "application/pdf";
+      case "epub": return "application/epub+zip";
+      case "docx": return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      case "xlsx": return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      case "txt": return "text/plain";
+      case "json": return "application/json";
+      case "csv": return "text/csv";
+      case "zip": return "application/zip";
+      case "mp4": return "video/mp4";
       case "jpg":
-      case "jpeg":
-        return "image/jpeg";
-      case "png":
-        return "image/png";
-      default:
-        return undefined;
+      case "jpeg": return "image/jpeg";
+      case "png": return "image/png";
+      default: return undefined;
     }
   }
 
@@ -730,10 +612,7 @@ function PublishFlowImpl({
     return new File([f], safeName, { type: mime, lastModified: f.lastModified });
   }
 
-  function uploadPayloadForFile(
-    f: File,
-    ext?: string,
-  ): { body: File; name: string; contentType?: string } {
+  function uploadPayloadForFile(f: File, ext?: string): { body: File; name: string; contentType?: string } {
     const name = safeStoredFileName(f, ext);
     const contentType = mimeForUploadExt(ext) ?? (f.type || undefined);
     // Keep the original File as the upload body. Wrapping PDFs in `new File([f])`
@@ -748,14 +627,9 @@ function PublishFlowImpl({
     setCoverUploadError(null);
     setUploadedCoverUrl(null);
     setCoverProgress(0);
-    if (!f) {
-      setCover(null);
-      return;
-    }
-    if (!["image/jpeg", "image/png"].includes(f.type))
-      return setCoverError("Cover must be JPG or PNG.");
-    if (f.size > MAX_COVER_MB * 1024 * 1024)
-      return setCoverError(`Cover must be under ${MAX_COVER_MB} MB.`);
+    if (!f) { setCover(null); return; }
+    if (!["image/jpeg", "image/png"].includes(f.type)) return setCoverError("Cover must be JPG or PNG.");
+    if (f.size > MAX_COVER_MB * 1024 * 1024) return setCoverError(`Cover must be under ${MAX_COVER_MB} MB.`);
     setCover(f);
   }
 
@@ -766,13 +640,9 @@ function PublishFlowImpl({
     setUploadedFileMeta(null);
     setFileExt(null);
     setFileProgress(0);
-    if (!f) {
-      setFile(null);
-      return;
-    }
+    if (!f) { setFile(null); return; }
     if (f.size === 0) {
-      const msg =
-        "[EMPTY_FILE] File is empty (0 bytes). Pick the actual document, not a placeholder or shortcut.";
+      const msg = "[EMPTY_FILE] File is empty (0 bytes). Pick the actual document, not a placeholder or shortcut.";
       toast.error("Upload rejected — empty file", { description: msg });
       return setFileError(msg);
     }
@@ -780,18 +650,11 @@ function PublishFlowImpl({
     if (!typeCfg.fileExts.includes(ext)) {
       const nameExt = f.name.toLowerCase().split(".").pop() ?? "";
       const isPdfType = typeCfg.fileExts.includes("pdf");
-      const looksMissingExt =
-        isPdfType &&
-        (!nameExt || nameExt === f.name.toLowerCase() || !nameExt.match(/^[a-z0-9]{2,4}$/));
+      const looksMissingExt = isPdfType && (!nameExt || nameExt === f.name.toLowerCase() || !nameExt.match(/^[a-z0-9]{2,4}$/));
       const msg = looksMissingExt
         ? `[BAD_PDF_HEADER] We couldn't detect a valid %PDF- header in "${f.name}". The bytes don't look like a PDF — make sure you're picking the .pdf file itself (not a .zip, screenshot, or shortcut).`
         : `[UNSUPPORTED_TYPE] Detected ".${ext || "unknown"}" but this product accepts: ${typeCfg.acceptedHint}.`;
-      toast.error(
-        looksMissingExt
-          ? "Upload rejected — invalid PDF bytes"
-          : "Upload rejected — unsupported type",
-        { description: msg, duration: 6000 },
-      );
+      toast.error(looksMissingExt ? "Upload rejected — invalid PDF bytes" : "Upload rejected — unsupported type", { description: msg, duration: 6000 });
       return setFileError(msg);
     }
     // NOTE: We intentionally do NOT enforce f.type against fileMimes here.
@@ -829,9 +692,7 @@ function PublishFlowImpl({
                   : /missing/i.test(res.reason)
                     ? "MISSING_INTERNAL_PART"
                     : "STRUCT_INVALID";
-          const title = isPdf
-            ? "Upload rejected — invalid PDF bytes"
-            : "Upload rejected — invalid manuscript structure";
+          const title = isPdf ? "Upload rejected — invalid PDF bytes" : "Upload rejected — invalid manuscript structure";
           const description = `[${code}] ${res.reason} If the file opens correctly on your device, re-save or re-export it and try again.`;
           toast.error(title, { description, duration: 8000 });
           return setFileError(description);
@@ -859,13 +720,8 @@ function PublishFlowImpl({
   function friendlyUploadError(e: unknown, label: string): string {
     const raw = e instanceof Error ? e.message : String(e ?? "");
     // Attempt to surface an HTTP-ish status if the error object carries one.
-    const status =
-      (typeof e === "object" && e && "statusCode" in e
-        ? (e as { statusCode?: unknown }).statusCode
-        : undefined) ??
-      (typeof e === "object" && e && "status" in e
-        ? (e as { status?: unknown }).status
-        : undefined);
+    const status = (typeof e === "object" && e && "statusCode" in e ? (e as { statusCode?: unknown }).statusCode : undefined)
+      ?? (typeof e === "object" && e && "status" in e ? (e as { status?: unknown }).status : undefined);
     const statusStr = status !== undefined ? ` (HTTP ${String(status)})` : "";
     if (/network|fetch|failed to fetch|load failed|networkerror/i.test(raw))
       return `[NETWORK] ${label} couldn't reach the server${statusStr}. Your connection dropped mid-upload — check signal/Wi-Fi and tap Retry.`;
@@ -889,9 +745,7 @@ function PublishFlowImpl({
 
   async function uploadCoverNow(f: File) {
     if (!user) return;
-    setCoverUploading(true);
-    setCoverProgress(8);
-    setCoverUploadError(null);
+    setCoverUploading(true); setCoverProgress(8); setCoverUploadError(null);
     const tick = setInterval(() => setCoverProgress((p) => (p < 88 ? p + 6 : p)), 250);
     let lastErr: unknown = null;
     try {
@@ -899,9 +753,7 @@ function PublishFlowImpl({
         try {
           const ts = Date.now();
           const coverPath = `${user.id}/${ts}-${f.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-          const up = await supabase.storage
-            .from("product-covers")
-            .upload(coverPath, f, { upsert: false });
+          const up = await supabase.storage.from("product-covers").upload(coverPath, f, { upsert: false });
           if (up.error) throw up.error;
           const { data: pub } = supabase.storage.from("product-covers").getPublicUrl(coverPath);
           const url = pub?.publicUrl ?? null;
@@ -914,9 +766,7 @@ function PublishFlowImpl({
         } catch (e) {
           lastErr = e;
           if (attempt < MAX_AUTO_ATTEMPTS) {
-            setCoverUploadError(
-              `${friendlyUploadError(e, "Cover")} Auto-retrying (${attempt}/${MAX_AUTO_ATTEMPTS - 1})…`,
-            );
+            setCoverUploadError(`${friendlyUploadError(e, "Cover")} Auto-retrying (${attempt}/${MAX_AUTO_ATTEMPTS - 1})…`);
             await sleep(600 * Math.pow(2, attempt - 1));
             setCoverProgress(8);
           }
@@ -931,15 +781,12 @@ function PublishFlowImpl({
 
   async function uploadManuscript(f: File, extHint?: string) {
     if (!user) {
-      const msg =
-        "[NO_SESSION] You're not signed in — routing failure before upload could start. Sign in and try again.";
+      const msg = "[NO_SESSION] You're not signed in — routing failure before upload could start. Sign in and try again.";
       setFileUploadError(msg);
       toast.error("Manuscript upload failed — no session", { description: msg, duration: 8000 });
       return;
     }
-    setFileUploading(true);
-    setFileProgress(8);
-    setFileUploadError(null);
+    setFileUploading(true); setFileProgress(8); setFileUploadError(null);
     const tick = setInterval(() => setFileProgress((p) => (p < 88 ? p + 4 : p)), 300);
     let lastErr: unknown = null;
     let lastPhase: "storage" | "draft" | "unknown" = "unknown";
@@ -948,7 +795,7 @@ function PublishFlowImpl({
         let phase: "storage" | "draft" | "unknown" = "unknown";
         try {
           const ts = Date.now();
-          const ext = extHint ?? (await inferAllowedUploadExt(f));
+          const ext = extHint ?? await inferAllowedUploadExt(f);
           const uploadFile = uploadPayloadForFile(f, ext);
           const path = `${user.id}/${ts}-${uploadFile.name}`;
           phase = "storage";
@@ -969,26 +816,18 @@ function PublishFlowImpl({
           lastErr = e;
           lastPhase = phase;
           if (attempt < MAX_AUTO_ATTEMPTS) {
-            const phaseTag =
-              phase === "storage"
-                ? "[PHASE:STORAGE_UPLOAD] "
-                : phase === "draft"
-                  ? "[PHASE:DRAFT_SAVE] "
-                  : "";
-            setFileUploadError(
-              `${phaseTag}${friendlyUploadError(e, "Manuscript")} Auto-retrying (${attempt}/${MAX_AUTO_ATTEMPTS - 1})…`,
-            );
+            const phaseTag = phase === "storage" ? "[PHASE:STORAGE_UPLOAD] " : phase === "draft" ? "[PHASE:DRAFT_SAVE] " : "";
+            setFileUploadError(`${phaseTag}${friendlyUploadError(e, "Manuscript")} Auto-retrying (${attempt}/${MAX_AUTO_ATTEMPTS - 1})…`);
             await sleep(800 * Math.pow(2, attempt - 1));
             setFileProgress(8);
           }
         }
       }
-      const phaseTag =
-        lastPhase === "storage"
-          ? "[PHASE:STORAGE_UPLOAD] Failed while sending bytes to storage. "
-          : lastPhase === "draft"
-            ? "[PHASE:DRAFT_SAVE] Bytes uploaded, but saving the draft record failed. Your file is in storage — tap Retry to re-link it. "
-            : "";
+      const phaseTag = lastPhase === "storage"
+        ? "[PHASE:STORAGE_UPLOAD] Failed while sending bytes to storage. "
+        : lastPhase === "draft"
+          ? "[PHASE:DRAFT_SAVE] Bytes uploaded, but saving the draft record failed. Your file is in storage — tap Retry to re-link it. "
+          : "";
       const finalMsg = `${phaseTag}${friendlyUploadError(lastErr, "Manuscript")}`;
       setFileUploadError(finalMsg);
       toast.error("Manuscript upload failed", { description: finalMsg, duration: 10000 });
@@ -1007,6 +846,7 @@ function PublishFlowImpl({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cover, coverError, coverChecking, coverDims]);
 
+
   function addKeyword() {
     const k = kwInput.trim();
     if (!k) return;
@@ -1023,7 +863,10 @@ function PublishFlowImpl({
   // blocked by a description that was valid when it was written.
   const effectiveDescMin = isEditing ? LEGACY_DESC_MIN : DESC_MIN;
   const step1Valid =
-    !!title.trim() && !!author.trim() && descTrimLen >= effectiveDescMin && descLen <= DESC_MAX;
+    !!title.trim() &&
+    !!author.trim() &&
+    descTrimLen >= effectiveDescMin &&
+    descLen <= DESC_MAX;
   const hasCover = (!!cover && !coverError && !!coverDims) || (!cover && !!existingCoverUrl);
   const hasFile = (!!file && !fileError) || (!file && !!existingFilePath);
   const step2Valid = ownsRights && hasCover && hasFile;
@@ -1035,16 +878,13 @@ function PublishFlowImpl({
 
   function next() {
     if (step === 1 && !step1Valid) {
-      if (descTrimLen < effectiveDescMin)
-        return toast.error(`Description needs at least ${effectiveDescMin} characters.`);
+      if (descTrimLen < effectiveDescMin) return toast.error(`Description needs at least ${effectiveDescMin} characters.`);
       if (descLen > DESC_MAX) return toast.error(`Description exceeds ${DESC_MAX} characters.`);
       return toast.error("Fill all required fields.");
     }
     if (step === 2 && !step2Valid) {
       if (!ownsRights) return toast.error("You must confirm you own the rights to this content.");
-      return toast.error(
-        isEditing ? "Cover or manuscript is invalid." : "Upload a valid cover and manuscript.",
-      );
+      return toast.error(isEditing ? "Cover or manuscript is invalid." : "Upload a valid cover and manuscript.");
     }
     if (step === 3 && !step3Valid) {
       toast.error("Enter a price greater than $0.00.");
@@ -1088,18 +928,9 @@ function PublishFlowImpl({
       },
     ];
     return items;
-  }, [
-    hasCover,
-    coverError,
-    hasFile,
-    fileError,
-    title,
-    descTrimLen,
-    descLen,
-    price,
-    effectiveDescMin,
-  ]);
+  }, [hasCover, coverError, hasFile, fileError, title, descTrimLen, descLen, price, effectiveDescMin]);
   const checklistPass = checklist.every((c) => c.ok);
+
 
   /**
    * Post-publish verification: re-reads the row from the DB and, for brand-new
@@ -1112,8 +943,7 @@ function PublishFlowImpl({
     id: string,
     publish: boolean,
   ): Promise<{ ok: boolean; reason?: string }> {
-    const expectedStatus: "approved" | "pending" =
-      isEditing && !bypassReview ? "pending" : "approved";
+    const expectedStatus: "approved" | "pending" = isEditing && !bypassReview ? "pending" : "approved";
     const attempts = 5;
     for (let i = 0; i < attempts; i++) {
       const { data: row, error } = await supabase
@@ -1146,6 +976,7 @@ function PublishFlowImpl({
   }
 
   async function uploadAndSave(publish: boolean) {
+
     if (!user) return;
     // For publish we require everything. For drafts (publish=false) allow
     // partial data — the bookshelf can resume the title later.
@@ -1158,9 +989,7 @@ function PublishFlowImpl({
     const willUploadFile = !!file && !uploadedFilePath;
     if (willUploadCover) setCoverUploadError(null);
     if (willUploadFile) setFileUploadError(null);
-    setSubmitting(true);
-    setUploading(true);
-    setUploadProgress(5);
+    setSubmitting(true); setUploading(true); setUploadProgress(5);
     try {
       const ts = Date.now();
       let coverUrl: string | null = uploadedCoverUrl ?? existingCoverUrl;
@@ -1170,18 +999,13 @@ function PublishFlowImpl({
       if (willUploadCover && cover) {
         try {
           const coverPath = `${user.id}/${ts}-${cover.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-          const coverUp = await supabase.storage
-            .from("product-covers")
-            .upload(coverPath, cover, { upsert: false });
+          const coverUp = await supabase.storage.from("product-covers").upload(coverPath, cover, { upsert: false });
           if (coverUp.error) throw coverUp.error;
           const { data: pub } = supabase.storage.from("product-covers").getPublicUrl(coverPath);
           coverUrl = pub?.publicUrl ?? null;
           setUploadedCoverUrl(coverUrl);
         } catch (e) {
-          const msg =
-            e instanceof Error
-              ? e.message
-              : "Cover upload failed. Check your connection and try again.";
+          const msg = e instanceof Error ? e.message : "Cover upload failed. Check your connection and try again.";
           setCoverUploadError(msg);
           throw e;
         }
@@ -1194,22 +1018,17 @@ function PublishFlowImpl({
         const newFilePath = `${user.id}/${ts}-${uploadFile.name}`;
         const t = setInterval(() => setUploadProgress((p) => (p < 90 ? p + 3 : p)), 400);
         try {
-          const fileUp = await supabase.storage
-            .from("product-files")
-            .upload(newFilePath, uploadFile.body, {
-              upsert: false,
-              contentType: uploadFile.contentType,
-            });
+          const fileUp = await supabase.storage.from("product-files").upload(newFilePath, uploadFile.body, {
+            upsert: false,
+            contentType: uploadFile.contentType,
+          });
           if (fileUp.error) throw fileUp.error;
           storedFilePath = newFilePath;
           fileSize = uploadFile.body.size;
           setUploadedFilePath(newFilePath);
           setUploadedFileMeta({ name: uploadFile.name, size: uploadFile.body.size });
         } catch (e) {
-          const msg =
-            e instanceof Error
-              ? e.message
-              : "Manuscript upload failed. Check your connection and try again.";
+          const msg = e instanceof Error ? e.message : "Manuscript upload failed. Check your connection and try again.";
           setFileUploadError(msg);
           throw e;
         } finally {
@@ -1225,9 +1044,7 @@ function PublishFlowImpl({
       if (publish && storedFilePath) {
         try {
           const { validateStoredManuscript } = await import("@/lib/manuscript-validate.functions");
-          const check = await validateStoredManuscript({
-            data: { filePath: storedFilePath, allowedExts: typeCfg.fileExts },
-          });
+          const check = await validateStoredManuscript({ data: { filePath: storedFilePath, allowedExts: typeCfg.fileExts } });
           if (!check.ok) {
             setFileError(check.reason);
             setFileUploadError(check.reason);
@@ -1242,21 +1059,14 @@ function PublishFlowImpl({
       }
 
       const priceCents = Math.round(priceNum * 100);
-      const status: "draft" | "approved" | "pending" = publish
-        ? isEditing && !bypassReview
-          ? "pending"
-          : "approved"
-        : "draft";
+      const status: "draft" | "approved" | "pending" = publish ? (isEditing && !bypassReview ? "pending" : "approved") : "draft";
       const notes = JSON.stringify({
         seriesName: seriesName || null,
         edition: edition || null,
         whatsIncluded: whatsIncluded || null,
         keywords,
         ageRange,
-        ownsRights,
-        drm,
-        premium,
-        territory,
+        ownsRights, drm, premium, territory,
       });
 
       const existingRowId = editingId ?? draftProductIdRef.current;
@@ -1282,36 +1092,28 @@ function PublishFlowImpl({
           ...(publish && status === "approved" ? { approved_at: new Date().toISOString() } : {}),
           ...(fileSize !== undefined ? { file_size_bytes: fileSize } : {}),
         };
-        const { error } = await supabase
-          .from("marketplace_products")
-          .update(update)
-          .eq("id", existingRowId);
+        const { error } = await supabase.from("marketplace_products").update(update).eq("id", existingRowId);
         if (error) throw error;
       } else {
-        const { data: inserted, error } = await supabase
-          .from("marketplace_products")
-          .insert({
-            seller_id: user.id,
-            title: title.trim(),
-            subtitle: subtitle.trim() || null,
-            description: description.trim(),
-            creator_name: author.trim(),
-            language,
-            category,
-            subcategory: subcategory,
-            product_type: effectiveProductType,
-            delivery_contents: deliveryContents,
-            price_cents: priceCents,
-            cover_url: coverUrl,
-            file_path: storedFilePath,
-            file_size_bytes: fileSize,
-            status,
-            published: publish,
-            admin_notes: notes,
-            preview_pages: previewPages,
-          })
-          .select("id")
-          .single();
+        const { data: inserted, error } = await supabase.from("marketplace_products").insert({
+          seller_id: user.id,
+          title: title.trim(),
+          subtitle: subtitle.trim() || null,
+          description: description.trim(),
+          creator_name: author.trim(),
+          language, category,
+          subcategory: subcategory,
+          product_type: effectiveProductType,
+          delivery_contents: deliveryContents,
+          price_cents: priceCents,
+          cover_url: coverUrl,
+          file_path: storedFilePath,
+          file_size_bytes: fileSize,
+          status,
+          published: publish,
+          admin_notes: notes,
+          preview_pages: previewPages,
+        }).select("id").single();
         if (error) throw error;
         savedId = inserted?.id ?? null;
       }
@@ -1324,7 +1126,9 @@ function PublishFlowImpl({
           // appears in the storefront list query) before showing success.
           const verified = await verifyPublished(savedId, publish);
           if (!verified.ok) {
-            toast.error(`Publish did not verify: ${verified.reason}. Please try again.`);
+            toast.error(
+              `Publish did not verify: ${verified.reason}. Please try again.`,
+            );
             return;
           }
           runReview({ data: { productId: savedId } }).catch((err) =>
@@ -1342,34 +1146,26 @@ function PublishFlowImpl({
 
         navigate({ to: "/dashboard" });
       }
+
+
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
-      setSubmitting(false);
-      setUploading(false);
+      setSubmitting(false); setUploading(false);
     }
   }
 
   if (publishedId) {
     return (
       <PublisherShell accent={accent}>
-        <SuccessScreen
-          productId={publishedId}
-          title={title}
-          accent={accent}
-          cover={coverPreview ?? existingCoverUrl}
-          price={priceNum}
-        />
+        <SuccessScreen productId={publishedId} title={title} accent={accent} cover={coverPreview ?? existingCoverUrl} price={priceNum} />
       </PublisherShell>
     );
   }
 
   return (
     <PublisherShell accent={accent}>
-      <Link
-        to="/dashboard"
-        className="inline-flex items-center gap-1.5 text-sm text-mute hover:text-navy"
-      >
+      <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-mute hover:text-navy">
         <ArrowLeft size={14} /> Back to Bookshelf
       </Link>
       <h1 className="font-display text-3xl md:text-4xl text-navy mt-3">
@@ -1391,15 +1187,14 @@ function PublishFlowImpl({
 
       <VerifyPdfUploadButton />
 
-      {loadingEdit && <p className="mt-2 text-xs text-mute">Loading title…</p>}
+
+      {loadingEdit && (
+        <p className="mt-2 text-xs text-mute">Loading title…</p>
+      )}
 
       {canSell === false && (
         <div className="mt-6 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
-          You're not an approved seller yet.{" "}
-          <Link to="/sell" className="underline font-medium">
-            Apply to sell
-          </Link>{" "}
-          first.
+          You're not an approved seller yet. <Link to="/sell" className="underline font-medium">Apply to sell</Link> first.
         </div>
       )}
 
@@ -1408,25 +1203,24 @@ function PublishFlowImpl({
           <Save size={16} className="shrink-0" />
           <span className="flex-1">
             You have an unsaved draft from{" "}
-            <strong>{new Date(draftBanner.savedAt).toLocaleString()}</strong> — continue where you
-            left off?
+            <strong>{new Date(draftBanner.savedAt).toLocaleString()}</strong> — continue where you left off?
           </span>
           <button
-            type="button"
-            onClick={resumeDraft}
+            type="button" onClick={resumeDraft}
             className="rounded-full bg-amber-600 hover:bg-amber-700 text-white px-4 py-1.5 text-xs font-semibold"
           >
             Resume
           </button>
           <button
-            type="button"
-            onClick={discardDraft}
+            type="button" onClick={discardDraft}
             className="rounded-full border border-amber-300 bg-white hover:bg-amber-100 text-amber-900 px-4 py-1.5 text-xs font-semibold"
           >
             Start Fresh
           </button>
         </div>
       )}
+
+
 
       {(autosaveErrors.cover || autosaveErrors.manuscript || autosaveErrors.metadata) && (
         <div
@@ -1445,11 +1239,9 @@ function PublishFlowImpl({
               const err = autosaveErrors[kind];
               if (!err) return null;
               const label =
-                kind === "cover"
-                  ? "Cover link"
-                  : kind === "manuscript"
-                    ? "Manuscript link"
-                    : "Details (title, description, price)";
+                kind === "cover" ? "Cover link" :
+                kind === "manuscript" ? "Manuscript link" :
+                "Details (title, description, price)";
               const isRetrying = autosavingKind === kind;
               return (
                 <li key={kind} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
@@ -1466,16 +1258,14 @@ function PublishFlowImpl({
                       aria-busy={isRetrying}
                       aria-label={`Retry saving ${label}`}
                     >
-                      {isRetrying ? (
-                        <Loader2 size={12} className="animate-spin" />
-                      ) : (
-                        <RefreshCw size={12} />
-                      )}
+                      {isRetrying ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
                       {isRetrying ? "Retrying…" : "Retry"}
                     </button>
                     <button
                       type="button"
-                      onClick={() => setAutosaveErrors((prev) => ({ ...prev, [kind]: null }))}
+                      onClick={() =>
+                        setAutosaveErrors((prev) => ({ ...prev, [kind]: null }))
+                      }
                       className="text-red-700 hover:text-red-900 rounded-full p-1"
                       aria-label={`Dismiss ${label} error`}
                     >
@@ -1490,19 +1280,12 @@ function PublishFlowImpl({
       )}
 
       <div className="flex items-center justify-between gap-3">
-        <StepperBar
-          step={step}
-          step1Label={typeCfg.isEbook ? "Book Details" : `${typeCfg.label} Details`}
-        />
-        <div
-          aria-live="polite"
-          className="hidden sm:flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-mute min-h-[20px]"
-        >
+        <StepperBar step={step} step1Label={typeCfg.isEbook ? "Book Details" : `${typeCfg.label} Details`} />
+        <div aria-live="polite" className="hidden sm:flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-mute min-h-[20px]">
           {(["metadata", "cover", "manuscript"] as const).map((kind) => {
             const err = autosaveErrors[kind];
             const busy = autosavingKind === kind;
-            const label =
-              kind === "cover" ? "Cover" : kind === "manuscript" ? "Manuscript" : "Details";
+            const label = kind === "cover" ? "Cover" : kind === "manuscript" ? "Manuscript" : "Details";
             if (busy) {
               return (
                 <span key={kind} className="inline-flex items-center gap-1">
@@ -1522,9 +1305,7 @@ function PublishFlowImpl({
             return null;
           })}
           {!autosaving &&
-            !autosaveErrors.cover &&
-            !autosaveErrors.manuscript &&
-            !autosaveErrors.metadata &&
+            !autosaveErrors.cover && !autosaveErrors.manuscript && !autosaveErrors.metadata &&
             lastSavedAt && (
               <span className="inline-flex items-center gap-1">
                 <CheckCircle2 size={12} className="text-emerald-600" aria-hidden="true" />
@@ -1534,6 +1315,9 @@ function PublishFlowImpl({
         </div>
       </div>
 
+
+
+
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         <div
           className="bg-white rounded-2xl p-6 md:p-8 border transition-colors duration-300"
@@ -1541,74 +1325,44 @@ function PublishFlowImpl({
         >
           {step === 1 && (
             <StepDetails
-              title={title}
-              setTitle={setTitle}
-              subtitle={subtitle}
-              setSubtitle={setSubtitle}
-              author={author}
-              setAuthor={setAuthor}
-              seriesName={seriesName}
-              setSeriesName={setSeriesName}
-              edition={edition}
-              setEdition={setEdition}
-              whatsIncluded={whatsIncluded}
-              setWhatsIncluded={setWhatsIncluded}
+              title={title} setTitle={setTitle}
+              subtitle={subtitle} setSubtitle={setSubtitle}
+              author={author} setAuthor={setAuthor}
+              seriesName={seriesName} setSeriesName={setSeriesName}
+              edition={edition} setEdition={setEdition}
+              whatsIncluded={whatsIncluded} setWhatsIncluded={setWhatsIncluded}
               isEbook={typeCfg.isEbook}
               productLabel={typeCfg.label}
-              description={description}
-              setDescription={setDescription}
-              descMin={effectiveDescMin}
-              language={language}
-              setLanguage={setLanguage}
-              category={category}
-              setCategory={setCategory}
-              subcategory={subcategory}
-              setSubcategory={setSubcategory}
-              productTypeSlug={productTypeSlug}
-              setProductTypeSlug={setProductTypeSlug}
-              deliveryContents={deliveryContents}
-              setDeliveryContents={setDeliveryContents}
-              keywords={keywords}
-              setKeywords={setKeywords}
-              kwInput={kwInput}
-              setKwInput={setKwInput}
-              addKeyword={addKeyword}
-              ageRange={ageRange}
-              setAgeRange={setAgeRange}
+              description={description} setDescription={setDescription} descMin={effectiveDescMin}
+              language={language} setLanguage={setLanguage}
+              category={category} setCategory={setCategory}
+              subcategory={subcategory} setSubcategory={setSubcategory}
+              productTypeSlug={productTypeSlug} setProductTypeSlug={setProductTypeSlug}
+              deliveryContents={deliveryContents} setDeliveryContents={setDeliveryContents}
+              keywords={keywords} setKeywords={setKeywords}
+              kwInput={kwInput} setKwInput={setKwInput} addKeyword={addKeyword}
+              ageRange={ageRange} setAgeRange={setAgeRange}
             />
           )}
           {step === 2 && (
             <StepContent
-              ownsRights={ownsRights}
-              setOwnsRights={setOwnsRights}
-              drm={drm}
-              setDrm={setDrm}
-              cover={cover}
-              coverPreview={coverPreview}
-              coverDims={coverDims}
-              coverError={coverError}
-              coverChecking={coverChecking}
+              ownsRights={ownsRights} setOwnsRights={setOwnsRights}
+              drm={drm} setDrm={setDrm}
+              cover={cover} coverPreview={coverPreview} coverDims={coverDims}
+              coverError={coverError} coverChecking={coverChecking}
               handleCoverChange={handleCoverChange}
-              file={file}
-              fileError={fileError}
-              handleFileChange={handleFileChange}
+              file={file} fileError={fileError} handleFileChange={handleFileChange}
               fileExt={fileExt}
               onZoomCover={() => setCoverLightbox(true)}
               existingCoverUrl={existingCoverUrl}
               existingFilePath={existingFilePath}
               coverUploadError={coverUploadError}
               fileUploadError={fileUploadError}
-              onRetryCover={() => {
-                if (cover) void uploadCoverNow(cover);
-              }}
-              onRetryFile={() => {
-                if (file) void uploadManuscript(file);
-              }}
+              onRetryCover={() => { if (cover) void uploadCoverNow(cover); }}
+              onRetryFile={() => { if (file) void uploadManuscript(file); }}
               retryDisabled={coverUploading || fileUploading}
-              coverUploading={coverUploading}
-              coverProgress={coverProgress}
-              fileUploading={fileUploading}
-              fileProgress={fileProgress}
+              coverUploading={coverUploading} coverProgress={coverProgress}
+              fileUploading={fileUploading} fileProgress={fileProgress}
               uploadedCoverUrl={uploadedCoverUrl}
               uploadedFilePath={uploadedFilePath}
               uploadedFileMeta={uploadedFileMeta}
@@ -1620,37 +1374,27 @@ function PublishFlowImpl({
               deliveryProductId={editingId ?? null}
               deliverySellerId={user?.id ?? null}
             />
+
           )}
           {step === 3 && (
             <StepPricing
-              price={price}
-              setPrice={setPrice}
-              royaltyPct={royaltyPct}
-              royalty={royalty}
-              premium={premium}
-              setPremium={setPremium}
+              price={price} setPrice={setPrice}
+              royaltyPct={royaltyPct} royalty={royalty}
+              premium={premium} setPremium={setPremium}
               territory={territory}
             />
           )}
           {step === 4 && (
             <StepReview
               accent={accent}
-              cover={coverPreview}
-              title={title}
-              subtitle={subtitle}
-              author={author}
-              price={priceNum}
-              royalty={royalty}
-              format={typeCfg.categoryLabel}
-              territory={territory}
+              cover={coverPreview} title={title} subtitle={subtitle} author={author}
+              price={priceNum} royalty={royalty}
+              format={typeCfg.categoryLabel} territory={territory}
               category={category}
-              uploading={uploading}
-              uploadProgress={uploadProgress}
-              submitting={submitting}
-              disabled={canSell === false}
+              uploading={uploading} uploadProgress={uploadProgress}
+              submitting={submitting} disabled={canSell === false}
               autosaving={autosaving}
-              checklist={checklist}
-              checklistPass={checklistPass}
+              checklist={checklist} checklistPass={checklistPass}
               onGoToStep={(s: StepNum) => setStep(s)}
               onDraft={() => uploadAndSave(false)}
               onPublish={() => uploadAndSave(true)}
@@ -1665,11 +1409,11 @@ function PublishFlowImpl({
             />
           )}
 
+
           {step < 4 ? (
             <div className="flex flex-wrap items-center justify-between gap-3 mt-8 pt-5 border-t border-ink/10">
               <button
-                type="button"
-                disabled={step === 1}
+                type="button" disabled={step === 1}
                 onClick={() => setStep((step - 1) as StepNum)}
                 className="h-11 px-5 rounded-full text-navy font-medium hover:bg-ink/5 disabled:opacity-40 inline-flex items-center gap-1.5"
               >
@@ -1677,65 +1421,36 @@ function PublishFlowImpl({
               </button>
               <div className="flex gap-2 ml-auto">
                 <button
-                  type="button"
-                  onClick={() => uploadAndSave(false)}
-                  disabled={submitting || autosaving || !title.trim()}
+                  type="button" onClick={() => uploadAndSave(false)} disabled={submitting || autosaving || !title.trim()}
                   className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title={
-                    autosaving
-                      ? "Saving in progress…"
-                      : "Save progress as a draft in your bookshelf"
-                  }
+                  title={autosaving ? "Saving in progress…" : "Save progress as a draft in your bookshelf"}
                   aria-busy={submitting || autosaving}
                 >
-                  {submitting || autosaving ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Save size={14} />
-                  )}
+                  {submitting || autosaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                   {submitting ? "Saving…" : autosaving ? "Saving…" : "Save Progress"}
                 </button>
                 <button
-                  type="button"
-                  onClick={next}
+                  type="button" onClick={next}
                   disabled={submitting || autosaving}
                   className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-1.5 transition-colors duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{ background: accent.color }}
                   aria-busy={submitting || autosaving}
                 >
-                  {autosaving ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" /> Saving…
-                    </>
-                  ) : (
-                    <>
-                      Continue <ArrowRight size={16} />
-                    </>
-                  )}
+                  {autosaving ? <><Loader2 size={16} className="animate-spin" /> Saving…</> : <>Continue <ArrowRight size={16} /></>}
                 </button>
               </div>
             </div>
           ) : (
             <div className="mt-6 flex items-center justify-between">
-              <button
-                onClick={() => setStep(3)}
-                disabled={submitting}
-                className="text-sm text-mute hover:text-navy inline-flex items-center gap-1.5 disabled:opacity-50"
-              >
+              <button onClick={() => setStep(3)} disabled={submitting} className="text-sm text-mute hover:text-navy inline-flex items-center gap-1.5 disabled:opacity-50">
                 <ArrowLeft size={14} /> Back to pricing
               </button>
               <button
-                type="button"
-                onClick={() => uploadAndSave(false)}
-                disabled={submitting || autosaving || !title.trim()}
+                type="button" onClick={() => uploadAndSave(false)} disabled={submitting || autosaving || !title.trim()}
                 className="h-10 px-4 rounded-full border border-navy/20 text-navy text-sm font-semibold hover:bg-navy/5 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-busy={submitting || autosaving}
               >
-                {submitting || autosaving ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Save size={14} />
-                )}
+                {submitting || autosaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                 {submitting ? "Saving…" : autosaving ? "Saving…" : "Save Progress"}
               </button>
             </div>
@@ -1745,75 +1460,46 @@ function PublishFlowImpl({
         {/* Live preview panel */}
         <aside className="hidden lg:block">
           <div className="sticky top-6 bg-white rounded-2xl border border-ink/10 p-5">
-            <p
-              className="text-[11px] uppercase tracking-wider font-semibold"
-              style={{ color: accent.color }}
-            >
+            <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: accent.color }}>
               Store preview
             </p>
             <div className="mt-3 mx-auto w-44 aspect-[1/1.6] rounded-md bg-gradient-to-br from-navy to-[#22335A] shadow-lg overflow-hidden">
               {coverPreview ? (
                 <img src={coverPreview} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">
-                  No cover
-                </div>
+                <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">No cover</div>
               )}
             </div>
             <div className="mt-4 text-center">
-              <div className="font-display text-navy leading-tight">
-                {title || "Your title here"}
-              </div>
+              <div className="font-display text-navy leading-tight">{title || "Your title here"}</div>
               {subtitle && <div className="text-xs text-mute italic mt-0.5">{subtitle}</div>}
               <div className="text-xs text-mute mt-1">by {author}</div>
-              {priceNum > 0 && (
-                <div className="mt-2 font-mono text-navy">${priceNum.toFixed(2)}</div>
-              )}
+              {priceNum > 0 && <div className="mt-2 font-mono text-navy">${priceNum.toFixed(2)}</div>}
             </div>
           </div>
         </aside>
+
       </div>
       {coverLightbox && coverPreview && (
-        <CoverLightbox
-          src={coverPreview}
-          fileName={cover?.name}
-          onClose={() => setCoverLightbox(false)}
-        />
+        <CoverLightbox src={coverPreview} fileName={cover?.name} onClose={() => setCoverLightbox(false)} />
       )}
       {showPreview && (
         <PrePublishPreview
           accent={accent}
           onClose={() => setShowPreview(false)}
-          onGoToStep={(s: StepNum) => {
-            setShowPreview(false);
-            setStep(s);
-          }}
-          onConfirm={() => {
-            setShowPreview(false);
-            uploadAndSave(true);
-          }}
+          onGoToStep={(s: StepNum) => { setShowPreview(false); setStep(s); }}
+          onConfirm={() => { setShowPreview(false); uploadAndSave(true); }}
           checklist={checklist}
           checklistPass={checklistPass}
           submitting={submitting}
           cover={coverPreview}
           coverFullUrl={uploadedCoverUrl ?? existingCoverUrl ?? coverPreview}
-          title={title}
-          subtitle={subtitle}
-          author={author}
-          description={description}
-          price={priceNum}
-          royalty={royalty}
-          fileName={
-            uploadedFileMeta?.name ??
-            file?.name ??
-            (existingFilePath
-              ? (existingFilePath.split("/").pop() ?? "Existing manuscript").replace(/^\d+-/, "")
-              : null)
-          }
+          title={title} subtitle={subtitle} author={author} description={description}
+          price={priceNum} royalty={royalty}
+          fileName={uploadedFileMeta?.name ?? file?.name ?? (existingFilePath ? (existingFilePath.split("/").pop() ?? "Existing manuscript").replace(/^\d+-/, "") : null)}
           fileSize={uploadedFileMeta?.size ?? file?.size ?? null}
           manuscriptPath={uploadedFilePath ?? existingFilePath}
-          category={category}
-          territory={territory}
+          category={category} territory={territory}
         />
       )}
 
@@ -1847,9 +1533,7 @@ function StepperBar({ step, step1Label = "Book Details" }: { step: StepNum; step
               >
                 {done ? <Check size={12} /> : s.n}
               </span>
-              <span className={`text-xs font-medium ${active || done ? "text-navy" : "text-mute"}`}>
-                {s.n === 1 ? step1Label : s.title}
-              </span>
+              <span className={`text-xs font-medium ${active || done ? "text-navy" : "text-mute"}`}>{s.n === 1 ? step1Label : s.title}</span>
             </div>
           </li>
         );
@@ -1861,102 +1545,46 @@ function StepperBar({ step, step1Label = "Book Details" }: { step: StepNum; step
 /* ---------- Step 1: Book Details ---------- */
 
 function StepDetails(p: {
-  title: string;
-  setTitle: (v: string) => void;
-  subtitle: string;
-  setSubtitle: (v: string) => void;
-  author: string;
-  setAuthor: (v: string) => void;
-  seriesName: string;
-  setSeriesName: (v: string) => void;
-  edition: string;
-  setEdition: (v: string) => void;
-  whatsIncluded: string;
-  setWhatsIncluded: (v: string) => void;
+  title: string; setTitle: (v: string) => void;
+  subtitle: string; setSubtitle: (v: string) => void;
+  author: string; setAuthor: (v: string) => void;
+  seriesName: string; setSeriesName: (v: string) => void;
+  edition: string; setEdition: (v: string) => void;
+  whatsIncluded: string; setWhatsIncluded: (v: string) => void;
   isEbook: boolean;
   productLabel?: string;
-  description: string;
-  setDescription: (v: string) => void;
-  descMin: number;
-  language: string;
-  setLanguage: (v: string) => void;
-  category: (typeof CATEGORIES)[number]["value"];
-  setCategory: (v: (typeof CATEGORIES)[number]["value"]) => void;
-  subcategory: string | null;
-  setSubcategory: (v: string | null) => void;
-  productTypeSlug: string | null;
-  setProductTypeSlug: (v: string | null) => void;
-  deliveryContents: string[];
-  setDeliveryContents: (v: string[]) => void;
-  keywords: string[];
-  setKeywords: (v: string[]) => void;
-  kwInput: string;
-  setKwInput: (v: string) => void;
-  addKeyword: () => void;
-  ageRange: string;
-  setAgeRange: (v: string) => void;
+  description: string; setDescription: (v: string) => void; descMin: number;
+  language: string; setLanguage: (v: string) => void;
+  category: typeof CATEGORIES[number]["value"]; setCategory: (v: typeof CATEGORIES[number]["value"]) => void;
+  subcategory: string | null; setSubcategory: (v: string | null) => void;
+  productTypeSlug: string | null; setProductTypeSlug: (v: string | null) => void;
+  deliveryContents: string[]; setDeliveryContents: (v: string[]) => void;
+  keywords: string[]; setKeywords: (v: string[]) => void;
+  kwInput: string; setKwInput: (v: string) => void; addKeyword: () => void;
+  ageRange: string; setAgeRange: (v: string) => void;
 }) {
   return (
     <div className="space-y-5">
-      <h2 className="font-display text-2xl text-navy">
-        {p.isEbook ? "Book details" : `${p.productLabel ?? "Product"} details`}
-      </h2>
+      <h2 className="font-display text-2xl text-navy">{p.isEbook ? "Book details" : `${p.productLabel ?? "Product"} details`}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <Field label="Title *">
-          <input
-            className="inp"
-            value={p.title}
-            onChange={(e) => p.setTitle(e.target.value)}
-            placeholder="e.g. The Stewardship Codex"
-          />
-        </Field>
-        <Field label="Subtitle">
-          <input
-            className="inp"
-            value={p.subtitle}
-            onChange={(e) => p.setSubtitle(e.target.value)}
-            placeholder="A field guide"
-          />
-        </Field>
-        <Field label="Author / Publisher *">
-          <input className="inp" value={p.author} onChange={(e) => p.setAuthor(e.target.value)} />
-        </Field>
+        <Field label="Title *"><input className="inp" value={p.title} onChange={(e) => p.setTitle(e.target.value)} placeholder="e.g. The Stewardship Codex" /></Field>
+        <Field label="Subtitle"><input className="inp" value={p.subtitle} onChange={(e) => p.setSubtitle(e.target.value)} placeholder="A field guide" /></Field>
+        <Field label="Author / Publisher *"><input className="inp" value={p.author} onChange={(e) => p.setAuthor(e.target.value)} /></Field>
         {p.isEbook && (
-          <Field label="Series name">
-            <input
-              className="inp"
-              value={p.seriesName}
-              onChange={(e) => p.setSeriesName(e.target.value)}
-              placeholder="Optional"
-            />
-          </Field>
+          <Field label="Series name"><input className="inp" value={p.seriesName} onChange={(e) => p.setSeriesName(e.target.value)} placeholder="Optional" /></Field>
         )}
         {p.isEbook && (
-          <Field label="Edition">
-            <input
-              className="inp"
-              value={p.edition}
-              onChange={(e) => p.setEdition(e.target.value)}
-              placeholder="e.g. Second Edition"
-            />
-          </Field>
+          <Field label="Edition"><input className="inp" value={p.edition} onChange={(e) => p.setEdition(e.target.value)} placeholder="e.g. Second Edition" /></Field>
         )}
         <Field label="Language">
-          <select
-            className="inp"
-            value={p.language}
-            onChange={(e) => p.setLanguage(e.target.value)}
-          >
-            {LANGUAGES.map((l) => (
-              <option key={l}>{l}</option>
-            ))}
+          <select className="inp" value={p.language} onChange={(e) => p.setLanguage(e.target.value)}>
+            {LANGUAGES.map((l) => <option key={l}>{l}</option>)}
           </select>
         </Field>
       </div>
       <Field label="Description *">
         <p className="mb-2 text-xs text-mute">
-          Cover who it's for, the problem it solves, what's included, and how it's used — specific,
-          real descriptions rank and convert better than generic ones.
+          Cover who it's for, the problem it solves, what's included, and how it's used — specific, real descriptions rank and convert better than generic ones.
         </p>
         <textarea
           rows={6}
@@ -1964,11 +1592,7 @@ function StepDetails(p: {
           value={p.description}
           maxLength={DESC_MAX}
           onChange={(e) => p.setDescription(e.target.value.slice(0, DESC_MAX))}
-          placeholder={
-            p.isEbook
-              ? "What's in this book? Who is it for?"
-              : `What's in this ${(p.productLabel ?? "product").toLowerCase()}? Who is it for?`
-          }
+          placeholder={p.isEbook ? "What's in this book? Who is it for?" : `What's in this ${(p.productLabel ?? "product").toLowerCase()}? Who is it for?`}
         />
         <DescriptionCounter value={p.description} min={p.descMin} />
       </Field>
@@ -1984,6 +1608,7 @@ function StepDetails(p: {
           />
         </Field>
       )}
+
 
       <div className="rounded-2xl border border-ink/10 bg-paper/60 p-5 space-y-5">
         <div className="text-[11px] font-bold uppercase tracking-caps text-mute">
@@ -2005,14 +1630,8 @@ function StepDetails(p: {
           />
           <ProductTypeField value={p.productTypeSlug} onChange={p.setProductTypeSlug} />
           <Field label="Age / Grade range">
-            <select
-              className="inp"
-              value={p.ageRange}
-              onChange={(e) => p.setAgeRange(e.target.value)}
-            >
-              {AGE_RANGES.map((a) => (
-                <option key={a}>{a}</option>
-              ))}
+            <select className="inp" value={p.ageRange} onChange={(e) => p.setAgeRange(e.target.value)}>
+              {AGE_RANGES.map((a) => <option key={a}>{a}</option>)}
             </select>
           </Field>
         </div>
@@ -2021,17 +1640,9 @@ function StepDetails(p: {
       <Field label={`Keywords (${p.keywords.length}/7)`}>
         <div className="flex flex-wrap gap-2 mb-2">
           {p.keywords.map((k) => (
-            <span
-              key={k}
-              className="inline-flex items-center gap-1 rounded-full bg-paper border border-ink/10 px-3 py-1 text-xs text-navy"
-            >
+            <span key={k} className="inline-flex items-center gap-1 rounded-full bg-paper border border-ink/10 px-3 py-1 text-xs text-navy">
               {k}
-              <button
-                type="button"
-                onClick={() => p.setKeywords(p.keywords.filter((x) => x !== k))}
-                className="text-mute hover:text-red-600"
-                aria-label={`Remove ${k}`}
-              >
+              <button type="button" onClick={() => p.setKeywords(p.keywords.filter((x) => x !== k))} className="text-mute hover:text-red-600" aria-label={`Remove ${k}`}>
                 <X size={12} />
               </button>
             </span>
@@ -2042,21 +1653,11 @@ function StepDetails(p: {
             className="inp"
             value={p.kwInput}
             onChange={(e) => p.setKwInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                p.addKeyword();
-              }
-            }}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); p.addKeyword(); } }}
             placeholder="Type a keyword and press Enter"
             disabled={p.keywords.length >= 7}
           />
-          <button
-            type="button"
-            onClick={p.addKeyword}
-            disabled={p.keywords.length >= 7}
-            className="rounded-full bg-navy text-white px-4 text-sm disabled:opacity-40"
-          >
+          <button type="button" onClick={p.addKeyword} disabled={p.keywords.length >= 7} className="rounded-full bg-navy text-white px-4 text-sm disabled:opacity-40">
             Add
           </button>
         </div>
@@ -2068,19 +1669,12 @@ function StepDetails(p: {
 /* ---------- Step 2: Content & Rights ---------- */
 
 function StepContent(p: {
-  ownsRights: boolean;
-  setOwnsRights: (v: boolean) => void;
-  drm: boolean;
-  setDrm: (v: boolean) => void;
-  cover: File | null;
-  coverPreview: string | null;
-  coverDims: { w: number; h: number } | null;
-  coverError: string | null;
-  coverChecking: boolean;
+  ownsRights: boolean; setOwnsRights: (v: boolean) => void;
+  drm: boolean; setDrm: (v: boolean) => void;
+  cover: File | null; coverPreview: string | null; coverDims: { w: number; h: number } | null;
+  coverError: string | null; coverChecking: boolean;
   handleCoverChange: (f: File | null) => void;
-  file: File | null;
-  fileError: string | null;
-  handleFileChange: (f: File | null) => void;
+  file: File | null; fileError: string | null; handleFileChange: (f: File | null) => void;
   fileExt: string | null;
   onZoomCover: () => void;
   existingCoverUrl: string | null;
@@ -2090,10 +1684,8 @@ function StepContent(p: {
   onRetryCover: () => void;
   onRetryFile: () => void;
   retryDisabled: boolean;
-  coverUploading: boolean;
-  coverProgress: number;
-  fileUploading: boolean;
-  fileProgress: number;
+  coverUploading: boolean; coverProgress: number;
+  fileUploading: boolean; fileProgress: number;
   uploadedCoverUrl: string | null;
   uploadedFilePath: string | null;
   uploadedFileMeta: { name: string; size: number } | null;
@@ -2116,30 +1708,21 @@ function StepContent(p: {
       <div className="rounded-xl border border-ink/10 p-4 bg-paper/50">
         <p className="text-sm font-medium text-navy">Do you own the rights to this content?</p>
         <div className="mt-2 flex gap-2">
-          <RightsBtn active={p.ownsRights} onClick={() => p.setOwnsRights(true)}>
-            Yes, I own the rights
-          </RightsBtn>
-          <RightsBtn active={!p.ownsRights} onClick={() => p.setOwnsRights(false)}>
-            No
-          </RightsBtn>
+          <RightsBtn active={p.ownsRights} onClick={() => p.setOwnsRights(true)}>Yes, I own the rights</RightsBtn>
+          <RightsBtn active={!p.ownsRights} onClick={() => p.setOwnsRights(false)}>No</RightsBtn>
         </div>
       </div>
 
       <Toggle
         label="Enable Digital Rights Management (DRM)"
         description="Restrict copying and sharing of this title."
-        checked={p.drm}
-        onChange={p.setDrm}
+        checked={p.drm} onChange={p.setDrm}
       />
 
       <div>
-        <h3 className="font-display text-lg text-navy mb-2">
-          {p.typeCfg.isEbook ? "Manuscript" : "Product file"}
-        </h3>
-        <p className="text-xs text-mute mb-3">
-          Accepted: {p.typeCfg.acceptedHint}. Max {MAX_FILE_MB} MB.
-        </p>
-        {p.fileUploading || (fileDone && (p.uploadedFileMeta || p.file)) ? (
+        <h3 className="font-display text-lg text-navy mb-2">{p.typeCfg.isEbook ? "Manuscript" : "Product file"}</h3>
+        <p className="text-xs text-mute mb-3">Accepted: {p.typeCfg.acceptedHint}. Max {MAX_FILE_MB} MB.</p>
+        {(p.fileUploading || (fileDone && (p.uploadedFileMeta || p.file))) ? (
           <div className="space-y-2">
             <UploadSuccess
               iconLabel="manuscript"
@@ -2166,34 +1749,23 @@ function StepContent(p: {
             file={p.file}
             onFile={p.handleFileChange}
             accept={p.typeCfg.acceptString}
-            hint={
-              p.typeCfg.isEbook
-                ? "Drag & drop or tap to choose your manuscript"
-                : `Drag & drop or tap to choose your ${p.typeCfg.label.toLowerCase()} file`
-            }
+            hint={p.typeCfg.isEbook ? "Drag & drop or tap to choose your manuscript" : `Drag & drop or tap to choose your ${p.typeCfg.label.toLowerCase()} file`}
             acceptedHint={p.typeCfg.acceptedHint}
           />
         )}
         {p.fileError && (
           <div className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
-            <AlertCircle size={16} className="mt-0.5 shrink-0" />
-            <span>{p.fileError}</span>
+            <AlertCircle size={16} className="mt-0.5 shrink-0" /><span>{p.fileError}</span>
           </div>
         )}
         {p.fileUploadError && (
-          <div
-            role="alert"
-            data-testid="manuscript-upload-error"
-            className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3"
-          >
+          <div role="alert" data-testid="manuscript-upload-error" className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
             <AlertCircle size={16} className="mt-0.5 shrink-0" />
             <div className="flex-1">
               <p className="font-semibold">Manuscript upload failed</p>
               <p className="text-xs mt-0.5 break-words">{p.fileUploadError}</p>
               <button
-                type="button"
-                onClick={p.onRetryFile}
-                disabled={p.retryDisabled}
+                type="button" onClick={p.onRetryFile} disabled={p.retryDisabled}
                 data-testid="manuscript-retry-upload"
                 className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5"
               >
@@ -2208,9 +1780,9 @@ function StepContent(p: {
       <div>
         <h3 className="font-display text-lg text-navy mb-1">Digital delivery</h3>
         <p className="text-xs text-mute mb-3">
-          Upload the primary customer bundle (ZIP, PDF, XLSX, DOCX or CSV) plus any individual
-          supporting files buyers receive. ZIP is only a delivery format — your product still lists
-          in its normal category.
+          Upload the primary customer bundle (ZIP, PDF, XLSX, DOCX or CSV) plus any
+          individual supporting files buyers receive. ZIP is only a delivery format —
+          your product still lists in its normal category.
         </p>
         {p.deliveryProductId && p.deliverySellerId ? (
           <ProductDeliveryFilesManager
@@ -2219,8 +1791,8 @@ function StepContent(p: {
           />
         ) : (
           <p className="rounded-lg border border-ink/10 bg-paper/60 p-3 text-xs text-mute">
-            Save this title first — the bundle uploader unlocks as soon as the product exists, then
-            you can attach the ZIP and its supporting files.
+            Save this title first — the bundle uploader unlocks as soon as the product
+            exists, then you can attach the ZIP and its supporting files.
           </p>
         )}
       </div>
@@ -2229,9 +1801,10 @@ function StepContent(p: {
       <div>
         <h3 className="font-display text-lg text-navy mb-1">Public preview pages</h3>
         <p className="text-xs text-mute mb-3">
-          Pick up to 5 pages buyers can preview on your product page. Each preview page is
-          watermarked ("AURUMVAULT PREVIEW — NOT FOR DISTRIBUTION") before it's shown, so
-          screenshots can't replace the real file.
+          Pick up to 5 pages buyers can preview on your product page. Each
+          preview page is watermarked ("AURUMVAULT PREVIEW — NOT FOR
+          DISTRIBUTION") before it's shown, so screenshots can't replace the
+          real file.
         </p>
         <PreviewPagePicker
           filePath={p.uploadedFilePath ?? p.existingFilePath}
@@ -2257,30 +1830,16 @@ function StepContent(p: {
       <div>
         <h3 className="font-display text-lg text-navy mb-2">Cover</h3>
         <p className="text-xs text-mute mb-3">JPG or PNG, minimum 1600×2560 px (1:1.6 portrait).</p>
-        <CoverInput
-          file={p.cover}
-          preview={p.coverPreview}
-          onFile={p.handleCoverChange}
-          acceptedHint="JPG, PNG"
-          onZoom={p.onZoomCover}
-          uploaded={coverDone}
-        />
-        {p.coverChecking && (
-          <div className="mt-2 text-xs text-mute">Checking image dimensions…</div>
-        )}
+        <CoverInput file={p.cover} preview={p.coverPreview} onFile={p.handleCoverChange} acceptedHint="JPG, PNG" onZoom={p.onZoomCover} uploaded={coverDone} />
+        {p.coverChecking && <div className="mt-2 text-xs text-mute">Checking image dimensions…</div>}
         {p.coverDims && (
           <div className="mt-2 text-xs text-mute">
-            Detected: {p.coverDims.w}×{p.coverDims.h}px · ratio{" "}
-            {(p.coverDims.w / p.coverDims.h).toFixed(3)} · minimum {MIN_COVER_W}×{MIN_COVER_H}px
+            Detected: {p.coverDims.w}×{p.coverDims.h}px · ratio {(p.coverDims.w / p.coverDims.h).toFixed(3)} · minimum {MIN_COVER_W}×{MIN_COVER_H}px
           </div>
         )}
         {p.coverError && (
-          <div
-            role="alert"
-            className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3"
-          >
-            <AlertCircle size={16} className="mt-0.5 shrink-0" />
-            <span>{p.coverError}</span>
+          <div role="alert" className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+            <AlertCircle size={16} className="mt-0.5 shrink-0" /><span>{p.coverError}</span>
           </div>
         )}
         {(p.coverUploading || coverDone) && (
@@ -2296,19 +1855,13 @@ function StepContent(p: {
           </div>
         )}
         {p.coverUploadError && (
-          <div
-            role="alert"
-            data-testid="cover-upload-error"
-            className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3"
-          >
+          <div role="alert" data-testid="cover-upload-error" className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
             <AlertCircle size={16} className="mt-0.5 shrink-0" />
             <div className="flex-1">
               <p className="font-semibold">Cover upload failed</p>
               <p className="text-xs mt-0.5 break-words">{p.coverUploadError}</p>
               <button
-                type="button"
-                onClick={p.onRetryCover}
-                disabled={p.retryDisabled}
+                type="button" onClick={p.onRetryCover} disabled={p.retryDisabled}
                 data-testid="cover-retry-upload"
                 className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5"
               >
@@ -2331,35 +1884,13 @@ function StepContent(p: {
   );
 }
 
-function UploadSuccess({
-  iconLabel,
-  name,
-  size,
-  onReplace,
-  busy = false,
-  progress,
-}: {
-  iconLabel: string;
-  name: string;
-  size: number;
-  onReplace: () => void;
-  busy?: boolean;
-  progress?: number;
-}) {
-  const sizeLabel =
-    size > 1024 * 1024
-      ? `${(size / 1024 / 1024).toFixed(2)} MB`
-      : size > 0
-        ? `${Math.max(1, Math.round(size / 1024))} KB`
-        : "—";
+function UploadSuccess({ iconLabel, name, size, onReplace, busy = false, progress }: { iconLabel: string; name: string; size: number; onReplace: () => void; busy?: boolean; progress?: number }) {
+  const sizeLabel = size > 1024 * 1024 ? `${(size / 1024 / 1024).toFixed(2)} MB` : size > 0 ? `${Math.max(1, Math.round(size / 1024))} KB` : "—";
   const pct = Math.max(0, Math.min(100, Math.round(progress ?? 0)));
   return (
     <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50/60 p-4">
       <div className="flex items-center gap-3">
-        <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700"
-          aria-hidden="true"
-        >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700" aria-hidden="true">
           <CheckCircle2 size={22} />
         </span>
         <div className="min-w-0 flex-1">
@@ -2371,10 +1902,7 @@ function UploadSuccess({
           </p>
         </div>
         <button
-          type="button"
-          onClick={onReplace}
-          disabled={busy}
-          aria-disabled={busy}
+          type="button" onClick={onReplace} disabled={busy} aria-disabled={busy}
           title={busy ? `Upload in progress — ${pct}%` : undefined}
           className="shrink-0 rounded-full border border-navy/20 bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
         >
@@ -2382,36 +1910,21 @@ function UploadSuccess({
         </button>
       </div>
       {busy && (
-        <div
-          className="mt-3 h-1.5 bg-ink/10 rounded-full overflow-hidden"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={pct}
-        >
-          <div
-            className="h-full transition-all"
-            style={{ width: `${pct}%`, background: "var(--page-accent)" }}
-          />
+        <div className="mt-3 h-1.5 bg-ink/10 rounded-full overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
+          <div className="h-full transition-all" style={{ width: `${pct}%`, background: "var(--page-accent)" }} />
         </div>
       )}
     </div>
   );
 }
 
-function RightsBtn({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
+
+
+
+function RightsBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
-      type="button"
-      onClick={onClick}
+      type="button" onClick={onClick}
       className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${active ? "text-white border-transparent" : "bg-white text-ink border-ink/15 hover:bg-paper"}`}
       style={active ? { background: "var(--page-accent)" } : undefined}
     >
@@ -2420,30 +1933,16 @@ function RightsBtn({
   );
 }
 
-function Toggle({
-  label,
-  description,
-  checked,
-  onChange,
-}: {
-  label: string;
-  description?: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
+function Toggle({ label, description, checked, onChange }: { label: string; description?: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <label className="flex items-start gap-3 cursor-pointer">
       <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
+        type="button" role="switch" aria-checked={checked}
         onClick={() => onChange(!checked)}
         className="relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200"
         style={{ background: checked ? "var(--page-accent)" : "#d1d5db" }}
       >
-        <span
-          className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"} mt-0.5`}
-        />
+        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"} mt-0.5`} />
       </button>
       <span className="text-sm">
         <span className="block font-medium text-navy">{label}</span>
@@ -2455,22 +1954,9 @@ function Toggle({
 
 /* ---------- Step 3: Pricing ---------- */
 
-function StepPricing({
-  price,
-  setPrice,
-  royaltyPct,
-  royalty,
-  premium,
-  setPremium,
-  territory,
-}: {
-  price: string;
-  setPrice: (v: string) => void;
-  royaltyPct: number;
-  royalty: number;
-  premium: boolean;
-  setPremium: (v: boolean) => void;
-  territory: string;
+function StepPricing({ price, setPrice, royaltyPct, royalty, premium, setPremium, territory }: {
+  price: string; setPrice: (v: string) => void; royaltyPct: number; royalty: number;
+  premium: boolean; setPremium: (v: boolean) => void; territory: string;
 }) {
   const pct = Math.round(royaltyPct * 100);
   return (
@@ -2486,23 +1972,16 @@ function StepPricing({
           </span>
           <input
             id="list-price-input"
-            type="number"
-            min="1"
-            step="0.01"
-            inputMode="decimal"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="inp"
-            style={{ paddingLeft: 28 }}
-            placeholder="9.99"
+            type="number" min="1" step="0.01" inputMode="decimal"
+            value={price} onChange={(e) => setPrice(e.target.value)}
+            className="inp" style={{ paddingLeft: 28 }} placeholder="9.99"
           />
         </div>
         {(!price || parseFloat(price) <= 0) && (
-          <p className="mt-2 text-sm text-red-600">
-            Enter a list price greater than $0.00 to continue.
-          </p>
+          <p className="mt-2 text-sm text-red-600">Enter a list price greater than $0.00 to continue.</p>
         )}
       </Field>
+
 
       <div
         className="rounded-2xl p-5 text-white transition-colors duration-300"
@@ -2513,28 +1992,22 @@ function StepPricing({
           <p className="text-sm font-semibold uppercase tracking-wider">Royalty estimate</p>
         </div>
         <p className="mt-2 text-white/90">
-          You earn <strong>{pct}%</strong> ={" "}
-          <span className="font-display text-2xl">${royalty.toFixed(2)}</span> per sale.
+          You earn <strong>{pct}%</strong> = <span className="font-display text-2xl">${royalty.toFixed(2)}</span> per sale.
         </p>
-        <p className="mt-1 text-xs text-white/70">
-          Based on your current list price. AurumVault keeps the remaining {100 - pct}%.
-        </p>
+        <p className="mt-1 text-xs text-white/70">Based on your current list price. AurumVault keeps the remaining {100 - pct}%.</p>
       </div>
 
       <Toggle
         label="Include in AurumVault Premium"
         description="Premium subscribers (like Kindle Unlimited) get access. You earn a share of pooled revenue per page-read."
-        checked={premium}
-        onChange={setPremium}
+        checked={premium} onChange={setPremium}
       />
 
       <Field label="Territory">
         <div className="inp inline-flex items-center gap-2 cursor-not-allowed bg-paper">
           <Globe size={14} className="text-mute" />
           <span>{territory}</span>
-          <span className="ml-auto text-xs text-mute">
-            Available everywhere AurumVault operates
-          </span>
+          <span className="ml-auto text-xs text-mute">Available everywhere AurumVault operates</span>
         </div>
       </Field>
     </div>
@@ -2543,57 +2016,17 @@ function StepPricing({
 
 /* ---------- Step 4: Review ---------- */
 
-function StepReview({
-  accent,
-  cover,
-  title,
-  subtitle,
-  author,
-  price,
-  royalty,
-  format,
-  territory,
-  category,
-  uploading,
-  uploadProgress,
-  submitting,
-  disabled,
-  autosaving,
-  checklist,
-  checklistPass,
-  onGoToStep,
-  onDraft,
-  onPublish,
-  onZoomCover,
-  onOpenPreview,
-  isEditing,
-  lastUpdatedAt,
-  onCancel,
-  isAdmin,
-  adminInstantApprove,
-  onToggleAdminInstantApprove,
-}: {
+function StepReview({ accent, cover, title, subtitle, author, price, royalty, format, territory, category, uploading, uploadProgress, submitting, disabled, autosaving, checklist, checklistPass, onGoToStep, onDraft, onPublish, onZoomCover, onOpenPreview, isEditing, lastUpdatedAt, onCancel, isAdmin, adminInstantApprove, onToggleAdminInstantApprove }: {
   accent: PublisherAccent;
-  cover: string | null;
-  title: string;
-  subtitle: string;
-  author: string;
-  price: number;
-  royalty: number;
-  format: string;
-  territory: string;
+  cover: string | null; title: string; subtitle: string; author: string;
+  price: number; royalty: number; format: string; territory: string;
   category: string;
-  uploading: boolean;
-  uploadProgress: number;
-  submitting: boolean;
-  disabled: boolean;
+  uploading: boolean; uploadProgress: number; submitting: boolean; disabled: boolean;
   autosaving: boolean;
   checklist: Array<{ id: string; label: string; ok: boolean; gotoStep: StepNum }>;
   checklistPass: boolean;
   onGoToStep: (s: StepNum) => void;
-  onDraft: () => void;
-  onPublish: () => void;
-  onZoomCover: () => void;
+  onDraft: () => void; onPublish: () => void; onZoomCover: () => void;
   onOpenPreview: () => void;
   isEditing?: boolean;
   lastUpdatedAt?: string | null;
@@ -2605,33 +2038,20 @@ function StepReview({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-display text-2xl text-navy">
-          {isEditing ? "Review & update" : "Review & publish"}
-        </h2>
+        <h2 className="font-display text-2xl text-navy">{isEditing ? "Review & update" : "Review & publish"}</h2>
         {isEditing && lastUpdatedAt && (
-          <span className="text-xs text-mute">
-            Last updated {new Date(lastUpdatedAt).toLocaleString()}
-          </span>
+          <span className="text-xs text-mute">Last updated {new Date(lastUpdatedAt).toLocaleString()}</span>
         )}
       </div>
 
       <button
-        type="button"
-        onClick={onOpenPreview}
+        type="button" onClick={onOpenPreview}
         disabled={submitting || autosaving}
         className="w-full h-12 rounded-full font-semibold inline-flex items-center justify-center gap-2 text-white shadow-md hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed"
         style={{ background: accent.color }}
         aria-busy={submitting || autosaving}
       >
-        {autosaving ? (
-          <>
-            <Loader2 size={16} className="animate-spin" /> Saving draft…
-          </>
-        ) : (
-          <>
-            <Eye size={16} /> Preview Your Listing
-          </>
-        )}
+        {autosaving ? <><Loader2 size={16} className="animate-spin" /> Saving draft…</> : <><Eye size={16} /> Preview Your Listing</>}
       </button>
 
       {/* KDP-style storefront preview card */}
@@ -2641,11 +2061,7 @@ function StepReview({
         </p>
         <div className="mt-4 mx-auto max-w-[260px]">
           <div className="rounded-xl bg-white border border-ink/10 shadow-sm overflow-hidden">
-            <button
-              type="button"
-              onClick={onZoomCover}
-              className="block w-full aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A] overflow-hidden"
-            >
+            <button type="button" onClick={onZoomCover} className="block w-full aspect-[1/1.6] bg-gradient-to-br from-navy to-[#22335A] overflow-hidden">
               <CoverThumb
                 src={cover}
                 title={title}
@@ -2655,57 +2071,36 @@ function StepReview({
               />
             </button>
             <div className="p-3">
-              <span
-                className="inline-block text-[10px] uppercase tracking-wider font-semibold rounded-full px-2 py-0.5"
-                style={{ background: `${accent.color}22`, color: accent.color }}
-              >
+              <span className="inline-block text-[10px] uppercase tracking-wider font-semibold rounded-full px-2 py-0.5"
+                style={{ background: `${accent.color}22`, color: accent.color }}>
                 {category}
               </span>
-              <p className="mt-1.5 font-display text-base text-navy leading-tight line-clamp-2">
-                {title || "Untitled"}
-              </p>
+              <p className="mt-1.5 font-display text-base text-navy leading-tight line-clamp-2">{title || "Untitled"}</p>
               <p className="text-xs text-mute mt-0.5 truncate">by {author || "—"}</p>
-              <div
-                className="mt-1.5 flex items-center gap-0.5"
-                aria-label="0 of 5 stars, no reviews yet"
-              >
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <svg key={i} viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-ink/15">
-                    <path d="M12 17.3 5.8 21l1.6-7L2 9.3l7.1-.6L12 2l2.9 6.7 7.1.6-5.4 4.7 1.6 7z" />
-                  </svg>
+              <div className="mt-1.5 flex items-center gap-0.5" aria-label="0 of 5 stars, no reviews yet">
+                {[0,1,2,3,4].map((i) => (
+                  <svg key={i} viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-ink/15"><path d="M12 17.3 5.8 21l1.6-7L2 9.3l7.1-.6L12 2l2.9 6.7 7.1.6-5.4 4.7 1.6 7z"/></svg>
                 ))}
                 <span className="ml-1 text-[10px] text-mute">(0)</span>
               </div>
               <div className="mt-2 flex items-baseline justify-between">
                 <span className="font-mono text-navy font-semibold">${price.toFixed(2)}</span>
-                <button
-                  type="button"
-                  disabled
-                  className="text-[11px] rounded-full bg-ink/10 text-mute px-3 py-1.5 cursor-not-allowed"
-                >
-                  Add to Cart
-                </button>
+                <button type="button" disabled className="text-[11px] rounded-full bg-ink/10 text-mute px-3 py-1.5 cursor-not-allowed">Add to Cart</button>
               </div>
             </div>
           </div>
         </div>
         <dl className="mt-5 grid grid-cols-2 gap-y-1.5 text-xs text-mute max-w-md mx-auto">
-          <dt>Format</dt>
-          <dd className="text-navy text-right">{format}</dd>
-          <dt>List price</dt>
-          <dd className="text-navy font-mono text-right">${price.toFixed(2)}</dd>
-          <dt>Your royalty</dt>
-          <dd className="text-navy font-mono text-right">${royalty.toFixed(2)}</dd>
-          <dt>Territory</dt>
-          <dd className="text-navy text-right">{territory}</dd>
+          <dt>Format</dt><dd className="text-navy text-right">{format}</dd>
+          <dt>List price</dt><dd className="text-navy font-mono text-right">${price.toFixed(2)}</dd>
+          <dt>Your royalty</dt><dd className="text-navy font-mono text-right">${royalty.toFixed(2)}</dd>
+          <dt>Territory</dt><dd className="text-navy text-right">{territory}</dd>
         </dl>
       </div>
 
       {/* Pre-publish checklist */}
       <div className="rounded-2xl border border-ink/10 bg-white p-5">
-        <p className="text-[11px] uppercase tracking-wider font-semibold text-mute">
-          Pre-publish checklist
-        </p>
+        <p className="text-[11px] uppercase tracking-wider font-semibold text-mute">Pre-publish checklist</p>
         <ul className="mt-3 space-y-2">
           {checklist.map((c) => (
             <li key={c.id} className="flex items-center gap-2 text-sm">
@@ -2717,8 +2112,7 @@ function StepReview({
               <span className={c.ok ? "text-navy" : "text-red-700 font-medium"}>{c.label}</span>
               {!c.ok && (
                 <button
-                  type="button"
-                  onClick={() => onGoToStep(c.gotoStep)}
+                  type="button" onClick={() => onGoToStep(c.gotoStep)}
                   className="ml-auto text-xs text-red-700 underline hover:no-underline"
                 >
                   Fix this →
@@ -2731,15 +2125,9 @@ function StepReview({
 
       {uploading && (
         <div>
-          <div className="flex justify-between text-xs text-mute mb-1">
-            <span>Publishing…</span>
-            <span>{uploadProgress}%</span>
-          </div>
+          <div className="flex justify-between text-xs text-mute mb-1"><span>Publishing…</span><span>{uploadProgress}%</span></div>
           <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
-            <div
-              className="h-full transition-all"
-              style={{ width: `${uploadProgress}%`, background: accent.color }}
-            />
+            <div className="h-full transition-all" style={{ width: `${uploadProgress}%`, background: accent.color }} />
           </div>
         </div>
       )}
@@ -2753,30 +2141,28 @@ function StepReview({
             onChange={(e) => onToggleAdminInstantApprove(e.target.checked)}
           />
           <span className="text-sm">
-            <span className="block font-semibold text-amber-900">Admin: skip review on update</span>
+            <span className="block font-semibold text-amber-900">
+              Admin: skip review on update
+            </span>
             <span className="block text-amber-800/80 text-xs mt-0.5">
-              Publish this edit as <strong>approved</strong> immediately instead of sending it back
-              to the 24-hour review queue. Only visible to admins.
+              Publish this edit as <strong>approved</strong> immediately instead of sending it back to the 24-hour review queue. Only visible to admins.
             </span>
           </span>
         </label>
       )}
 
+
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         {isEditing && onCancel && (
           <button
-            type="button"
-            disabled={submitting}
-            onClick={onCancel}
+            type="button" disabled={submitting} onClick={onCancel}
             className="h-12 px-5 rounded-full bg-white border border-navy/20 text-navy font-semibold hover:bg-navy/5 disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
           >
             Cancel
           </button>
         )}
         <button
-          type="button"
-          disabled={submitting || autosaving || disabled}
-          onClick={onDraft}
+          type="button" disabled={submitting || autosaving || disabled} onClick={onDraft}
           className="h-12 px-5 rounded-full bg-white border border-navy/20 text-navy font-semibold hover:bg-navy/5 disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
           aria-busy={submitting || autosaving}
         >
@@ -2784,37 +2170,23 @@ function StepReview({
           {autosaving ? "Saving…" : submitting ? "Saving…" : "Save as Draft"}
         </button>
         <button
-          type="button"
-          disabled={submitting || autosaving || disabled || !checklistPass}
-          onClick={onPublish}
+          type="button" disabled={submitting || autosaving || disabled || !checklistPass} onClick={onPublish}
           className="flex-1 h-12 rounded-full text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 transition-colors duration-300"
           style={{ background: accent.color }}
-          title={
-            !checklistPass
-              ? "Resolve checklist items above"
-              : autosaving
-                ? "Saving in progress…"
-                : undefined
-          }
+          title={!checklistPass ? "Resolve checklist items above" : autosaving ? "Saving in progress…" : undefined}
           aria-busy={submitting}
         >
           {submitting ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
-          {submitting
-            ? isEditing
-              ? "Updating…"
-              : "Publishing…"
-            : autosaving
-              ? "Saving draft…"
-              : isEditing
-                ? "Update Title"
-                : "Publish to Vault"}
+          {submitting ? (isEditing ? "Updating…" : "Publishing…") : autosaving ? "Saving draft…" : (isEditing ? "Update Title" : "Publish to Vault")}
         </button>
       </div>
     </div>
   );
 }
 
+
 /* ---------- Success screen is imported from PublishSuccessScreen.tsx ---------- */
+
 
 /* ---------- Shared inputs ---------- */
 
@@ -2831,53 +2203,15 @@ function useDropZone(onFile: (f: File | null) => void) {
   const [isOver, setIsOver] = useState(false);
   const counter = useRef(0);
   const handlers = {
-    onDragEnter: (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      counter.current += 1;
-      if (e.dataTransfer?.types?.includes("Files")) setIsOver(true);
-    },
-    onDragOver: (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
-    },
-    onDragLeave: (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      counter.current -= 1;
-      if (counter.current <= 0) {
-        counter.current = 0;
-        setIsOver(false);
-      }
-    },
-    onDrop: (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      counter.current = 0;
-      setIsOver(false);
-      const f = e.dataTransfer?.files?.[0] ?? null;
-      if (f) onFile(f);
-    },
+    onDragEnter: (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); counter.current += 1; if (e.dataTransfer?.types?.includes("Files")) setIsOver(true); },
+    onDragOver: (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); if (e.dataTransfer) e.dataTransfer.dropEffect = "copy"; },
+    onDragLeave: (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); counter.current -= 1; if (counter.current <= 0) { counter.current = 0; setIsOver(false); } },
+    onDrop: (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); counter.current = 0; setIsOver(false); const f = e.dataTransfer?.files?.[0] ?? null; if (f) onFile(f); },
   };
   return { isOver, handlers };
 }
 
-function CoverInput({
-  file,
-  preview,
-  onFile,
-  acceptedHint,
-  onZoom,
-  uploaded,
-}: {
-  file: File | null;
-  preview: string | null;
-  onFile: (f: File | null) => void;
-  acceptedHint: string;
-  onZoom?: () => void;
-  uploaded?: boolean;
-}) {
+function CoverInput({ file, preview, onFile, acceptedHint, onZoom, uploaded }: { file: File | null; preview: string | null; onFile: (f: File | null) => void; acceptedHint: string; onZoom?: () => void; uploaded?: boolean }) {
   const ref = useRef<HTMLInputElement>(null);
   const { isOver, handlers } = useDropZone(onFile);
   const openReplace = () => {
@@ -2901,26 +2235,11 @@ function CoverInput({
               onFile(f);
             }}
           />
-          <div
-            className="relative rounded-xl border border-ink/10 bg-paper overflow-hidden"
-            {...handlers}
-          >
-            <div
-              className="relative mx-auto bg-white group"
-              style={{ aspectRatio: "1 / 1.6", maxWidth: "300px" }}
-            >
-              <img
-                src={preview}
-                alt="Cover preview"
-                className="w-full h-full object-cover shadow-lg"
-              />
+          <div className="relative rounded-xl border border-ink/10 bg-paper overflow-hidden" {...handlers}>
+            <div className="relative mx-auto bg-white group" style={{ aspectRatio: "1 / 1.6", maxWidth: "300px" }}>
+              <img src={preview} alt="Cover preview" className="w-full h-full object-cover shadow-lg" />
               {onZoom && (
-                <button
-                  type="button"
-                  onClick={onZoom}
-                  className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-navy/80 hover:bg-navy text-white text-xs font-medium px-2.5 py-1.5 backdrop-blur"
-                  aria-label="View full size"
-                >
+                <button type="button" onClick={onZoom} className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-navy/80 hover:bg-navy text-white text-xs font-medium px-2.5 py-1.5 backdrop-blur" aria-label="View full size">
                   <Maximize2 size={12} /> Full size
                 </button>
               )}
@@ -2931,31 +2250,12 @@ function CoverInput({
               )}
             </div>
 
-            {isOver && (
-              <div className="absolute inset-0 bg-gold/20 border-2 border-dashed border-gold rounded-xl flex items-center justify-center pointer-events-none">
-                <span className="text-sm font-semibold text-navy">Drop to replace</span>
-              </div>
-            )}
+            {isOver && <div className="absolute inset-0 bg-gold/20 border-2 border-dashed border-gold rounded-xl flex items-center justify-center pointer-events-none"><span className="text-sm font-semibold text-navy">Drop to replace</span></div>}
             <div className="flex items-center justify-between px-3 py-2 bg-white border-t border-ink/10">
-              <span className="text-xs text-mute truncate">
-                {file?.name} {file ? `· ${(file.size / 1024 / 1024).toFixed(2)} MB` : ""}
-              </span>
+              <span className="text-xs text-mute truncate">{file?.name} {file ? `· ${(file.size / 1024 / 1024).toFixed(2)} MB` : ""}</span>
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={openReplace}
-                  className="text-xs font-medium text-navy hover:underline"
-                >
-                  Replace
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onFile(null)}
-                  className="text-xs text-red-600 hover:underline inline-flex items-center gap-1"
-                >
-                  <X size={12} />
-                  Remove
-                </button>
+                <button type="button" onClick={openReplace} className="text-xs font-medium text-navy hover:underline">Replace</button>
+                <button type="button" onClick={() => onFile(null)} className="text-xs text-red-600 hover:underline inline-flex items-center gap-1"><X size={12} />Remove</button>
               </div>
             </div>
           </div>
@@ -2968,9 +2268,7 @@ function CoverInput({
         >
           <div className="flex flex-col items-center justify-center gap-2">
             <ImageIcon size={28} className={isOver ? "text-gold-ink" : "text-mute"} />
-            <span className="text-sm font-medium text-ink/80">
-              {isOver ? "Drop image here" : "Tap to choose a cover"}
-            </span>
+            <span className="text-sm font-medium text-ink/80">{isOver ? "Drop image here" : "Tap to choose a cover"}</span>
             <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
           </div>
           <input
@@ -3056,26 +2354,9 @@ function buildChromeIosUrl(url: string): string | null {
   }
 }
 
-function FileInput({
-  file,
-  onFile,
-  accept,
-  hint,
-  acceptedHint,
-}: {
-  file: File | null;
-  onFile: (f: File | null) => void;
-  accept: string;
-  hint: string;
-  acceptedHint: string;
-}) {
+function FileInput({ file, onFile, accept, hint, acceptedHint }: { file: File | null; onFile: (f: File | null) => void; accept: string; hint: string; acceptedHint: string }) {
   const { isOver, handlers } = useDropZone(onFile);
-  const [env, setEnv] = useState<{
-    inApp: boolean;
-    hostLabel: string;
-    isAndroid: boolean;
-    isIOS: boolean;
-  }>({ inApp: false, hostLabel: "", isAndroid: false, isIOS: false });
+  const [env, setEnv] = useState<{ inApp: boolean; hostLabel: string; isAndroid: boolean; isIOS: boolean }>({ inApp: false, hostLabel: "", isAndroid: false, isIOS: false });
   useEffect(() => {
     const detected = detectInAppBrowser();
     const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
@@ -3114,7 +2395,11 @@ function FileInput({
     const timer = window.setTimeout(() => {
       copyLink();
     }, 1500);
-    window.addEventListener("pagehide", () => window.clearTimeout(timer), { once: true });
+    window.addEventListener(
+      "pagehide",
+      () => window.clearTimeout(timer),
+      { once: true },
+    );
     window.location.href = target;
   };
   const openInSafari = () => jumpWithFallback(buildSafariUrl(window.location.href));
@@ -3140,15 +2425,15 @@ function FileInput({
                 <>
                   You&apos;re viewing AurumVault inside {env.hostLabel}, which restricts the iOS
                   file picker — that&apos;s why tapping the upload zone appears to do nothing. Tap
-                  the button below to hand this page off to Safari, or open the {env.hostLabel} menu
-                  (••• or the share icon) and choose <b>Open in Safari</b>.
+                  the button below to hand this page off to Safari, or open the {env.hostLabel}{" "}
+                  menu (••• or the share icon) and choose <b>Open in Safari</b>.
                 </>
               ) : (
                 <>
                   You&apos;re viewing AurumVault inside {env.hostLabel}, which silently blocks the
                   file picker on many Android devices — that&apos;s why tapping the upload zone
-                  appears to do nothing. Open this page in Chrome, Samsung Internet, or Safari, then
-                  try again.
+                  appears to do nothing. Open this page in Chrome, Samsung Internet, or Safari,
+                  then try again.
                 </>
               )}
             </p>
@@ -3197,14 +2482,8 @@ function FileInput({
         className={`relative block w-full min-h-[160px] cursor-pointer rounded-xl border-2 border-dashed px-4 py-7 text-center transition active:scale-[0.99] ${isOver ? "border-gold bg-gold/10" : file ? "border-emerald-300 bg-emerald-50/40" : "border-ink/20 bg-paper hover:border-navy/30"}`}
       >
         <div className="flex flex-col items-center justify-center gap-2">
-          {file ? (
-            <FileText size={26} className="text-emerald-700" />
-          ) : (
-            <Plus size={26} className={isOver ? "text-gold-ink" : "text-mute"} />
-          )}
-          <span className="text-sm font-medium text-ink/80">
-            {file ? file.name : isOver ? "Drop file here" : hint}
-          </span>
+          {file ? <FileText size={26} className="text-emerald-700" /> : <Plus size={26} className={isOver ? "text-gold-ink" : "text-mute"} />}
+          <span className="text-sm font-medium text-ink/80">{file ? file.name : isOver ? "Drop file here" : hint}</span>
           <span className="text-xs text-mute">Accepted: {acceptedHint}</span>
         </div>
         <input
@@ -3223,51 +2502,20 @@ function FileInput({
   );
 }
 
-function CoverLightbox({
-  src,
-  fileName,
-  onClose,
-}: {
-  src: string;
-  fileName?: string;
-  onClose: () => void;
-}) {
+function CoverLightbox({ src, fileName, onClose }: { src: string; fileName?: string; onClose: () => void }) {
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeBtnRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener("keydown", onKey);
-    };
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
   }, [onClose]);
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Cover full size"
-      className="fixed inset-0 z-50 bg-navy/90 flex items-center justify-center p-6"
-      onClick={onClose}
-    >
-      <button
-        ref={closeBtnRef}
-        onClick={onClose}
-        className="absolute top-4 right-4 text-white bg-white/10 hover:bg-white/20 rounded-full h-10 w-10 inline-flex items-center justify-center"
-        aria-label="Close"
-      >
-        <X size={20} />
-      </button>
-      <img
-        src={src}
-        alt={fileName ?? "Cover"}
-        className="max-h-[90vh] max-w-full object-contain shadow-2xl rounded-md"
-        onClick={(e) => e.stopPropagation()}
-      />
+    <div role="dialog" aria-modal="true" aria-label="Cover full size" className="fixed inset-0 z-50 bg-navy/90 flex items-center justify-center p-6" onClick={onClose}>
+      <button ref={closeBtnRef} onClick={onClose} className="absolute top-4 right-4 text-white bg-white/10 hover:bg-white/20 rounded-full h-10 w-10 inline-flex items-center justify-center" aria-label="Close"><X size={20} /></button>
+      <img src={src} alt={fileName ?? "Cover"} className="max-h-[90vh] max-w-full object-contain shadow-2xl rounded-md" onClick={(e) => e.stopPropagation()} />
     </div>
   );
 }
@@ -3279,32 +2527,16 @@ function DescriptionCounter({ value, min }: { value: string; min: number }) {
   const tooShort = trimmed > 0 && trimmed < min;
   const warn = len >= DESC_WARN && len < DESC_MAX;
   const max = len >= DESC_MAX;
-  const color = max
-    ? "text-red-600"
-    : warn
-      ? "text-amber-700"
-      : tooShort
-        ? "text-amber-700"
-        : "text-mute";
+  const color = max ? "text-red-600" : warn ? "text-amber-700" : tooShort ? "text-amber-700" : "text-mute";
   return (
     <div className="mt-1 flex items-center justify-between text-xs">
       <span className={color}>
-        {tooShort && (
-          <>
-            {min - trimmed} more characters needed (min {min}).
-          </>
-        )}
+        {tooShort && <>{min - trimmed} more characters needed (min {min}).</>}
         {!tooShort && warn && <>Approaching limit.</>}
         {!tooShort && max && <>Maximum reached — please shorten before publishing.</>}
-        {!tooShort && !warn && !max && (
-          <>
-            Min {min} · Max {DESC_MAX} characters.
-          </>
-        )}
+        {!tooShort && !warn && !max && <>Min {min} · Max {DESC_MAX} characters.</>}
       </span>
-      <span className={`tabular-nums ${color}`}>
-        {len} / {DESC_MAX}
-      </span>
+      <span className={`tabular-nums ${color}`}>{len} / {DESC_MAX}</span>
     </div>
   );
 }
@@ -3324,9 +2556,7 @@ function CoverThumb({
   imgClassName?: string;
 }) {
   const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    setFailed(false);
-  }, [src]);
+  useEffect(() => { setFailed(false); }, [src]);
   const showImg = !!src && !failed;
   if (showImg) {
     return (
@@ -3370,17 +2600,11 @@ function PrePublishPreview(props: {
   submitting: boolean;
   cover: string | null;
   coverFullUrl: string | null;
-  title: string;
-  subtitle: string;
-  author: string;
-  description: string;
-  price: number;
-  royalty: number;
-  fileName: string | null;
-  fileSize: number | null;
+  title: string; subtitle: string; author: string; description: string;
+  price: number; royalty: number;
+  fileName: string | null; fileSize: number | null;
   manuscriptPath: string | null;
-  category: string;
-  territory: string;
+  category: string; territory: string;
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
@@ -3405,14 +2629,14 @@ function PrePublishPreview(props: {
     const getFocusable = (): HTMLElement[] => {
       if (!dialogRef.current) return [];
       const nodes = dialogRef.current.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
       );
       return Array.from(nodes).filter((el) => el.offsetParent !== null);
     };
 
     const getFixButtons = (): HTMLButtonElement[] =>
       dialogRef.current
-        ? Array.from(dialogRef.current.querySelectorAll<HTMLButtonElement>("[data-fix-btn]"))
+        ? Array.from(dialogRef.current.querySelectorAll<HTMLButtonElement>('[data-fix-btn]'))
         : [];
 
     const focusFixByOffset = (offset: 1 | -1) => {
@@ -3420,12 +2644,9 @@ function PrePublishPreview(props: {
       if (fixes.length === 0) return;
       const active = document.activeElement as HTMLElement | null;
       const idx = fixes.findIndex((b) => b === active);
-      const next =
-        idx === -1
-          ? offset === 1
-            ? 0
-            : fixes.length - 1
-          : (idx + offset + fixes.length) % fixes.length;
+      const next = idx === -1
+        ? (offset === 1 ? 0 : fixes.length - 1)
+        : (idx + offset + fixes.length) % fixes.length;
       fixes[next].focus();
     };
 
@@ -3456,12 +2677,7 @@ function PrePublishPreview(props: {
           first.focus();
         }
       }
-      if (
-        (e.ctrlKey || e.metaKey) &&
-        e.key === "Enter" &&
-        props.checklistPass &&
-        !props.submitting
-      ) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && props.checklistPass && !props.submitting) {
         e.preventDefault();
         props.onConfirm();
         return;
@@ -3472,29 +2688,19 @@ function PrePublishPreview(props: {
         // Alt+Arrow shortcuts still allowed below
       }
       if (!isTypingTarget(e.target)) {
-        if (
-          (e.altKey && e.key === "ArrowDown") ||
-          (!e.altKey && !e.metaKey && !e.ctrlKey && (e.key === "j" || e.key === "J"))
-        ) {
+        if ((e.altKey && e.key === "ArrowDown") || (!e.altKey && !e.metaKey && !e.ctrlKey && (e.key === "j" || e.key === "J"))) {
           e.preventDefault();
           focusFixByOffset(1);
           return;
         }
-        if (
-          (e.altKey && e.key === "ArrowUp") ||
-          (!e.altKey && !e.metaKey && !e.ctrlKey && (e.key === "k" || e.key === "K"))
-        ) {
+        if ((e.altKey && e.key === "ArrowUp") || (!e.altKey && !e.metaKey && !e.ctrlKey && (e.key === "k" || e.key === "K"))) {
           e.preventDefault();
           focusFixByOffset(-1);
           return;
         }
         if (!e.altKey && (e.key === "f" || e.key === "F")) {
           const fixes = getFixButtons();
-          if (fixes.length) {
-            e.preventDefault();
-            fixes[0].focus();
-            return;
-          }
+          if (fixes.length) { e.preventDefault(); fixes[0].focus(); return; }
         }
         if (!e.altKey && (e.key === "p" || e.key === "P")) {
           if (props.checklistPass && !props.submitting && publishBtnRef.current) {
@@ -3513,22 +2719,18 @@ function PrePublishPreview(props: {
     };
   }, [props]);
 
-  const sizeLabel =
-    props.fileSize != null
-      ? props.fileSize > 1024 * 1024
-        ? `${(props.fileSize / (1024 * 1024)).toFixed(2)} MB`
-        : `${Math.max(1, Math.round(props.fileSize / 1024))} KB`
-      : "—";
+  const sizeLabel = props.fileSize != null
+    ? props.fileSize > 1024 * 1024
+      ? `${(props.fileSize / (1024 * 1024)).toFixed(2)} MB`
+      : `${Math.max(1, Math.round(props.fileSize / 1024))} KB`
+    : "—";
 
   const failingCount = props.checklist.filter((c) => !c.ok).length;
   let firstFixAssigned = false;
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={titleId}
-      aria-describedby={descId}
+      role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={descId}
       className="fixed inset-0 z-50 bg-navy/80 flex items-start md:items-center justify-center p-4 overflow-y-auto"
       onClick={props.onClose}
     >
@@ -3546,28 +2748,12 @@ function PrePublishPreview(props: {
           <X size={18} aria-hidden="true" />
         </button>
         <div className="p-6 md:p-8 border-b border-ink/10">
-          <p
-            className="text-[11px] uppercase tracking-wider font-semibold"
-            style={{ color: props.accent.color }}
-          >
+          <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: props.accent.color }}>
             Final preview
           </p>
-          <h2 id={titleId} className="font-display text-2xl text-navy mt-1">
-            Review before publishing
-          </h2>
+          <h2 id={titleId} className="font-display text-2xl text-navy mt-1">Review before publishing</h2>
           <p id={descId} className="text-sm text-mute mt-1">
-            This is exactly how shoppers will see your title. Shortcuts:{" "}
-            <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">J</kbd>/
-            <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">K</kbd> or{" "}
-            <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Alt</kbd>+
-            <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">↓</kbd>/
-            <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">↑</kbd> next/previous fix,{" "}
-            <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">F</kbd> first fix,{" "}
-            <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">P</kbd> publish button,{" "}
-            <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Ctrl</kbd>/
-            <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">⌘</kbd>+
-            <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Enter</kbd> to publish,{" "}
-            <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Esc</kbd> to close.
+            This is exactly how shoppers will see your title. Shortcuts: <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">J</kbd>/<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">K</kbd> or <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Alt</kbd>+<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">↓</kbd>/<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">↑</kbd> next/previous fix, <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">F</kbd> first fix, <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">P</kbd> publish button, <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Ctrl</kbd>/<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">⌘</kbd>+<kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Enter</kbd> to publish, <kbd className="px-1 rounded bg-navy/5 text-navy text-[11px]">Esc</kbd> to close.
           </p>
         </div>
 
@@ -3585,9 +2771,7 @@ function PrePublishPreview(props: {
                 />
                 {props.coverFullUrl && (
                   <a
-                    href={props.coverFullUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={props.coverFullUrl} target="_blank" rel="noopener noreferrer"
                     className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-navy/80 hover:bg-navy text-white text-xs font-medium px-2.5 py-1.5 backdrop-blur"
                     aria-label="Open cover at full resolution in a new tab"
                   >
@@ -3598,22 +2782,18 @@ function PrePublishPreview(props: {
             </div>
             <div className="mt-4 rounded-lg border border-ink/10 bg-paper/40 p-3 text-xs text-mute">
               <div className="flex items-center gap-2 text-navy font-medium">
-                <FileText size={14} aria-hidden="true" /> Manuscript
+                <FileText size={14} aria-hidden="true"/> Manuscript
                 {props.fileName && (
                   <span className="ml-auto inline-flex items-center rounded-full bg-navy/10 text-navy text-[10px] font-bold uppercase tracking-wider px-2 py-0.5">
                     {(props.fileName.split(".").pop() || "FILE").toUpperCase()}
                   </span>
                 )}
               </div>
-              <div className="mt-1 break-all">
-                {props.fileName ?? "No file uploaded"} · {sizeLabel}
-              </div>
+              <div className="mt-1 break-all">{props.fileName ?? "No file uploaded"} · {sizeLabel}</div>
               <button
                 type="button"
                 disabled={!props.manuscriptPath || props.submitting}
-                onClick={() => {
-                  if (props.manuscriptPath) setPreviewerOpen(true);
-                }}
+                onClick={() => { if (props.manuscriptPath) setPreviewerOpen(true); }}
                 className="mt-3 w-full h-10 rounded-full text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: props.accent.color }}
               >
@@ -3714,19 +2894,13 @@ function PrePublishPreview(props: {
               This is exactly how your product will appear in the Vault.
             </p>
           </div>
+
         </div>
 
+
         <div className="p-6 md:p-8 border-t border-ink/10 bg-paper/30 rounded-b-2xl">
-          <p
-            className="text-[11px] uppercase tracking-wider font-semibold text-mute"
-            id="checklist-heading"
-          >
-            Pre-publish checklist{" "}
-            {failingCount > 0 && (
-              <span className="text-red-700 normal-case tracking-normal">
-                ({failingCount} to fix)
-              </span>
-            )}
+          <p className="text-[11px] uppercase tracking-wider font-semibold text-mute" id="checklist-heading">
+            Pre-publish checklist {failingCount > 0 && <span className="text-red-700 normal-case tracking-normal">({failingCount} to fix)</span>}
           </p>
           <ul className="mt-3 space-y-2" aria-labelledby="checklist-heading">
             {props.checklist.map((c) => {
@@ -3735,17 +2909,12 @@ function PrePublishPreview(props: {
               return (
                 <li key={c.id} className="flex items-center gap-2 text-sm">
                   {c.ok ? (
-                    <CheckCircle2
-                      size={16}
-                      className="text-emerald-600 shrink-0"
-                      aria-hidden="true"
-                    />
+                    <CheckCircle2 size={16} className="text-emerald-600 shrink-0" aria-hidden="true" />
                   ) : (
                     <AlertCircle size={16} className="text-red-600 shrink-0" aria-hidden="true" />
                   )}
                   <span className={c.ok ? "text-navy" : "text-red-700 font-medium"}>
-                    <span className="sr-only">{c.ok ? "Passed: " : "Needs fix: "}</span>
-                    {c.label}
+                    <span className="sr-only">{c.ok ? "Passed: " : "Needs fix: "}</span>{c.label}
                   </span>
                   {!c.ok && (
                     <button
@@ -3765,8 +2934,7 @@ function PrePublishPreview(props: {
           </ul>
           <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
             <button
-              type="button"
-              onClick={props.onClose}
+              type="button" onClick={props.onClose}
               disabled={props.submitting}
               className="h-11 px-5 rounded-full border border-navy/20 text-navy font-semibold hover:bg-navy/5 focus-visible:ring-2 focus-visible:ring-navy focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -3774,26 +2942,15 @@ function PrePublishPreview(props: {
             </button>
             <button
               ref={publishBtnRef}
-              type="button"
-              onClick={() => {
-                if (!props.submitting && props.checklistPass) props.onConfirm();
-              }}
+              type="button" onClick={() => { if (!props.submitting && props.checklistPass) props.onConfirm(); }}
               disabled={!props.checklistPass || props.submitting}
               className="h-11 px-6 rounded-full text-white font-semibold inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-navy focus-visible:outline-none"
               style={{ background: props.accent.color }}
               aria-describedby={!props.checklistPass ? "checklist-heading" : undefined}
-              aria-label={
-                props.checklistPass
-                  ? "Publish to Vault (Ctrl+Enter)"
-                  : "Publish to Vault — resolve checklist first"
-              }
+              aria-label={props.checklistPass ? "Publish to Vault (Ctrl+Enter)" : "Publish to Vault — resolve checklist first"}
               aria-busy={props.submitting}
             >
-              {props.submitting ? (
-                <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-              ) : (
-                <ShieldCheck size={16} aria-hidden="true" />
-              )}
+              {props.submitting ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <ShieldCheck size={16} aria-hidden="true" />}
               {props.submitting ? "Publishing…" : "Publish to Vault"}
             </button>
           </div>
@@ -3810,6 +2967,7 @@ function PrePublishPreview(props: {
     </div>
   );
 }
+
 
 function PlannerTypeSelect({
   value,
@@ -3831,3 +2989,4 @@ function PlannerTypeSelect({
     </select>
   );
 }
+

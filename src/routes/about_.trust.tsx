@@ -14,7 +14,8 @@ import { ContactLink } from "@/components/marketplace/ContactLink";
 
 const SITE_URL = "https://www.aurumvault.store";
 const CANONICAL = `${SITE_URL}/about/trust`;
-const TITLE = "AurumVault Trust Center | Marketplace Policies & Customer Protection";
+const TITLE =
+  "AurumVault Trust Center | Marketplace Policies & Customer Protection";
 const DESCRIPTION =
   "How AurumVault protects buyers and creators: the official AurumVault.store domain, secure payments, instant digital delivery, refund and privacy policies, creator standards, and how to reach support.";
 
@@ -101,9 +102,10 @@ function TrustCenterPage() {
         </h1>
         <p className="mt-6 text-lg leading-relaxed text-ink/80">
           AurumVault is a premium digital-product marketplace operating at{" "}
-          <strong className="font-semibold text-navy">AurumVault.store</strong>. This page explains,
-          in plain language, how orders are paid for and delivered, what protections buyers have,
-          the standards creators agree to, and how to reach a real person on our team.
+          <strong className="font-semibold text-navy">AurumVault.store</strong>.
+          This page explains, in plain language, how orders are paid for and
+          delivered, what protections buyers have, the standards creators agree
+          to, and how to reach a real person on our team.
         </p>
 
         <Section
@@ -113,7 +115,10 @@ function TrustCenterPage() {
           <ul className="mt-3 space-y-2">
             <li>
               Our only official storefront is{" "}
-              <a href={SITE_URL} className="font-medium text-navy underline underline-offset-4">
+              <a
+                href={SITE_URL}
+                className="font-medium text-navy underline underline-offset-4"
+              >
                 https://www.aurumvault.store
               </a>
               . Any other domain claiming to be AurumVault is not operated by us.
@@ -123,51 +128,63 @@ function TrustCenterPage() {
               business outreach — are sent from addresses ending in{" "}
               <span className="font-medium text-navy">@aurumvault.store</span>. If you receive a
               message claiming to be from AurumVault from another domain, verify it through{" "}
-              <a href={SITE_URL} className="font-medium text-navy underline underline-offset-4">
+              <a
+                href={SITE_URL}
+                className="font-medium text-navy underline underline-offset-4"
+              >
                 AurumVault.store
               </a>{" "}
               before responding or providing information.
             </li>
             <li>
-              We never ask for your password, card number, or one-time codes by email, DM, or phone.
+              We never ask for your password, card number, or one-time codes by
+              email, DM, or phone.
             </li>
             <li>
-              Payments are always completed on our checkout or on Stripe's hosted checkout — never
-              by direct transfer, gift card, or crypto wallet.
+              Payments are always completed on our checkout or on Stripe's hosted
+              checkout — never by direct transfer, gift card, or crypto wallet.
             </li>
           </ul>
         </Section>
 
         <Section icon={<Lock size={18} />} title="Secure payments">
           <p className="mt-3">
-            Card payments are processed by Stripe, a PCI-DSS Level 1 payment provider. AurumVault
-            never sees or stores your full card number — payment details are submitted directly to
-            Stripe. All pages are served over HTTPS.
+            Card payments are processed by Stripe, a PCI-DSS Level 1 payment
+            provider. AurumVault never sees or stores your full card number —
+            payment details are submitted directly to Stripe. All pages are
+            served over HTTPS.
           </p>
         </Section>
 
         <Section icon={<Download size={18} />} title="Digital delivery">
           <p className="mt-3">
-            Every product on AurumVault is a digital download. After a successful payment we create
-            your order, email a receipt, and issue a secure, time-limited download link for each
-            item. Your purchases also stay available in your{" "}
-            <Link to="/library" className="font-medium text-navy underline underline-offset-4">
+            Every product on AurumVault is a digital download. After a successful
+            payment we create your order, email a receipt, and issue a secure,
+            time-limited download link for each item. Your purchases also stay
+            available in your{" "}
+            <Link
+              to="/library"
+              className="font-medium text-navy underline underline-offset-4"
+            >
               library
             </Link>{" "}
-            when you're signed in with the email used at checkout. If a download ever fails, contact
-            support and we'll re-issue it.
+            when you're signed in with the email used at checkout. If a download
+            ever fails, contact support and we'll re-issue it.
           </p>
         </Section>
 
         <Section icon={<RotateCcw size={18} />} title="Refunds">
           <p className="mt-3">
-            Because products are delivered instantly, refunds follow the terms set out in our
-            published{" "}
-            <Link to="/refunds" className="font-medium text-navy underline underline-offset-4">
+            Because products are delivered instantly, refunds follow the terms set
+            out in our published{" "}
+            <Link
+              to="/refunds"
+              className="font-medium text-navy underline underline-offset-4"
+            >
               refund policy
             </Link>{" "}
-            — including our 14-day window for eligible purchases and the process for files that are
-            broken, mis-described, or never delivered.
+            — including our 14-day window for eligible purchases and the process
+            for files that are broken, mis-described, or never delivered.
           </p>
         </Section>
 
@@ -187,21 +204,22 @@ function TrustCenterPage() {
             >
               creator terms
             </Link>
-            . Listings are reviewed before release, must describe accurately what the buyer
-            receives, and creators keep 85% of each sale. Products that misrepresent their contents,
-            infringe someone else's work, or breach our standards are removed.
+            . Listings are reviewed before release, must describe accurately what
+            the buyer receives, and creators keep 85% of each sale. Products that
+            misrepresent their contents, infringe someone else's work, or breach
+            our standards are removed.
           </p>
         </Section>
 
         <Section icon={<Scale size={18} />} title="Intellectual property">
           <p className="mt-3">
-            Creators must own or be licensed to sell everything they list. If you believe a listing
-            infringes your copyright or trademark,{" "}
+            Creators must own or be licensed to sell everything they list. If you
+            believe a listing infringes your copyright or trademark,{" "}
             <ContactLink className="font-medium text-navy underline underline-offset-4">
               contact us
             </ContactLink>{" "}
-            with the product URL, a description of the protected work, and your contact details. We
-            investigate and remove infringing listings.
+            with the product URL, a description of the protected work, and your
+            contact details. We investigate and remove infringing listings.
           </p>
         </Section>
 
@@ -211,12 +229,15 @@ function TrustCenterPage() {
               Contact us
             </ContactLink>{" "}
             or use our{" "}
-            <Link to="/contact" className="font-medium text-navy underline underline-offset-4">
+            <Link
+              to="/contact"
+              className="font-medium text-navy underline underline-offset-4"
+            >
               contact page
             </Link>
-            . We reply within 24 hours, Monday through Friday. If a first reply doesn't resolve
-            things, ask for your case to be escalated and a member of the team will review it
-            directly.
+            . We reply within 24 hours, Monday through Friday. If a first reply
+            doesn't resolve things, ask for your case to be escalated and a
+            member of the team will review it directly.
           </p>
         </Section>
 
@@ -227,15 +248,18 @@ function TrustCenterPage() {
             <PolicyLink to="/refunds" label="Refund Policy" />
             <PolicyLink to="/creator-agreement" label="Creator Agreement" />
             <PolicyLink to="/creator-terms" label="Creator Terms" />
-            <PolicyLink to="/affiliate-disclosure" label="Affiliate Disclosure" />
+            <PolicyLink
+              to="/affiliate-disclosure"
+              label="Affiliate Disclosure"
+            />
           </ul>
         </Section>
 
         <section className="mt-14 rounded-2xl bg-navy p-6 text-white md:p-8">
           <p className="font-display text-2xl">Explore AurumVault</p>
           <p className="mt-2 max-w-lg text-sm text-white/75">
-            Browse the digital product marketplace, read the Academy, or apply to sell your own
-            digital products.
+            Browse the digital product marketplace, read the Academy, or apply to
+            sell your own digital products.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link

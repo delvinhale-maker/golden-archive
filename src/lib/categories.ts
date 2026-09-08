@@ -95,7 +95,8 @@ export const CATEGORIES: CategoryDef[] = [
     accent: "#0D7A8A",
     ink: "#FFFFFF",
     icon: "🎓",
-    blurb: "Worksheets, activity packs, and unit studies for raising sharp, kind kids.",
+    blurb:
+      "Worksheets, activity packs, and unit studies for raising sharp, kind kids.",
     gradient: grad("#062A31", "#0A4E58", "#0D7A8A"),
     subs: ["Preschool", "Elementary", "Middle", "Bible", "Math", "Reading"],
   },
@@ -221,6 +222,8 @@ export const CATEGORIES: CategoryDef[] = [
   },
 ];
 
+
+
 // Secondary accent-color assignment (color-coded per-category flavor).
 // Uses tokens defined in src/styles.css: --accent-emerald | --accent-burgundy
 // | --accent-amber | --accent-dusty | --accent-cream. Navy/Gold remain the
@@ -251,11 +254,13 @@ export const CATEGORY_ACCENT: Record<string, string> = {
   creator_business_tools: "var(--gold)",
 };
 
+
 export function accentFor(slugOrLabel?: string | null): string {
   const def = getCategoryDef(slugOrLabel);
   if (def && CATEGORY_ACCENT[def.slug]) return CATEGORY_ACCENT[def.slug];
   return "var(--gold)";
 }
+
 
 // Fast lookups (built once at module load).
 export const CATEGORY_BY_SLUG: Record<string, CategoryDef> = Object.fromEntries(
@@ -327,6 +332,7 @@ const LABEL_ALIAS: Record<string, string> = {
   "Business OS": "business_operating_systems",
 };
 
+
 // Structured subcategories per parent category. When a category appears here,
 // the storefront filters products by exact subcategory match instead of by
 // keyword-in-title/description.
@@ -378,12 +384,15 @@ export const SUBCATEGORIES: Record<string, string[]> = {
     "Operating Systems",
     "Assessment & Scoring Tools",
   ],
+
 };
 
 export function hasStructuredSubs(slugOrLabel?: string | null): boolean {
   const def = getCategoryDef(slugOrLabel);
   return !!def && !!SUBCATEGORIES[def.slug];
 }
+
+
 
 export function labelToSlug(label?: string | null): string | undefined {
   if (!label) return undefined;
@@ -407,7 +416,9 @@ export function getCategoryDef(labelOrSlug?: string | null): CategoryDef | undef
     CATEGORY_BY_SLUG[lower] ??
     // Case-insensitive label match (e.g. "journals" -> printable_journals).
     CATEGORIES.find((c) => c.label.toLowerCase() === lower) ??
-    (LEGACY_ALIAS[lower] ? CATEGORY_BY_SLUG[LEGACY_ALIAS[lower]] : undefined)
+    (LEGACY_ALIAS[lower]
+      ? CATEGORY_BY_SLUG[LEGACY_ALIAS[lower]]
+      : undefined)
   );
 }
 
@@ -423,6 +434,7 @@ export const NAV_CATEGORIES = [
   "Caption Templates",
   "Creator Business Tools",
   "Film & TV",
+
 ] as const;
 
 // Same set without the "All" pseudo-category, for browse grids.

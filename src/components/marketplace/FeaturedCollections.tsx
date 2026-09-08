@@ -131,7 +131,9 @@ function CollectionCard({ c, index }: { c: Collection; index: number }) {
             <h3 className="mt-1 font-display text-base leading-tight text-white sm:text-xl md:text-2xl">
               {c.title}
             </h3>
-            <p className="mt-1.5 hidden max-w-md text-sm text-white/75 md:block">{c.blurb}</p>
+            <p className="mt-1.5 hidden max-w-md text-sm text-white/75 md:block">
+              {c.blurb}
+            </p>
             <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-white/90 transition-colors group-hover:text-gold md:mt-4 md:gap-1.5 md:text-[12px]">
               Explore
               <ArrowUpRight
@@ -146,6 +148,7 @@ function CollectionCard({ c, index }: { c: Collection; index: number }) {
   );
 }
 
+
 export function FeaturedCollections() {
   return (
     <section className="relative bg-[#08101D] py-20 md:py-28">
@@ -159,11 +162,12 @@ export function FeaturedCollections() {
             FEATURED COLLECTIONS
           </div>
           <h2 className="mt-3 font-display text-4xl leading-tight text-white md:text-5xl">
-            Curated Vaults for the <span className="gold-gradient">Ambitious.</span>
+            Curated Vaults for the{" "}
+            <span className="gold-gradient">Ambitious.</span>
           </h2>
           <p className="mt-4 max-w-xl text-base text-white/60">
-            Hand-selected resources across the disciplines that shape modern builders, leaders, and
-            creators.
+            Hand-selected resources across the disciplines that shape modern
+            builders, leaders, and creators.
           </p>
           <span className="mt-5 block h-[2px] w-10 bg-gold" />
         </div>

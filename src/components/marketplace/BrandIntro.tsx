@@ -24,34 +24,19 @@ export function BrandIntro() {
           aria-label="Brand navigation"
           className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm font-medium"
         >
-          <Link
-            to="/business-systems"
-            className="text-navy underline underline-offset-4 hover:text-gold-ink"
-          >
+          <Link to="/business-systems" className="text-navy underline underline-offset-4 hover:text-gold-ink">
             Business systems
           </Link>
-          <Link
-            to="/creator-business-tools"
-            className="text-navy underline underline-offset-4 hover:text-gold-ink"
-          >
+          <Link to="/creator-business-tools" className="text-navy underline underline-offset-4 hover:text-gold-ink">
             Creator business tools
           </Link>
-          <Link
-            to="/collections/film-tv-creator-production"
-            className="text-navy underline underline-offset-4 hover:text-gold-ink"
-          >
+          <Link to="/collections/film-tv-creator-production" className="text-navy underline underline-offset-4 hover:text-gold-ink">
             Film, TV &amp; production
           </Link>
-          <Link
-            to="/products"
-            className="text-navy underline underline-offset-4 hover:text-gold-ink"
-          >
+          <Link to="/products" className="text-navy underline underline-offset-4 hover:text-gold-ink">
             Browse digital products
           </Link>
-          <Link
-            to="/academy"
-            className="text-navy underline underline-offset-4 hover:text-gold-ink"
-          >
+          <Link to="/academy" className="text-navy underline underline-offset-4 hover:text-gold-ink">
             AurumVault Academy
           </Link>
           <Link to="/sell" className="text-navy underline underline-offset-4 hover:text-gold-ink">
@@ -60,10 +45,7 @@ export function BrandIntro() {
           <Link to="/about" className="text-navy underline underline-offset-4 hover:text-gold-ink">
             About AurumVault
           </Link>
-          <Link
-            to="/about/trust"
-            className="text-navy underline underline-offset-4 hover:text-gold-ink"
-          >
+          <Link to="/about/trust" className="text-navy underline underline-offset-4 hover:text-gold-ink">
             Trust Center
           </Link>
         </nav>

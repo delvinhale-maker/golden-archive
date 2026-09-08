@@ -2,13 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { BrandIntro } from "@/components/marketplace/BrandIntro";
 
 import { motion } from "framer-motion";
-import {
-  useSuspenseQuery,
-  queryOptions,
-  useQueryClient,
-  useQueryErrorResetBoundary,
-  useIsFetching,
-} from "@tanstack/react-query";
+import { useSuspenseQuery, queryOptions, useQueryClient, useQueryErrorResetBoundary, useIsFetching } from "@tanstack/react-query";
 import { Suspense, lazy, type ReactElement } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import {
@@ -33,7 +27,10 @@ import {
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { CanvaHomeBanner } from "@/components/marketplace/CanvaHomeBanner";
 import { QrCodeHomeBanner } from "@/components/marketplace/QrCodeHomeBanner";
-import { ProductCard, ProductCardSkeleton } from "@/components/marketplace/ProductCard";
+import {
+  ProductCard,
+  ProductCardSkeleton,
+} from "@/components/marketplace/ProductCard";
 import { ProductCover } from "@/components/marketplace/ProductCover";
 import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
 import statProductsImg from "@/assets/stat-products.jpg";
@@ -47,19 +44,22 @@ import { ContinueBrowsingRow } from "@/components/marketplace/HomeRows";
 import { topCreatorsQ } from "@/components/marketplace/TopCreatorsLeaderboard";
 import { categoryCountsQ } from "@/components/marketplace/CategoryGrid13";
 import { SectionDivider } from "@/components/marketplace/SectionDivider";
-import { getFeaturedProducts, getHomeHighlights, type Product } from "@/lib/marketplace.functions";
+import {
+  getFeaturedProducts,
+  getHomeHighlights,
+  type Product,
+} from "@/lib/marketplace.functions";
 import { getHomepageLayout } from "@/lib/homepage-layout.functions";
 import { rotateHalfDay } from "@/lib/affiliate-rotation";
 import { BROWSE_CATEGORIES } from "@/lib/categories";
 import { ContactForm } from "@/components/marketplace/ContactForm";
 
+
 import { useAuth } from "@/hooks/use-auth";
 
 // Below-the-fold sections — lazy-loaded to shrink initial JS and cut hydration cost.
 const FeaturedCollections = lazy(() =>
-  import("@/components/marketplace/FeaturedCollections").then((m) => ({
-    default: m.FeaturedCollections,
-  })),
+  import("@/components/marketplace/FeaturedCollections").then((m) => ({ default: m.FeaturedCollections })),
 );
 const KingdomPicksRow = lazy(() =>
   import("@/components/marketplace/KingdomPicksRow").then((m) => ({ default: m.KingdomPicksRow })),
@@ -68,17 +68,13 @@ const NewReleasesRow = lazy(() =>
   import("@/components/marketplace/NewReleasesRow").then((m) => ({ default: m.NewReleasesRow })),
 );
 const KingdomBibleAppBanner = lazy(() =>
-  import("@/components/marketplace/KingdomBibleAppBanner").then((m) => ({
-    default: m.KingdomBibleAppBanner,
-  })),
+  import("@/components/marketplace/KingdomBibleAppBanner").then((m) => ({ default: m.KingdomBibleAppBanner })),
 );
 const EmailCaptureBanner = lazy(() =>
   import("@/components/EmailCaptureBanner").then((m) => ({ default: m.EmailCaptureBanner })),
 );
 const TopCreatorsLeaderboard = lazy(() =>
-  import("@/components/marketplace/TopCreatorsLeaderboard").then((m) => ({
-    default: m.TopCreatorsLeaderboard,
-  })),
+  import("@/components/marketplace/TopCreatorsLeaderboard").then((m) => ({ default: m.TopCreatorsLeaderboard })),
 );
 const CategoryGrid13 = lazy(() =>
   import("@/components/marketplace/CategoryGrid13").then((m) => ({ default: m.CategoryGrid13 })),
@@ -93,14 +89,10 @@ const VaultFindsGrid = lazy(() =>
   import("@/components/marketplace/VaultFindsGrid").then((m) => ({ default: m.VaultFindsGrid })),
 );
 const VaultFindsCategorySections = lazy(() =>
-  import("@/components/marketplace/VaultFindsCategorySections").then((m) => ({
-    default: m.VaultFindsCategorySections,
-  })),
+  import("@/components/marketplace/VaultFindsCategorySections").then((m) => ({ default: m.VaultFindsCategorySections })),
 );
 const AcademyLatestRow = lazy(() =>
-  import("@/components/marketplace/AcademyLatestRow").then((m) => ({
-    default: m.AcademyLatestRow,
-  })),
+  import("@/components/marketplace/AcademyLatestRow").then((m) => ({ default: m.AcademyLatestRow })),
 );
 import { academyLatestQ } from "@/components/marketplace/AcademyLatestRow";
 
@@ -132,6 +124,8 @@ export const Route = createFileRoute("/")({
     context.queryClient.ensureQueryData(academyLatestQ);
   },
 
+
+
   head: () => ({
     meta: [
       { title: "AurumVault | Professional Digital Systems, Creator Tools & Digital Resources" },
@@ -160,8 +154,9 @@ export const Route = createFileRoute("/")({
           "Discover professional digital systems, creator tools, film and production resources, business solutions, ebooks, planners and specialized digital products from AurumVault.",
       },
     ],
-    links: [{ rel: "canonical", href: "https://www.aurumvault.store/" }],
+  links: [{ rel: "canonical", href: "https://www.aurumvault.store/" }],
   }),
+
 
   component: Home,
 });
@@ -272,8 +267,10 @@ function Home() {
   // section (and anything else configured after featured_products) below
   // the affiliate band to preserve the visual chrome.
   const featuredIdx = sectionKeys.indexOf("featured_products");
-  const beforeAffiliate = featuredIdx >= 0 ? sectionKeys.slice(0, featuredIdx + 1) : sectionKeys;
-  const afterAffiliate = featuredIdx >= 0 ? sectionKeys.slice(featuredIdx + 1) : [];
+  const beforeAffiliate =
+    featuredIdx >= 0 ? sectionKeys.slice(0, featuredIdx + 1) : sectionKeys;
+  const afterAffiliate =
+    featuredIdx >= 0 ? sectionKeys.slice(featuredIdx + 1) : [];
 
   return (
     <MarketShell>
@@ -347,24 +344,35 @@ function Home() {
   );
 }
 
+
 function AffiliateBandHeader() {
   return (
-    <section aria-label="Affiliate picks divider" className="border-y border-white/10 bg-[#1C1A20]">
+    <section
+      aria-label="Affiliate picks divider"
+      className="border-y border-white/10 bg-[#1C1A20]"
+    >
       <div className="mx-auto max-w-7xl px-6 py-6 lg:px-8">
         <div className="flex flex-col items-center text-center">
           <div className="text-[11px] font-semibold tracking-[0.22em] text-gold">
             AFFILIATE PICKS · AMAZON
           </div>
-          <h2 className="mt-2 font-display text-2xl text-white md:text-3xl">Vault Finds</h2>
+          <h2 className="mt-2 font-display text-2xl text-white md:text-3xl">
+            Vault Finds
+          </h2>
           <p className="mt-2 max-w-xl text-xs text-white/60">
-            Handpicked tools from around the web. Separate from AurumVault creator products — we may
-            earn a commission on qualifying purchases.
+            Handpicked tools from around the web. Separate from AurumVault
+            creator products — we may earn a commission on qualifying purchases.
           </p>
         </div>
       </div>
     </section>
   );
 }
+
+
+
+
+
 
 function RefreshHighlightsBar() {
   const queryClient = useQueryClient();
@@ -376,12 +384,18 @@ function RefreshHighlightsBar() {
       <div className="mx-auto flex max-w-7xl items-center justify-end px-6 py-3 lg:px-8">
         <button
           type="button"
-          onClick={() => queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] })}
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["mp", "home-highlights"] })
+          }
           disabled={isFetching}
           aria-label="Refresh hero product and AurumVault Originals count"
           className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-white px-3 text-[11px] font-semibold tracking-caps text-navy transition hover:border-gold hover:text-gold-ink disabled:opacity-60"
         >
-          <RefreshCw size={12} className={isFetching ? "animate-spin" : ""} aria-hidden />
+          <RefreshCw
+            size={12}
+            className={isFetching ? "animate-spin" : ""}
+            aria-hidden
+          />
           {isFetching ? "REFRESHING…" : "REFRESH NOW"}
         </button>
       </div>
@@ -595,7 +609,9 @@ function HeroStatsBar() {
                   <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">
                     {s.caption}
                   </div>
-                  <div className="mt-1.5 font-display text-lg text-white md:text-xl">{s.label}</div>
+                  <div className="mt-1.5 font-display text-lg text-white md:text-xl">
+                    {s.label}
+                  </div>
                 </div>
               </Link>
             </li>
@@ -605,6 +621,7 @@ function HeroStatsBar() {
     </section>
   );
 }
+
 
 function Hero() {
   return (
@@ -634,8 +651,9 @@ function Hero() {
             transition={{ duration: 0.5, delay: 0.25 }}
             className="mt-6 max-w-xl text-base leading-relaxed text-white/70 md:text-lg"
           >
-            AurumVault is a premium digital marketplace where creators sell ebooks, AI prompt packs,
-            journals, planners, templates, and digital business resources with instant delivery.
+            AurumVault is a premium digital marketplace where creators sell ebooks,
+            AI prompt packs, journals, planners, templates, and digital business
+            resources with instant delivery.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -643,7 +661,10 @@ function Hero() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="mt-8 flex flex-wrap items-center gap-3"
           >
-            <Link to="/products" className="group">
+            <Link
+              to="/products"
+              className="group"
+            >
               <motion.span
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
@@ -701,9 +722,13 @@ function HeroStack() {
             <div className="text-[10px] font-semibold tracking-caps text-gold-ink">
               {c.cat.toUpperCase()}
             </div>
-            <div className="mt-1 font-display text-base font-bold text-ink">{c.title}</div>
+            <div className="mt-1 font-display text-base font-bold text-ink">
+              {c.title}
+            </div>
             <div className="mt-2 flex items-center justify-between">
-              <span className="font-display text-lg font-bold text-gold-ink">${c.price}</span>
+              <span className="font-display text-lg font-bold text-gold-ink">
+                ${c.price}
+              </span>
               <div className="flex items-center gap-1 text-[11px] text-mute">
                 <Star size={11} fill="var(--gold)" stroke="var(--gold)" /> 4.9
               </div>
@@ -719,7 +744,9 @@ function SectionHeader({ kicker, title }: { kicker?: string; title: string }) {
   return (
     <div className="mb-10 flex flex-col items-center text-center">
       {kicker && (
-        <div className="text-[11px] font-semibold tracking-caps text-gold-ink">{kicker}</div>
+        <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
+          {kicker}
+        </div>
       )}
       <h2 className="mt-2 font-display text-3xl font-bold md:text-4xl" style={{ color: "#ffffff" }}>
         {title}
@@ -749,12 +776,9 @@ function CategoriesSection() {
                 search={{ category: c.slug } as never}
                 className="group flex h-[120px] flex-col items-center justify-center gap-2 rounded-lg border border-line bg-white transition-all duration-200 ease-out hover:-translate-y-1 hover:border-gold hover:shadow-card-hover"
               >
-                <c.icon
-                  className="text-gold-ink transition-transform duration-200 group-hover:scale-110"
-                  size={32}
-                  strokeWidth={1.6}
-                />
+                <c.icon className="text-gold-ink transition-transform duration-200 group-hover:scale-110" size={32} strokeWidth={1.6} />
                 <span className="text-sm font-bold text-navy">{c.label}</span>
+
               </Link>
             </motion.div>
           ))}
@@ -763,6 +787,7 @@ function CategoriesSection() {
     </section>
   );
 }
+
 
 function FeaturedProducts() {
   const { data } = useSuspenseQuery(featuredQ);
@@ -787,6 +812,7 @@ function FeaturedProducts() {
     </section>
   );
 }
+
 
 function FeaturedSkeleton() {
   return (
@@ -840,7 +866,9 @@ function ContactEmailsSection() {
     <section id="contact" className="scroll-mt-24 bg-bg-page py-16 md:py-20">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-10 flex flex-col items-center text-center">
-          <div className="text-[11px] font-semibold tracking-caps text-gold-ink">GET IN TOUCH</div>
+          <div className="text-[11px] font-semibold tracking-caps text-gold-ink">
+            GET IN TOUCH
+          </div>
           <h2 className="mt-2 font-display text-3xl font-bold text-navy md:text-4xl">
             Contact AurumVault
           </h2>
@@ -848,6 +876,7 @@ function ContactEmailsSection() {
         </div>
         <ContactForm />
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+
           {emails.map((e) => (
             <a
               key={e.label}
@@ -855,7 +884,9 @@ function ContactEmailsSection() {
               className="group flex flex-col items-center rounded-2xl border border-line bg-white p-6 text-center shadow-sm transition hover:-translate-y-1 hover:border-gold hover:shadow-card-hover"
             >
               <Mail size={22} className="text-gold-ink" />
-              <span className="mt-3 font-display text-sm font-bold text-navy">{e.label}</span>
+              <span className="mt-3 font-display text-sm font-bold text-navy">
+                {e.label}
+              </span>
               <span className="mt-1 break-all text-xs text-mute group-hover:text-gold-ink">
                 {e.href.replace("mailto:", "")}
               </span>
@@ -866,3 +897,4 @@ function ContactEmailsSection() {
     </section>
   );
 }
+

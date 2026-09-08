@@ -47,8 +47,7 @@ const HERO_SLIDE: Slide = {
   kicker: "",
   title: (
     <>
-      Professional Digital Systems,{" "}
-      <span className="gold-gradient">Creator Tools &amp; Specialized Resources</span>
+      Professional Digital Systems, <span className="gold-gradient">Creator Tools &amp; Specialized Resources</span>
     </>
   ),
   body: "Practical digital systems and resources built for businesses, creators, filmmakers, professionals and independent operators — plus eBooks, planners, journals and templates, delivered instantly.",
@@ -97,6 +96,7 @@ function fanLayout(n: number) {
   return { rots: [-10, 0, 10], offsets: [-58, 0, 58], z: [1, 3, 2] };
 }
 
+
 function Cover({
   p,
   className,
@@ -135,6 +135,7 @@ function HeroVisual({ items }: { items: HeroProduct[] }) {
   if (list.length === 0) return <VisualSkeleton />;
   const { rots, offsets, z } = fanLayout(list.length);
 
+
   return (
     <div className="relative mx-auto h-[320px] w-[300px] sm:h-[380px] sm:w-[380px] md:h-[440px] md:w-[440px]">
       <div
@@ -165,10 +166,7 @@ function HeroVisual({ items }: { items: HeroProduct[] }) {
               {p.title}
             </div>
             <div className="mt-1.5 flex items-center justify-between">
-              <span
-                className="font-display text-base font-bold md:text-lg"
-                style={{ color: "#B8860B" }}
-              >
+              <span className="font-display text-base font-bold md:text-lg" style={{ color: "#B8860B" }}>
                 ${p.price.toFixed(2)}
               </span>
               <span className="flex items-center gap-1 text-[11px] text-mute">
@@ -189,6 +187,7 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
   const { rots, z } = fanLayout(list.length);
   const offsets = list.length === 3 ? [-52, 0, 52] : fanLayout(list.length).offsets;
 
+
   const discountPct = (p: HeroProduct) => {
     if (!p.compareAtPrice || p.compareAtPrice <= p.price) return 0;
     return Math.round(((p.compareAtPrice - p.price) / p.compareAtPrice) * 100);
@@ -200,7 +199,8 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
         aria-hidden
         className="absolute inset-0 -z-10 rounded-[28px] blur-3xl"
         style={{
-          background: "radial-gradient(closest-side, rgba(201,168,76,0.5), rgba(201,168,76,0) 70%)",
+          background:
+            "radial-gradient(closest-side, rgba(201,168,76,0.5), rgba(201,168,76,0) 70%)",
         }}
       />
       {list.map((p, i) => {
@@ -216,11 +216,7 @@ function DealsVisual({ items }: { items: HeroProduct[] }) {
             style={{ zIndex: z[i] }}
           >
             <div className="h-[58%] bg-accent-cream p-4 sm:h-[60%] sm:p-4 md:h-[62%] md:p-5">
-              <Cover
-                p={p}
-                className="h-full w-full rounded-md bg-accent-cream"
-                imgClassName="object-top"
-              />
+              <Cover p={p} className="h-full w-full rounded-md bg-accent-cream" imgClassName="object-top" />
             </div>
             <div className="flex h-[42%] flex-col justify-start gap-1.5 p-2.5 sm:h-[40%] md:h-[38%] md:p-3">
               <div className="line-clamp-2 min-w-0 font-display text-[12px] font-bold leading-tight text-ink md:text-sm">
@@ -337,10 +333,7 @@ function VisualSkeleton() {
       {sizes.map((s, i) => (
         <div
           key={i}
-          style={{
-            zIndex: z[i],
-            transform: `translate(calc(-50% + ${offsets[i]}px), -50%) rotate(${rots[i]}deg)`,
-          }}
+          style={{ zIndex: z[i], transform: `translate(calc(-50% + ${offsets[i]}px), -50%) rotate(${rots[i]}deg)` }}
           className="absolute left-1/2 top-1/2"
         >
           <SkeletonCard className={s.replace(/^/, "relative ")} />
@@ -370,6 +363,7 @@ export function HeroCarousel({
   const dealsList = useMemo(() => dealsProducts ?? [], [dealsProducts]);
   const creatorList = useMemo(() => creatorProducts ?? [], [creatorProducts]);
   const heroP = heroProduct ?? null;
+
 
   useEffect(() => {
     if (paused) return;
@@ -466,11 +460,12 @@ export function HeroCarousel({
                   {slide.kind === "hero" && (
                     <HeroVisual
                       items={pickThree(
-                        [heroP, ...dealsList, ...creatorList].filter((p): p is HeroProduct =>
-                          Boolean(p),
+                        [heroP, ...dealsList, ...creatorList].filter(
+                          (p): p is HeroProduct => Boolean(p),
                         ),
                       )}
                     />
+
                   )}
                   {slide.kind === "deals" && <DealsVisual items={pickThree(dealsList)} />}
                   {slide.kind === "creator" && <CreatorVisual items={pickThree(creatorList)} />}
