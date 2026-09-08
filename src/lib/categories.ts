@@ -95,8 +95,7 @@ export const CATEGORIES: CategoryDef[] = [
     accent: "#0D7A8A",
     ink: "#FFFFFF",
     icon: "🎓",
-    blurb:
-      "Worksheets, activity packs, and unit studies for raising sharp, kind kids.",
+    blurb: "Worksheets, activity packs, and unit studies for raising sharp, kind kids.",
     gradient: grad("#062A31", "#0A4E58", "#0D7A8A"),
     subs: ["Preschool", "Elementary", "Middle", "Bible", "Math", "Reading"],
   },
@@ -222,8 +221,6 @@ export const CATEGORIES: CategoryDef[] = [
   },
 ];
 
-
-
 // Secondary accent-color assignment (color-coded per-category flavor).
 // Uses tokens defined in src/styles.css: --accent-emerald | --accent-burgundy
 // | --accent-amber | --accent-dusty | --accent-cream. Navy/Gold remain the
@@ -254,13 +251,11 @@ export const CATEGORY_ACCENT: Record<string, string> = {
   creator_business_tools: "var(--gold)",
 };
 
-
 export function accentFor(slugOrLabel?: string | null): string {
   const def = getCategoryDef(slugOrLabel);
   if (def && CATEGORY_ACCENT[def.slug]) return CATEGORY_ACCENT[def.slug];
   return "var(--gold)";
 }
-
 
 // Fast lookups (built once at module load).
 export const CATEGORY_BY_SLUG: Record<string, CategoryDef> = Object.fromEntries(
@@ -277,6 +272,30 @@ const LEGACY_ALIAS: Record<string, string> = {
   purpose: "printable_journals",
   business: "business_operating_systems",
 };
+
+// Reverse of LEGACY_ALIAS: canonical slug -> every legacy slug that still
+// aliases to it. Used to make department/category queries alias-aware — a
+// product stored under the old `business` enum value still needs to
+// surface on the Business Systems department page, not just display with
+// the right label wherever slugToLabel() is used. See
+// getQueryableSlugsFor() below.
+const CANONICAL_TO_LEGACY: Record<string, string[]> = Object.entries(LEGACY_ALIAS).reduce(
+  (acc, [legacy, canonical]) => {
+    (acc[canonical] ??= []).push(legacy);
+    return acc;
+  },
+  {} as Record<string, string[]>,
+);
+
+/**
+ * Every DB enum value a department/category query should match to surface
+ * all products that belong there — the canonical slug plus any deprecated
+ * legacy slug that aliases to it (see LEGACY_ALIAS). Always includes the
+ * canonical slug itself, even if it has no legacy aliases.
+ */
+export function getQueryableSlugsFor(canonicalSlug: string): string[] {
+  return [canonicalSlug, ...(CANONICAL_TO_LEGACY[canonicalSlug] ?? [])];
+}
 
 export function slugToLabel(slug?: string | null): string {
   if (!slug) return "eBooks";
@@ -307,7 +326,6 @@ const LABEL_ALIAS: Record<string, string> = {
   "Business Operating Systems": "business_operating_systems",
   "Business OS": "business_operating_systems",
 };
-
 
 // Structured subcategories per parent category. When a category appears here,
 // the storefront filters products by exact subcategory match instead of by
@@ -360,15 +378,12 @@ export const SUBCATEGORIES: Record<string, string[]> = {
     "Operating Systems",
     "Assessment & Scoring Tools",
   ],
-
 };
 
 export function hasStructuredSubs(slugOrLabel?: string | null): boolean {
   const def = getCategoryDef(slugOrLabel);
   return !!def && !!SUBCATEGORIES[def.slug];
 }
-
-
 
 export function labelToSlug(label?: string | null): string | undefined {
   if (!label) return undefined;
@@ -392,9 +407,7 @@ export function getCategoryDef(labelOrSlug?: string | null): CategoryDef | undef
     CATEGORY_BY_SLUG[lower] ??
     // Case-insensitive label match (e.g. "journals" -> printable_journals).
     CATEGORIES.find((c) => c.label.toLowerCase() === lower) ??
-    (LEGACY_ALIAS[lower]
-      ? CATEGORY_BY_SLUG[LEGACY_ALIAS[lower]]
-      : undefined)
+    (LEGACY_ALIAS[lower] ? CATEGORY_BY_SLUG[LEGACY_ALIAS[lower]] : undefined)
   );
 }
 
@@ -410,7 +423,6 @@ export const NAV_CATEGORIES = [
   "Caption Templates",
   "Creator Business Tools",
   "Film & TV",
-
 ] as const;
 
 // Same set without the "All" pseudo-category, for browse grids.

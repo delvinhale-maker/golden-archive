@@ -42,17 +42,13 @@ describe("publish flow product-type label wiring", () => {
   });
 
   it("declares an editProductTypeKey state slot for the edit flow", () => {
-    expect(src).toMatch(
-      /useState<ProductTypeKey\s*\|\s*undefined>\(undefined\)/,
-    );
+    expect(src).toMatch(/useState<ProductTypeKey\s*\|\s*undefined>\(\s*undefined,?\s*\)/);
     expect(src).toContain("editProductTypeKey");
     expect(src).toContain("setEditProductTypeKey");
   });
 
   it("populates editProductTypeKey from the stored category on edit load", () => {
-    expect(src).toMatch(
-      /setEditProductTypeKey\(\s*getProductTypeKeyByCategory\(/,
-    );
+    expect(src).toMatch(/setEditProductTypeKey\(\s*getProductTypeKeyByCategory\(/);
   });
 
   it("upload step 1 header renders `${typeCfg.label} Details` (non-ebook types)", () => {

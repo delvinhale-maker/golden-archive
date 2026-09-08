@@ -3,19 +3,22 @@ import { queryOptions } from "@tanstack/react-query";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { slugToLabel, labelToSlug, getCategoryDef, CATEGORIES as CATEGORY_DEFS } from "@/lib/categories";
+import {
+  slugToLabel,
+  labelToSlug,
+  getCategoryDef,
+  getQueryableSlugsFor,
+  CATEGORIES as CATEGORY_DEFS,
+} from "@/lib/categories";
 import { MARKETPLACE_PAGE_SIZE, FEATURED_PRODUCTS_LIMIT } from "@/lib/marketplace-config";
 import { rotateHalfDay } from "@/lib/affiliate-rotation";
-
 
 const API_BASE = "https://web-builder-pro-delvinhale.replit.app/api";
 
 function serverSupabase() {
-  return createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
-    { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
-  );
+  return createClient<Database>(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
 }
 
 type DbProductRow = {
@@ -58,7 +61,6 @@ export function parseWhatsIncluded(adminNotes?: string | null): string[] | undef
   }
 }
 
-
 function dbRowToProduct(r: DbProductRow): Product {
   const catLabel = slugToLabel(r.category);
   const compareAt =
@@ -81,10 +83,7 @@ function dbRowToProduct(r: DbProductRow): Product {
     compareAtPrice: compareAt,
     rating: 0,
     reviewCount: 0,
-    image:
-      r.cover_url && r.cover_url.trim().length > 0
-        ? r.cover_url
-        : `av:${catLabel}:0`,
+    image: r.cover_url && r.cover_url.trim().length > 0 ? r.cover_url : `av:${catLabel}:0`,
     bestseller: false,
     // Safe pre-join default — every caller must run this through
     // applyCreatorInfo() to get real creator identity. If that's ever
@@ -104,7 +103,6 @@ function dbRowToProduct(r: DbProductRow): Product {
     deliveryContents: Array.isArray(r.delivery_contents) ? r.delivery_contents : [],
   };
 }
-
 
 // Fetch real aggregate rating/review counts for a set of product IDs.
 // product_reviews has a public SELECT policy, so the publishable-key client
@@ -173,10 +171,7 @@ export async function fetchCreatorInfoMap(
       .from("seller_applications")
       .select("user_id,brand_name,brand_slug,status")
       .in("user_id", uniqueIds),
-    supa
-      .from("profiles")
-      .select("id,avatar_url")
-      .in("id", uniqueIds),
+    supa.from("profiles").select("id,avatar_url").in("id", uniqueIds),
   ]);
 
   const avatarByUser = new Map<string, string | null>();
@@ -195,7 +190,7 @@ export async function fetchCreatorInfoMap(
       id: row.user_id,
       name: eligible ? row.brand_name : "AurumVault",
       slug: eligible ? row.brand_slug! : undefined,
-      avatar: eligible ? avatarByUser.get(row.user_id) ?? undefined : undefined,
+      avatar: eligible ? (avatarByUser.get(row.user_id) ?? undefined) : undefined,
       verified: eligible,
       isAurumVaultOwned: false,
     });
@@ -237,10 +232,20 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
       // The DB enum stores prompt packs under `ai_prompt_packs`; the UI
       // exposes a friendlier `prompt_packs` slug — map it back for the query.
       if (slug === "prompt_packs") slug = "ai_prompt_packs";
-      query = query.eq(
-        "category",
-        slug as Database["public"]["Enums"]["product_category"],
-      );
+      // Alias-aware: a product can still be stored under a deprecated
+      // legacy enum value (e.g. `business`) that only ever got aliased for
+      // *display* (slugToLabel), never for filtering — which is exactly
+      // why department pages like Business Systems could show zero results
+      // even though matching products exist. Matching every legacy slug
+      // that aliases to this canonical one closes that gap without any
+      // data migration.
+      const queryableSlugs = getQueryableSlugsFor(
+        slug,
+      ) as Database["public"]["Enums"]["product_category"][];
+      query =
+        queryableSlugs.length > 1
+          ? query.in("category", queryableSlugs)
+          : query.eq("category", queryableSlugs[0]);
     }
     if (opts.q) {
       // Search across title, description, category and both lower taxonomy
@@ -271,7 +276,10 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
     const products = (data as DbProductRow[]).map((r) => dbRowToProduct(r));
     const sellerIds = products.map((p) => p.creator.id);
     const [agg, creators] = await Promise.all([
-      fetchReviewAggregates(supa, products.map((p) => p.id)),
+      fetchReviewAggregates(
+        supa,
+        products.map((p) => p.id),
+      ),
       fetchCreatorInfoMap(supa, sellerIds),
     ]);
     return applyCreatorInfo(applyAggregates(products, agg), creators);
@@ -371,9 +379,6 @@ export type ProductDetailResult =
   | { kind: "unpublished"; title: string | null }
   | { kind: "notFound" };
 
-
-
-
 const CATEGORIES = [
   "eBooks",
   "Journals",
@@ -385,9 +390,7 @@ const CATEGORIES = [
   "Business",
 ];
 
-const CREATOR_NAMES = [
-  ["AurumVault", "Curated by AurumVault"],
-];
+const CREATOR_NAMES = [["AurumVault", "Curated by AurumVault"]];
 
 // Category-specific title pools — every category has ≥ 14 unique titles
 const TITLES_BY_CAT: Record<string, string[]> = {
@@ -566,9 +569,7 @@ function mockProduct(absoluteIndex: number, category?: string): Product {
   const cat = category ?? CATEGORIES[absoluteIndex % CATEGORIES.length];
   const titleIndex = category ? absoluteIndex : Math.floor(absoluteIndex / CATEGORIES.length);
   const title = pickTitle(cat, titleIndex);
-  const id = category
-    ? `p_${cat.toLowerCase()}_${absoluteIndex}`
-    : `p_${absoluteIndex}`;
+  const id = category ? `p_${cat.toLowerCase()}_${absoluteIndex}` : `p_${absoluteIndex}`;
   const price = priceFor(cat, absoluteIndex);
   const compareRaw = absoluteIndex % 3 === 0 ? price + 20 : undefined;
   const compare = compareRaw && compareRaw <= 97 ? compareRaw : undefined;
@@ -591,7 +592,7 @@ function mockProduct(absoluteIndex: number, category?: string): Product {
       id: `c_${creatorIdx}`,
       name: CREATOR_NAMES[creatorIdx][0],
       verified: true,
-      avatar: `https://i.pravatar.cc/80?img=${(creatorIdx * 7) + 1}`,
+      avatar: `https://i.pravatar.cc/80?img=${creatorIdx * 7 + 1}`,
       isAurumVaultOwned: true, // CREATOR_NAMES currently has a single "AurumVault" entry
     },
     description:
@@ -641,7 +642,6 @@ function rotateDaily<T>(arr: T[], salt = 0): T[] {
   const offset = (((tick + salt) % n) + n) % n;
   return arr.slice(offset).concat(arr.slice(0, offset));
 }
-
 
 export const getFeaturedProducts = createServerFn({ method: "GET" }).handler(async () => {
   const dbItems = await fetchDbProducts();
@@ -764,8 +764,6 @@ export const getProduct = createServerFn({ method: "GET" })
     } as ProductDetailResult;
   });
 
-
-
 export const getFeaturedCreators = createServerFn({ method: "GET" }).handler(async () => {
   const fallback = mockCreators(6);
   const data = await safeFetch<unknown>("/creators/featured", fallback as unknown);
@@ -784,9 +782,7 @@ export const getHomeHighlights = createServerFn({ method: "GET" }).handler(
       const [heroRes, countRes] = await Promise.all([
         supa
           .from("marketplace_products")
-          .select(
-            "id,title,category,price_cents,cover_url,description,seller_id,created_at",
-          )
+          .select("id,title,category,price_cents,cover_url,description,seller_id,created_at")
           .eq("status", "approved")
           .eq("published", true)
           .ilike("title", "Kingdom Mind")
@@ -798,9 +794,7 @@ export const getHomeHighlights = createServerFn({ method: "GET" }).handler(
           .eq("published", true)
           .eq("seller_id", "02579d2f-e0c1-4f53-b0e8-abedf18e4d4f"),
       ]);
-      let heroProduct = heroRes.data
-        ? dbRowToProduct(heroRes.data as DbProductRow)
-        : null;
+      let heroProduct = heroRes.data ? dbRowToProduct(heroRes.data as DbProductRow) : null;
       if (heroProduct) {
         const [agg, creators] = await Promise.all([
           fetchReviewAggregates(supa, [heroProduct.id]),
@@ -833,7 +827,6 @@ export const getNewReleasesRowFn = createServerFn({ method: "GET" }).handler(
   },
 );
 
-
 // Clone 2: Promoted Picks — featured=true, fallback to all products if empty.
 export const getPromotedPicksRowFn = createServerFn({ method: "GET" }).handler(
   async (): Promise<Product[]> => {
@@ -850,7 +843,10 @@ export const getPromotedPicksRowFn = createServerFn({ method: "GET" }).handler(
         .order("created_at", { ascending: false });
       if (data && data.length > 0) {
         const products = (data as DbProductRow[]).map((r) => dbRowToProduct(r));
-        const agg = await fetchReviewAggregates(supa, products.map((p) => p.id));
+        const agg = await fetchReviewAggregates(
+          supa,
+          products.map((p) => p.id),
+        );
         return rotateDaily(applyAggregates(products, agg), 2).slice(0, 8);
       }
     } catch {
@@ -909,5 +905,3 @@ export const getKingdomPicksRowFn = createServerFn({ method: "GET" }).handler(
     }
   },
 );
-
-
