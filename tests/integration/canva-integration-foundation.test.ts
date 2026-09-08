@@ -157,10 +157,13 @@ describe("callback route hardening", () => {
   });
 
   it("never returns tokens or secrets to the browser", () => {
-    // The only mention of a token is the truthiness guard before storage —
-    // nothing token-shaped is ever written into the redirect or the body.
+    // The raw token is read out of the exchange response exactly once, into
+    // a local `accessToken` binding used for the guard and the (best-effort,
+    // non-secret) profile lookup — nothing token-shaped is ever written into
+    // the redirect or the response body.
     expect(callback.match(/tokens\.access_token/g)?.length).toBe(1);
-    expect(callback).toContain("if (!tokens.access_token)");
+    expect(callback).toContain("const accessToken = tokens.access_token");
+    expect(callback).toContain("if (!accessToken)");
     expect(callback).not.toMatch(/Location.*token/i);
     expect(callback).toContain("status: 302");
   });
@@ -191,23 +194,19 @@ describe("core OAuth behaviour", () => {
     expect(core).toContain("revokeCanvaTokenRemotely");
   });
 
-  it("requests exactly the five intended Canva scopes, including asset:write", () => {
+  it("requests exactly the three least-privilege Canva scopes", () => {
     const block = core.match(/export const CANVA_SCOPES = \[([^\]]+)\]/)![1]!;
     const scopes = block
       .split(",")
       .map((s) => s.trim().replace(/^"|"$/g, ""))
       .filter(Boolean);
     expect(new Set(scopes)).toEqual(
-      new Set([
-        "profile:read",
-        "asset:read",
-        "asset:write",
-        "design:content:read",
-        "design:meta:read",
-      ]),
+      new Set(["profile:read", "design:meta:read", "design:content:read"]),
     );
-    expect(scopes).toContain("asset:write");
-    expect(scopes.length).toBe(5);
+    for (const excluded of ["asset:read", "asset:write", "design:content:write"]) {
+      expect(scopes).not.toContain(excluded);
+    }
+    expect(scopes.length).toBe(3);
   });
 
   it("keeps a four-slot encryption keyring", () => {

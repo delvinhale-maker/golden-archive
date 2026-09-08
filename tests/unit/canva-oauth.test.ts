@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   buildCanvaAuthorizeUrl,
   claimCanvaState,
@@ -6,6 +6,9 @@ import {
   createOAuthState,
   deriveCodeChallenge,
   isValidStateFormat,
+  listCanvaDesigns,
+  createCanvaExportJob,
+  CanvaApiError,
   CANVA_AUTHORIZE_URL,
   CANVA_CODE_CHALLENGE_METHOD,
   CANVA_SCOPES,
@@ -53,21 +56,17 @@ describe("Canva PKCE", () => {
 });
 
 describe("Canva scope set (regression guard)", () => {
-  it("contains exactly the five intended scopes", () => {
+  it("contains exactly the three least-privilege scopes", () => {
     expect([...CANVA_SCOPES].sort()).toEqual(
-      [
-        "asset:read",
-        "asset:write",
-        "design:content:read",
-        "design:meta:read",
-        "profile:read",
-      ].sort(),
+      ["design:content:read", "design:meta:read", "profile:read"].sort(),
     );
-    expect(CANVA_SCOPES).toHaveLength(5);
+    expect(CANVA_SCOPES).toHaveLength(3);
   });
 
-  it("includes asset:write so cover pushes keep working", () => {
-    expect(CANVA_SCOPES).toContain("asset:write");
+  it("excludes asset:read, asset:write and design:content:write", () => {
+    for (const scope of ["asset:read", "asset:write", "design:content:write"]) {
+      expect(CANVA_SCOPES).not.toContain(scope);
+    }
   });
 
   it("puts every scope on the authorize URL", () => {
@@ -312,3 +311,105 @@ describe("OAuth credential encryption", () => {
     resetOAuthKeyring();
   });
 });
+
+/**
+ * The design-discovery/export client (listCanvaDesigns, createCanvaExportJob)
+ * only ever takes a plain access-token string and calls fetch — no Supabase
+ * involved — so these are tested by stubbing global.fetch directly.
+ */
+describe("Canva design client (fetch-level)", () => {
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  function jsonResponse(status: number, body: unknown, headers: Record<string, string> = {}) {
+    return new Response(JSON.stringify(body), { status, headers });
+  }
+
+  it("lists designs and maps thumbnail/title/timestamps", async () => {
+    global.fetch = vi.fn(async () =>
+      jsonResponse(200, {
+        items: [
+          {
+            id: "DAF-1",
+            title: "Product Launch Flyer",
+            thumbnail: { url: "https://canva.example/thumb.png", width: 400, height: 400 },
+            created_at: 1_700_000_000,
+            updated_at: 1_700_100_000,
+          },
+        ],
+        continuation: "next-page-token",
+      }),
+    ) as unknown as typeof fetch;
+
+    const result = await listCanvaDesigns("token-abc");
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]!.id).toBe("DAF-1");
+    expect(result.items[0]!.title).toBe("Product Launch Flyer");
+    expect(result.items[0]!.thumbnail?.url).toBe("https://canva.example/thumb.png");
+    expect(result.items[0]!.updatedAt).toBe(new Date(1_700_100_000 * 1000).toISOString());
+    expect(result.continuation).toBe("next-page-token");
+  });
+
+  it("falls back to 'Untitled design' when Canva omits a title", async () => {
+    global.fetch = vi.fn(async () =>
+      jsonResponse(200, { items: [{ id: "DAF-2", thumbnail: null }] }),
+    ) as unknown as typeof fetch;
+
+    const result = await listCanvaDesigns("token-abc");
+    expect(result.items[0]!.title).toBe("Untitled design");
+    expect(result.items[0]!.thumbnail).toBeNull();
+  });
+
+  it("classifies a 401 as reauth_required, never a generic failure", async () => {
+    global.fetch = vi.fn(async () => jsonResponse(401, { error: "unauthorized" })) as unknown as typeof fetch;
+    await expect(listCanvaDesigns("stale-token")).rejects.toMatchObject({
+      reason: "reauth_required",
+    });
+  });
+
+  it("classifies a 429 as rate_limited and carries retry-after seconds", async () => {
+    global.fetch = vi.fn(async () =>
+      jsonResponse(429, { error: "rate limited" }, { "retry-after": "12" }),
+    ) as unknown as typeof fetch;
+    const err = await listCanvaDesigns("token-abc").catch((e) => e);
+    expect(err).toBeInstanceOf(CanvaApiError);
+    expect(err.reason).toBe("rate_limited");
+    expect(err.retryAfterSeconds).toBe(12);
+  });
+
+  it("classifies a 404 as design_unavailable", async () => {
+    global.fetch = vi.fn(async () => jsonResponse(404, { error: "not found" })) as unknown as typeof fetch;
+    await expect(createCanvaExportJob("token-abc", "missing-design")).rejects.toMatchObject({
+      reason: "design_unavailable",
+    });
+  });
+
+  it("classifies any other non-OK status as a generic api_error", async () => {
+    global.fetch = vi.fn(async () => jsonResponse(500, { error: "boom" })) as unknown as typeof fetch;
+    await expect(listCanvaDesigns("token-abc")).rejects.toMatchObject({ reason: "api_error" });
+  });
+
+  it("classifies a network failure as api_error rather than throwing an unclassified error", async () => {
+    global.fetch = vi.fn(async () => {
+      throw new Error("network down");
+    }) as unknown as typeof fetch;
+    await expect(listCanvaDesigns("token-abc")).rejects.toMatchObject({ reason: "api_error" });
+  });
+
+  it("creates an export job with the requested design and format", async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body));
+      expect(body).toEqual({ design_id: "DAF-1", format: { type: "png" } });
+      return jsonResponse(200, { job: { id: "export-1", status: "in_progress" } });
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const job = await createCanvaExportJob("token-abc", "DAF-1", "png");
+    expect(job.status).toBe("in_progress");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+

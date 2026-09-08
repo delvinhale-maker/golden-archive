@@ -564,6 +564,45 @@ export type Database = {
         }
         Relationships: []
       }
+      canva_design_products: {
+        Row: {
+          canva_design_id: string
+          canva_updated_at: string | null
+          created_at: string
+          id: string
+          imported_at: string
+          product_id: string
+          source_title: string | null
+          sync_state: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          canva_design_id: string
+          canva_updated_at?: string | null
+          created_at?: string
+          id?: string
+          imported_at?: string
+          product_id: string
+          source_title?: string | null
+          sync_state?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          canva_design_id?: string
+          canva_updated_at?: string | null
+          created_at?: string
+          id?: string
+          imported_at?: string
+          product_id?: string
+          source_title?: string | null
+          sync_state?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           created_at: string

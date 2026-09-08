@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Check, Loader2, Sparkles, X } from "lucide-react";
+import { Check, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { getCanvaConnectionStatus, startCanvaConnection } from "@/lib/canva.functions";
+import { CanvaDesignPicker } from "./CanvaDesignPicker";
 
 /**
  * Premium Canva capability banner for the Creator Dashboard.
@@ -123,7 +124,7 @@ export function CanvaConnectBanner() {
         </div>
       </div>
 
-      {importOpen && <ImportDialog onClose={() => setImportOpen(false)} />}
+      {importOpen && <CanvaDesignPicker onClose={() => setImportOpen(false)} />}
     </section>
   );
 }
@@ -140,63 +141,5 @@ function FlowMark() {
       <span className="h-px w-4 bg-gold" />
       <span className="text-gold">Sell</span>
     </span>
-  );
-}
-
-function ImportDialog({ onClose }: { onClose: () => void }) {
-  const closeRef = useRef<HTMLButtonElement | null>(null);
-
-  useEffect(() => {
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-navy/40 p-4 sm:items-center">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="canva-import-title"
-        className="w-full max-w-lg rounded-2xl border border-ink/10 bg-white p-6 shadow-xl sm:p-8"
-      >
-        <div className="flex items-start justify-between gap-4">
-          <h3 id="canva-import-title" className="font-display text-xl text-navy sm:text-2xl">
-            Your Canva account is connected
-          </h3>
-          <button
-            ref={closeRef}
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="rounded-full p-2 text-mute transition hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
-        </div>
-        <p className="mt-3 text-sm leading-relaxed text-mute sm:text-base">
-          Direct design import is the next step in the AurumVault Canva workflow. Your connection is
-          ready, so nothing else is needed from you today.
-        </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border border-ink/15 px-5 py-3 text-sm font-semibold text-navy transition hover:border-gold/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"
-          >
-            Close
-          </button>
-          <Link
-            to="/dashboard/integrations"
-            className="rounded-full bg-gold px-6 py-3 text-center text-sm font-semibold text-navy transition hover:bg-gold/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"
-          >
-            Manage Canva Connection
-          </Link>
-        </div>
-      </div>
-    </div>
   );
 }

@@ -40,6 +40,7 @@ export const Route = createFileRoute("/api/public/integrations/canva/callback")(
           exchangeCanvaCode,
           storeCanvaConnection,
           markCanvaError,
+          getCanvaProfile,
         } = await import("@/lib/canva-oauth");
 
         let origin: string;
@@ -74,11 +75,16 @@ export const Route = createFileRoute("/api/public/integrations/canva/callback")(
 
         try {
           const tokens = await exchangeCanvaCode({ code, codeVerifier: claimed.codeVerifier });
-          if (!tokens.access_token) throw new Error("no_access_token");
+          const accessToken = tokens.access_token;
+          if (!accessToken) throw new Error("no_access_token");
+          // Best-effort: a failed profile lookup should never block the
+          // connection itself from being stored.
+          const profile = await getCanvaProfile(accessToken).catch(() => ({ displayName: null }));
           await storeCanvaConnection(supabase, {
             rowId: claimed.id,
             ownerUserId: claimed.user_id,
             tokens,
+            displayName: profile.displayName,
           });
         } catch (err) {
           console.error("[canva] token exchange failed", {

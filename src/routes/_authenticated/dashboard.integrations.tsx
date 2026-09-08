@@ -270,7 +270,9 @@ function IntegrationsPage() {
             )}
 
             <p className="mt-4 text-xs text-mute">
-              Requested access: read-only profile, design metadata, design content and assets.
+              Requested access: read-only profile, design metadata and design content — enough to
+              browse your designs and export the one you choose. AurumVault never writes to your
+              Canva account.
             </p>
           </div>
         </div>

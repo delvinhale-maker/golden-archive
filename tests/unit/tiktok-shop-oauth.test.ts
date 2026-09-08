@@ -272,14 +272,8 @@ describe("callback route + browser safety", () => {
 });
 
 describe("Canva regression guard", () => {
-  it("keeps exactly the five approved Canva scopes", () => {
-    expect([...CANVA_SCOPES]).toEqual([
-      "profile:read",
-      "asset:read",
-      "asset:write",
-      "design:content:read",
-      "design:meta:read",
-    ]);
+  it("keeps exactly the three least-privilege Canva scopes", () => {
+    expect([...CANVA_SCOPES]).toEqual(["profile:read", "design:meta:read", "design:content:read"]);
   });
 
   it("keeps the Canva callback path unchanged", () => {

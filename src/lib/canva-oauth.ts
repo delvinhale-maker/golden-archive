@@ -20,6 +20,13 @@
  * NOTE: the backing table `public.integration_connections` is NOT yet applied to
  * the database (see docs/proposed-migrations/). Every DB call fails closed with a
  * readable error until that migration is authorized and applied.
+ *
+ * This module also holds the design-discovery/export client
+ * (listCanvaDesigns, getCanvaDesign, exportCanvaDesign) and the
+ * getValidCanvaAccessToken() helper that keeps the browse/export path
+ * supplied with a live token — refreshing it when expired, and reporting a
+ * typed CanvaReauthRequiredError when refresh isn't possible so the caller
+ * can show a reconnect flow instead of a false success.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -34,18 +41,21 @@ export const CANVA_REVOKE_URL = "https://api.canva.com/rest/v1/oauth/revoke";
 export const CANVA_CODE_CHALLENGE_METHOD = "s256" as const;
 
 /**
- * Intended Canva Connect scope set for AurumVault cover/asset workflows.
- * All five are required: asset:write is what lets us push generated covers back
- * into the creator's Canva account. Guarded by a regression test so it cannot
- * silently drift again.
+ * Least-privilege Canva Connect scope set for the current AurumVault workflow:
+ * browse a creator's designs, preview one, and export/import it into a
+ * product draft. Guarded by a regression test so it cannot silently drift.
+ *
+ *   profile:read         - verify the connection and show a display name
+ *   design:meta:read      - list designs, read title/thumbnail/timestamps
+ *   design:content:read   - create a design export job (Turn Into Product)
+ *
+ * Deliberately excluded: asset:read / asset:write (no /v1/assets calls in
+ * this workflow — design thumbnails and exports are covered by the two
+ * design:* scopes above) and design:content:write (AurumVault never creates
+ * or modifies a Canva design). Widen this set only when a concrete feature
+ * needs the extra permission, per Canva's least-privilege guidance.
  */
-export const CANVA_SCOPES = [
-  "profile:read",
-  "asset:read",
-  "asset:write",
-  "design:content:read",
-  "design:meta:read",
-] as const;
+export const CANVA_SCOPES = ["profile:read", "design:meta:read", "design:content:read"] as const;
 
 /** A pending handshake is only valid for ten minutes. */
 export const STATE_TTL_MS = 10 * 60 * 1000;
@@ -305,7 +315,12 @@ export async function claimCanvaState(
  */
 export async function storeCanvaConnection(
   supabase: SupabaseClient,
-  args: { rowId: string; ownerUserId: string; tokens: CanvaTokenResponse },
+  args: {
+    rowId: string;
+    ownerUserId: string;
+    tokens: CanvaTokenResponse;
+    displayName?: string | null;
+  },
 ): Promise<void> {
   const expiresAt = args.tokens.expires_in
     ? new Date(Date.now() + args.tokens.expires_in * 1000).toISOString()
@@ -325,6 +340,7 @@ export async function storeCanvaConnection(
       code_verifier_enc: null,
       state_expires_at: null,
       last_error: null,
+      ...(args.displayName !== undefined ? { external_display_name: args.displayName } : {}),
     })
     .eq("id", args.rowId)
     .eq("user_id", args.ownerUserId);
@@ -445,4 +461,308 @@ export async function disconnectCanva(userId: string): Promise<{ remoteRevoked: 
   if (error) throw new Error(`Unable to disconnect Canva: ${error.message}`);
 
   return { remoteRevoked };
+}
+
+// ---------------------------------------------------------------------------
+// Design discovery / export client
+// ---------------------------------------------------------------------------
+
+export const CANVA_API_BASE = "https://api.canva.com/rest/v1";
+
+/** Typed failure reasons the UI needs to render distinct, honest states for. */
+export type CanvaApiFailureReason =
+  | "not_connected"
+  | "reauth_required"
+  | "rate_limited"
+  | "design_unavailable"
+  | "export_failed"
+  | "export_timeout"
+  | "api_error";
+
+export class CanvaApiError extends Error {
+  reason: CanvaApiFailureReason;
+  status: number | undefined;
+  retryAfterSeconds: number | undefined;
+
+  constructor(
+    reason: CanvaApiFailureReason,
+    message: string,
+    opts: { status?: number; retryAfterSeconds?: number } = {},
+  ) {
+    super(message);
+    this.name = "CanvaApiError";
+    this.reason = reason;
+    this.status = opts.status;
+    this.retryAfterSeconds = opts.retryAfterSeconds;
+  }
+}
+
+function parseRetryAfter(res: Response): number | undefined {
+  const header = res.headers.get("retry-after");
+  if (!header) return undefined;
+  const seconds = Number(header);
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined;
+}
+
+/** Wraps a Canva Connect API response, classifying auth/rate-limit/other failures. */
+async function canvaApiFetch(
+  path: string,
+  accessToken: string,
+  init: RequestInit = {},
+): Promise<unknown> {
+  let res: Response;
+  try {
+    res = await fetch(`${CANVA_API_BASE}${path}`, {
+      ...init,
+      headers: {
+        ...(init.headers ?? {}),
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+  } catch (err) {
+    throw new CanvaApiError(
+      "api_error",
+      err instanceof Error ? err.message : "Canva API request failed",
+    );
+  }
+
+  if (res.status === 401) {
+    throw new CanvaApiError("reauth_required", "Canva authorization has expired or was revoked");
+  }
+  if (res.status === 429) {
+    throw new CanvaApiError("rate_limited", "Canva API rate limit reached", {
+      status: 429,
+      retryAfterSeconds: parseRetryAfter(res),
+    });
+  }
+  if (res.status === 404) {
+    throw new CanvaApiError("design_unavailable", "The Canva design is no longer available", {
+      status: 404,
+    });
+  }
+  if (!res.ok) {
+    throw new CanvaApiError("api_error", `Canva API request failed (${res.status})`, {
+      status: res.status,
+    });
+  }
+  return res.json();
+}
+
+/**
+ * Returns a live Canva access token for this user, refreshing it first when
+ * expired (or close to expiring). Throws a typed CanvaApiError so callers can
+ * render "not connected" vs "reconnect required" distinctly instead of a
+ * generic failure.
+ *
+ * Never returns the token to the browser — this only ever runs server-side,
+ * and the caller is expected to use the token in the same request and
+ * discard it.
+ */
+export async function getValidCanvaAccessToken(userId: string): Promise<string> {
+  const supabase = await integrationAdminClient();
+  const { data } = await supabase
+    .from("integration_connections")
+    .select("id, status, access_token_enc, refresh_token_enc, access_token_expires_at")
+    .eq("provider", CANVA_PROVIDER)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const row = data as {
+    id: string;
+    status: string;
+    access_token_enc: unknown;
+    refresh_token_enc: unknown;
+    access_token_expires_at: string | null;
+  } | null;
+
+  if (!row || row.status !== "connected" || !row.access_token_enc) {
+    throw new CanvaApiError("not_connected", "Canva is not connected");
+  }
+
+  const expiresAt = row.access_token_expires_at ? Date.parse(row.access_token_expires_at) : null;
+  const nearExpiry = expiresAt !== null && expiresAt - Date.now() < 60_000;
+
+  if (!nearExpiry) {
+    return decryptOAuthSecret(row.access_token_enc);
+  }
+
+  if (!row.refresh_token_enc) {
+    // Expired with nothing to refresh from — the creator must reconnect.
+    await markCanvaError(supabase, row.id, "token_expired_no_refresh_token");
+    throw new CanvaApiError("reauth_required", "Canva authorization has expired");
+  }
+
+  try {
+    const refreshToken = await decryptOAuthSecret(row.refresh_token_enc);
+    const tokens = await refreshCanvaToken(refreshToken);
+    if (!tokens.access_token) throw new Error("no_access_token");
+    await storeCanvaConnection(supabase, { rowId: row.id, ownerUserId: userId, tokens });
+    return tokens.access_token;
+  } catch {
+    await markCanvaError(supabase, row.id, "token_refresh_failed");
+    throw new CanvaApiError("reauth_required", "Canva authorization could not be refreshed");
+  }
+}
+
+export type CanvaDesignThumbnail = { url: string; width: number | null; height: number | null };
+
+export type CanvaDesignSummary = {
+  id: string;
+  title: string;
+  thumbnail: CanvaDesignThumbnail | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+function toIsoOrNull(unixSeconds: unknown): string | null {
+  if (typeof unixSeconds !== "number" || !Number.isFinite(unixSeconds)) return null;
+  return new Date(unixSeconds * 1000).toISOString();
+}
+
+function mapCanvaDesign(raw: unknown): CanvaDesignSummary {
+  const d = raw as {
+    id?: string;
+    title?: string;
+    thumbnail?: { url?: string; width?: number; height?: number } | null;
+    created_at?: number;
+    updated_at?: number;
+  };
+  return {
+    id: String(d.id ?? ""),
+    title: typeof d.title === "string" && d.title.trim() ? d.title.trim() : "Untitled design",
+    thumbnail: d.thumbnail?.url
+      ? {
+          url: d.thumbnail.url,
+          width: d.thumbnail.width ?? null,
+          height: d.thumbnail.height ?? null,
+        }
+      : null,
+    createdAt: toIsoOrNull(d.created_at),
+    updatedAt: toIsoOrNull(d.updated_at),
+  };
+}
+
+/** GET /v1/designs — requires design:meta:read. Rate limited to 100/min/user by Canva. */
+export async function listCanvaDesigns(
+  accessToken: string,
+  continuation?: string,
+): Promise<{ items: CanvaDesignSummary[]; continuation?: string }> {
+  const qs = continuation ? `?continuation=${encodeURIComponent(continuation)}` : "";
+  const body = (await canvaApiFetch(`/designs${qs}`, accessToken)) as {
+    items?: unknown[];
+    continuation?: string;
+  };
+  return {
+    items: (body.items ?? []).map(mapCanvaDesign),
+    continuation: body.continuation,
+  };
+}
+
+/** GET /v1/designs/{id} — requires design:meta:read. Used to re-check a design right before import. */
+export async function getCanvaDesign(
+  accessToken: string,
+  designId: string,
+): Promise<CanvaDesignSummary> {
+  const body = (await canvaApiFetch(`/designs/${encodeURIComponent(designId)}`, accessToken)) as {
+    design?: unknown;
+  };
+  if (!body.design) throw new CanvaApiError("design_unavailable", "The Canva design was not found");
+  return mapCanvaDesign(body.design);
+}
+
+export type CanvaExportFormat = "png" | "jpg" | "pdf";
+
+type CanvaExportJob = {
+  id: string;
+  status: "in_progress" | "success" | "failed";
+  urls?: string[];
+  error?: { message?: string } | null;
+};
+
+function mapExportJob(raw: unknown): CanvaExportJob {
+  const j = raw as {
+    id?: string;
+    status?: string;
+    urls?: string[];
+    error?: { message?: string } | null;
+  };
+  return {
+    id: String(j.id ?? ""),
+    status: j.status === "success" || j.status === "failed" ? j.status : "in_progress",
+    urls: j.urls,
+    error: j.error ?? null,
+  };
+}
+
+/** POST /v1/exports — requires design:content:read (per Canva Connect docs, not content:write). */
+export async function createCanvaExportJob(
+  accessToken: string,
+  designId: string,
+  format: CanvaExportFormat = "png",
+): Promise<CanvaExportJob> {
+  const body = (await canvaApiFetch("/exports", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ design_id: designId, format: { type: format } }),
+  })) as { job?: unknown };
+  if (!body.job) throw new CanvaApiError("export_failed", "Canva did not return an export job");
+  return mapExportJob(body.job);
+}
+
+export async function getCanvaExportJob(
+  accessToken: string,
+  exportId: string,
+): Promise<CanvaExportJob> {
+  const body = (await canvaApiFetch(`/exports/${encodeURIComponent(exportId)}`, accessToken)) as {
+    job?: unknown;
+  };
+  if (!body.job) throw new CanvaApiError("export_failed", "Canva did not return an export job");
+  return mapExportJob(body.job);
+}
+
+const EXPORT_POLL_INTERVAL_MS = 1500;
+const EXPORT_POLL_TIMEOUT_MS = 45_000;
+
+/**
+ * Creates an export job and polls it to completion. Bounded by
+ * EXPORT_POLL_TIMEOUT_MS so a stuck Canva job can never hang the import
+ * request forever — times out into a typed "export_timeout" error the
+ * caller can show as a retryable failure, never a false success.
+ */
+export async function exportCanvaDesign(
+  accessToken: string,
+  designId: string,
+  format: CanvaExportFormat = "png",
+): Promise<{ url: string }> {
+  const job = await createCanvaExportJob(accessToken, designId, format);
+  const deadline = Date.now() + EXPORT_POLL_TIMEOUT_MS;
+
+  let current = job;
+  while (current.status === "in_progress") {
+    if (Date.now() > deadline) {
+      throw new CanvaApiError("export_timeout", "Canva export took too long to complete");
+    }
+    await new Promise((resolve) => setTimeout(resolve, EXPORT_POLL_INTERVAL_MS));
+    current = await getCanvaExportJob(accessToken, job.id);
+  }
+
+  if (current.status === "failed" || !current.urls?.length) {
+    throw new CanvaApiError("export_failed", current.error?.message ?? "Canva export failed");
+  }
+
+  return { url: current.urls[0]! };
+}
+
+/** GET /v1/users/me/profile — requires profile:read. Best-effort display name for the connection row. */
+export async function getCanvaProfile(
+  accessToken: string,
+): Promise<{ displayName: string | null }> {
+  try {
+    const body = (await canvaApiFetch("/users/me/profile", accessToken)) as {
+      display_name?: string;
+    };
+    return { displayName: typeof body.display_name === "string" ? body.display_name : null };
+  } catch {
+    return { displayName: null };
+  }
 }
