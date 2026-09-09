@@ -352,12 +352,9 @@ describe("downloadValidatedExportAsset", () => {
  * mock.module so the real DB/network are never touched.
  *
  * The mock's update() implements a real compare-and-swap: a call that adds
- * an `.eq("updated_at", X)` filter only applies if the row's CURRENT
- * updated_at still equals X, exactly like the real conditional UPDATE this
- * code issues against Postgres. Every successful update (conditional or
- * not) bumps `updated_at` to a new value, mirroring the DB's
- * touch_updated_at() trigger — this is what lets the concurrency tests
- * below simulate a second request's claim landing on a stale version.
+ * an `.eq("refresh_version", X)` filter only applies if the row's CURRENT
+ * refresh_version still equals X. Every successful update increments that
+ * version, mirroring the staging-validated database trigger.
  */
 const state: {
   row: Record<string, unknown> | null;
@@ -384,7 +381,7 @@ function mockUpdate(patch: Record<string, unknown>) {
     }
     state.updates.push(patch);
     state.generation++;
-    Object.assign(row as Record<string, unknown>, patch, { updated_at: `v${state.generation}` });
+    Object.assign(row as Record<string, unknown>, patch, { refresh_version: state.generation });
     result = { data: selectCols ? { ...row } : null, error: null };
     return result;
   }
@@ -465,7 +462,7 @@ describe("getValidCanvaAccessToken", () => {
       access_token_enc: await encryptOAuthSecret("live-access-token"),
       refresh_token_enc: null,
       access_token_expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-      updated_at: "v0",
+      refresh_version: 0,
     };
     const token = await getValidCanvaAccessToken("user-1");
     expect(token).toBe("live-access-token");
@@ -480,7 +477,7 @@ describe("getValidCanvaAccessToken", () => {
       access_token_enc: await encryptOAuthSecret("stale-token"),
       refresh_token_enc: await encryptOAuthSecret("refresh-token-value"),
       access_token_expires_at: new Date(Date.now() - 1000).toISOString(),
-      updated_at: "v0",
+      refresh_version: 0,
     };
     global.fetch = mock(
       async () =>
@@ -508,7 +505,7 @@ describe("getValidCanvaAccessToken", () => {
       access_token_enc: await encryptOAuthSecret("stale-token"),
       refresh_token_enc: await encryptOAuthSecret("bad-refresh-token"),
       access_token_expires_at: new Date(Date.now() - 1000).toISOString(),
-      updated_at: "v0",
+      refresh_version: 0,
     };
     global.fetch = mock(
       async () => new Response("invalid_grant", { status: 400 }),
@@ -527,13 +524,13 @@ describe("getValidCanvaAccessToken", () => {
       access_token_enc: await encryptOAuthSecret("stale-token"),
       refresh_token_enc: null,
       access_token_expires_at: new Date(Date.now() - 1000).toISOString(),
-      updated_at: "v0",
+      refresh_version: 0,
     };
     const err: unknown = await getValidCanvaAccessToken("user-1").catch((e) => e);
     expect((err as CanvaApiError).reason).toBe("reauth_required");
   });
 
-  describe("concurrent refresh (compare-and-swap on updated_at)", () => {
+  describe("concurrent refresh (compare-and-swap on refresh_version)", () => {
     it("only one of two concurrent refreshes calls Canva; the loser reuses the winner's token", async () => {
       state.row = {
         id: "row-1",
@@ -542,7 +539,7 @@ describe("getValidCanvaAccessToken", () => {
         access_token_enc: await encryptOAuthSecret("stale-token"),
         refresh_token_enc: await encryptOAuthSecret("refresh-token-value"),
         access_token_expires_at: new Date(Date.now() - 1000).toISOString(),
-        updated_at: "v0",
+        refresh_version: 0,
       };
       let canvaRefreshCalls = 0;
       global.fetch = mock(async () => {
@@ -583,7 +580,7 @@ describe("getValidCanvaAccessToken", () => {
         access_token_enc: await encryptOAuthSecret("stale-token"),
         refresh_token_enc: await encryptOAuthSecret("refresh-token-value"),
         access_token_expires_at: new Date(Date.now() - 1000).toISOString(),
-        updated_at: "v0",
+        refresh_version: 0,
       };
 
       let releaseFetch: (() => void) | null = null;
@@ -601,9 +598,10 @@ describe("getValidCanvaAccessToken", () => {
       // the refresh call is blocked on fetchGate, so this is deterministic:
       // the claim has already captured "v1" by the time this timer fires.
       await new Promise((resolve) => setTimeout(resolve, 10));
-      expect(state.row!["updated_at"]).toBe("v1"); // confirms the claim landed first
+      expect(state.row!["refresh_version"]).toBe(1); // confirms the claim landed first
       state.row!["status"] = "revoked";
-      state.row!["updated_at"] = "v2"; // simulate a concurrent disconnect's own update
+      state.generation++;
+      state.row!["refresh_version"] = state.generation; // simulate concurrent disconnect trigger
 
       releaseFetch!();
 

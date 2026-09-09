@@ -565,7 +565,7 @@ type CanvaConnectionRow = {
   access_token_enc: unknown;
   refresh_token_enc: unknown;
   access_token_expires_at: string | null;
-  updated_at: string;
+  refresh_version: number;
 };
 
 async function readCanvaConnectionRow(
@@ -574,7 +574,7 @@ async function readCanvaConnectionRow(
 ): Promise<CanvaConnectionRow | null> {
   const { data } = await supabase
     .from("integration_connections")
-    .select("id, status, access_token_enc, refresh_token_enc, access_token_expires_at, updated_at")
+    .select("id, status, access_token_enc, refresh_token_enc, access_token_expires_at, refresh_version")
     .eq("provider", CANVA_PROVIDER)
     .eq("user_id", userId)
     .maybeSingle();
@@ -619,7 +619,7 @@ export async function getValidCanvaAccessToken(userId: string): Promise<string> 
  * must never both call Canva's refresh endpoint with the same token.
  *
  * This is enforced with a database-backed compare-and-swap on
- * integration_connections.updated_at — no new column, no in-memory lock (an
+ * integration_connections.refresh_version — a monotonic server-only counter, no in-memory lock (an
  * in-process mutex wouldn't help anyway across multiple server instances).
  * Only the request whose conditional UPDATE actually matches a row (i.e.
  * nobody else has touched it since we read it) proceeds to call Canva.
@@ -631,9 +631,13 @@ async function refreshAccessTokenConcurrencySafe(
   userId: string,
   row: CanvaConnectionRow,
 ): Promise<string> {
-  const claimedUpdatedAt = await claimCanvaRefreshSlot(supabase, row.id, row.updated_at);
+  const claimedRefreshVersion = await claimCanvaRefreshSlot(
+    supabase,
+    row.id,
+    row.refresh_version,
+  );
 
-  if (!claimedUpdatedAt) {
+  if (claimedRefreshVersion === null) {
     // Someone else already claimed the refresh for this connection state —
     // wait for their result instead of also calling Canva.
     return awaitConcurrentCanvaRefresh(supabase, userId);
@@ -651,7 +655,7 @@ async function refreshAccessTokenConcurrencySafe(
     // guards against a disconnect (or anything else) landing in the instant
     // between our claim and this catch from clobbering that newer state
     // with a stale failure.
-    await markCanvaErrorIfUnchanged(supabase, row.id, claimedUpdatedAt, "token_refresh_failed");
+    await markCanvaErrorIfUnchanged(supabase, row.id, claimedRefreshVersion, "token_refresh_failed");
     throw new CanvaApiError("reauth_required", "Canva authorization could not be refreshed");
   }
 
@@ -659,14 +663,13 @@ async function refreshAccessTokenConcurrencySafe(
     rowId: row.id,
     ownerUserId: userId,
     tokens,
-    expectedUpdatedAt: claimedUpdatedAt,
+    expectedRefreshVersion: claimedRefreshVersion,
     fallbackRefreshTokenEnc: row.refresh_token_enc,
   });
 
   if (!stored) {
-    // We hold the claim and have a token Canva just issued to us — write it
-    // unconditionally rather than discarding a successfully refreshed token.
-    await storeCanvaConnection(supabase, { rowId: row.id, ownerUserId: userId, tokens });
+    // A newer connection state won the race. Preserve it; never resurrect it.
+    return resolveRefreshStoreCasLoss(supabase, userId);
   }
 
   return tokens.access_token;
@@ -674,25 +677,24 @@ async function refreshAccessTokenConcurrencySafe(
 
 /**
  * Attempts to claim the exclusive right to refresh this connection by
- * touching the row only if `updated_at` still matches `expectedUpdatedAt`
- * (optimistic concurrency). Returns the row's new `updated_at` (the CAS
- * token for the follow-up store) on success, or null if another request
- * already changed the row first.
+ * touching the row only if `refresh_version` still matches the observed version.
+ * A database trigger increments refresh_version on every UPDATE, making it a
+ * reliable CAS token even when PostgreSQL now()/updated_at is transaction-stable.
  */
 async function claimCanvaRefreshSlot(
   supabase: SupabaseClient,
   rowId: string,
-  expectedUpdatedAt: string,
-): Promise<string | null> {
+  expectedRefreshVersion: number,
+): Promise<number | null> {
   const { data, error } = await supabase
     .from("integration_connections")
     .update({ last_error: null })
     .eq("id", rowId)
-    .eq("updated_at", expectedUpdatedAt)
-    .select("updated_at")
+    .eq("refresh_version", expectedRefreshVersion)
+    .select("refresh_version")
     .maybeSingle();
   if (error || !data) return null;
-  return (data as { updated_at: string }).updated_at;
+  return (data as { refresh_version: number }).refresh_version;
 }
 
 /** Persists a refreshed token, but only if the row hasn't moved since the claim. */
@@ -702,7 +704,7 @@ async function storeRefreshedCanvaTokenIfUnchanged(
     rowId: string;
     ownerUserId: string;
     tokens: CanvaTokenResponse;
-    expectedUpdatedAt: string;
+    expectedRefreshVersion: number;
     fallbackRefreshTokenEnc: unknown;
   },
 ): Promise<boolean> {
@@ -728,7 +730,7 @@ async function storeRefreshedCanvaTokenIfUnchanged(
     })
     .eq("id", args.rowId)
     .eq("user_id", args.ownerUserId)
-    .eq("updated_at", args.expectedUpdatedAt)
+    .eq("refresh_version", args.expectedRefreshVersion)
     .select("id")
     .maybeSingle();
   return !error && !!data;
@@ -738,7 +740,7 @@ async function storeRefreshedCanvaTokenIfUnchanged(
 async function markCanvaErrorIfUnchanged(
   supabase: SupabaseClient,
   rowId: string,
-  expectedUpdatedAt: string,
+  expectedRefreshVersion: number,
   reason: string,
 ): Promise<void> {
   await supabase
@@ -751,7 +753,24 @@ async function markCanvaErrorIfUnchanged(
       state_expires_at: null,
     })
     .eq("id", rowId)
-    .eq("updated_at", expectedUpdatedAt);
+    .eq("refresh_version", expectedRefreshVersion);
+}
+
+async function resolveRefreshStoreCasLoss(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string> {
+  const fresh = await readCanvaConnectionRow(supabase, userId);
+  if (fresh?.status === "connected" && fresh.access_token_enc && !isNearExpiry(fresh)) {
+    return decryptOAuthSecret(fresh.access_token_enc);
+  }
+  if (!fresh || fresh.status === "revoked") {
+    throw new CanvaApiError("not_connected", "Canva is no longer connected");
+  }
+  throw new CanvaApiError(
+    "reauth_required",
+    "Canva authorization changed while the token was refreshing; reconnect to continue",
+  );
 }
 
 const CONCURRENT_REFRESH_POLL_INTERVAL_MS = 150;
