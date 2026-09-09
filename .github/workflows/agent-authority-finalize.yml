@@ -1,0 +1,91 @@
+name: Agent Authority Finalize
+
+on:
+  push:
+    branches: ["feature/ai-agent-authority-passport"]
+    paths: [".github/workflows/agent-authority-finalize.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/ai-agent-authority-passport
+          fetch-depth: 0
+
+      - name: Apply durable UI, E2E and release-gate changes
+        run: python scripts/agent-authority-finalize.py
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Generate local CLI migration files only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d supabase/migrations
+          for suffix in agent_authority_foundation agent_authority_security_hardening agent_authority_policy_receipt_integrity; do
+            if find supabase/migrations -maxdepth 1 -type f -name "*_${suffix}.sql" | grep -q .; then
+              echo "Migration already exists for ${suffix}; refusing ambiguous regeneration"
+              exit 1
+            fi
+            supabase migration new "$suffix"
+            sleep 1
+          done
+          foundation="$(find supabase/migrations -maxdepth 1 -type f -name '*_agent_authority_foundation.sql' | sort | tail -n 1)"
+          security="$(find supabase/migrations -maxdepth 1 -type f -name '*_agent_authority_security_hardening.sql' | sort | tail -n 1)"
+          integrity="$(find supabase/migrations -maxdepth 1 -type f -name '*_agent_authority_policy_receipt_integrity.sql' | sort | tail -n 1)"
+          test -n "$foundation" && test -n "$security" && test -n "$integrity"
+          cp docs/ai-agent-authority-passport/schema.sql "$foundation"
+          cp docs/ai-agent-authority-passport/migration-parts/02-security-hardening.sql "$security"
+          cp docs/ai-agent-authority-passport/migration-parts/03-policy-receipt-integrity.sql "$integrity"
+          printf 'Generated local migration files only:\n%s\n%s\n%s\n' "$foundation" "$security" "$integrity"
+          # Deliberately local-only: this job has no Supabase access token or project ref
+          # and invokes no link, database push, or migration-apply operation.
+
+      - name: Validate Python E2E suite syntax
+        run: python -m py_compile tests/agent-authority/agent-authority-authenticated.spec.py
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run Agent Authority tests
+        run: bunx vitest run src/lib/agent-authority
+
+      - name: Verify permanent release contract
+        run: bun run scripts/verify-agent-authority-release-contract.mjs
+
+      - name: Build full AurumVault application
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+
+      - name: Commit validated non-workflow Agent Authority source
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The Actions token intentionally cannot mutate workflow files. Keep the
+          # validated workflow edits out of this commit; they are persisted separately.
+          git checkout -- .github/workflows/agent-authority-gate.yml .github/workflows/agent-authority-e2e.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/routes/_authenticated/agent-authority.tsx tests/agent-authority/agent-authority-authenticated.spec.py scripts/verify-agent-authority-release-contract.mjs supabase/migrations
+          git diff --cached --check
+          git commit -m "Finalize Agent Authority security and release gates"
+          git push origin HEAD:feature/ai-agent-authority-passport
