@@ -44,7 +44,9 @@ Requests with missing, invalid, expired, revoked or insufficient-scope credentia
 }
 ```
 
-Representative codes include `AUTH_MISSING`, `AUTH_INVALID`, `KEY_EXPIRED`, `KEY_REVOKED`, `INSUFFICIENT_SCOPE`, `RATE_LIMITED`, `INVALID_INPUT`, `NOT_FOUND`, `CONFLICT`, `FORBIDDEN`, and `INTERNAL_ERROR`.
+Representative codes include `AUTH_MISSING`, `AUTH_INVALID`, `KEY_EXPIRED`, `KEY_REVOKED`, `INSUFFICIENT_SCOPE`, `RATE_LIMITED`, `INVALID_INPUT`, `IDEMPOTENCY_CONFLICT`, `RESOURCE_NOT_FOUND`, `POLICY_BLOCKED`, `APPROVAL_REQUIRED`, and `INTERNAL_ERROR`.
+
+A concurrent retry can briefly observe its idempotent action request before the winning request has finished writing the corresponding decision. The server performs a bounded decision replay wait. If the decision is still being finalized, the API returns HTTP `409` with `IDEMPOTENCY_CONFLICT`, `details.retryable: true`, and `Retry-After: 1`. Clients should retry the **same** `idempotencyKey`; they should not generate a replacement key for the same logical action.
 
 Successful API responses include `x-ratelimit-limit`, `x-ratelimit-remaining` and `x-ratelimit-reset`.
 
@@ -71,7 +73,15 @@ Example:
 }
 ```
 
-Classification can be supplied explicitly or resolved server-side from the Data Classification registry by `resourceKey`/target.
+### Data-classification trust boundary
+
+Classification can be supplied explicitly or resolved server-side from the Data Classification registry by `resourceKey`/target. When both exist, the Action Gate always uses the **stricter** classification. A caller therefore cannot downgrade a registered `RESTRICTED` resource by reporting it as `PUBLIC`, `INTERNAL`, or `CONFIDENTIAL`.
+
+### Financial-limit trust boundary
+
+The public Action Gate API does **not** accept a client-controlled `dailySpendToDate` value. When a Passport has `maxDailySpend`, the server calculates the current UTC-day purchase total from Agent Authority execution records: database-generated `EXECUTION` receipts with `execution_status = EXECUTED`, linked back to immutable purchase amounts on the associated action requests. The resulting server-derived total is supplied to the deterministic Action Gate before the new action is evaluated.
+
+This protects the policy calculation from a caller lowering or omitting spend history. It does not claim knowledge of actions performed outside Agent Authority or actions that were never reported/verified; production-grade financial enforcement still requires connected-system execution evidence and isolated staging verification.
 
 ## POST `/api/agent-authority/evidence`
 
@@ -148,6 +158,9 @@ Worker result updates use an optimistic attempt-count claim so two workers canno
 - API credential hashes and rate windows are not client-readable.
 - Service-role access remains server-only.
 - The Action Gate API does not execute the external action.
+- Registered data classification cannot be downgraded by the request payload.
+- Daily-spend enforcement uses server-recorded execution history, not client-reported spend-to-date.
+- Idempotent submission races use bounded replay and an explicit retryable conflict instead of recursive action creation.
 - Webhook signing secrets are not stored in client-readable tables.
 - Delivery logs store status/evidence metadata rather than sensitive request/response bodies.
 - Audit exports omit API credentials, key hashes, webhook secrets and raw sensitive payloads.
