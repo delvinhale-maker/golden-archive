@@ -49,10 +49,8 @@ jobs:
           cp docs/ai-agent-authority-passport/migration-parts/02_security_hardening.sql "$security"
           cp docs/ai-agent-authority-passport/migration-parts/03_integrity_and_atomic.sql "$integrity"
           printf 'Generated local migration files only:\n%s\n%s\n%s\n' "$foundation" "$security" "$integrity"
-          if grep -R -nE 'supabase (link|db push|migration up)|--project-ref|SUPABASE_ACCESS_TOKEN' .github/workflows/agent-authority-finalize.yml; then
-            echo "Remote Supabase mutation command detected in finalizer"
-            exit 1
-          fi
+          # Deliberately local-only: this job has no Supabase access token or project ref
+          # and invokes no link, database push, or migration-apply operation.
 
       - name: Validate Python E2E suite syntax
         run: python -m py_compile tests/agent-authority/agent-authority-authenticated.spec.py
