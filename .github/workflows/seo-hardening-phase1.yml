@@ -37,6 +37,7 @@ jobs:
           echo "57a16ef59903e20a9dc085e9c85e12d40ca76dbc92e23d150ec941a03e6d00c3  /tmp/seo-phase1.tar.gz" | sha256sum -c -
           mkdir -p .seo-hardening-v2
           tar -xzf /tmp/seo-phase1.tar.gz -C .seo-hardening-v2
+          sed -i 's/^clientBlock=/const clientBlock=/' .seo-hardening-v2/scripts/apply-phase1-seo-foundation.mjs
           node --check .seo-hardening-v2/scripts/apply-phase1-seo-foundation.mjs
 
       - name: Apply fail-fast source transformations
