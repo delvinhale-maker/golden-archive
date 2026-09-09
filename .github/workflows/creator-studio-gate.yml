@@ -1,0 +1,50 @@
+name: Creator Studio Release Gate
+
+on:
+  pull_request:
+    branches: ["**"]
+    paths:
+      - "src/lib/creator-studio*"
+      - "src/routes/_authenticated/creator-studio*"
+      - "docs/proposed-migrations/*creator_studio*"
+      - "docs/creator-studio-build-plan.md"
+      - ".github/workflows/creator-studio-gate.yml"
+  workflow_dispatch:
+
+jobs:
+  creator-studio-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Provider secret/client safety check
+        run: |
+          if grep -R "VITE_.*SHOTSTACK\|SHOTSTACK_API_KEY.*=" src --exclude='*.test.ts'; then
+            echo "Shotstack credentials must never be client-prefixed or embedded in source"
+            exit 1
+          fi
+          if grep -R "CREATOR_STUDIO_SHOTSTACK_PRODUCTION_ENABLED.*true" src; then
+            echo "Production provider rendering must not be hard-enabled in source"
+            exit 1
+          fi
+
+      - name: Creator Studio unit tests
+        run: bunx vitest run src/lib/creator-studio-template-engine.test.ts src/lib/creator-studio-entitlements.test.ts
+
+      - name: Build
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+          CREATOR_STUDIO_ENABLED: "false"
+          CREATOR_STUDIO_PROVIDER_ENABLED: "false"
+          CREATOR_STUDIO_SHOTSTACK_PRODUCTION_ENABLED: "false"
