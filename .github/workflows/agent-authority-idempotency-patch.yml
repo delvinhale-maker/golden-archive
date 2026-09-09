@@ -1,0 +1,111 @@
+name: Agent Authority Idempotency Patch
+
+on:
+  push:
+    branches: [feature/ai-agent-authority-passport]
+    paths:
+      - ".github/workflows/agent-authority-idempotency-patch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/ai-agent-authority-passport
+          fetch-depth: 0
+
+      - name: Patch submitAction idempotency handling
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("src/lib/agent-authority/service.server.ts")
+          text = path.read_text()
+
+          old_import = 'import { assertActionApprovalAuthority } from "./delegation.server";\n'
+          new_import = old_import + 'import { waitForIdempotentDecision } from "./idempotency";\n'
+          if old_import not in text:
+              raise SystemExit("Expected delegation import not found")
+          text = text.replace(old_import, new_import, 1)
+
+          marker = 'export async function submitAction(\n'
+          helper = '''async function loadIdempotentReplay(client: any, actionRequestId: string) {
+            const existingDecision = await waitForIdempotentDecision(async () => {
+              const { data, error } = await client
+                .from("action_decisions")
+                .select("id,decision,primary_reason,reason_codes,policy_code,policy_version,decided_at")
+                .eq("action_request_id", actionRequestId)
+                .maybeSingle();
+              if (error) throw error;
+              return data ?? null;
+            });
+            return { idempotentReplay: true, actionRequestId, decision: existingDecision };
+          }
+
+          export async function submitAction(
+          '''
+          if marker not in text:
+              raise SystemExit("submitAction marker not found")
+          text = text.replace(marker, helper, 1)
+
+          old_existing = '''  if (existing) {
+            const { data: existingDecision, error } = await client
+              .from("action_decisions")
+              .select("id,decision,primary_reason,reason_codes,policy_code,policy_version,decided_at")
+              .eq("action_request_id", existing.id)
+              .single();
+            if (error) throw error;
+            return { idempotentReplay: true, actionRequestId: existing.id, decision: existingDecision };
+          }
+          '''
+          new_existing = '''  if (existing) return loadIdempotentReplay(client, existing.id);
+          '''
+          if old_existing not in text:
+              raise SystemExit("Existing idempotency replay block not found")
+          text = text.replace(old_existing, new_existing, 1)
+
+          old_conflict = '''  if (requestError) {
+            // A concurrent duplicate is expected to lose on the unique idempotency constraint.
+            if (String(requestError.code) === "23505") return submitAction(userId, input, actorOverride);
+            throw requestError;
+          }
+          '''
+          new_conflict = '''  if (requestError) {
+            // A concurrent duplicate is expected to lose on the unique idempotency constraint.
+            // Read the winner directly and wait briefly for its decision instead of recursively
+            // re-entering submitAction, which could race against the winner's decision insert.
+            if (String(requestError.code) === "23505") {
+              const { data: winner, error: winnerError } = await client
+                .from("action_requests")
+                .select("id")
+                .eq("workspace_id", input.workspaceId)
+                .eq("idempotency_key", input.request.idempotencyKey)
+                .maybeSingle();
+              if (winnerError) throw winnerError;
+              if (!winner) throw requestError;
+              return loadIdempotentReplay(client, winner.id);
+            }
+            throw requestError;
+          }
+          '''
+          if old_conflict not in text:
+              raise SystemExit("Concurrent idempotency conflict block not found")
+          text = text.replace(old_conflict, new_conflict, 1)
+
+          path.write_text(text)
+
+      - name: Commit patch and remove temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/agent-authority-idempotency-patch.yml
+          git add src/lib/agent-authority/service.server.ts
+          git commit -m "Harden Agent Authority idempotent submission races"
+          git push origin HEAD:feature/ai-agent-authority-passport
