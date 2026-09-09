@@ -29,25 +29,47 @@ describe("Agent Authority public API validation", () => {
     [{ ...validAction, requestedAt: new Date().toISOString() }],
     [{ ...validAction, dailySpendToDate: 0 }],
     [{ ...validAction, extraAuthorityOverride: "ALLOW" }],
-  ])("rejects malformed or caller-controlled fields %#", (payload) => {
+  ])("rejects malformed or caller-controlled action fields %#", (payload) => {
     expect(parseJsonWithSchema(actionGateApiSchema, payload).success).toBe(false);
+  });
+
+  it("accepts a bounded verified execution report", () => {
+    const parsed = parseJsonWithSchema(evidenceApiSchema, {
+      actionRequestId: "22222222-2222-4222-8222-222222222222",
+      executionStatus: "EXECUTED",
+      executionConfirmed: true,
+      signedEvidencePresent: true,
+      sourceSystem: "Synthetic staging provider",
+      externalReference: "provider-event-123",
+      evidenceReferences: ["provider-event-123"],
+    });
+    expect(parsed.success).toBe(true);
   });
 
   it("rejects signed evidence without confirmed execution", () => {
     const parsed = parseJsonWithSchema(evidenceApiSchema, {
       actionRequestId: "22222222-2222-4222-8222-222222222222",
+      executionStatus: "EXECUTED",
       executionConfirmed: false,
       signedEvidencePresent: true,
-      outcome: "SUCCEEDED",
     });
     expect(parsed.success).toBe(false);
   });
 
-  it("rejects unknown evidence payload fields", () => {
+  it("rejects confirmed execution for a failed outcome", () => {
+    expect(parseJsonWithSchema(evidenceApiSchema, {
+      actionRequestId: "22222222-2222-4222-8222-222222222222",
+      executionStatus: "FAILED",
+      executionConfirmed: true,
+    }).success).toBe(false);
+  });
+
+  it("rejects client timestamps and unknown evidence payload fields", () => {
     const parsed = parseJsonWithSchema(evidenceApiSchema, {
       actionRequestId: "22222222-2222-4222-8222-222222222222",
+      executionStatus: "EXECUTED",
       executionConfirmed: true,
-      outcome: "SUCCEEDED",
+      executedAt: new Date().toISOString(),
       rawAccessToken: "must-not-enter-the-ledger",
     });
     expect(parsed.success).toBe(false);
