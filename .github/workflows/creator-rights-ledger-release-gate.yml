@@ -1,0 +1,85 @@
+name: Creator Rights Ledger Release Gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - staging/creator-rights-ledger-release-gate
+    paths:
+      - 'src/features/creator-rights-ledger/**'
+      - 'src/routes/_authenticated/creator-rights-ledger.tsx'
+      - 'tests/**'
+      - 'playwright.config.*'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'bun.lock'
+      - '.github/workflows/creator-rights-ledger-release-gate.yml'
+      - 'docs/creator-rights-ledger/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/features/creator-rights-ledger/**'
+      - 'src/routes/_authenticated/creator-rights-ledger.tsx'
+      - 'tests/**'
+      - 'playwright.config.*'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'bun.lock'
+      - '.github/workflows/creator-rights-ledger-release-gate.yml'
+      - 'docs/creator-rights-ledger/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crl-release-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-gate:
+    name: dependency → types → unit → build → browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: 'true'
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: 1 — Frozen dependency install
+        run: npm ci --no-audit --no-fund
+
+      - name: 2 — TypeScript
+        run: npx tsc --noEmit
+
+      - name: 3 — Vitest
+        run: npx vitest run
+
+      - name: 4 — TanStack/Vite production build
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: 5 — Playwright
+        run: npx playwright test
+
+      - name: Upload Playwright evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crl-playwright-evidence-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            playwright-report/
+            test-results/
