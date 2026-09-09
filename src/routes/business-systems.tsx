@@ -249,7 +249,7 @@ function BusinessSystemsPage() {
                 {flagship ? (
                   <Link
                     to="/products/$id"
-                    params={{ id: flagship.id }}
+                    params={{ id: flagship.slug ?? flagship.id }}
                     className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gold px-5 py-3 text-[13px] font-bold uppercase tracking-caps text-navy transition hover:brightness-105"
                   >
                     View the Complete System <ArrowRight size={15} aria-hidden />

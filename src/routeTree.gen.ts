@@ -16,6 +16,7 @@ import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AffiliateDisclosureRouteImport } from './routes/affiliate-disclosure'
 import { Route as AffiliatesRouteImport } from './routes/affiliates'
+import { Route as AiPromptPacksRouteImport } from './routes/ai-prompt-packs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeACreatorRouteImport } from './routes/become-a-creator'
 import { Route as BusinessSystemsRouteImport } from './routes/business-systems'
@@ -31,11 +32,14 @@ import { Route as CreatorStarterPackRouteImport } from './routes/creator-starter
 import { Route as CreatorTermsRouteImport } from './routes/creator-terms'
 import { Route as CreatorsRouteImport } from './routes/creators'
 import { Route as DethroningTheBully2RouteImport } from './routes/dethroning-the-bully-2'
+import { Route as EbooksRouteImport } from './routes/ebooks'
 import { Route as Founding100RouteImport } from './routes/founding-100'
 import { Route as GiftCardsRouteImport } from './routes/gift-cards'
+import { Route as JournalsRouteImport } from './routes/journals'
 import { Route as KingdomPicksRouteImport } from './routes/kingdom-picks'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
+import { Route as PlannersRouteImport } from './routes/planners'
 import { Route as PreviewSampleRouteImport } from './routes/preview-sample'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProductsRouteImport } from './routes/products'
@@ -74,6 +78,7 @@ import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as QPublicIdRouteImport } from './routes/q.$publicId'
 import { Route as StoreSlugRouteImport } from './routes/store.$slug'
 import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm'
+import { Route as ToolsAiLikenessRightsRiskCheckerRouteImport } from './routes/tools.ai-likeness-rights-risk-checker'
 import { Route as ToolsRevenueCalculatorRouteImport } from './routes/tools.revenue-calculator'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAutoReleaseRouteImport } from './routes/_authenticated/admin.auto-release'
@@ -178,6 +183,11 @@ const AffiliatesRoute = AffiliatesRouteImport.update({
   path: '/affiliates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AiPromptPacksRoute = AiPromptPacksRouteImport.update({
+  id: '/ai-prompt-packs',
+  path: '/ai-prompt-packs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -253,6 +263,11 @@ const DethroningTheBully2Route = DethroningTheBully2RouteImport.update({
   path: '/dethroning-the-bully-2',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EbooksRoute = EbooksRouteImport.update({
+  id: '/ebooks',
+  path: '/ebooks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Founding100Route = Founding100RouteImport.update({
   id: '/founding-100',
   path: '/founding-100',
@@ -261,6 +276,11 @@ const Founding100Route = Founding100RouteImport.update({
 const GiftCardsRoute = GiftCardsRouteImport.update({
   id: '/gift-cards',
   path: '/gift-cards',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JournalsRoute = JournalsRouteImport.update({
+  id: '/journals',
+  path: '/journals',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KingdomPicksRoute = KingdomPicksRouteImport.update({
@@ -276,6 +296,11 @@ const LibraryRoute = LibraryRouteImport.update({
 const LoyaltyRoute = LoyaltyRouteImport.update({
   id: '/loyalty',
   path: '/loyalty',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlannersRoute = PlannersRouteImport.update({
+  id: '/planners',
+  path: '/planners',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PreviewSampleRoute = PreviewSampleRouteImport.update({
@@ -471,6 +496,12 @@ const SubscribeConfirmRoute = SubscribeConfirmRouteImport.update({
   path: '/subscribe/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsAiLikenessRightsRiskCheckerRoute =
+  ToolsAiLikenessRightsRiskCheckerRouteImport.update({
+    id: '/tools/ai-likeness-rights-risk-checker',
+    path: '/tools/ai-likeness-rights-risk-checker',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ToolsRevenueCalculatorRoute = ToolsRevenueCalculatorRouteImport.update({
   id: '/tools/revenue-calculator',
   path: '/tools/revenue-calculator',
@@ -888,6 +919,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
+  '/ai-prompt-packs': typeof AiPromptPacksRoute
   '/auth': typeof AuthRoute
   '/become-a-creator': typeof BecomeACreatorRoute
   '/business-systems': typeof BusinessSystemsRoute
@@ -903,11 +935,14 @@ export interface FileRoutesByFullPath {
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
   '/dethroning-the-bully-2': typeof DethroningTheBully2Route
+  '/ebooks': typeof EbooksRoute
   '/founding-100': typeof Founding100Route
   '/gift-cards': typeof GiftCardsRoute
+  '/journals': typeof JournalsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
   '/loyalty': typeof LoyaltyRoute
+  '/planners': typeof PlannersRoute
   '/preview-sample': typeof PreviewSampleRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
@@ -941,6 +976,7 @@ export interface FileRoutesByFullPath {
   '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
+  '/tools/ai-likeness-rights-risk-checker': typeof ToolsAiLikenessRightsRiskCheckerRoute
   '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
   '/academy/': typeof AcademyIndexRoute
   '/bundles/': typeof BundlesIndexRoute
@@ -1022,6 +1058,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
+  '/ai-prompt-packs': typeof AiPromptPacksRoute
   '/auth': typeof AuthRoute
   '/become-a-creator': typeof BecomeACreatorRoute
   '/business-systems': typeof BusinessSystemsRoute
@@ -1036,11 +1073,14 @@ export interface FileRoutesByTo {
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
   '/dethroning-the-bully-2': typeof DethroningTheBully2Route
+  '/ebooks': typeof EbooksRoute
   '/founding-100': typeof Founding100Route
   '/gift-cards': typeof GiftCardsRoute
+  '/journals': typeof JournalsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
   '/loyalty': typeof LoyaltyRoute
+  '/planners': typeof PlannersRoute
   '/preview-sample': typeof PreviewSampleRoute
   '/privacy': typeof PrivacyRoute
   '/refunds': typeof RefundsRoute
@@ -1073,6 +1113,7 @@ export interface FileRoutesByTo {
   '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
+  '/tools/ai-likeness-rights-risk-checker': typeof ToolsAiLikenessRightsRiskCheckerRoute
   '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
   '/academy': typeof AcademyIndexRoute
   '/bundles': typeof BundlesIndexRoute
@@ -1157,6 +1198,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
+  '/ai-prompt-packs': typeof AiPromptPacksRoute
   '/auth': typeof AuthRoute
   '/become-a-creator': typeof BecomeACreatorRoute
   '/business-systems': typeof BusinessSystemsRoute
@@ -1172,11 +1214,14 @@ export interface FileRoutesById {
   '/creator-terms': typeof CreatorTermsRoute
   '/creators': typeof CreatorsRoute
   '/dethroning-the-bully-2': typeof DethroningTheBully2Route
+  '/ebooks': typeof EbooksRoute
   '/founding-100': typeof Founding100Route
   '/gift-cards': typeof GiftCardsRoute
+  '/journals': typeof JournalsRoute
   '/kingdom-picks': typeof KingdomPicksRoute
   '/library': typeof LibraryRoute
   '/loyalty': typeof LoyaltyRoute
+  '/planners': typeof PlannersRoute
   '/preview-sample': typeof PreviewSampleRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
@@ -1210,6 +1255,7 @@ export interface FileRoutesById {
   '/q/$publicId': typeof QPublicIdRoute
   '/store/$slug': typeof StoreSlugRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
+  '/tools/ai-likeness-rights-risk-checker': typeof ToolsAiLikenessRightsRiskCheckerRoute
   '/tools/revenue-calculator': typeof ToolsRevenueCalculatorRoute
   '/academy/': typeof AcademyIndexRoute
   '/bundles/': typeof BundlesIndexRoute
@@ -1294,6 +1340,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/affiliate-disclosure'
     | '/affiliates'
+    | '/ai-prompt-packs'
     | '/auth'
     | '/become-a-creator'
     | '/business-systems'
@@ -1309,11 +1356,14 @@ export interface FileRouteTypes {
     | '/creator-terms'
     | '/creators'
     | '/dethroning-the-bully-2'
+    | '/ebooks'
     | '/founding-100'
     | '/gift-cards'
+    | '/journals'
     | '/kingdom-picks'
     | '/library'
     | '/loyalty'
+    | '/planners'
     | '/preview-sample'
     | '/privacy'
     | '/products'
@@ -1347,6 +1397,7 @@ export interface FileRouteTypes {
     | '/q/$publicId'
     | '/store/$slug'
     | '/subscribe/confirm'
+    | '/tools/ai-likeness-rights-risk-checker'
     | '/tools/revenue-calculator'
     | '/academy/'
     | '/bundles/'
@@ -1428,6 +1479,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/affiliate-disclosure'
     | '/affiliates'
+    | '/ai-prompt-packs'
     | '/auth'
     | '/become-a-creator'
     | '/business-systems'
@@ -1442,11 +1494,14 @@ export interface FileRouteTypes {
     | '/creator-terms'
     | '/creators'
     | '/dethroning-the-bully-2'
+    | '/ebooks'
     | '/founding-100'
     | '/gift-cards'
+    | '/journals'
     | '/kingdom-picks'
     | '/library'
     | '/loyalty'
+    | '/planners'
     | '/preview-sample'
     | '/privacy'
     | '/refunds'
@@ -1479,6 +1534,7 @@ export interface FileRouteTypes {
     | '/q/$publicId'
     | '/store/$slug'
     | '/subscribe/confirm'
+    | '/tools/ai-likeness-rights-risk-checker'
     | '/tools/revenue-calculator'
     | '/academy'
     | '/bundles'
@@ -1562,6 +1618,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/affiliate-disclosure'
     | '/affiliates'
+    | '/ai-prompt-packs'
     | '/auth'
     | '/become-a-creator'
     | '/business-systems'
@@ -1577,11 +1634,14 @@ export interface FileRouteTypes {
     | '/creator-terms'
     | '/creators'
     | '/dethroning-the-bully-2'
+    | '/ebooks'
     | '/founding-100'
     | '/gift-cards'
+    | '/journals'
     | '/kingdom-picks'
     | '/library'
     | '/loyalty'
+    | '/planners'
     | '/preview-sample'
     | '/privacy'
     | '/products'
@@ -1615,6 +1675,7 @@ export interface FileRouteTypes {
     | '/q/$publicId'
     | '/store/$slug'
     | '/subscribe/confirm'
+    | '/tools/ai-likeness-rights-risk-checker'
     | '/tools/revenue-calculator'
     | '/academy/'
     | '/bundles/'
@@ -1699,6 +1760,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRouteWithChildren
   AffiliateDisclosureRoute: typeof AffiliateDisclosureRoute
   AffiliatesRoute: typeof AffiliatesRoute
+  AiPromptPacksRoute: typeof AiPromptPacksRoute
   AuthRoute: typeof AuthRoute
   BecomeACreatorRoute: typeof BecomeACreatorRoute
   BusinessSystemsRoute: typeof BusinessSystemsRoute
@@ -1714,11 +1776,14 @@ export interface RootRouteChildren {
   CreatorTermsRoute: typeof CreatorTermsRoute
   CreatorsRoute: typeof CreatorsRoute
   DethroningTheBully2Route: typeof DethroningTheBully2Route
+  EbooksRoute: typeof EbooksRoute
   Founding100Route: typeof Founding100Route
   GiftCardsRoute: typeof GiftCardsRoute
+  JournalsRoute: typeof JournalsRoute
   KingdomPicksRoute: typeof KingdomPicksRoute
   LibraryRoute: typeof LibraryRoute
   LoyaltyRoute: typeof LoyaltyRoute
+  PlannersRoute: typeof PlannersRoute
   PreviewSampleRoute: typeof PreviewSampleRoute
   PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRouteWithChildren
@@ -1747,6 +1812,7 @@ export interface RootRouteChildren {
   QPublicIdRoute: typeof QPublicIdRoute
   StoreSlugRoute: typeof StoreSlugRoute
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
+  ToolsAiLikenessRightsRiskCheckerRoute: typeof ToolsAiLikenessRightsRiskCheckerRoute
   ToolsRevenueCalculatorRoute: typeof ToolsRevenueCalculatorRoute
   BundlesIndexRoute: typeof BundlesIndexRoute
   InsiderIndexRoute: typeof InsiderIndexRoute
@@ -1820,6 +1886,13 @@ declare module '@tanstack/react-router' {
       path: '/affiliates'
       fullPath: '/affiliates'
       preLoaderRoute: typeof AffiliatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-prompt-packs': {
+      id: '/ai-prompt-packs'
+      path: '/ai-prompt-packs'
+      fullPath: '/ai-prompt-packs'
+      preLoaderRoute: typeof AiPromptPacksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -1927,6 +2000,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DethroningTheBully2RouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ebooks': {
+      id: '/ebooks'
+      path: '/ebooks'
+      fullPath: '/ebooks'
+      preLoaderRoute: typeof EbooksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/founding-100': {
       id: '/founding-100'
       path: '/founding-100'
@@ -1939,6 +2019,13 @@ declare module '@tanstack/react-router' {
       path: '/gift-cards'
       fullPath: '/gift-cards'
       preLoaderRoute: typeof GiftCardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journals': {
+      id: '/journals'
+      path: '/journals'
+      fullPath: '/journals'
+      preLoaderRoute: typeof JournalsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kingdom-picks': {
@@ -1960,6 +2047,13 @@ declare module '@tanstack/react-router' {
       path: '/loyalty'
       fullPath: '/loyalty'
       preLoaderRoute: typeof LoyaltyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planners': {
+      id: '/planners'
+      path: '/planners'
+      fullPath: '/planners'
+      preLoaderRoute: typeof PlannersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/preview-sample': {
@@ -2226,6 +2320,13 @@ declare module '@tanstack/react-router' {
       path: '/subscribe/confirm'
       fullPath: '/subscribe/confirm'
       preLoaderRoute: typeof SubscribeConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/ai-likeness-rights-risk-checker': {
+      id: '/tools/ai-likeness-rights-risk-checker'
+      path: '/tools/ai-likeness-rights-risk-checker'
+      fullPath: '/tools/ai-likeness-rights-risk-checker'
+      preLoaderRoute: typeof ToolsAiLikenessRightsRiskCheckerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/revenue-calculator': {
@@ -2903,6 +3004,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRouteWithChildren,
   AffiliateDisclosureRoute: AffiliateDisclosureRoute,
   AffiliatesRoute: AffiliatesRoute,
+  AiPromptPacksRoute: AiPromptPacksRoute,
   AuthRoute: AuthRoute,
   BecomeACreatorRoute: BecomeACreatorRoute,
   BusinessSystemsRoute: BusinessSystemsRoute,
@@ -2918,11 +3020,14 @@ const rootRouteChildren: RootRouteChildren = {
   CreatorTermsRoute: CreatorTermsRoute,
   CreatorsRoute: CreatorsRoute,
   DethroningTheBully2Route: DethroningTheBully2Route,
+  EbooksRoute: EbooksRoute,
   Founding100Route: Founding100Route,
   GiftCardsRoute: GiftCardsRoute,
+  JournalsRoute: JournalsRoute,
   KingdomPicksRoute: KingdomPicksRoute,
   LibraryRoute: LibraryRoute,
   LoyaltyRoute: LoyaltyRoute,
+  PlannersRoute: PlannersRoute,
   PreviewSampleRoute: PreviewSampleRoute,
   PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRouteWithChildren,
@@ -2952,6 +3057,7 @@ const rootRouteChildren: RootRouteChildren = {
   QPublicIdRoute: QPublicIdRoute,
   StoreSlugRoute: StoreSlugRoute,
   SubscribeConfirmRoute: SubscribeConfirmRoute,
+  ToolsAiLikenessRightsRiskCheckerRoute: ToolsAiLikenessRightsRiskCheckerRoute,
   ToolsRevenueCalculatorRoute: ToolsRevenueCalculatorRoute,
   BundlesIndexRoute: BundlesIndexRoute,
   InsiderIndexRoute: InsiderIndexRoute,

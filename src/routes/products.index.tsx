@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Crown, Filter, SlidersHorizontal, Star, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import {
@@ -13,6 +13,7 @@ import { getProducts, type Product } from "@/lib/marketplace.functions";
 import { CategoryHero } from "@/components/marketplace/CategoryHero";
 import { getCategoryTheme } from "@/lib/category-theme";
 import { CATEGORIES as CATEGORY_DEFS, slugToLabel, getCategoryDef, hasStructuredSubs } from "@/lib/categories";
+import { productsSearchSeo } from "@/lib/products-search-seo";
 import {
   PRODUCT_TYPE_BY_SLUG,
   PRODUCT_TYPE_FILTER_ORDER,
@@ -80,13 +81,9 @@ function productsQueryOptions(args: ProductsQueryArgs) {
 
 export const Route = createFileRoute("/products/")({
   validateSearch: searchSchema,
-  loaderDeps: ({ search }) => ({
-    category: search.category,
-    sort: search.sort,
-    q: search.q,
-  }),
-  loader: ({ context, deps }) =>
-    context.queryClient.ensureQueryData(
+  loaderDeps: ({ search }) => ({ ...search }),
+  loader: async ({ context, deps }) => {
+    await context.queryClient.ensureQueryData(
       productsQueryOptions({
         category: deps.category
           ? getCategoryDef(deps.category)?.label ?? deps.category
@@ -94,8 +91,12 @@ export const Route = createFileRoute("/products/")({
         sort: deps.sort,
         q: deps.q,
       }),
-    ),
-  head: () => ({
+    );
+    return { seo: productsSearchSeo(deps) };
+  },
+  head: ({ loaderData }) => {
+    const seo = loaderData?.seo ?? productsSearchSeo({});
+    return {
     meta: [
       { title: "Digital Products | AurumVault Marketplace" },
       {
@@ -109,7 +110,8 @@ export const Route = createFileRoute("/products/")({
         content:
           "Filter and discover purpose-driven eBooks, AI prompt packs, journals, and financial planners from independent creators.",
       },
-      { property: "og:url", content: "https://www.aurumvault.store/products" },
+      { name: "robots", content: seo.robots },
+      { property: "og:url", content: seo.canonical },
       { name: "twitter:title", content: "Browse the Vault | AurumVault" },
       {
         name: "twitter:description",
@@ -117,8 +119,9 @@ export const Route = createFileRoute("/products/")({
           "Filter and discover purpose-driven eBooks, AI prompt packs, journals, and financial planners from independent creators.",
       },
     ],
-    links: [{ rel: "canonical", href: "https://www.aurumvault.store/products" }],
-  }),
+    links: [{ rel: "canonical", href: seo.canonical }],
+    };
+  },
   component: ProductsPage,
 });
 

@@ -230,7 +230,7 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
     let query = supa
       .from("marketplace_products")
       .select(
-        "id,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at",
+        "id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at",
       )
       .eq("status", "approved")
       .eq("published", true)
@@ -385,6 +385,7 @@ export type ProductDetailResult =
       ratingBreakdown: ProductRatingBreakdown;
     }
   | { kind: "unpublished"; title: string | null }
+  | { kind: "redirect"; slug: string }
   | { kind: "notFound" };
 
 
@@ -720,17 +721,42 @@ export const getProduct = createServerFn({ method: "GET" })
     // Use service-role client so we can distinguish "does not exist" from
     // "exists but is not yet published/approved" despite RLS policies.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row } = await supabaseAdmin
+    const detailSelect =
+      "id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages" as const;
+
+    const direct = await supabaseAdmin
       .from("marketplace_products")
-      .select(
-        "id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages",
-      )
+      .select(detailSelect)
       .eq(isUuid ? "id" : "slug", identifier)
       .maybeSingle();
+
+    let row = direct.data as any;
+
+    if (!row && !isUuid) {
+      const redirectLookup = await (supabaseAdmin.rpc as any)(
+        "resolve_product_slug_redirect",
+        { _old_slug: identifier },
+      );
+      const redirectProductId =
+        typeof redirectLookup.data === "string" ? redirectLookup.data : null;
+
+      if (redirectProductId) {
+        const redirected = await supabaseAdmin
+          .from("marketplace_products")
+          .select(detailSelect)
+          .eq("id", redirectProductId)
+          .maybeSingle();
+        row = redirected.data as any;
+      }
+    }
 
     if (!row) return { kind: "notFound" } as ProductDetailResult;
     if (row.status !== "approved" || !row.published) {
       return { kind: "unpublished", title: row.title } as ProductDetailResult;
+    }
+    const canonical = row.slug?.trim() || row.id;
+    if (canonical !== identifier) {
+      return { kind: "redirect", slug: canonical } as ProductDetailResult;
     }
     const product = dbRowToProduct(row as DbProductRow);
     const [agg, creators] = await Promise.all([
@@ -801,7 +827,7 @@ export const getHomeHighlights = createServerFn({ method: "GET" }).handler(
         supa
           .from("marketplace_products")
           .select(
-            "id,title,category,price_cents,cover_url,description,seller_id,created_at",
+            "id,slug,title,category,price_cents,cover_url,description,seller_id,created_at",
           )
           .eq("status", "approved")
           .eq("published", true)
@@ -858,7 +884,7 @@ export const getPromotedPicksRowFn = createServerFn({ method: "GET" }).handler(
       const { data } = await supa
         .from("marketplace_products")
         .select(
-          "id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at",
+          "id,slug,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at",
         )
         .eq("status", "approved")
         .eq("published", true)
