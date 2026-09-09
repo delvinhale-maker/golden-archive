@@ -6,7 +6,6 @@ on:
       - seo/redirect-slug-hardening
     paths:
       - .github/workflows/seo-hardening-phase1.yml
-      - .seo-hardening/phase1.tar.gz
 
 permissions:
   contents: write
@@ -22,12 +21,19 @@ jobs:
           ref: seo/redirect-slug-hardening
           fetch-depth: 0
 
-      - name: Unpack prepared SEO implementation
+      - name: Reconstruct and verify prepared SEO implementation
         shell: bash
         run: |
-          echo "57a16ef59903e20a9dc085e9c85e12d40ca76dbc92e23d150ec941a03e6d00c3  .seo-hardening/phase1.tar.gz" | sha256sum -c -
+          cat \
+            .seo-hardening/chunkaa.b64 \
+            .seo-hardening/chunkab.b64 \
+            .seo-hardening/chunkac.b64 \
+            .seo-hardening/chunkad.b64 \
+            | base64 --decode > /tmp/seo-phase1.tar.gz
+          echo "57a16ef59903e20a9dc085e9c85e12d40ca76dbc92e23d150ec941a03e6d00c3  /tmp/seo-phase1.tar.gz" | sha256sum -c -
           mkdir -p .seo-hardening-v2
-          tar -xzf .seo-hardening/phase1.tar.gz -C .seo-hardening-v2
+          tar -xzf /tmp/seo-phase1.tar.gz -C .seo-hardening-v2
+          node --check .seo-hardening-v2/scripts/apply-phase1-seo-foundation.mjs
 
       - name: Apply fail-fast source transformations
         run: node .seo-hardening-v2/scripts/apply-phase1-seo-foundation.mjs
