@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { parseUntrustedShotstackCallback } from "@/lib/creator-studio-shotstack.server";
-import { refreshCreatorStudioRender } from "@/lib/creator-studio-rendering.server";
+import {
+  callbackTokenMatches,
+  refreshCreatorStudioRender,
+} from "@/lib/creator-studio-rendering.server";
 
 function serviceClient() {
   const url = process.env.SUPABASE_URL;
@@ -14,9 +17,14 @@ export const Route = createFileRoute("/api/creator-studio-shotstack-callback")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const token = new URL(request.url).searchParams.get("token");
+        if (!callbackTokenMatches(token)) return new Response("Unauthorized", { status: 401 });
         try {
-          // Shotstack callbacks are treated only as wake-up hints. Never trust callback status/url.
+          // Shotstack callbacks are wake-up hints only. Provider GET remains authoritative.
           const callback = parseUntrustedShotstackCallback(await request.json());
+          if (callback.type !== "edit" || callback.action !== "render") {
+            return Response.json({ received: true });
+          }
           const db = serviceClient();
           const { data: job } = await db
             .from("creator_studio_render_jobs")
@@ -30,7 +38,6 @@ export const Route = createFileRoute("/api/creator-studio-shotstack-callback")({
           });
           return Response.json({ received: true });
         } catch {
-          // Do not leak provider/database details to an unauthenticated callback caller.
           return new Response("Invalid callback", { status: 400 });
         }
       },
