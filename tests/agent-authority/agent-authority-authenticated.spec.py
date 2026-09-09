@@ -34,6 +34,20 @@ def ok(message: str) -> None:
     print(f"PASS: {message}")
 
 
+async def select_option_containing(select, needle: str) -> None:
+    options = select.locator("option")
+    for index in range(await options.count()):
+        option = options.nth(index)
+        text = (await option.text_content()) or ""
+        if needle in text:
+            value = await option.get_attribute("value")
+            if value is None:
+                fail(f"Option containing {needle!r} has no value")
+            await select.select_option(value=value)
+            return
+    fail(f"No select option contained {needle!r}")
+
+
 async def restore_session(page) -> None:
     storage_key = os.environ.get("LOVABLE_BROWSER_SUPABASE_STORAGE_KEY")
     session_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_SESSION_JSON")
@@ -65,6 +79,7 @@ async def ensure_workspace(page) -> None:
         ok("Created isolated synthetic governance workspace")
     else:
         await expect(page.get_by_role("button", name="Register Agent").first).to_be_visible(timeout=15000)
+        await expect(page.get_by_test_id("agent-authority-workspace-select")).to_be_visible(timeout=15000)
         ok("Loaded existing test governance workspace")
 
 
@@ -100,7 +115,7 @@ async def exercise_shadow_action_gate(page, agent_name: str) -> None:
     await page.get_by_role("button", name="Simulations").click()
     await expect(page.get_by_role("heading", name="Shadow Mode / Simulation")).to_be_visible()
     passport_select = page.locator("section").filter(has_text="Shadow Mode / Simulation").locator("select").first
-    await passport_select.select_option(label=lambda text: agent_name in text)
+    await select_option_containing(passport_select, agent_name)
     await page.get_by_placeholder("action_key").fill("unknown.e2e.action")
     await page.get_by_role("button", name="Simulate only").click()
     await expect(page.get_by_text("NON-EXECUTABLE", exact=True)).to_be_visible(timeout=15000)

@@ -55,7 +55,7 @@ requireText(integrations, "execution is not enabled", "integration guard must re
 
 requireText(e2eWorkflow, "ypelutaddlibqvpaekyq", "authenticated E2E must explicitly deny the Digital Rights Passport staging project");
 requireText(e2eWorkflow, "AURUMVAULT_PRODUCTION_PROJECT_ID", "authenticated E2E must compare against production project identity");
-requireText(e2eWorkflow, "RIGHTS_PASSPORT_STAGING_PROJECT_ID", "authenticated E2E must compare against Rights Passport staging identity");
+requireText(e2eWorkflow, "DIGITAL_RIGHTS_PASSPORT_STAGING_PROJECT_ID", "authenticated E2E must compare against Rights Passport staging identity");
 requireText(ui, 'data-testid="agent-authority-workspace-select"', "workspace selector must expose a stable authenticated E2E locator");
 forbidText(e2e, "select_option(label=lambda", "Playwright must not use predicate callbacks with select_option");
 requireText(e2e, 'get_by_test_id("agent-authority-workspace-select")', "authenticated E2E must use the stable workspace selector locator");
