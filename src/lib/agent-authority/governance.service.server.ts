@@ -8,7 +8,9 @@ import { calculateGovernanceReadiness } from "./readiness";
 import { verifyAuthorizationReceipt } from "./receipt-verification";
 import { calculateAgentRiskScore } from "./risk-score";
 import { simulateActionGate } from "./shadow-mode";
-import { classifyWebhookDelivery, webhookDeliveryHealth } from "./webhooks.server";
+import { minimizeAuditMetadata } from "./audit-minimization";
+import { loadPassportVersionIdentity } from "./policy-version-identity.server";
+import { classifyWebhookDelivery, validateWebhookEndpointUrl, validateWebhookSubscriptions, webhookDeliveryHealth } from "./webhooks.server";
 import type {
   ActionGateRequest,
   AgentLimits,
@@ -23,6 +25,8 @@ import type {
 
 export type WorkspaceRole = "OWNER" | "ADMIN" | "APPROVER" | "AUDITOR" | "MEMBER";
 const ADMIN_ROLES: WorkspaceRole[] = ["OWNER", "ADMIN"];
+const AUDIT_ROLES: WorkspaceRole[] = ["OWNER", "ADMIN", "AUDITOR"];
+const GOVERNANCE_ROLES: WorkspaceRole[] = ["OWNER", "ADMIN", "APPROVER", "AUDITOR"];
 
 async function db() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -79,7 +83,7 @@ async function audit(
     event_type: eventType,
     resource_type: resourceType,
     resource_id: resourceId,
-    metadata,
+    metadata: minimizeAuditMetadata(metadata),
   });
   if (error) throw error;
 }
@@ -96,7 +100,7 @@ async function appendEvidence(input: {
   metadata?: Record<string, unknown>;
 }) {
   const client = await db();
-  const metadata = input.metadata ?? {};
+  const metadata = minimizeAuditMetadata(input.metadata);
   const integrityHash = stableHash({ ...input, metadata });
   const { error } = await client.from("evidence_events").insert({
     workspace_id: input.workspaceId,
@@ -532,7 +536,7 @@ export async function revokeDelegation(userId: string, input: { workspaceId: str
 }
 
 export async function listDelegations(userId: string, workspaceId: string) {
-  await requireRole(workspaceId, userId);
+  await requireRole(workspaceId, userId, GOVERNANCE_ROLES);
   const client = await db();
   const { data, error } = await client.from("agent_delegations").select("id,delegator_user_id,delegate_user_id,parent_delegation_id,purpose,can_approve_actions,can_redelegate,action_keys,max_approval_amount,starts_at,ends_at,status,revoked_at,revocation_reason,created_at").eq("workspace_id", workspaceId).order("created_at", { ascending: false });
   if (error) throw error;
@@ -583,16 +587,20 @@ export async function resolvePolicyChangeRequest(userId: string, input: { worksp
 }
 
 export async function verifyReceipt(userId: string, input: { workspaceId: string; receiptId: string }) {
-  await requireRole(input.workspaceId, userId);
+  await requireRole(input.workspaceId, userId, AUDIT_ROLES);
   const client = await db();
-  const { data: receipt, error } = await client.from("authorization_receipts").select("id,receipt_code,passport_id,action_key,target,authority_result,policy_code,policy_version,requested_at,human_approver_id,human_approved_at,executed_at,evidence_level,outcome,evidence_references,integrity_hash").eq("workspace_id", input.workspaceId).eq("id", input.receiptId).single();
+  const { data: receipt, error } = await client.from("authorization_receipts").select("id,receipt_code,passport_id,passport_version,action_key,target,authority_result,policy_code,policy_version,requested_at,human_approver_id,human_approved_at,executed_at,evidence_level,outcome,evidence_references,integrity_hash").eq("workspace_id", input.workspaceId).eq("id", input.receiptId).single();
   if (error || !receipt) throw error ?? new Error("Receipt not found");
-  const { data: passport, error: passportError } = await client.from("agent_passports").select("passport_code,agent_name").eq("workspace_id", input.workspaceId).eq("id", receipt.passport_id).single();
-  if (passportError || !passport) throw passportError ?? new Error("Receipt Passport not found");
+  const identity = await loadPassportVersionIdentity({
+    client,
+    workspaceId: input.workspaceId,
+    passportId: receipt.passport_id,
+    passportVersion: Number(receipt.passport_version),
+  });
   return verifyAuthorizationReceipt({
     receiptCode: receipt.receipt_code,
-    passportCode: passport.passport_code,
-    agentName: passport.agent_name,
+    passportCode: identity.passportCode,
+    agentName: identity.agentName,
     actionKey: receipt.action_key,
     target: receipt.target,
     authorityResult: receipt.authority_result,
@@ -661,13 +669,13 @@ export async function revokeApiKey(userId: string, input: { workspaceId: string;
 
 export async function createWebhookEndpoint(userId: string, input: { workspaceId: string; url: string; subscribedEvents: string[]; secretReference?: string | null; secretFingerprint?: string | null }) {
   await requireRole(input.workspaceId, userId, ADMIN_ROLES);
-  const parsed = new URL(input.url);
-  if (parsed.protocol !== "https:") throw new Error("Webhook URL must use HTTPS");
+  const normalizedUrl = validateWebhookEndpointUrl(input.url);
+  const subscribedEvents = validateWebhookSubscriptions(input.subscribedEvents);
   const client = await db();
   const { data, error } = await client.from("agent_authority_webhook_endpoints").insert({
     workspace_id: input.workspaceId,
-    url: input.url,
-    subscribed_events: [...new Set(input.subscribedEvents)],
+    url: normalizedUrl,
+    subscribed_events: subscribedEvents,
     active: true,
     secret_reference: input.secretReference ?? null,
     secret_fingerprint: input.secretFingerprint ?? null,
@@ -679,7 +687,7 @@ export async function createWebhookEndpoint(userId: string, input: { workspaceId
 }
 
 export async function listWebhookHealth(userId: string, workspaceId: string) {
-  await requireRole(workspaceId, userId);
+  await requireRole(workspaceId, userId, AUDIT_ROLES);
   const client = await db();
   const { data: endpoints, error } = await client.from("agent_authority_webhook_endpoints").select("id,url,subscribed_events,active,failure_count,consecutive_failures,last_delivery_status,last_delivery_at,last_success_at,created_at").eq("workspace_id", workspaceId).order("created_at", { ascending: false });
   if (error) throw error;
@@ -696,7 +704,7 @@ export async function listWebhookHealth(userId: string, workspaceId: string) {
 
 
 export async function listDeadLetterWebhookDeliveries(userId: string, workspaceId: string) {
-  await requireRole(workspaceId, userId);
+  await requireRole(workspaceId, userId, AUDIT_ROLES);
   const client = await db();
   const { data, error } = await client.from("agent_authority_webhook_deliveries")
     .select("id,webhook_endpoint_id,event_type,event_reference,attempt_count,response_status,error_category,dead_lettered_at,created_at,agent_authority_webhook_endpoints(url)")

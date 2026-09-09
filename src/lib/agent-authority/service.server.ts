@@ -9,6 +9,8 @@ import { resolveRequestDataClassification } from "./data-classification.server";
 import { assertActionApprovalAuthority } from "./delegation.server";
 import { waitForIdempotentDecision } from "./idempotency";
 import { loadRecordedDailyPurchaseSpend } from "./daily-spend.server";
+import { minimizeAuditMetadata } from "./audit-minimization";
+import { loadPassportVersionIdentity } from "./policy-version-identity.server";
 import type {
   ActionGateRequest,
   AgentPermission,
@@ -85,7 +87,7 @@ async function audit(
     event_type: eventType,
     resource_type: resourceType,
     resource_id: resourceId,
-    metadata,
+    metadata: minimizeAuditMetadata(metadata),
   });
   if (error) throw error;
 }
@@ -105,7 +107,7 @@ async function evidence(input: {
   metadata?: Record<string, unknown>;
 }) {
   const client = await db();
-  const safeMetadata = input.metadata ?? {};
+  const safeMetadata = minimizeAuditMetadata(input.metadata);
   const integrityHash = stableHash({
     workspaceId: input.workspaceId,
     passportId: input.passportId ?? null,
@@ -536,11 +538,13 @@ async function terminalReceipt(input: {
   approvalVerified?: boolean;
 }) {
   const client = await db();
+  const receiptVersion = Number(input.decision.passport_version ?? input.decision.policy_version ?? input.passport.version);
+  const receiptIdentity = await loadPassportVersionIdentity({ client, workspaceId: input.workspaceId, passportId: input.passport.passportId, passportVersion: receiptVersion });
   const receiptCode = `AV-${randomInt(100000000, 999999999)}`;
   const receiptInput: AuthorizationReceiptInput = {
     receiptCode,
-    passportCode: input.passport.passportCode,
-    agentName: input.passport.agentName,
+    passportCode: receiptIdentity.passportCode,
+    agentName: receiptIdentity.agentName,
     actionKey: input.request.action_key,
     target: input.request.target,
     authorityResult: input.decision.decision,
@@ -564,7 +568,7 @@ async function terminalReceipt(input: {
       action_request_id: input.request.id,
       decision_id: input.decision.id,
       passport_id: input.passport.passportId,
-      passport_version: input.passport.version,
+      passport_version: receiptVersion,
       receipt_kind: "TERMINAL",
       action_key: input.request.action_key,
       target: input.request.target,
@@ -765,6 +769,8 @@ export async function resolveApproval(
   input: { workspaceId: string; approvalRequestId: string; decision: "APPROVED" | "REJECTED"; note?: string | null },
 ) {
   const client = await db();
+  const note = input.note?.trim() || null;
+  if (note && note.length > 2000) throw new Error("Approval note must be 2000 characters or fewer");
   const { data: approval, error } = await client
     .from("approval_requests")
     .select("*, action_requests(*), action_decisions(*)")
@@ -772,44 +778,41 @@ export async function resolveApproval(
     .eq("id", input.approvalRequestId)
     .single();
   if (error || !approval) throw error ?? new Error("Approval request not found");
-  if (approval.status !== "PENDING") throw new Error(`Approval is already ${approval.status}`);
-  if (new Date(approval.expires_at).getTime() <= Date.now()) {
-    await client.from("approval_requests").update({ status: "EXPIRED", resolved_at: new Date().toISOString() }).eq("id", approval.id);
-    throw new Error("Approval request has expired");
-  }
 
   const request = Array.isArray(approval.action_requests) ? approval.action_requests[0] : approval.action_requests;
   const actionDecision = Array.isArray(approval.action_decisions) ? approval.action_decisions[0] : approval.action_decisions;
   if (!request || !actionDecision) throw new Error("Approval request is missing its action context");
-  // Authorization must be proven BEFORE any approval mutation is written.
+
+  // Prove direct/delegated human authority before entering the service-role-only mutation RPC.
   const approvalAuthority = await assertActionApprovalAuthority({
-    workspaceId: input.workspaceId, userId, assignedRole: approval.assigned_role, actionKey: request.action_key, amount: request.amount == null ? null : Number(request.amount),
+    workspaceId: input.workspaceId,
+    userId,
+    assignedRole: approval.assigned_role,
+    actionKey: request.action_key,
+    amount: request.amount == null ? null : Number(request.amount),
   });
 
-  const now = new Date().toISOString();
-  const { data: recorded, error: decisionError } = await client
-    .from("approval_decisions")
-    .insert({
-      workspace_id: input.workspaceId,
-      approval_request_id: approval.id,
-      decision: input.decision,
-      approver_id: userId,
-      note: input.note?.trim() || null,
-      decided_at: now,
-    })
-    .select("id,decision,approver_id,note,decided_at")
-    .single();
-  if (decisionError) throw decisionError;
+  const { data: resolvedRows, error: resolveError } = await client.rpc("resolve_agent_authority_approval_atomic", {
+    p_workspace_id: input.workspaceId,
+    p_approval_request_id: approval.id,
+    p_approver_id: userId,
+    p_decision: input.decision,
+    p_note: note,
+  });
+  if (resolveError) throw resolveError;
+  const resolved = Array.isArray(resolvedRows) ? resolvedRows[0] : resolvedRows;
+  if (!resolved) throw new Error("Atomic approval resolution returned no result");
+  if (resolved.approval_status === "EXPIRED") throw new Error("Approval request has expired");
+  if (resolved.already_resolved) throw new Error(`Approval is already ${resolved.approval_status}`);
 
-  const { error: updateError } = await client
-    .from("approval_requests")
-    .update({ status: input.decision, resolved_at: now, resolved_by: userId })
-    .eq("id", approval.id)
-    .eq("status", "PENDING");
-  if (updateError) throw updateError;
-
+  const recorded = {
+    id: resolved.approval_decision_id,
+    decision: resolved.approval_status,
+    approver_id: resolved.approver_id,
+    note: resolved.note,
+    decided_at: resolved.decided_at,
+  };
   const policy = await loadPolicy(input.workspaceId, request.passport_id);
-
   await evidence({
     workspaceId: input.workspaceId,
     passportId: request.passport_id,
@@ -819,7 +822,12 @@ export async function resolveApproval(
     actorUserId: userId,
     priorStatus: "PENDING",
     newStatus: input.decision,
-    metadata: { approvalRequestId: approval.id, notePresent: Boolean(input.note?.trim()), authoritySource: approvalAuthority.mode, delegationId: approvalAuthority.delegationId ?? null },
+    metadata: {
+      approvalRequestId: approval.id,
+      notePresent: Boolean(note),
+      authoritySource: approvalAuthority.mode,
+      delegationId: approvalAuthority.delegationId ?? null,
+    },
   });
 
   let receipt = null;
@@ -876,6 +884,19 @@ export async function reportExecution(
   }
 
   const passport = await loadPolicy(input.workspaceId, request.passport_id);
+  if (passport.status !== "AUTHORIZED") throw new Error(`Passport is ${passport.status}; execution evidence cannot be recorded`);
+  if (passport.authorizationExpiresAt && new Date(passport.authorizationExpiresAt).getTime() <= Date.now()) {
+    throw new Error("Passport authorization has expired; re-evaluate before execution");
+  }
+  if (Number(passport.version) !== Number(decision.passport_version)) {
+    throw new Error("Passport policy version changed after authorization; submit a new Action Gate request");
+  }
+  const receiptIdentity = await loadPassportVersionIdentity({
+    client,
+    workspaceId: input.workspaceId,
+    passportId: request.passport_id,
+    passportVersion: Number(decision.passport_version),
+  });
   const executedAt = input.executedAt ?? new Date().toISOString();
   const executionConfirmed = Boolean(input.executionConfirmed);
   const signedEvidencePresent = Boolean(input.signedEvidencePresent);
@@ -887,8 +908,8 @@ export async function reportExecution(
   const receiptCode = `AV-${randomInt(100000000, 999999999)}`;
   const receiptInput: AuthorizationReceiptInput = {
     receiptCode,
-    passportCode: passport.passportCode,
-    agentName: passport.agentName,
+    passportCode: receiptIdentity.passportCode,
+    agentName: receiptIdentity.agentName,
     actionKey: request.action_key,
     target: request.target,
     authorityResult: decision.decision,
