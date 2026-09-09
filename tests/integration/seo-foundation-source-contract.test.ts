@@ -17,13 +17,16 @@ describe("SEO foundation source contracts", () => {
     expect(source).toContain("statusCode: 301");
   });
 
-  it("redirect lookup key is database-derived and exact old slug is verified", () => {
+  it("redirect lookup key is database-derived, exact, and server-only", () => {
     const migration = read("supabase/migrations/20260909062000_product_slug_redirects.sql");
     expect(migration).toContain(
       "old_slug_key char(32) generated always as (md5(old_slug)) stored primary key",
     );
     expect(migration).toContain("r.old_slug_key = md5(_old_slug)");
     expect(migration).toContain("r.old_slug = _old_slug");
+    expect(migration).toContain(
+      "revoke all on table public.product_slug_redirects from public",
+    );
     expect(migration).toContain(
       "revoke all on function public.resolve_product_slug_redirect(text) from authenticated",
     );
