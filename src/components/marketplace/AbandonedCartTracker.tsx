@@ -7,6 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 const SESSION_KEY = "av:cart:session";
 const REMINDER_KEY = "av:cart:reminder-shown";
 const REMINDER_DELAY_MS = 10 * 60 * 1000; // 10 minutes
+const HAS_SUPABASE_CLIENT_CONFIG = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+);
 
 function getSessionId(): string {
   if (typeof window === "undefined") return "";
@@ -21,6 +24,8 @@ function getSessionId(): string {
 /**
  * Quietly syncs the active cart to `abandoned_carts` and fires a one-time
  * "still thinking it over?" toast after 10 minutes of inactivity.
+ * Database recovery is an optional enhancement: when client Supabase config is
+ * unavailable, local cart/reminder behavior continues without remote sync.
  */
 export function AbandonedCartTracker() {
   const cart = useCart();
@@ -30,6 +35,7 @@ export function AbandonedCartTracker() {
 
   // Persist cart snapshot (debounced) to DB so we can recover later
   useEffect(() => {
+    if (!HAS_SUPABASE_CLIENT_CONFIG) return;
     if (typeof window === "undefined") return;
     if (cart.items.length === 0) return;
     // Don't sync while user is on cart/checkout pages
@@ -58,11 +64,14 @@ export function AbandonedCartTracker() {
 
   // Mark recovered when cart empties OR user lands on checkout return
   useEffect(() => {
+    if (!HAS_SUPABASE_CLIENT_CONFIG) return;
     if (cart.items.length > 0) return;
     if (typeof window === "undefined") return;
     const sessionId = window.localStorage.getItem(SESSION_KEY);
     if (!sessionId) return;
-    void supabase.rpc("mark_abandoned_cart_recovered", { _session_id: sessionId });
+    void supabase
+      .rpc("mark_abandoned_cart_recovered", { _session_id: sessionId })
+      .catch(() => undefined);
     window.sessionStorage.removeItem(REMINDER_KEY);
   }, [cart.items.length]);
 
