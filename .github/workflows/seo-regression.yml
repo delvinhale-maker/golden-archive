@@ -20,6 +20,7 @@ on:
       - "scripts/verify-seo-postdeploy.mjs"
       - ".github/workflows/seo-regression.yml"
       - ".github/workflows/seo-postdeploy-verify.yml"
+      - ".github/workflows/seo-critical-slug-postdeploy.yml"
   pull_request:
     branches:
       - main
@@ -35,6 +36,7 @@ on:
       - "scripts/verify-seo-postdeploy.mjs"
       - ".github/workflows/seo-regression.yml"
       - ".github/workflows/seo-postdeploy-verify.yml"
+      - ".github/workflows/seo-critical-slug-postdeploy.yml"
 
 permissions:
   contents: read
@@ -77,10 +79,12 @@ jobs:
       - name: Run legacy taxonomy regression with Bun
         run: bun test tests/integration/category-legacy-alias-query-fix.test.ts
 
-      - name: Validate post-deploy verifier CLI
+      - name: Validate post-deploy verifier CLIs
         run: |
           node --check scripts/verify-seo-postdeploy.mjs
           node scripts/verify-seo-postdeploy.mjs --help
+          node --check scripts/seo/verify-critical-slug-http.mjs
+          node scripts/seo/verify-critical-slug-http.mjs --help
 
       - name: Verify Phase 1 redirect foundation and cleanup
         run: |
@@ -97,6 +101,8 @@ jobs:
           test -f scripts/seo/critical-slug-cleanup.sql
           test -f scripts/seo/critical-slug-postflight.sql
           test -f scripts/seo/critical-slug-emergency-revert.sql
+          test -f scripts/seo/verify-critical-slug-http.mjs
+          test -f .github/workflows/seo-critical-slug-postdeploy.yml
           grep -q "MANUAL PRODUCTION APPROVAL REQUIRED" scripts/seo/critical-slug-cleanup.sql
           grep -q "NEVER move this file into supabase/migrations" scripts/seo/critical-slug-cleanup.sql
           if find supabase/migrations -maxdepth 1 -type f \
