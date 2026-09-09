@@ -79,12 +79,17 @@ async def assert_no_page_overflow(page, label: str, failures: list[str]) -> None
 async def main() -> int:
     failures: list[str] = []
     page_errors: list[str] = []
+    console_errors: list[str] = []
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         ctx = await browser.new_context(viewport={"width": 1280, "height": 1800})
         page = await ctx.new_page()
         page.on("pageerror", lambda exc: page_errors.append(str(exc)))
+        page.on(
+            "console",
+            lambda msg: console_errors.append(msg.text) if msg.type == "error" else None,
+        )
 
         # Homepage / desktop release contract.
         status = await route_status(page, "/")
@@ -141,15 +146,20 @@ async def main() -> int:
                 failures.append(f"Homepage missing visible route to {label} ({href})")
 
         # Trust Center is not catalog-dependent and must always render.
+        console_before_trust = len(console_errors)
         status = await route_status(page, "/about/trust")
         if status is not None and status >= 400:
             failures.append(f"Trust Center returned HTTP {status}")
         trust_text = normalize(await page.locator("body").inner_text())
+        trust_console_errors = console_errors[console_before_trust:]
         trust_debug = (
             f"status={status}\n"
             f"url={page.url}\n"
             f"title={await page.title()}\n"
             f"body={trust_text[:4000]}\n"
+            f"console_errors={len(trust_console_errors)}\n"
+            + "\n".join(f"CONSOLE_ERROR: {message}" for message in trust_console_errors)
+            + "\n"
         )
         (OUT / "trust-render.txt").write_text(trust_debug, encoding="utf-8")
         await page.screenshot(path=str(OUT / "trust-center.png"), full_page=True)
