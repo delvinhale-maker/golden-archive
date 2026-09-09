@@ -96,7 +96,9 @@ describe("canva-designs.functions.ts: never a false success / draft never publis
 
   it("rolls back the draft product if the mapping insert fails (no orphan product)", () => {
     const mappingCatchIdx = fns.lastIndexOf("mapping_failed");
-    const rollbackIdx = fns.lastIndexOf('.from("marketplace_products")\n        .delete()');
+    const rollback = /\.from\("marketplace_products"\)\s*\.delete\(\)\s*\.eq\("id", productId\)/g;
+    let rollbackIdx = -1;
+    for (const match of fns.matchAll(rollback)) rollbackIdx = match.index ?? rollbackIdx;
     expect(rollbackIdx).toBeGreaterThan(-1);
     expect(rollbackIdx).toBeLessThan(mappingCatchIdx);
   });
@@ -258,10 +260,6 @@ describe("canva_design_products migration security model", () => {
   });
 
   it("declares no authenticated DELETE policy without a matching DELETE grant (internally consistent)", () => {
-    // A DELETE RLS policy with no corresponding GRANT is dead weight that
-    // misstates the table's real authorization model — remove it here
-    // rather than leaving unreachable policy text alongside a SELECT-only
-    // grant. Add both together if a creator-facing "unlink" feature ships.
     expect(migration).not.toMatch(/FOR DELETE TO authenticated/i);
     expect(migration).not.toContain("canva_design_products_owner_delete");
   });
