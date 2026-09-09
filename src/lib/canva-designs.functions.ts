@@ -220,11 +220,11 @@ export const turnCanvaDesignIntoProductFn = createServerFn({ method: "POST" })
       });
       if (error) throw error;
     } catch {
-      await admin
-        .from("marketplace_products")
-        .delete()
-        .eq("id", productId)
-        .catch(() => undefined);
+      try {
+        await admin.from("marketplace_products").delete().eq("id", productId);
+      } catch {
+        // Best-effort rollback; the function still fails closed below.
+      }
       await admin.storage
         .from("product-covers")
         .remove([coverPath])
