@@ -1,5 +1,0 @@
-package=AurumVault_AI_Agent_Authority_Passport_Phase15.zip
-sha256=80da266e3e8273e5c1f0019647207a2be0ff508c5042efe0cefc6623c544c35a
-base_main=a10d864dcd7659c55a6a4b241b4112391222fdde
-mode=verify-before-source-commit
-trigger=bun-ci-rerun-5
