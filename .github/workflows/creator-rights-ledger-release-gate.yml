@@ -49,29 +49,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: '22'
-          cache: npm
+          bun-version: latest
 
       - name: 1 — Frozen dependency install
-        run: npm ci --no-audit --no-fund
+        run: bun install --frozen-lockfile
 
       - name: 2 — TypeScript
-        run: npx tsc --noEmit
+        run: bunx tsc --noEmit
 
       - name: 3 — Vitest
-        run: npx vitest run
+        run: bunx vitest run
 
       - name: 4 — TanStack/Vite production build
-        run: npm run build
+        run: bun run build
 
       - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+        run: bunx playwright install --with-deps chromium
 
       - name: 5 — Playwright
-        run: npx playwright test
+        run: bunx playwright test
 
       - name: Upload Playwright evidence
         if: always()
