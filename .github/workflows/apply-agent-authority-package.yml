@@ -24,6 +24,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          echo "a292aa069324f4c89f4155b0fc084aad61bbcaaa76fdd41a68cd765c56c732c6  .agent-authority-package/repair-008-0.b64" | sha256sum -c -
+          echo "d3571ca6d6274662853ed382b6f945995c39db90c5bce72fd39d8c422ebd801f  .agent-authority-package/repair-008-1.b64" | sha256sum -c -
+          echo "51a502fcbef0e4a19ff67ce3384846764720a4cddc3d2b3d986768983d9d4d84  .agent-authority-package/repair-008-2.b64" | sha256sum -c -
+          echo "4e44cca310e140b2aecce9eb6cd705df26c8eed77ebbd1246a00787e8a853f5d  .agent-authority-package/repair-008-3.b64" | sha256sum -c -
+          echo "17cf559c2bf282650bd334f8b5ce7c40bc76a1145410ed3af9098b46bcc49fd3  .agent-authority-package/repair-008-4.b64" | sha256sum -c -
+          cat .agent-authority-package/repair-008-?.b64 > /tmp/part-008.good.b64
+          test "$(wc -c < /tmp/part-008.good.b64)" -eq 15000
+          echo "e4df79ac96320cc65eb76a1d7e359150380a5d5df151103ba5ac650844354fae  /tmp/part-008.good.b64" | sha256sum -c -
+
           expected=(
             6549df1c6127e0093f15783d408f63e358ac64b6e10163a1c1b4196df66cd4fc
             e75e7d4ff869c73f47c08ee2beff83fc0c3ddaf2014b2cc8108002c8dc3dffde
@@ -33,28 +43,26 @@ jobs:
             2fffbec5756c7ab6ff3bbdd049d45a7f38e98c6a9478409044909190a83e3981
             4c0e9d1c03ed2d60d49c514395653c5a5a5ea376af454bfe4858f29066ca2bea
             e4e783bca361c5811d7afb72019df8b6df5990ad06a8b8b9283a40e5daf33792
-            e4df79ac96320cc65eb76a1d7e359150380a5d5df151103ba5ac650844354fae
-            489d66fdb8154157f318434a861e47c2c0ab9e959c94c965da34968137d2a861
           )
-          bad=0
-          for i in $(seq 0 9); do
+          for i in $(seq 0 7); do
             p=$(printf '.agent-authority-package/part-%03d.b64' "$i")
-            n=15000
-            if [ "$i" -eq 9 ]; then n=8080; fi
-            got=$(head -c "$n" "$p" | sha256sum | awk '{print $1}')
-            echo "part-$i expected=${expected[$i]} got=$got size=$(wc -c < "$p")"
-            if [ "$got" != "${expected[$i]}" ]; then bad=1; fi
+            got=$(head -c 15000 "$p" | sha256sum | awk '{print $1}')
+            echo "part-$i expected=${expected[$i]} got=$got"
+            test "$got" = "${expected[$i]}"
           done
-          test "$bad" -eq 0
+          got9=$(head -c 8080 .agent-authority-package/part-009.b64 | sha256sum | awk '{print $1}')
+          test "$got9" = "489d66fdb8154157f318434a861e47c2c0ab9e959c94c965da34968137d2a861"
 
           : > /tmp/agent-authority.zip.b64
-          for p in .agent-authority-package/part-000.b64 .agent-authority-package/part-001.b64 .agent-authority-package/part-002.b64 .agent-authority-package/part-003.b64 .agent-authority-package/part-004.b64 .agent-authority-package/part-005.b64 .agent-authority-package/part-006.b64 .agent-authority-package/part-007.b64 .agent-authority-package/part-008.b64; do
+          for p in .agent-authority-package/part-000.b64 .agent-authority-package/part-001.b64 .agent-authority-package/part-002.b64 .agent-authority-package/part-003.b64 .agent-authority-package/part-004.b64 .agent-authority-package/part-005.b64 .agent-authority-package/part-006.b64 .agent-authority-package/part-007.b64; do
             head -c 15000 "$p" >> /tmp/agent-authority.zip.b64
           done
+          cat /tmp/part-008.good.b64 >> /tmp/agent-authority.zip.b64
           head -c 8080 .agent-authority-package/part-009.b64 >> /tmp/agent-authority.zip.b64
           test "$(wc -c < /tmp/agent-authority.zip.b64)" -eq 143080
           base64 -d /tmp/agent-authority.zip.b64 > /tmp/agent-authority.zip
           echo "80da266e3e8273e5c1f0019647207a2be0ff508c5042efe0cefc6623c544c35a  /tmp/agent-authority.zip" | sha256sum -c -
+
           rm -rf /tmp/agent-authority-extract
           mkdir -p /tmp/agent-authority-extract
           unzip -q /tmp/agent-authority.zip -d /tmp/agent-authority-extract
