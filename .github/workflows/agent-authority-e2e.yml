@@ -1,0 +1,100 @@
+name: Agent Authority Authenticated E2E
+
+on:
+  workflow_dispatch:
+
+# This workflow is intentionally manual until a dedicated isolated Agent Authority
+# Supabase staging backend + synthetic browser session are provisioned.
+# It must never be pointed at AurumVault production or the Digital Rights Passport staging backend.
+
+jobs:
+  authenticated-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          bun install --frozen-lockfile
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Verify isolated staging configuration
+        env:
+          STAGING_PROJECT_ID: ${{ secrets.AGENT_AUTHORITY_STAGING_PROJECT_ID }}
+          PROD_PROJECT_ID: ${{ secrets.AURUMVAULT_PRODUCTION_PROJECT_ID }}
+          RIGHTS_PROJECT_ID: ${{ secrets.DIGITAL_RIGHTS_PASSPORT_STAGING_PROJECT_ID }}
+          STORAGE_KEY: ${{ secrets.AGENT_AUTHORITY_BROWSER_SUPABASE_STORAGE_KEY }}
+          SESSION_JSON: ${{ secrets.AGENT_AUTHORITY_BROWSER_SUPABASE_SESSION_JSON }}
+        run: |
+          test -n "$STAGING_PROJECT_ID" || { echo "Missing dedicated Agent Authority staging project id"; exit 1; }
+          test -n "$STORAGE_KEY" || { echo "Missing Agent Authority browser storage key"; exit 1; }
+          test -n "$SESSION_JSON" || { echo "Missing Agent Authority browser session"; exit 1; }
+          if [ -n "$PROD_PROJECT_ID" ] && [ "$STAGING_PROJECT_ID" = "$PROD_PROJECT_ID" ]; then echo "Refusing production backend"; exit 1; fi
+          if [ -n "$RIGHTS_PROJECT_ID" ] && [ "$STAGING_PROJECT_ID" = "$RIGHTS_PROJECT_ID" ]; then echo "Refusing Digital Rights Passport staging backend"; exit 1; fi
+          echo "Dedicated staging boundary verified"
+
+      - name: Build app against isolated staging
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.AGENT_AUTHORITY_STAGING_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.AGENT_AUTHORITY_STAGING_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.AGENT_AUTHORITY_STAGING_PROJECT_ID }}
+
+      - name: Start app
+        run: |
+          bun run dev > /tmp/agent-authority-e2e.log 2>&1 &
+          echo $! > /tmp/agent-authority-e2e.pid
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.AGENT_AUTHORITY_STAGING_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.AGENT_AUTHORITY_STAGING_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.AGENT_AUTHORITY_STAGING_PROJECT_ID }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.AGENT_AUTHORITY_STAGING_SERVICE_ROLE_KEY }}
+
+      - name: Wait for app
+        run: |
+          for i in {1..60}; do
+            if curl -sSf http://localhost:8080 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          tail -n 200 /tmp/agent-authority-e2e.log
+          exit 1
+
+      - name: Run authenticated Agent Authority browser suite
+        run: python tests/agent-authority/agent-authority-authenticated.spec.py
+        env:
+          BASE_URL: http://localhost:8080
+          LOVABLE_BROWSER_SUPABASE_STORAGE_KEY: ${{ secrets.AGENT_AUTHORITY_BROWSER_SUPABASE_STORAGE_KEY }}
+          LOVABLE_BROWSER_SUPABASE_SESSION_JSON: ${{ secrets.AGENT_AUTHORITY_BROWSER_SUPABASE_SESSION_JSON }}
+          LOVABLE_BROWSER_SUPABASE_COOKIES_JSON: ${{ secrets.AGENT_AUTHORITY_BROWSER_SUPABASE_COOKIES_JSON }}
+          AGENT_AUTHORITY_E2E_API_KEY: ${{ secrets.AGENT_AUTHORITY_E2E_API_KEY }}
+          AGENT_AUTHORITY_E2E_PASSPORT_ID: ${{ secrets.AGENT_AUTHORITY_E2E_PASSPORT_ID }}
+
+      - name: Upload diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-authority-e2e-diagnostics
+          path: |
+            tests/agent-authority/artifacts/**
+            /tmp/agent-authority-e2e.log
+          if-no-files-found: ignore
+
+      - name: Stop app
+        if: always()
+        run: |
+          if [ -f /tmp/agent-authority-e2e.pid ]; then kill "$(cat /tmp/agent-authority-e2e.pid)" || true; fi
