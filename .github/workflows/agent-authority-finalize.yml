@@ -33,7 +33,7 @@ jobs:
         run: |
           set -euo pipefail
           test -d supabase/migrations
-          for suffix in agent_authority_foundation agent_authority_security_hardening agent_authority_integrity_and_atomic; do
+          for suffix in agent_authority_foundation agent_authority_security_hardening agent_authority_policy_receipt_integrity; do
             if find supabase/migrations -maxdepth 1 -type f -name "*_${suffix}.sql" | grep -q .; then
               echo "Migration already exists for ${suffix}; refusing ambiguous regeneration"
               exit 1
@@ -43,11 +43,11 @@ jobs:
           done
           foundation="$(find supabase/migrations -maxdepth 1 -type f -name '*_agent_authority_foundation.sql' | sort | tail -n 1)"
           security="$(find supabase/migrations -maxdepth 1 -type f -name '*_agent_authority_security_hardening.sql' | sort | tail -n 1)"
-          integrity="$(find supabase/migrations -maxdepth 1 -type f -name '*_agent_authority_integrity_and_atomic.sql' | sort | tail -n 1)"
+          integrity="$(find supabase/migrations -maxdepth 1 -type f -name '*_agent_authority_policy_receipt_integrity.sql' | sort | tail -n 1)"
           test -n "$foundation" && test -n "$security" && test -n "$integrity"
           cp docs/ai-agent-authority-passport/schema.sql "$foundation"
-          cp docs/ai-agent-authority-passport/migration-parts/02_security_hardening.sql "$security"
-          cp docs/ai-agent-authority-passport/migration-parts/03_integrity_and_atomic.sql "$integrity"
+          cp docs/ai-agent-authority-passport/migration-parts/02-security-hardening.sql "$security"
+          cp docs/ai-agent-authority-passport/migration-parts/03-policy-receipt-integrity.sql "$integrity"
           printf 'Generated local migration files only:\n%s\n%s\n%s\n' "$foundation" "$security" "$integrity"
           # Deliberately local-only: this job has no Supabase access token or project ref
           # and invokes no link, database push, or migration-apply operation.
