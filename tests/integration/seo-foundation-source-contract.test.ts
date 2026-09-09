@@ -17,6 +17,21 @@ describe("SEO foundation source contracts", () => {
     expect(source).toContain("statusCode: 301");
   });
 
+  it("redirect lookup key is database-derived and exact old slug is verified", () => {
+    const migration = read("supabase/migrations/20260909062000_product_slug_redirects.sql");
+    expect(migration).toContain(
+      "old_slug_key char(32) generated always as (md5(old_slug)) stored primary key",
+    );
+    expect(migration).toContain("r.old_slug_key = md5(_old_slug)");
+    expect(migration).toContain("r.old_slug = _old_slug");
+    expect(migration).toContain(
+      "revoke all on function public.resolve_product_slug_redirect(text) from authenticated",
+    );
+    expect(migration).toContain(
+      "grant execute on function public.resolve_product_slug_redirect(text) to service_role",
+    );
+  });
+
   it("sitemap has image namespace and new acquisition route", () => {
     const source = read("src/routes/sitemap[.]xml.ts");
     expect(source).toContain('xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"');
