@@ -1,0 +1,60 @@
+name: Canva Branch Verification
+
+on:
+  push:
+    branches:
+      - canva/creator-studio-completion
+    paths:
+      - '.github/workflows/canva-branch-verify.yml'
+      - 'src/lib/canva-oauth.ts'
+      - 'src/lib/canva-designs.functions.ts'
+      - 'src/components/dashboard/CanvaDesignPicker.tsx'
+      - 'src/components/dashboard/CanvaConnectBanner.tsx'
+      - 'src/routes/api/public/integrations/canva/callback.ts'
+      - 'tests/unit/canva-*.test.ts'
+      - 'tests/integration/canva-*.test.ts'
+      - 'docs/proposed-migrations/*canva*'
+      - 'docs/proposed-migrations/*integration_refresh_version*'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Canva targeted + regression verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Targeted Canva tests
+        run: |
+          bun test \
+            tests/unit/canva-design-client.test.ts \
+            tests/unit/canva-oauth.test.ts \
+            tests/integration/canva-design-import.test.ts \
+            tests/integration/canva-integration-foundation.test.ts \
+            tests/integration/canva-mapping-fail-closed.test.ts \
+            tests/integration/canva-refresh-version-contract.test.ts
+
+      - name: Full regression suite
+        run: bun test
+
+      - name: TypeScript
+        run: bunx tsc --noEmit
+
+      - name: Production build
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
