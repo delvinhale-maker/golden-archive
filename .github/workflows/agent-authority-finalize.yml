@@ -76,14 +76,16 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
 
-      - name: Commit review-ready Agent Authority source
+      - name: Commit validated non-workflow Agent Authority source
         shell: bash
         run: |
           set -euo pipefail
-          rm -f scripts/agent-authority-finalize.py .github/workflows/agent-authority-finalize.yml
+          # The Actions token intentionally cannot mutate workflow files. Keep the
+          # validated workflow edits out of this commit; they are persisted separately.
+          git checkout -- .github/workflows/agent-authority-gate.yml .github/workflows/agent-authority-e2e.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/routes/_authenticated/agent-authority.tsx tests/agent-authority/agent-authority-authenticated.spec.py .github/workflows/agent-authority-gate.yml .github/workflows/agent-authority-e2e.yml scripts/verify-agent-authority-release-contract.mjs supabase/migrations scripts/agent-authority-finalize.py .github/workflows/agent-authority-finalize.yml
+          git add src/routes/_authenticated/agent-authority.tsx tests/agent-authority/agent-authority-authenticated.spec.py scripts/verify-agent-authority-release-contract.mjs supabase/migrations
           git diff --cached --check
           git commit -m "Finalize Agent Authority security and release gates"
           git push origin HEAD:feature/ai-agent-authority-passport
