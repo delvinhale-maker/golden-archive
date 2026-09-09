@@ -41,16 +41,20 @@ export const actionGateApiSchema = z
 export const evidenceApiSchema = z
   .object({
     actionRequestId: UUID,
-    executionConfirmed: z.boolean(),
-    signedEvidencePresent: z.boolean().optional().default(false),
-    outcome: z.enum(["SUCCEEDED", "FAILED", "CANCELLED", "PARTIAL", "UNKNOWN"]),
+    executionStatus: z.enum(["EXECUTED", "FAILED", "CANCELLED"]),
     sourceSystem: optionalShortText(128),
     externalReference: optionalShortText(256),
+    executionConfirmed: z.boolean().optional().default(false),
+    signedEvidencePresent: z.boolean().optional().default(false),
+    evidenceReferences: z.array(shortText(256)).max(20).optional().default([]),
   })
   .strict()
   .superRefine((value, ctx) => {
     if (value.signedEvidencePresent && !value.executionConfirmed) {
       ctx.addIssue({ code: "custom", path: ["signedEvidencePresent"], message: "signed evidence cannot be asserted without confirmed execution" });
+    }
+    if (value.executionStatus !== "EXECUTED" && value.executionConfirmed) {
+      ctx.addIssue({ code: "custom", path: ["executionConfirmed"], message: "only EXECUTED outcomes may claim confirmed execution" });
     }
   });
 
