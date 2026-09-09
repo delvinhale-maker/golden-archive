@@ -111,6 +111,9 @@ jobs:
           exit 1
 
       - name: Run deterministic marketing release smoke
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: python tests/integration/marketing-homepage-smoke.spec.py
 
       - name: Run live-catalog homepage row regressions when Supabase CI secrets exist
