@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "scope": "critical-only",
+  "expected_count": 17,
+  "notes": [
+    "Manual-only plan. Never place the cleanup SQL in supabase/migrations.",
+    "Run the read-only preflight first against production after redirect infrastructure is deployed.",
+    "The Social Media Planner's malformed historical slug is captured by immutable product_id and guarded by minimum length rather than embedded."
+  ],
+  "products": [
+    {
+      "product_id": "e485dfcb-cbc4-4e58-a7b2-d01194d91f59",
+      "title": "Banking AI Governance Operations",
+      "new_slug": "banking-ai-governance-operations",
+      "old_slug": "0"
+    },
+    {
+      "product_id": "dd495922-eddc-437a-914c-8c27ab7f056e",
+      "title": "Creator Brand Sponsorship OS",
+      "new_slug": "creator-brand-sponsorship-os",
+      "old_slug": "creat"
+    },
+    {
+      "product_id": "33f89f3b-fb71-45c8-a151-2fa0631752e9",
+      "title": "Everybody's Rich Except Me",
+      "new_slug": "everybodys-rich-except-me",
+      "old_slug": "every"
+    },
+    {
+      "product_id": "e0503ba0-2722-404c-933e-34542575c46a",
+      "title": "Home and Insurance Disaster OS",
+      "new_slug": "home-and-insurance-disaster-os",
+      "old_slug": "home-and-ins"
+    },
+    {
+      "product_id": "1158950a-afa3-4260-96f7-0741b7bff38e",
+      "title": "Method of Verification The System",
+      "new_slug": "method-of-verification-the-system",
+      "old_slug": "me"
+    },
+    {
+      "product_id": "b9b4d507-894a-4d6d-a7af-b210943e9946",
+      "title": "My First A.I. Dictionary",
+      "new_slug": "my-first-ai-dictionary",
+      "old_slug": "my-first-a-i-di"
+    },
+    {
+      "product_id": "d278a83f-4e64-4a33-8a2c-d8e20f806fee",
+      "title": "My First Cyber Security Dictionary",
+      "new_slug": "my-first-cyber-security-dictionary",
+      "old_slug": "my-first"
+    },
+    {
+      "product_id": "0a16faa4-446f-4367-99e8-3779358d27ad",
+      "title": "My First Technology Dictionary",
+      "new_slug": "my-first-technology-dictionary",
+      "old_slug": "my"
+    },
+    {
+      "product_id": "95cf8686-8aff-4063-a6ac-2bf028ad5c9b",
+      "title": "P.O.D.",
+      "new_slug": "p-o-d",
+      "old_slug": "p-o-v"
+    },
+    {
+      "product_id": "4a7172a4-55ca-4d92-8eda-128cd0a533cf",
+      "title": "Reality Show Creator OS",
+      "new_slug": "reality-show-creator-os",
+      "old_slug": "reali"
+    },
+    {
+      "product_id": "1d613875-ee44-46c6-88c1-7b76584ed41b",
+      "title": "The Creator Performance & ROI Operating System",
+      "new_slug": "creator-performance-roi-operating-system",
+      "old_slug": "the-creator-per"
+    },
+    {
+      "product_id": "a0be6072-b10c-4ddb-aee3-fbe01d56fd3f",
+      "title": "The Digital Product Seller Content Vault",
+      "new_slug": "digital-product-seller-content-vault",
+      "old_slug": "the"
+    },
+    {
+      "product_id": "b96b111d-8fbd-412c-8686-c2ee9a19f2a6",
+      "title": "The GLP-1 Decision",
+      "new_slug": "glp-1-decision",
+      "old_slug": "g"
+    },
+    {
+      "product_id": "067305cd-f20b-46dc-ba60-975fbb71a374",
+      "title": "The Group Chat Disaster",
+      "new_slug": "group-chat-disaster",
+      "old_slug": "the-group-chat-dis"
+    },
+    {
+      "product_id": "7afc2894-6d11-48dd-b8fe-53fdbd08360c",
+      "title": "The Interactive Influencer Media Kit Builder",
+      "new_slug": "interactive-influencer-media-kit-builder",
+      "old_slug": "the-interactive"
+    },
+    {
+      "product_id": "cde06c9c-80a7-4c82-a30f-fa1a8ec58831",
+      "title": "The Interactive Social Media Content Planner",
+      "new_slug": "interactive-social-media-content-planner",
+      "capture_current_slug": true,
+      "require_current_slug_min_length": 500
+    },
+    {
+      "product_id": "af6da981-a870-4c20-a91e-5a427c0cc137",
+      "title": "The Legacy End of Life Planner",
+      "new_slug": "legacy-end-of-life-planner",
+      "old_slug": "the-legacy-end-if-life-planner"
+    }
+  ]
+}
