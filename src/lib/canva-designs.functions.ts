@@ -221,12 +221,24 @@ export const turnCanvaDesignIntoProductFn = createServerFn({ method: "POST" })
       if (error) throw error;
     } catch {
       try {
-        await admin
+        const { error: rollbackError } = await admin
           .from("marketplace_products")
           .delete()
-          .eq("id", productId);
-      } catch {
-        // Best-effort rollback; the function still fails closed below.
+          .eq("id", productId)
+          .eq("seller_id", context.userId);
+        if (rollbackError) {
+          console.error("[canva] draft rollback failed after mapping failure", {
+            user_id: context.userId,
+            product_id: productId,
+            message: rollbackError.message,
+          });
+        }
+      } catch (rollbackError) {
+        console.error("[canva] draft rollback threw after mapping failure", {
+          user_id: context.userId,
+          product_id: productId,
+          message: rollbackError instanceof Error ? rollbackError.message : "unknown",
+        });
       }
       await admin.storage
         .from("product-covers")
