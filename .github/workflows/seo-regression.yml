@@ -16,6 +16,7 @@ on:
       - "src/routeTree.gen.ts"
       - "tests/integration/**"
       - "supabase/migrations/**"
+      - "scripts/seo/**"
       - "scripts/verify-seo-postdeploy.mjs"
       - ".github/workflows/seo-regression.yml"
       - ".github/workflows/seo-postdeploy-verify.yml"
@@ -30,6 +31,7 @@ on:
       - "src/routeTree.gen.ts"
       - "tests/integration/**"
       - "supabase/migrations/**"
+      - "scripts/seo/**"
       - "scripts/verify-seo-postdeploy.mjs"
       - ".github/workflows/seo-regression.yml"
       - ".github/workflows/seo-postdeploy-verify.yml"
@@ -69,7 +71,8 @@ jobs:
             tests/integration/ai-likeness-rights-risk-checker.test.ts \
             tests/integration/creator-profile-page-schema.test.ts \
             tests/integration/product-seo-brand.test.ts \
-            tests/integration/seo-foundation-source-contract.test.ts
+            tests/integration/seo-foundation-source-contract.test.ts \
+            tests/integration/critical-slug-plan.test.ts
 
       - name: Run legacy taxonomy regression with Bun
         run: bun test tests/integration/category-legacy-alias-query-fix.test.ts
@@ -84,6 +87,24 @@ jobs:
           test -f supabase/migrations/20260909062000_product_slug_redirects.sql
           test ! -d .seo-hardening
           test ! -f .github/workflows/seo-hardening-phase1.yml
+
+      - name: Verify critical slug cleanup remains manual-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f scripts/seo/critical-slug-plan.json
+          test -f scripts/seo/critical-slug-preflight.sql
+          test -f scripts/seo/critical-slug-cleanup.sql
+          test -f scripts/seo/critical-slug-postflight.sql
+          test -f scripts/seo/critical-slug-emergency-revert.sql
+          grep -q "MANUAL PRODUCTION APPROVAL REQUIRED" scripts/seo/critical-slug-cleanup.sql
+          grep -q "NEVER move this file into supabase/migrations" scripts/seo/critical-slug-cleanup.sql
+          if find supabase/migrations -maxdepth 1 -type f \
+            \( -iname '*slug*cleanup*' -o -iname '*slug*rename*' -o -iname '*slug*backfill*' \) \
+            | grep -q .; then
+            echo "ERROR: slug cleanup/rename/backfill SQL must never be an automatic migration"
+            exit 1
+          fi
 
       - name: Production build
         run: bun run build
