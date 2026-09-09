@@ -1,0 +1,82 @@
+name: Apply Agent Authority Package
+
+on:
+  push:
+    branches:
+      - feature/ai-agent-authority-passport
+    paths:
+      - '.agent-authority-package/READY'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct and verify package
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .agent-authority-package/part-*.b64 > /tmp/agent-authority.zip.b64
+          base64 -d /tmp/agent-authority.zip.b64 > /tmp/agent-authority.zip
+          echo "80da266e3e8273e5c1f0019647207a2be0ff508c5042efe0cefc6623c544c35a  /tmp/agent-authority.zip" | sha256sum -c -
+          rm -rf /tmp/agent-authority-extract
+          mkdir -p /tmp/agent-authority-extract
+          unzip -q /tmp/agent-authority.zip -d /tmp/agent-authority-extract
+          PKG=/tmp/agent-authority-extract/AurumVault_AI_Agent_Authority_Passport_Phase15
+          test -d "$PKG/src/lib/agent-authority"
+          test -f "$PKG/src/routes/_authenticated/agent-authority.tsx"
+          test -f "$PKG/src/routes/api/agent-authority/action.ts"
+          test -f "$PKG/src/routes/api/agent-authority/evidence.ts"
+
+          mkdir -p docs/ai-agent-authority-passport
+          mkdir -p src/lib/agent-authority
+          mkdir -p src/routes/_authenticated
+          mkdir -p src/routes/api/agent-authority
+
+          cp -R "$PKG/docs/ai-agent-authority-passport/." docs/ai-agent-authority-passport/
+          cp -R "$PKG/src/lib/agent-authority/." src/lib/agent-authority/
+          cp "$PKG/src/routes/_authenticated/agent-authority.tsx" src/routes/_authenticated/agent-authority.tsx
+          cp -R "$PKG/src/routes/api/agent-authority/." src/routes/api/agent-authority/
+          cp "$PKG/VERIFICATION.md" docs/ai-agent-authority-passport/VERIFICATION.md
+          cp "$PKG/INTEGRATION_NOTES.md" docs/ai-agent-authority-passport/INTEGRATION_NOTES.md
+
+          # Deliberately do not copy validation stubs and do not apply schema.sql.
+          rm -rf .agent-authority-package
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Agent Authority tests
+        run: npx vitest run src/lib/agent-authority
+
+      - name: Build full AurumVault application
+        run: npm run build
+
+      - name: Commit verified source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A docs/ai-agent-authority-passport src/lib/agent-authority src/routes/_authenticated/agent-authority.tsx src/routes/api/agent-authority .agent-authority-package
+          if [ -f src/routeTree.gen.ts ]; then git add src/routeTree.gen.ts; fi
+          if git diff --cached --quiet; then
+            echo "No source changes to commit."
+            exit 0
+          fi
+          git commit -m "Build AI Agent Authority Passport governance foundation"
+          git push origin HEAD:feature/ai-agent-authority-passport
