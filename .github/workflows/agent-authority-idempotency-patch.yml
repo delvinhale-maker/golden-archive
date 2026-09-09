@@ -30,76 +30,82 @@ jobs:
           delegation_import = 'import { assertActionApprovalAuthority } from "./delegation.server";\n'
           if delegation_import not in text:
               raise SystemExit("Expected delegation import not found")
-          imports = (
+          text = text.replace(
+              delegation_import,
               delegation_import
               + 'import { waitForIdempotentDecision } from "./idempotency";\n'
-              + 'import { loadRecordedDailyPurchaseSpend } from "./daily-spend.server";\n'
+              + 'import { loadRecordedDailyPurchaseSpend } from "./daily-spend.server";\n',
+              1,
           )
-          text = text.replace(delegation_import, imports, 1)
 
           submit_marker = "export async function submitAction(\n"
           submit_index = text.index(submit_marker)
-          helper = '''async function loadIdempotentReplay(client: any, actionRequestId: string) {
-            const existingDecision = await waitForIdempotentDecision(async () => {
-              const { data, error } = await client
-                .from("action_decisions")
-                .select("id,decision,primary_reason,reason_codes,policy_code,policy_version,decided_at")
-                .eq("action_request_id", actionRequestId)
-                .maybeSingle();
-              if (error) throw error;
-              return data ?? null;
-            });
-            return { idempotentReplay: true, actionRequestId, decision: existingDecision };
-          }
-
-          '''
+          helper = "\n".join([
+              "async function loadIdempotentReplay(client: any, actionRequestId: string) {",
+              "  const existingDecision = await waitForIdempotentDecision(async () => {",
+              "    const { data, error } = await client",
+              '      .from("action_decisions")',
+              '      .select("id,decision,primary_reason,reason_codes,policy_code,policy_version,decided_at")',
+              '      .eq("action_request_id", actionRequestId)',
+              "      .maybeSingle();",
+              "    if (error) throw error;",
+              "    return data ?? null;",
+              "  });",
+              "  return { idempotentReplay: true, actionRequestId, decision: existingDecision };",
+              "}",
+              "",
+              "",
+          ])
           text = text[:submit_index] + helper + text[submit_index:]
 
           submit_index = text.index(submit_marker)
           existing_start = text.index("  if (existing) {", submit_index)
-          policy_marker = "\n\n  const policy = await loadPolicy"
-          existing_end = text.index(policy_marker, existing_start)
-          text = text[:existing_start] + "  if (existing) return loadIdempotentReplay(client, existing.id);" + text[existing_end:]
+          existing_end = text.index("\n\n  const policy = await loadPolicy", existing_start)
+          text = (
+              text[:existing_start]
+              + "  if (existing) return loadIdempotentReplay(client, existing.id);"
+              + text[existing_end:]
+          )
 
-          old_eval = '''  const requestForEvaluation = { ...input.request, dataClassification: resolvedClassification };
-          const evaluated = evaluateActionGate(policy, requestForEvaluation);
-          '''
-          new_eval = '''  const dailySpendToDate =
-            input.request.amountKind === "PURCHASE" && policy.limits.maxDailySpend != null
-              ? await loadRecordedDailyPurchaseSpend({ client, workspaceId: input.workspaceId, passportId: input.passportId })
-              : 0;
-          const requestForEvaluation = {
-            ...input.request,
-            dataClassification: resolvedClassification,
-            // Never trust a caller-supplied spend-to-date value for an authorization limit.
-            dailySpendToDate,
-          };
-          const evaluated = evaluateActionGate(policy, requestForEvaluation);
-          '''
-          if old_eval not in text:
-              raise SystemExit("Action evaluation block not found")
-          text = text.replace(old_eval, new_eval, 1)
+          eval_line = "  const requestForEvaluation = { ...input.request, dataClassification: resolvedClassification };\n"
+          if eval_line not in text:
+              raise SystemExit("Action evaluation line not found")
+          eval_replacement = "\n".join([
+              "  const dailySpendToDate =",
+              '    input.request.amountKind === "PURCHASE" && policy.limits.maxDailySpend != null',
+              "      ? await loadRecordedDailyPurchaseSpend({ client, workspaceId: input.workspaceId, passportId: input.passportId })",
+              "      : 0;",
+              "  const requestForEvaluation = {",
+              "    ...input.request,",
+              "    dataClassification: resolvedClassification,",
+              "    // Never trust a caller-supplied spend-to-date value for an authorization limit.",
+              "    dailySpendToDate,",
+              "  };",
+              "",
+          ])
+          text = text.replace(eval_line, eval_replacement, 1)
 
-          conflict_start = text.index("  if (requestError) {", text.index("export async function submitAction("))
-          policy_code_marker = "\n\n  const policyCode = `PASSPORT:${policy.passportCode}`;"
-          conflict_end = text.index(policy_code_marker, conflict_start)
-          conflict = '''  if (requestError) {
-            // A concurrent duplicate is expected to lose on the unique idempotency constraint.
-            // Read the winner directly and wait briefly for its decision instead of recursively
-            // re-entering submitAction, which could race against the winner's decision insert.
-            if (String(requestError.code) === "23505") {
-              const { data: winner, error: winnerError } = await client
-                .from("action_requests")
-                .select("id")
-                .eq("workspace_id", input.workspaceId)
-                .eq("idempotency_key", input.request.idempotencyKey)
-                .maybeSingle();
-              if (winnerError) throw winnerError;
-              if (!winner) throw requestError;
-              return loadIdempotentReplay(client, winner.id);
-            }
-            throw requestError;
-          }'''
+          conflict_start = text.index("  if (requestError) {", text.index(submit_marker))
+          conflict_end = text.index("\n\n  const policyCode = `PASSPORT:${policy.passportCode}`;", conflict_start)
+          conflict = "\n".join([
+              "  if (requestError) {",
+              "    // A concurrent duplicate is expected to lose on the unique idempotency constraint.",
+              "    // Read the winner directly and wait briefly for its decision instead of recursively",
+              "    // re-entering submitAction, which could race against the winner's decision insert.",
+              '    if (String(requestError.code) === "23505") {',
+              "      const { data: winner, error: winnerError } = await client",
+              '        .from("action_requests")',
+              '        .select("id")',
+              '        .eq("workspace_id", input.workspaceId)',
+              '        .eq("idempotency_key", input.request.idempotencyKey)',
+              "        .maybeSingle();",
+              "      if (winnerError) throw winnerError;",
+              "      if (!winner) throw requestError;",
+              "      return loadIdempotentReplay(client, winner.id);",
+              "    }",
+              "    throw requestError;",
+              "  }",
+          ])
           text = text[:conflict_start] + conflict + text[conflict_end:]
 
           path.write_text(text)
