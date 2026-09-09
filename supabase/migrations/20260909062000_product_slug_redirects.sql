@@ -2,10 +2,12 @@
 -- Safe for long malformed historical slugs: the indexed key is a fixed-length
 -- lookup digest, not old_slug text. md5() is used only as an index key, not for
 -- security; the resolver also requires exact full old_slug equality.
+-- The digest is generated from old_slug by PostgreSQL so callers cannot insert
+-- a mismatched lookup key during future slug-cleanup transactions.
 
 create table if not exists public.product_slug_redirects (
-  old_slug_key char(32) primary key,
   old_slug text not null,
+  old_slug_key char(32) generated always as (md5(old_slug)) stored primary key,
   product_id uuid not null references public.marketplace_products(id) on delete cascade,
   reason text,
   created_at timestamptz not null default now(),
