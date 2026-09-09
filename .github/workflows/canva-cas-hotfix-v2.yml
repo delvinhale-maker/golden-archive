@@ -1,0 +1,120 @@
+name: Canva CAS hotfix v2
+
+on:
+  push:
+    branches:
+      - canva/creator-studio-completion
+    paths:
+      - .github/workflows/canva-cas-hotfix-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-test:
+    if: contains(github.event.head_commit.message, '[run-canva-cas-hotfix-v2]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: canva/creator-studio-completion
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Patch Canva refresh CAS
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path('src/lib/canva-oauth.ts')
+          text = path.read_text()
+
+          text, n = re.subn(r'  updated_at: string;\n};', '  refresh_version: number;\n};', text, count=1)
+          assert n == 1, 'connection row version field not found'
+
+          text, n = re.subn(
+              r'\.select\("id, status, access_token_enc, refresh_token_enc, access_token_expires_at, updated_at"\)',
+              '.select("id, status, access_token_enc, refresh_token_enc, access_token_expires_at, refresh_version")',
+              text,
+              count=1,
+          )
+          assert n == 1, 'connection select not found'
+
+          text = text.replace(
+              'integration_connections.updated_at — no new column, no in-memory lock (an',
+              'integration_connections.refresh_version — a monotonic server-only counter, no in-memory lock (an',
+              1,
+          )
+
+          text, n = re.subn(
+              r'  const claimedUpdatedAt = await claimCanvaRefreshSlot\(supabase, row\.id, row\.updated_at\);\n\n  if \(!claimedUpdatedAt\) \{',
+              '  const claimedRefreshVersion = await claimCanvaRefreshSlot(\n    supabase,\n    row.id,\n    row.refresh_version,\n  );\n\n  if (claimedRefreshVersion === null) {',
+              text,
+              count=1,
+          )
+          assert n == 1, 'claim call not found'
+
+          text = text.replace(
+              'await markCanvaErrorIfUnchanged(supabase, row.id, claimedUpdatedAt, "token_refresh_failed");',
+              'await markCanvaErrorIfUnchanged(supabase, row.id, claimedRefreshVersion, "token_refresh_failed");',
+              1,
+          )
+
+          text = text.replace('expectedUpdatedAt: claimedUpdatedAt,', 'expectedRefreshVersion: claimedRefreshVersion,', 1)
+
+          text, n = re.subn(
+              r'  if \(!stored\) \{\n    // We hold the claim and have a token Canva just issued to us — write it\n    // unconditionally rather than discarding a successfully refreshed token\.\n    await storeCanvaConnection\(supabase, \{ rowId: row\.id, ownerUserId: userId, tokens \}\);\n  \}',
+              '  if (!stored) {\n    // The row changed after the refresh claim. Preserve the newer database state.\n    // Never resurrect a concurrent disconnect/revoke/error with an unconditional token write.\n    return resolveRefreshStoreCasLoss(supabase, userId);\n  }',
+              text,
+              count=1,
+          )
+          assert n == 1, 'unconditional store fallback not found'
+
+          text = text.replace(
+              ' * touching the row only if `updated_at` still matches `expectedUpdatedAt`\n * (optimistic concurrency). Returns the row\'s new `updated_at` (the CAS\n * token for the follow-up store) on success, or null if another request\n * already changed the row first.',
+              ' * touching the row only if `refresh_version` still matches the version\n * observed by the caller. A database trigger increments refresh_version on\n * every UPDATE, so unlike transaction-stable now()/updated_at it is a reliable\n * CAS token even for rapid or same-transaction writes.',
+              1,
+          )
+
+          text, n = re.subn(
+              r'async function claimCanvaRefreshSlot\(\n  supabase: SupabaseClient,\n  rowId: string,\n  expectedUpdatedAt: string,\n\): Promise<string \| null> \{\n  const \{ data, error \} = await supabase\n    \.from\("integration_connections"\)\n    \.update\(\{ last_error: null \}\)\n    \.eq\("id", rowId\)\n    \.eq\("updated_at", expectedUpdatedAt\)\n    \.select\("updated_at"\)\n    \.maybeSingle\(\);\n  if \(error \|\| !data\) return null;\n  return \(data as \{ updated_at: string \}\)\.updated_at;\n\}',
+              'async function claimCanvaRefreshSlot(\n  supabase: SupabaseClient,\n  rowId: string,\n  expectedRefreshVersion: number,\n): Promise<number | null> {\n  const { data, error } = await supabase\n    .from("integration_connections")\n    .update({ last_error: null })\n    .eq("id", rowId)\n    .eq("refresh_version", expectedRefreshVersion)\n    .select("refresh_version")\n    .maybeSingle();\n  if (error || !data) return null;\n  return (data as { refresh_version: number }).refresh_version;\n}',
+              text,
+              count=1,
+          )
+          assert n == 1, 'claim function not found'
+
+          text = text.replace('expectedUpdatedAt: string;', 'expectedRefreshVersion: number;', 1)
+          text = text.replace('.eq("updated_at", args.expectedUpdatedAt)', '.eq("refresh_version", args.expectedRefreshVersion)', 1)
+
+          text, n = re.subn(
+              r'async function markCanvaErrorIfUnchanged\(\n  supabase: SupabaseClient,\n  rowId: string,\n  expectedUpdatedAt: string,\n  reason: string,\n\): Promise<void> \{\n  await supabase\n    \.from\("integration_connections"\)\n    \.update\(\{\n      status: "error",\n      last_error: reason\.slice\(0, 300\),\n      oauth_state: null,\n      code_verifier_enc: null,\n      state_expires_at: null,\n    \}\)\n    \.eq\("id", rowId\)\n    \.eq\("updated_at", expectedUpdatedAt\);\n\}',
+              'async function markCanvaErrorIfUnchanged(\n  supabase: SupabaseClient,\n  rowId: string,\n  expectedRefreshVersion: number,\n  reason: string,\n): Promise<void> {\n  await supabase\n    .from("integration_connections")\n    .update({\n      status: "error",\n      last_error: reason.slice(0, 300),\n      oauth_state: null,\n      code_verifier_enc: null,\n      state_expires_at: null,\n    })\n    .eq("id", rowId)\n    .eq("refresh_version", expectedRefreshVersion);\n}\n\n/** Preserve newer state after a lost post-refresh CAS. */\nasync function resolveRefreshStoreCasLoss(\n  supabase: SupabaseClient,\n  userId: string,\n): Promise<string> {\n  const fresh = await readCanvaConnectionRow(supabase, userId);\n  if (fresh?.status === "connected" && fresh.access_token_enc && !isNearExpiry(fresh)) {\n    return decryptOAuthSecret(fresh.access_token_enc);\n  }\n  if (!fresh || fresh.status === "revoked") {\n    throw new CanvaApiError("not_connected", "Canva is no longer connected");\n  }\n  throw new CanvaApiError(\n    "reauth_required",\n    "Canva authorization changed while the token was refreshing; reconnect to continue",\n  );\n}',
+              text,
+              count=1,
+          )
+          assert n == 1, 'conditional error function not found'
+
+          assert 'await storeCanvaConnection(supabase, { rowId: row.id, ownerUserId: userId, tokens });' not in text
+          assert 'expectedUpdatedAt' not in text
+          assert 'row.updated_at' not in text
+          path.write_text(text)
+
+      - name: Add source contract test
+        shell: python
+        run: |
+          from pathlib import Path
+          Path('tests/integration/canva-refresh-version-contract.test.ts').write_text('''import { describe, expect, test } from "bun:test";\nimport { readFileSync } from "node:fs";\n\nconst source = readFileSync("src/lib/canva-oauth.ts", "utf8");\nconst migration = readFileSync("docs/proposed-migrations/20260909112100_add_integration_refresh_version.sql", "utf8");\n\ndescribe("Canva refresh version CAS contract", () => {\n  test("uses refresh_version instead of updated_at as refresh CAS", () => {\n    expect(source).toContain("refresh_version: number");\n    expect(source).toContain('.eq("refresh_version", expectedRefreshVersion)');\n    expect(source).not.toContain('.eq("updated_at", expectedUpdatedAt)');\n  });\n\n  test("preserves newer state after lost post-refresh CAS", () => {\n    expect(source).toContain("return resolveRefreshStoreCasLoss(supabase, userId)");\n    expect(source).not.toContain("unconditionally rather than discarding a successfully refreshed token");\n  });\n\n  test("migration defines monotonic server-only version", () => {\n    expect(migration).toContain("refresh_version BIGINT NOT NULL DEFAULT 0");\n    expect(migration).toContain("NEW.refresh_version = OLD.refresh_version + 1");\n    expect(migration).toContain("REVOKE ALL (refresh_version)");\n  });\n});\n''')
+
+      - name: Run targeted Canva tests
+        run: bun test tests/unit/canva-design-client.test.ts tests/integration/canva-design-import.test.ts tests/integration/canva-refresh-version-contract.test.ts
+
+      - name: Commit hotfix
+        run: |
+          git config user.name "AurumVault Release Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/lib/canva-oauth.ts tests/integration/canva-refresh-version-contract.test.ts
+          git commit -m "Harden Canva refresh CAS against concurrent disconnect [canva-cas-hotfix-v2]"
+          git push origin HEAD:canva/creator-studio-completion
