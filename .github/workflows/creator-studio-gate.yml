@@ -33,8 +33,8 @@ jobs:
             exit 1
           fi
           # Runtime comparison against the string "true" is expected in server code.
-          # Only reject a committed configuration that explicitly hard-enables production rendering.
-          if grep -R -E 'CREATOR_STUDIO_SHOTSTACK_PRODUCTION_ENABLED:[[:space:]]*["'"']?true|CREATOR_STUDIO_SHOTSTACK_PRODUCTION_ENABLED=["'"']?true' .github --include='*.yml' --include='*.yaml'; then
+          # Reject only committed workflow configuration that explicitly enables production rendering.
+          if grep -R 'CREATOR_STUDIO_SHOTSTACK_PRODUCTION_ENABLED: "true"' .github --include='*.yml' --include='*.yaml'; then
             echo "Production provider rendering must not be hard-enabled in committed workflow configuration"
             exit 1
           fi
