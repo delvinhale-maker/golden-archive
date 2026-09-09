@@ -94,13 +94,23 @@ export const turnCanvaDesignIntoProductFn = createServerFn({ method: "POST" })
     // Duplicate-import protection: one mapping per (creator, design). Checked
     // first so a re-selection of an already-imported design never creates a
     // second product, and so we never spend an export/storage round trip on
-    // a design that's already linked.
-    const { data: existingMapping } = await admin
+    // a design that's already linked. Treat a mapping-table read failure as
+    // a hard failure here: continuing would perform a Canva export, upload a
+    // cover and create a draft that cannot be linked safely.
+    const { data: existingMapping, error: existingMappingError } = await admin
       .from("canva_design_products")
       .select("product_id")
       .eq("user_id", context.userId)
       .eq("canva_design_id", designId)
       .maybeSingle();
+
+    if (existingMappingError) {
+      console.error("[canva] mapping lookup failed", {
+        user_id: context.userId,
+        message: existingMappingError.message,
+      });
+      return { ok: false, reason: "mapping_failed" };
+    }
 
     if (existingMapping) {
       return {
