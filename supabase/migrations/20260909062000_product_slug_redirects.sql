@@ -20,6 +20,9 @@ create index if not exists product_slug_redirects_product_id_idx
 
 alter table public.product_slug_redirects enable row level security;
 
+-- Defense in depth: no ordinary database/API role can read the internal
+-- redirect registry directly. Resolution is server-only through the RPC below.
+revoke all on table public.product_slug_redirects from public;
 revoke all on table public.product_slug_redirects from anon;
 revoke all on table public.product_slug_redirects from authenticated;
 grant select on table public.product_slug_redirects to service_role;
