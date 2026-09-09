@@ -36,6 +36,23 @@ function serviceClient() {
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
+function callbackUrl() {
+  const app = process.env.CREATOR_STUDIO_APP_URL;
+  const secret = process.env.CREATOR_STUDIO_SHOTSTACK_CALLBACK_SECRET;
+  if (!app || !secret) throw new Error("Creator Studio provider callback is not configured");
+  const url = new URL("/api/creator-studio-shotstack-callback", z.string().url().parse(app));
+  url.searchParams.set("token", secret);
+  return url.toString();
+}
+
+export function callbackTokenMatches(token: string | null) {
+  const expected = process.env.CREATOR_STUDIO_SHOTSTACK_CALLBACK_SECRET;
+  if (!expected || !token || token.length !== expected.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < expected.length; i += 1) mismatch |= expected.charCodeAt(i) ^ token.charCodeAt(i);
+  return mismatch === 0;
+}
+
 export function mapShotstackStatus(status: string): CreatorStudioJobStatus {
   const parsed = ProviderStatusSchema.parse(status);
   if (parsed === "done") return "COMPLETED";
@@ -49,7 +66,11 @@ export function estimateCreatorStudioRenderCost(durationSeconds: 15 | 30 | 45) {
   return Number(((durationSeconds / 60) * perMinute).toFixed(4));
 }
 
-export function buildShotstackEdit(plan: CreatorStudioRenderPlan, assetUrls: Record<string, string>) {
+export function buildShotstackEdit(
+  plan: CreatorStudioRenderPlan,
+  assetUrls: Record<string, string>,
+  callback?: string,
+) {
   const clips = plan.scenes.map((scene) => {
     const src = scene.assetId ? assetUrls[scene.assetId] : undefined;
     const base = {
@@ -60,7 +81,7 @@ export function buildShotstackEdit(plan: CreatorStudioRenderPlan, assetUrls: Rec
     if (src) {
       return {
         asset: { type: "image", src },
-        fit: "cover",
+        fit: "crop",
         ...base,
       };
     }
@@ -83,10 +104,11 @@ export function buildShotstackEdit(plan: CreatorStudioRenderPlan, assetUrls: Rec
     },
     output: {
       format: "mp4",
-      resolution: "hd",
+      resolution: "1080",
       aspectRatio: "9:16",
       fps: 30,
     },
+    ...(callback ? { callback } : {}),
   };
 }
 
@@ -179,7 +201,7 @@ export async function submitCreatorStudioRender(params: {
   }
 
   try {
-    const provider = await submitShotstackRender(buildShotstackEdit(plan, urls));
+    const provider = await submitShotstackRender(buildShotstackEdit(plan, urls, callbackUrl()));
     const { error: updateError } = await db
       .from("creator_studio_render_jobs")
       .update({
