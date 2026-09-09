@@ -1,0 +1,198 @@
+name: Agent Authority Source Hardening
+
+on:
+  push:
+    branches: ["feature/ai-agent-authority-passport"]
+    paths: [".github/workflows/agent-authority-source-hardening.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/ai-agent-authority-passport
+          fetch-depth: 0
+
+      - name: Patch service trust boundaries
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('src/lib/agent-authority/service.server.ts')
+          text = path.read_text()
+          if 'from "./audit-minimization"' not in text:
+              text = text.replace('import { loadRecordedDailyPurchaseSpend } from "./daily-spend.server";\n', 'import { loadRecordedDailyPurchaseSpend } from "./daily-spend.server";\nimport { minimizeAuditMetadata } from "./audit-minimization";\nimport { loadPassportVersionIdentity } from "./policy-version-identity.server";\n')
+          text = text.replace('    metadata,\n  });\n  if (error) throw error;\n}\n\nasync function evidence', '    metadata: minimizeAuditMetadata(metadata),\n  });\n  if (error) throw error;\n}\n\nasync function evidence', 1)
+          text = text.replace('  const safeMetadata = input.metadata ?? {};', '  const safeMetadata = minimizeAuditMetadata(input.metadata);', 1)
+          marker = '  const client = await db();\n  const receiptCode = `AV-${randomInt(100000000, 999999999)}`;'
+          replacement = '  const client = await db();\n  const receiptVersion = Number(input.decision.passport_version ?? input.decision.policy_version ?? input.passport.version);\n  const receiptIdentity = await loadPassportVersionIdentity({ client, workspaceId: input.workspaceId, passportId: input.passport.passportId, passportVersion: receiptVersion });\n  const receiptCode = `AV-${randomInt(100000000, 999999999)}`;'
+          if marker not in text:
+              raise SystemExit('terminalReceipt marker missing')
+          text = text.replace(marker, replacement, 1)
+          text = text.replace('    passportCode: input.passport.passportCode,\n    agentName: input.passport.agentName,', '    passportCode: receiptIdentity.passportCode,\n    agentName: receiptIdentity.agentName,', 1)
+          text = text.replace('      passport_version: input.passport.version,', '      passport_version: receiptVersion,', 1)
+
+          start = text.index('export async function resolveApproval(')
+          end = text.index('\nexport async function reportExecution(', start)
+          new_func = r'''export async function resolveApproval(
+  userId: string,
+  input: { workspaceId: string; approvalRequestId: string; decision: "APPROVED" | "REJECTED"; note?: string | null },
+) {
+  const client = await db();
+  const note = input.note?.trim() || null;
+  if (note && note.length > 2000) throw new Error("Approval note must be 2000 characters or fewer");
+  const { data: approval, error } = await client
+    .from("approval_requests")
+    .select("*, action_requests(*), action_decisions(*)")
+    .eq("workspace_id", input.workspaceId)
+    .eq("id", input.approvalRequestId)
+    .single();
+  if (error || !approval) throw error ?? new Error("Approval request not found");
+
+  const request = Array.isArray(approval.action_requests) ? approval.action_requests[0] : approval.action_requests;
+  const actionDecision = Array.isArray(approval.action_decisions) ? approval.action_decisions[0] : approval.action_decisions;
+  if (!request || !actionDecision) throw new Error("Approval request is missing its action context");
+
+  // Prove direct/delegated authority before entering the service-role-only mutation RPC.
+  const approvalAuthority = await assertActionApprovalAuthority({
+    workspaceId: input.workspaceId,
+    userId,
+    assignedRole: approval.assigned_role,
+    actionKey: request.action_key,
+    amount: request.amount == null ? null : Number(request.amount),
+  });
+
+  const { data: resolvedRows, error: resolveError } = await client.rpc("resolve_agent_authority_approval_atomic", {
+    p_workspace_id: input.workspaceId,
+    p_approval_request_id: approval.id,
+    p_approver_id: userId,
+    p_decision: input.decision,
+    p_note: note,
+  });
+  if (resolveError) throw resolveError;
+  const resolved = Array.isArray(resolvedRows) ? resolvedRows[0] : resolvedRows;
+  if (!resolved) throw new Error("Atomic approval resolution returned no result");
+  if (resolved.approval_status === "EXPIRED") throw new Error("Approval request has expired");
+  if (resolved.already_resolved) throw new Error(`Approval is already ${resolved.approval_status}`);
+
+  const recorded = {
+    id: resolved.approval_decision_id,
+    decision: resolved.approval_status,
+    approver_id: resolved.approver_id,
+    note: resolved.note,
+    decided_at: resolved.decided_at,
+  };
+  const policy = await loadPolicy(input.workspaceId, request.passport_id);
+  await evidence({
+    workspaceId: input.workspaceId,
+    passportId: request.passport_id,
+    actionRequestId: request.id,
+    eventType: "approval.decided",
+    actorType: "HUMAN",
+    actorUserId: userId,
+    priorStatus: "PENDING",
+    newStatus: input.decision,
+    metadata: { approvalRequestId: approval.id, notePresent: Boolean(note), authoritySource: approvalAuthority.mode, delegationId: approvalAuthority.delegationId ?? null },
+  });
+
+  let receipt = null;
+  if (input.decision === "REJECTED") {
+    receipt = await terminalReceipt({ workspaceId: input.workspaceId, request, decision: actionDecision, passport: policy, outcome: "REJECTED_BY_HUMAN_APPROVER" });
+  }
+  await audit(input.workspaceId, userId, `approval.${input.decision.toLowerCase()}`, "approval_request", approval.id);
+  return { approvalDecision: recorded, receipt };
+}
+'''
+          text = text[:start] + new_func + text[end:]
+
+          old = '  const passport = await loadPolicy(input.workspaceId, request.passport_id);\n  const executedAt = input.executedAt ?? new Date().toISOString();'
+          new = '''  const passport = await loadPolicy(input.workspaceId, request.passport_id);
+  if (passport.status !== "AUTHORIZED") throw new Error(`Passport is ${passport.status}; execution evidence cannot be recorded`);
+  if (passport.authorizationExpiresAt && new Date(passport.authorizationExpiresAt).getTime() <= Date.now()) throw new Error("Passport authorization has expired; re-evaluate before execution");
+  if (Number(passport.version) !== Number(decision.passport_version)) throw new Error("Passport policy version changed after authorization; submit a new Action Gate request");
+  const receiptIdentity = await loadPassportVersionIdentity({ client, workspaceId: input.workspaceId, passportId: request.passport_id, passportVersion: Number(decision.passport_version) });
+  const executedAt = input.executedAt ?? new Date().toISOString();'''
+          if old not in text:
+              raise SystemExit('reportExecution policy marker missing')
+          text = text.replace(old, new, 1)
+          text = text.replace('    passportCode: passport.passportCode,\n    agentName: passport.agentName,', '    passportCode: receiptIdentity.passportCode,\n    agentName: receiptIdentity.agentName,', 1)
+          path.write_text(text)
+
+          path = Path('src/lib/agent-authority/governance.service.server.ts')
+          text = path.read_text()
+          text = text.replace('import { classifyWebhookDelivery, webhookDeliveryHealth } from "./webhooks.server";', 'import { classifyWebhookDelivery, validateWebhookEndpointUrl, validateWebhookSubscriptions, webhookDeliveryHealth } from "./webhooks.server";')
+          if 'from "./audit-minimization"' not in text:
+              text = text.replace('import { simulateActionGate } from "./shadow-mode";\n', 'import { simulateActionGate } from "./shadow-mode";\nimport { minimizeAuditMetadata } from "./audit-minimization";\nimport { loadPassportVersionIdentity } from "./policy-version-identity.server";\n')
+          text = text.replace('const ADMIN_ROLES: WorkspaceRole[] = ["OWNER", "ADMIN"];', 'const ADMIN_ROLES: WorkspaceRole[] = ["OWNER", "ADMIN"];\nconst AUDIT_ROLES: WorkspaceRole[] = ["OWNER", "ADMIN", "AUDITOR"];\nconst GOVERNANCE_ROLES: WorkspaceRole[] = ["OWNER", "ADMIN", "APPROVER", "AUDITOR"];')
+          text = text.replace('    metadata,\n  });\n  if (error) throw error;\n}\n\nasync function appendEvidence', '    metadata: minimizeAuditMetadata(metadata),\n  });\n  if (error) throw error;\n}\n\nasync function appendEvidence', 1)
+          text = text.replace('  const metadata = input.metadata ?? {};', '  const metadata = minimizeAuditMetadata(input.metadata);', 1)
+          text = text.replace('export async function listDelegations(userId: string, workspaceId: string) {\n  await requireRole(workspaceId, userId);', 'export async function listDelegations(userId: string, workspaceId: string) {\n  await requireRole(workspaceId, userId, GOVERNANCE_ROLES);')
+          text = text.replace('export async function listWebhookHealth(userId: string, workspaceId: string) {\n  await requireRole(workspaceId, userId);', 'export async function listWebhookHealth(userId: string, workspaceId: string) {\n  await requireRole(workspaceId, userId, AUDIT_ROLES);')
+          text = text.replace('export async function listDeadLetterWebhookDeliveries(userId: string, workspaceId: string) {\n  await requireRole(workspaceId, userId);', 'export async function listDeadLetterWebhookDeliveries(userId: string, workspaceId: string) {\n  await requireRole(workspaceId, userId, AUDIT_ROLES);')
+          text = text.replace('export async function verifyReceipt(userId: string, input: { workspaceId: string; receiptId: string }) {\n  await requireRole(input.workspaceId, userId);', 'export async function verifyReceipt(userId: string, input: { workspaceId: string; receiptId: string }) {\n  await requireRole(input.workspaceId, userId, AUDIT_ROLES);')
+          old = '''  const parsed = new URL(input.url);
+  if (parsed.protocol !== "https:") throw new Error("Webhook URL must use HTTPS");
+  const client = await db();
+  const { data, error } = await client.from("agent_authority_webhook_endpoints").insert({
+    workspace_id: input.workspaceId,
+    url: input.url,
+    subscribed_events: [...new Set(input.subscribedEvents)],'''
+          new = '''  const normalizedUrl = validateWebhookEndpointUrl(input.url);
+  const subscribedEvents = validateWebhookSubscriptions(input.subscribedEvents);
+  const client = await db();
+  const { data, error } = await client.from("agent_authority_webhook_endpoints").insert({
+    workspace_id: input.workspaceId,
+    url: normalizedUrl,
+    subscribed_events: subscribedEvents,'''
+          if old not in text:
+              raise SystemExit('webhook endpoint marker missing')
+          text = text.replace(old, new, 1)
+          old = '.select("id,receipt_code,passport_id,action_key,target,authority_result,policy_code,policy_version,requested_at,human_approver_id,human_approved_at,executed_at,evidence_level,outcome,evidence_references,integrity_hash")'
+          new = '.select("id,receipt_code,passport_id,passport_version,action_key,target,authority_result,policy_code,policy_version,requested_at,human_approver_id,human_approved_at,executed_at,evidence_level,outcome,evidence_references,integrity_hash")'
+          if old not in text:
+              raise SystemExit('verify receipt select marker missing')
+          text = text.replace(old, new, 1)
+          old = '''  const { data: passport, error: passportError } = await client.from("agent_passports").select("passport_code,agent_name").eq("workspace_id", input.workspaceId).eq("id", receipt.passport_id).single();
+  if (passportError || !passport) throw passportError ?? new Error("Receipt Passport not found");
+  return verifyAuthorizationReceipt({
+    receiptCode: receipt.receipt_code,
+    passportCode: passport.passport_code,
+    agentName: passport.agent_name,'''
+          new = '''  const identity = await loadPassportVersionIdentity({ client, workspaceId: input.workspaceId, passportId: receipt.passport_id, passportVersion: Number(receipt.passport_version) });
+  return verifyAuthorizationReceipt({
+    receiptCode: receipt.receipt_code,
+    passportCode: identity.passportCode,
+    agentName: identity.agentName,'''
+          if old not in text:
+              raise SystemExit('verify receipt identity marker missing')
+          text = text.replace(old, new, 1)
+          path.write_text(text)
+          PY
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Run Agent Authority tests
+        run: bunx vitest run src/lib/agent-authority
+      - name: Build AurumVault
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_ANON_KEY: test-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: test-service-role-key
+          SUPABASE_TEST_EMAIL: ci@example.com
+          SUPABASE_TEST_PASSWORD: not-a-real-password
+      - name: Commit hardened services and remove one-shot workflow
+        run: |
+          rm .github/workflows/agent-authority-source-hardening.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/lib/agent-authority/service.server.ts src/lib/agent-authority/governance.service.server.ts .github/workflows/agent-authority-source-hardening.yml
+          git commit -m "Harden Agent Authority approval and evidence trust boundaries"
+          git push origin HEAD:feature/ai-agent-authority-passport
