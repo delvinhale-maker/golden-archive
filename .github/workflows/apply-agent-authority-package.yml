@@ -24,7 +24,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           echo "a292aa069324f4c89f4155b0fc084aad61bbcaaa76fdd41a68cd765c56c732c6  .agent-authority-package/repair-008-0.b64" | sha256sum -c -
           echo "d3571ca6d6274662853ed382b6f945995c39db90c5bce72fd39d8c422ebd801f  .agent-authority-package/repair-008-1.b64" | sha256sum -c -
           echo "51a502fcbef0e4a19ff67ce3384846764720a4cddc3d2b3d986768983d9d4d84  .agent-authority-package/repair-008-2.b64" | sha256sum -c -
@@ -47,7 +46,6 @@ jobs:
           for i in $(seq 0 7); do
             p=$(printf '.agent-authority-package/part-%03d.b64' "$i")
             got=$(head -c 15000 "$p" | sha256sum | awk '{print $1}')
-            echo "part-$i expected=${expected[$i]} got=$got"
             test "$got" = "${expected[$i]}"
           done
           got9=$(head -c 8080 .agent-authority-package/part-009.b64 | sha256sum | awk '{print $1}')
@@ -81,20 +79,23 @@ jobs:
           cp "$PKG/INTEGRATION_NOTES.md" docs/ai-agent-authority-passport/INTEGRATION_NOTES.md
           rm -rf .agent-authority-package
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: '22'
-          cache: npm
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Run Agent Authority tests
-        run: npx vitest run src/lib/agent-authority
+        run: bunx vitest run src/lib/agent-authority
 
       - name: Build full AurumVault application
-        run: npm run build
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
 
       - name: Commit verified source and remove transfer gate
         shell: bash
