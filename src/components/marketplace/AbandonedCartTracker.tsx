@@ -69,9 +69,13 @@ export function AbandonedCartTracker() {
     if (typeof window === "undefined") return;
     const sessionId = window.localStorage.getItem(SESSION_KEY);
     if (!sessionId) return;
-    void supabase
-      .rpc("mark_abandoned_cart_recovered", { _session_id: sessionId })
-      .catch(() => undefined);
+    void (async () => {
+      try {
+        await supabase.rpc("mark_abandoned_cart_recovered", { _session_id: sessionId });
+      } catch {
+        // Non-blocking
+      }
+    })();
     window.sessionStorage.removeItem(REMINDER_KEY);
   }, [cart.items.length]);
 
