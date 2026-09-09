@@ -25,10 +25,14 @@ jobs:
         shell: bash
         run: |
           cat \
-            .seo-hardening/chunkaa.b64 \
-            .seo-hardening/chunkab.b64 \
-            .seo-hardening/chunkac.b64 \
-            .seo-hardening/chunkad.b64 \
+            .seo-hardening/exact00.b64 \
+            .seo-hardening/exact01.b64 \
+            .seo-hardening/exact02.b64 \
+            .seo-hardening/exact03.b64 \
+            .seo-hardening/exact04.b64 \
+            .seo-hardening/exact05.b64 \
+            .seo-hardening/exact06.b64 \
+            .seo-hardening/exact07.b64 \
             | base64 --decode > /tmp/seo-phase1.tar.gz
           echo "57a16ef59903e20a9dc085e9c85e12d40ca76dbc92e23d150ec941a03e6d00c3  /tmp/seo-phase1.tar.gz" | sha256sum -c -
           mkdir -p .seo-hardening-v2
