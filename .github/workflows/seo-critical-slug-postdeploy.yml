@@ -1,0 +1,41 @@
+name: SEO Critical Slug Post-Deploy Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Deployment origin to verify
+        required: true
+        default: https://www.aurumvault.store
+      social_planner_old_slug:
+        description: Historical pre-cleanup slug for the Social Media Planner
+        required: true
+      timeout_ms:
+        description: Per-request timeout in milliseconds
+        required: false
+        default: "15000"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-critical-slugs:
+    name: Verify all 17 critical canonical and redirect URLs
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify critical slug redirects
+        run: |
+          node scripts/seo/verify-critical-slug-http.mjs \
+            --base-url "${{ inputs.base_url }}" \
+            --social-planner-old-slug "${{ inputs.social_planner_old_slug }}" \
+            --timeout-ms "${{ inputs.timeout_ms }}"
