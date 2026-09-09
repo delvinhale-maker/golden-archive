@@ -17,6 +17,7 @@ from playwright.async_api import async_playwright
 BASE_URL = "http://localhost:8080"
 OUT = Path("/tmp/browser/marketing-homepage-smoke")
 OUT.mkdir(parents=True, exist_ok=True)
+RESULTS = OUT / "results.txt"
 
 EXPECTED_TITLE = "AurumVault | Professional Digital Systems, Creator Tools & Digital Resources"
 EXPECTED_POSITIONING = "Professional Digital Systems, Creator Tools & Specialized Resources"
@@ -33,6 +34,24 @@ HAS_SUPABASE_CONFIG = bool(
 
 def normalize(text: str) -> str:
     return " ".join(text.split())
+
+
+def persist_results(failures: list[str], page_errors: list[str]) -> None:
+    lines = [
+        "Marketing release smoke diagnostics",
+        f"HAS_SUPABASE_CONFIG={HAS_SUPABASE_CONFIG}",
+        f"failures={len(failures)}",
+        f"page_errors={len(page_errors)}",
+        "",
+    ]
+    if failures:
+        lines.extend(f"FAIL: {failure}" for failure in failures)
+    else:
+        lines.append("PASS: no smoke-test failures")
+    if page_errors:
+        lines.extend(["", "Raw page errors:"])
+        lines.extend(f"PAGEERROR: {error}" for error in page_errors)
+    RESULTS.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 async def route_status(page, path: str) -> int | None:
@@ -169,6 +188,7 @@ async def main() -> int:
     if page_errors:
         failures.extend(f"Uncaught browser error: {err}" for err in page_errors)
 
+    persist_results(failures, page_errors)
     print("=== Marketing release smoke results ===")
     if failures:
         for failure in failures:
