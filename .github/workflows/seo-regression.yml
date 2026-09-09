@@ -1,4 +1,5 @@
 # Durable release gate for AurumVault SEO changes.
+# Redirect releases require isolated staging verification before production slug mutations.
 name: SEO Regression Gate
 
 on:
