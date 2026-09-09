@@ -1,3 +1,4 @@
+# Durable release gate for AurumVault SEO changes.
 name: SEO Regression Gate
 
 on:
