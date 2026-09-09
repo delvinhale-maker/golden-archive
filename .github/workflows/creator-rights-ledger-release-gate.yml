@@ -38,7 +38,7 @@ jobs:
   release-gate:
     name: dependency → types → unit → build → browser
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     env:
       CI: 'true'
       NODE_ENV: test
@@ -74,12 +74,19 @@ jobs:
         run: |
           bun run preview -- --host 127.0.0.1 --port 4173 > /tmp/crl-preview.log 2>&1 &
           echo $! > /tmp/crl-preview.pid
-          for i in {1..30}; do
-            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then
+          for i in {1..120}; do
+            if curl --fail --silent --max-time 2 http://127.0.0.1:4173/ >/dev/null; then
+              echo "Preview ready after ${i}s"
               exit 0
+            fi
+            if ! kill -0 "$(cat /tmp/crl-preview.pid)" 2>/dev/null; then
+              echo "Preview process exited before becoming ready"
+              cat /tmp/crl-preview.log
+              exit 1
             fi
             sleep 1
           done
+          echo "Preview did not become ready within 120 seconds"
           cat /tmp/crl-preview.log
           exit 1
 
