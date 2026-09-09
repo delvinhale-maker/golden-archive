@@ -14,7 +14,9 @@ on:
       - "src/routeTree.gen.ts"
       - "tests/integration/**"
       - "supabase/migrations/**"
+      - "scripts/verify-seo-postdeploy.mjs"
       - ".github/workflows/seo-regression.yml"
+      - ".github/workflows/seo-postdeploy-verify.yml"
   pull_request:
     branches:
       - main
@@ -26,7 +28,9 @@ on:
       - "src/routeTree.gen.ts"
       - "tests/integration/**"
       - "supabase/migrations/**"
+      - "scripts/verify-seo-postdeploy.mjs"
       - ".github/workflows/seo-regression.yml"
+      - ".github/workflows/seo-postdeploy-verify.yml"
 
 permissions:
   contents: read
@@ -67,6 +71,11 @@ jobs:
 
       - name: Run legacy taxonomy regression with Bun
         run: bun test tests/integration/category-legacy-alias-query-fix.test.ts
+
+      - name: Validate post-deploy verifier CLI
+        run: |
+          node --check scripts/verify-seo-postdeploy.mjs
+          node scripts/verify-seo-postdeploy.mjs --help
 
       - name: Verify Phase 1 redirect foundation and cleanup
         run: |
