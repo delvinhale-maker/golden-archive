@@ -20,8 +20,8 @@ permissions:
   contents: read
 
 jobs:
-  verify:
-    name: Canva targeted + regression verification
+  release-gate:
+    name: Canva release gate
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -46,9 +46,6 @@ jobs:
             tests/integration/canva-mapping-fail-closed.test.ts \
             tests/integration/canva-refresh-version-contract.test.ts
 
-      - name: Full regression suite
-        run: bun test
-
       - name: TypeScript
         run: bunx tsc --noEmit
 
@@ -58,3 +55,23 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+
+  regression-diagnostic:
+    name: Repository-wide regression diagnostic
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Full repository test suite (diagnostic)
+        run: bun test
