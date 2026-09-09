@@ -2,9 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { ShieldCheck, Clock3, AlertTriangle, RefreshCcw, FileText, Sparkles } from 'lucide-react'
 import { CRL_WORKFLOW } from '@/features/creator-rights-ledger/domain'
 
-// The generated route tree is refreshed by the TanStack/Vite build. The cast keeps
-// pre-build typecheck from depending on a stale generated file after adding this route.
-export const Route = createFileRoute('/_authenticated/creator-rights-ledger' as never)({
+export const Route = createFileRoute('/_authenticated/creator-rights-ledger')({
   component: CreatorRightsLedgerPage,
 })
 
