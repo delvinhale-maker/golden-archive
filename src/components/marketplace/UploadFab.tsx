@@ -7,7 +7,21 @@ import { PRODUCT_TYPES, PRODUCT_TYPE_ORDER, type ProductTypeKey } from "@/lib/pr
 
 type View = "root" | "digital";
 
+const HAS_SUPABASE_CLIENT_CONFIG = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+);
+
+/**
+ * Optional seller/admin convenience control. Missing client Supabase
+ * configuration must not take down public marketplace pages; protected/auth
+ * surfaces still use the fail-fast Supabase client directly.
+ */
 export function UploadFab() {
+  if (!HAS_SUPABASE_CLIENT_CONFIG) return null;
+  return <ConfiguredUploadFab />;
+}
+
+function ConfiguredUploadFab() {
   const { isAdmin, isSeller, loading } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
