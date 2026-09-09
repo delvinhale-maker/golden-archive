@@ -30,6 +30,71 @@ function priceIdForPlan(plan: Exclude<CreatorStudioPlan, "FREE">) {
   return priceId;
 }
 
+function planFromSubscription(subscription: Stripe.Subscription): Exclude<CreatorStudioPlan, "FREE"> | null {
+  const metadataPlan = subscription.metadata?.plan;
+  if (metadataPlan === "CREATOR_PRO" || metadataPlan === "CREATOR_BUSINESS") return metadataPlan;
+  const priceId = subscription.items.data[0]?.price?.id;
+  if (priceId && priceId === process.env.CREATOR_STUDIO_PRO_PRICE_ID) return "CREATOR_PRO";
+  if (priceId && priceId === process.env.CREATOR_STUDIO_BUSINESS_PRICE_ID) return "CREATOR_BUSINESS";
+  return null;
+}
+
+function ownerFromSubscription(subscription: Stripe.Subscription) {
+  return subscription.metadata?.ownerUserId || null;
+}
+
+function customerId(subscription: Stripe.Subscription) {
+  return typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
+}
+
+function subscriptionPeriod(subscription: Stripe.Subscription) {
+  const item = subscription.items.data[0] as Stripe.SubscriptionItem | undefined;
+  const start = item?.current_period_start;
+  const end = item?.current_period_end;
+  if (!start || !end || end <= start) throw new Error("Creator Studio subscription period is unavailable");
+  return {
+    periodStart: new Date(start * 1000).toISOString(),
+    periodEnd: new Date(end * 1000).toISOString(),
+  };
+}
+
+async function syncCreatorStudioSubscription(subscription: Stripe.Subscription) {
+  if (subscription.metadata?.creatorStudioKind !== "PLAN") return false;
+  const ownerUserId = ownerFromSubscription(subscription);
+  if (!ownerUserId) return false;
+  const db = serviceClient();
+  const plan = planFromSubscription(subscription);
+  const isEntitled = (subscription.status === "active" || subscription.status === "trialing") && plan;
+
+  if (!isEntitled) {
+    const { error } = await db.from("creator_studio_entitlements").upsert({
+      owner_user_id: ownerUserId,
+      plan_key: "FREE",
+      included_videos: 1,
+      stripe_customer_id: customerId(subscription),
+      stripe_subscription_id: subscription.status === "canceled" ? null : subscription.id,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "owner_user_id" });
+    if (error) throw new Error("Couldn't update Creator Studio plan");
+    return true;
+  }
+
+  const { periodStart, periodEnd } = subscriptionPeriod(subscription);
+  const included = plan === "CREATOR_PRO" ? 10 : 50;
+  const { error } = await db.from("creator_studio_entitlements").upsert({
+    owner_user_id: ownerUserId,
+    plan_key: plan,
+    included_videos: included,
+    stripe_customer_id: customerId(subscription),
+    stripe_subscription_id: subscription.id,
+    period_start: periodStart,
+    period_end: periodEnd,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "owner_user_id" });
+  if (error) throw new Error("Couldn't activate Creator Studio plan");
+  return true;
+}
+
 export async function createCreatorStudioPlanCheckout(ownerUserId: string, plan: Exclude<CreatorStudioPlan, "FREE">) {
   const stripe = stripeClient();
   const session = await stripe.checkout.sessions.create({
@@ -72,7 +137,6 @@ export async function handleCreatorStudioStripeWebhook(rawBody: string, signatur
   if (!secret) throw new Error("Creator Studio Stripe webhook is not configured");
   const stripe = stripeClient();
   const event = stripe.webhooks.constructEvent(rawBody, signature, secret);
-  const db = serviceClient();
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
@@ -83,6 +147,7 @@ export async function handleCreatorStudioStripeWebhook(rawBody: string, signatur
     if (kind === "EXTRA_VIDEO" && session.payment_status === "paid") {
       const quantity = z.coerce.number().int().min(1).max(50).parse(session.metadata?.quantity);
       const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : "";
+      const db = serviceClient();
       const { error } = await db.rpc("creator_studio_grant_extra_credits", {
         p_owner_user_id: ownerUserId,
         p_checkout_session_id: session.id,
@@ -94,40 +159,18 @@ export async function handleCreatorStudioStripeWebhook(rawBody: string, signatur
       return { handled: true };
     }
 
-    if (kind === "PLAN") {
-      const plan = z.enum(["CREATOR_PRO", "CREATOR_BUSINESS"]).parse(session.metadata?.plan);
-      const included = plan === "CREATOR_PRO" ? 10 : 50;
-      const subscriptionId = typeof session.subscription === "string" ? session.subscription : null;
-      const customerId = typeof session.customer === "string" ? session.customer : null;
-      const { error } = await db.from("creator_studio_entitlements").upsert({
-        owner_user_id: ownerUserId,
-        plan_key: plan,
-        included_videos: included,
-        stripe_customer_id: customerId,
-        stripe_subscription_id: subscriptionId,
-        period_start: new Date().toISOString(),
-        period_end: new Date(Date.now() + 31 * 24 * 60 * 60 * 1000).toISOString(),
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "owner_user_id" });
-      if (error) throw new Error("Couldn't activate Creator Studio plan");
-      return { handled: true };
+    if (kind === "PLAN" && typeof session.subscription === "string") {
+      const subscription = await stripe.subscriptions.retrieve(session.subscription);
+      return { handled: await syncCreatorStudioSubscription(subscription) };
     }
   }
 
-  if (event.type === "customer.subscription.deleted") {
-    const subscription = event.data.object;
-    const ownerUserId = subscription.metadata?.ownerUserId;
-    if (subscription.metadata?.creatorStudioKind === "PLAN" && ownerUserId) {
-      const { error } = await db.from("creator_studio_entitlements").upsert({
-        owner_user_id: ownerUserId,
-        plan_key: "FREE",
-        included_videos: 1,
-        stripe_subscription_id: null,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "owner_user_id" });
-      if (error) throw new Error("Couldn't update Creator Studio plan");
-      return { handled: true };
-    }
+  if (
+    event.type === "customer.subscription.created" ||
+    event.type === "customer.subscription.updated" ||
+    event.type === "customer.subscription.deleted"
+  ) {
+    return { handled: await syncCreatorStudioSubscription(event.data.object) };
   }
 
   return { handled: false };
