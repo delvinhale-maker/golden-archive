@@ -1,38 +1,42 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { z } from "zod";
 import { AuthorityApiError, authorityApiErrorResponse } from "@/lib/agent-authority/api-errors";
-
-const EvidenceSchema = z.object({
-  actionRequestId: z.string().uuid(),
-  executionStatus: z.enum(["EXECUTED", "FAILED", "CANCELLED"]),
-  executedAt: z.string().datetime().nullable().optional(),
-  sourceSystem: z.string().min(1).max(160).nullable().optional(),
-  externalReference: z.string().max(500).nullable().optional(),
-  executionConfirmed: z.boolean().optional(),
-  signedEvidencePresent: z.boolean().optional(),
-  evidenceReferences: z.array(z.string().max(500)).max(50).optional(),
-});
+import { evidenceApiSchema, parseJsonWithSchema, requestBodyTooLarge } from "@/lib/agent-authority/api-validation";
 
 export const Route = createFileRoute("/api/agent-authority/evidence")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
+          if (requestBodyTooLarge(request)) {
+            throw new AuthorityApiError(413, "INVALID_INPUT", "Evidence report body exceeds 32 KiB");
+          }
           const { authenticateAuthorityApiKey } = await import("@/lib/agent-authority/api-auth.server");
           const identity = await authenticateAuthorityApiKey(request, "evidence:write");
-          let parsed: z.infer<typeof EvidenceSchema>;
+          let raw: unknown;
           try {
-            parsed = EvidenceSchema.parse(await request.json());
-          } catch (error) {
-            throw new AuthorityApiError(400, "INVALID_INPUT", "Invalid evidence report", {
-              issues: error instanceof z.ZodError ? error.issues.map((issue) => ({ path: issue.path.join("."), message: issue.message })) : undefined,
-            });
+            raw = await request.json();
+          } catch {
+            throw new AuthorityApiError(400, "INVALID_INPUT", "Request body must be valid JSON");
+          }
+          const parsed = parseJsonWithSchema(evidenceApiSchema, raw);
+          if (!parsed.success) {
+            throw new AuthorityApiError(400, "INVALID_INPUT", "Invalid evidence report", { issues: parsed.issues });
           }
           const { reportExecutionFromApiKey } = await import("@/lib/agent-authority/service.server");
-          const result = await reportExecutionFromApiKey(identity, parsed);
+          const result = await reportExecutionFromApiKey(identity, {
+            actionRequestId: parsed.data.actionRequestId,
+            executionStatus: parsed.data.executionStatus,
+            sourceSystem: parsed.data.sourceSystem,
+            externalReference: parsed.data.externalReference,
+            executionConfirmed: parsed.data.executionConfirmed,
+            signedEvidencePresent: parsed.data.signedEvidencePresent,
+            evidenceReferences: parsed.data.evidenceReferences,
+          });
           return Response.json(result, {
             status: 200,
             headers: {
+              "cache-control": "no-store",
+              "x-content-type-options": "nosniff",
               "x-ratelimit-limit": String(identity.rateLimitPerMinute),
               "x-ratelimit-remaining": String(identity.rateLimitRemaining),
               "x-ratelimit-reset": identity.rateLimitResetAt,
