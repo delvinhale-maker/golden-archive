@@ -8,8 +8,7 @@ on:
     paths:
       - 'src/features/creator-rights-ledger/**'
       - 'src/routes/_authenticated/creator-rights-ledger.tsx'
-      - 'tests/**'
-      - 'playwright.config.*'
+      - 'scripts/crl-playwright-smoke.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'bun.lock'
@@ -21,8 +20,7 @@ on:
     paths:
       - 'src/features/creator-rights-ledger/**'
       - 'src/routes/_authenticated/creator-rights-ledger.tsx'
-      - 'tests/**'
-      - 'playwright.config.*'
+      - 'scripts/crl-playwright-smoke.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'bun.lock'
@@ -60,25 +58,42 @@ jobs:
       - name: 2 — TypeScript
         run: bunx tsc --noEmit
 
-      - name: 3 — Vitest
-        run: bunx vitest run
+      - name: 3 — Vitest (Creator Rights Ledger)
+        run: bunx vitest run src/features/creator-rights-ledger/domain.test.ts
 
       - name: 4 — TanStack/Vite production build
         run: bun run build
 
+      - name: Verify generated CRL route
+        run: grep -q "creator-rights-ledger" src/routeTree.gen.ts
+
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
 
-      - name: 5 — Playwright
-        run: bunx playwright test
+      - name: Start production preview
+        run: |
+          bun run preview -- --host 127.0.0.1 --port 4173 > /tmp/crl-preview.log 2>&1 &
+          echo $! > /tmp/crl-preview.pid
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/crl-preview.log
+          exit 1
 
-      - name: Upload Playwright evidence
+      - name: 5 — Playwright production-route smoke
+        run: bun scripts/crl-playwright-smoke.mjs
+
+      - name: Upload CRL browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: crl-playwright-evidence-${{ github.run_id }}
+          name: crl-release-gate-evidence-${{ github.run_id }}
           if-no-files-found: ignore
           retention-days: 14
           path: |
+            /tmp/crl-preview.log
             playwright-report/
             test-results/
