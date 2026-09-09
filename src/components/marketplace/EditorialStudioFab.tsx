@@ -19,12 +19,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
+const HAS_SUPABASE_CLIENT_CONFIG = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+);
+
 /**
  * Editorial Studio: admin-only floating action button that appears only on
  * Academy routes. Provides quick access to article creation, editing, publish,
  * schedule, preview, SEO, and media controls.
+ *
+ * This control is optional UI. If client-side Supabase configuration is absent
+ * (for example in credential-free CI), it must disappear instead of crashing a
+ * public route. Auth-required application surfaces still use the fail-fast
+ * Supabase client directly.
  */
 export function EditorialStudioFab() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isAcademy = pathname.startsWith("/academy") || pathname.startsWith("/admin/academy");
+
+  if (!HAS_SUPABASE_CLIENT_CONFIG || !isAcademy) return null;
+  return <ConfiguredEditorialStudioFab />;
+}
+
+function ConfiguredEditorialStudioFab() {
   const { user, isAdmin, loading } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const params = useParams({ strict: false }) as { slug?: string; id?: string };
@@ -32,7 +49,6 @@ export function EditorialStudioFab() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const isAcademy = pathname.startsWith("/academy") || pathname.startsWith("/admin/academy");
   const currentSlug = pathname.startsWith("/academy/article/") ? params.slug : undefined;
   const currentEditingId = pathname.startsWith("/admin/academy/") ? params.id : undefined;
 
@@ -43,7 +59,7 @@ export function EditorialStudioFab() {
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
-  if (loading || !isAdmin || !isAcademy) return null;
+  if (loading || !isAdmin) return null;
 
   const slugify = (s: string) =>
     s
@@ -210,7 +226,6 @@ export function EditorialStudioFab() {
           window.open("/academy-article-template.json", "_blank");
         }
       },
-
     },
   ];
 
