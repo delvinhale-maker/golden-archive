@@ -1,7 +1,7 @@
 # AurumVault AI Agent Authority Passport™ — Phase 1.5 Verification Report
 
 Date: 2026-09-09
-Scope: detached/local source implementation only
+Scope: source implementation + AurumVault repository integration on `feature/ai-agent-authority-passport`
 Production writes: none
 Production database changes: none
 Existing Digital Rights Passport staging changes: none
@@ -21,7 +21,7 @@ Existing Digital Rights Passport staging changes: none
 11. Data Classification: PUBLIC / INTERNAL / CONFIDENTIAL / RESTRICTED integrated into Action Gate decisions.
 12. Governance Readiness Dashboard with explainable debt metrics.
 
-## TypeScript integration parse
+## Detached TypeScript integration parse
 
 Command:
 
@@ -29,7 +29,7 @@ Command:
 
 Result: **PASS**
 
-This detached compile uses stubs for repository-level framework/generated dependencies and validates the complete Agent Authority source surface, routes and UI. It is not a substitute for the full `golden-archive` build after attachment.
+The detached compile used stubs for repository-level framework/generated dependencies and validated the complete Agent Authority source surface, routes and UI before repository attachment.
 
 ## Behavior/security tests
 
@@ -83,9 +83,9 @@ Covered:
 - hash-only API credential contract
 - governance debt lowers readiness
 
-**Combined result: 38 / 38 PASS.**
+**Combined detached result: 38 / 38 PASS.**
 
-See `validation/verification-run.txt`.
+See `validation/verification-run.txt` in the transferred verification package.
 
 ## Schema static gate
 
@@ -103,7 +103,7 @@ Result: **PASS**
 - Webhook endpoint-health RPC: SECURITY INVOKER, revoked from public/anon/authenticated, service-role only
 - Dead-letter replay uniqueness index: present
 
-See `validation/schema-static-report.json`.
+See `validation/schema-static-report.json` in the transferred verification package.
 
 ## Source static security gate
 
@@ -120,37 +120,58 @@ Verified:
 - Shadow Mode hardcodes `executable: false`
 - no hardcoded Supabase service-role credential value in the Agent Authority source package
 
-See `validation/source-static-report.json`.
+See `validation/source-static-report.json` in the transferred verification package.
+
+## AurumVault repository integration gate
+
+Result: **PASS**
+
+Verified on the real `golden-archive` feature branch after reconstructing the SHA-256-verified transferred package into its final source paths:
+
+- verified source archive SHA-256: `80da266e3e8273e5c1f0019647207a2be0ff508c5042efe0cefc6623c544c35a`
+- `bun install --frozen-lockfile`: **PASS**
+- `bunx vitest run src/lib/agent-authority`: **PASS**
+- `bun run build`: **PASS**
+- TanStack `src/routeTree.gen.ts` regeneration through the repository build: **PASS**
+- authenticated Agent Authority route attached: **PASS**
+- action/evidence API routes attached: **PASS**
+- temporary transfer chunks/workflow removed from the final branch: **PASS**
+
+A permanent `.github/workflows/agent-authority-gate.yml` now reruns the Agent Authority tests and full AurumVault build for relevant PR/main changes.
+
+## Repository regression context
+
+The repository's existing general-purpose PR workflows were also exercised. The Agent Authority integration did not produce a repository build failure. Remaining red checks observed during PR verification were attributable to existing/unrelated repository or CI-environment conditions, including:
+
+- the homepage light-surface guard already failing on `main`
+- mobile browser tests blocked after a successful app build because required browser-auth secrets were not present in the CI environment
+- QR smoke reaching and passing its unit/guard tests and full build before failing in the existing live QR smoke path
+- Previewer Canvas Fit passing its full build and DOM gutter assertions before failing its existing visual-baseline comparison
+
+These failures are not represented as Agent Authority passes; they remain separate repository-level follow-up items.
 
 ## Environment-dependent gates not run
 
 The following are **not claimed as passing**:
 
-- full `golden-archive` repository typecheck/build
-- TanStack route-tree regeneration
 - live Supabase migration application
 - live RLS two-user/cross-tenant isolation
 - live OWNER/ADMIN/APPROVER/AUDITOR/MEMBER matrix testing
 - live delegated-approval tests
 - live policy-change separation-of-duties tests
 - database concurrency/load testing
-- browser E2E
-- real PDF/CSV browser download test
+- authenticated browser E2E against an isolated Agent Authority staging backend
+- real PDF/CSV browser download test against staging
 - real webhook delivery worker with secret store
 
-An attempt to clone the public GitHub repository into the local validation runtime failed because that runtime could not resolve `github.com`. This is an environment/network limitation, not a passing repository test.
+## Integration safety gate before production
 
-## Integration safety gate
+1. Keep Agent Authority changes isolated until review/merge; do not apply schema directly to production.
+2. Provision a dedicated isolated Agent Authority staging backend; do not reuse production or the Digital Rights Passport validation backend.
+3. Reconcile `schema.sql` with the repository's current migration history and convert it into repository-standard ordered Supabase migration(s).
+4. Apply migrations only in isolated staging and regenerate Supabase types.
+5. Run live two-user RLS, role, Action Gate, policy-change, delegation, incident, export, API and webhook-worker tests.
+6. Run authenticated browser E2E against staging.
+7. Fix every staging blocker before production enablement.
 
-Before production:
-
-1. Create a dedicated feature/staging branch from the correct current AurumVault source.
-2. Apply the Phase 1.5 patch there; do not apply it directly to `main`.
-3. Review `schema.sql` and convert it into repository-standard ordered Supabase migration(s).
-4. Use a dedicated isolated AI Agent Authority staging backend; do not reuse production or the Digital Rights Passport validation backend.
-5. Apply migrations in staging and regenerate Supabase types.
-6. Regenerate TanStack route tree using repository tooling.
-7. Run the environment-dependent gates above.
-8. Fix all blockers before merge/publish.
-
-Current status: **SOURCE FOUNDATION VERIFIED — STAGING INTEGRATION REQUIRED**.
+Current status: **SOURCE + REPOSITORY INTEGRATION VERIFIED — ISOLATED STAGING VALIDATION REQUIRED**.
