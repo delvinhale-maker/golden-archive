@@ -221,7 +221,10 @@ export const turnCanvaDesignIntoProductFn = createServerFn({ method: "POST" })
       if (error) throw error;
     } catch {
       try {
-        await admin.from("marketplace_products").delete().eq("id", productId);
+        await admin
+          .from("marketplace_products")
+          .delete()
+          .eq("id", productId);
       } catch {
         // Best-effort rollback; the function still fails closed below.
       }
