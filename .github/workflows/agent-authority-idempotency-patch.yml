@@ -19,7 +19,7 @@ jobs:
           ref: feature/ai-agent-authority-passport
           fetch-depth: 0
 
-      - name: Patch submitAction idempotency handling
+      - name: Patch submitAction trust boundaries
         shell: python
         run: |
           from pathlib import Path
@@ -27,13 +27,18 @@ jobs:
           path = Path("src/lib/agent-authority/service.server.ts")
           text = path.read_text()
 
-          old_import = 'import { assertActionApprovalAuthority } from "./delegation.server";\n'
-          new_import = old_import + 'import { waitForIdempotentDecision } from "./idempotency";\n'
-          if old_import not in text:
+          delegation_import = 'import { assertActionApprovalAuthority } from "./delegation.server";\n'
+          if delegation_import not in text:
               raise SystemExit("Expected delegation import not found")
-          text = text.replace(old_import, new_import, 1)
+          imports = (
+              delegation_import
+              + 'import { waitForIdempotentDecision } from "./idempotency";\n'
+              + 'import { loadRecordedDailyPurchaseSpend } from "./daily-spend.server";\n'
+          )
+          text = text.replace(delegation_import, imports, 1)
 
-          marker = 'export async function submitAction(\n'
+          submit_marker = "export async function submitAction(\n"
+          submit_index = text.index(submit_marker)
           helper = '''async function loadIdempotentReplay(client: any, actionRequestId: string) {
             const existingDecision = await waitForIdempotentDecision(async () => {
               const { data, error } = await client
@@ -47,35 +52,38 @@ jobs:
             return { idempotentReplay: true, actionRequestId, decision: existingDecision };
           }
 
-          export async function submitAction(
           '''
-          if marker not in text:
-              raise SystemExit("submitAction marker not found")
-          text = text.replace(marker, helper, 1)
+          text = text[:submit_index] + helper + text[submit_index:]
 
-          old_existing = '''  if (existing) {
-            const { data: existingDecision, error } = await client
-              .from("action_decisions")
-              .select("id,decision,primary_reason,reason_codes,policy_code,policy_version,decided_at")
-              .eq("action_request_id", existing.id)
-              .single();
-            if (error) throw error;
-            return { idempotentReplay: true, actionRequestId: existing.id, decision: existingDecision };
-          }
-          '''
-          new_existing = '''  if (existing) return loadIdempotentReplay(client, existing.id);
-          '''
-          if old_existing not in text:
-              raise SystemExit("Existing idempotency replay block not found")
-          text = text.replace(old_existing, new_existing, 1)
+          submit_index = text.index(submit_marker)
+          existing_start = text.index("  if (existing) {", submit_index)
+          policy_marker = "\n\n  const policy = await loadPolicy"
+          existing_end = text.index(policy_marker, existing_start)
+          text = text[:existing_start] + "  if (existing) return loadIdempotentReplay(client, existing.id);" + text[existing_end:]
 
-          old_conflict = '''  if (requestError) {
-            // A concurrent duplicate is expected to lose on the unique idempotency constraint.
-            if (String(requestError.code) === "23505") return submitAction(userId, input, actorOverride);
-            throw requestError;
-          }
+          old_eval = '''  const requestForEvaluation = { ...input.request, dataClassification: resolvedClassification };
+          const evaluated = evaluateActionGate(policy, requestForEvaluation);
           '''
-          new_conflict = '''  if (requestError) {
+          new_eval = '''  const dailySpendToDate =
+            input.request.amountKind === "PURCHASE" && policy.limits.maxDailySpend != null
+              ? await loadRecordedDailyPurchaseSpend({ client, workspaceId: input.workspaceId, passportId: input.passportId })
+              : 0;
+          const requestForEvaluation = {
+            ...input.request,
+            dataClassification: resolvedClassification,
+            // Never trust a caller-supplied spend-to-date value for an authorization limit.
+            dailySpendToDate,
+          };
+          const evaluated = evaluateActionGate(policy, requestForEvaluation);
+          '''
+          if old_eval not in text:
+              raise SystemExit("Action evaluation block not found")
+          text = text.replace(old_eval, new_eval, 1)
+
+          conflict_start = text.index("  if (requestError) {", text.index("export async function submitAction("))
+          policy_code_marker = "\n\n  const policyCode = `PASSPORT:${policy.passportCode}`;"
+          conflict_end = text.index(policy_code_marker, conflict_start)
+          conflict = '''  if (requestError) {
             // A concurrent duplicate is expected to lose on the unique idempotency constraint.
             // Read the winner directly and wait briefly for its decision instead of recursively
             // re-entering submitAction, which could race against the winner's decision insert.
@@ -91,11 +99,8 @@ jobs:
               return loadIdempotentReplay(client, winner.id);
             }
             throw requestError;
-          }
-          '''
-          if old_conflict not in text:
-              raise SystemExit("Concurrent idempotency conflict block not found")
-          text = text.replace(old_conflict, new_conflict, 1)
+          }'''
+          text = text[:conflict_start] + conflict + text[conflict_end:]
 
           path.write_text(text)
 
@@ -107,5 +112,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/agent-authority-idempotency-patch.yml
           git add src/lib/agent-authority/service.server.ts
-          git commit -m "Harden Agent Authority idempotent submission races"
+          git commit -m "Harden Agent Authority action trust boundaries"
           git push origin HEAD:feature/ai-agent-authority-passport
