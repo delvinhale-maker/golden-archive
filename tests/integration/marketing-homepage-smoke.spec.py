@@ -145,6 +145,14 @@ async def main() -> int:
         if status is not None and status >= 400:
             failures.append(f"Trust Center returned HTTP {status}")
         trust_text = normalize(await page.locator("body").inner_text())
+        trust_debug = (
+            f"status={status}\n"
+            f"url={page.url}\n"
+            f"title={await page.title()}\n"
+            f"body={trust_text[:4000]}\n"
+        )
+        (OUT / "trust-render.txt").write_text(trust_debug, encoding="utf-8")
+        await page.screenshot(path=str(OUT / "trust-center.png"), full_page=True)
         if "@aurumvault.store" not in trust_text:
             failures.append("Trust Center does not visibly identify @aurumvault.store")
 
