@@ -1,61 +1,51 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { z } from "zod";
 import { AuthorityApiError, authorityApiErrorResponse } from "@/lib/agent-authority/api-errors";
-
-const ActionSchema = z.object({
-  passportId: z.string().uuid(),
-  actionKey: z.string().min(1).max(160),
-  target: z.string().max(500).nullable().optional(),
-  resourceKey: z.string().max(240).nullable().optional(),
-  system: z.string().max(160).nullable().optional(),
-  amount: z.number().nonnegative().nullable().optional(),
-  amountKind: z.enum(["PURCHASE", "REFUND", "INVOICE", "OTHER"]).nullable().optional(),
-  currency: z.string().length(3).nullable().optional(),
-  externalCommunication: z.boolean().optional(),
-  financialAction: z.boolean().optional(),
-  sensitiveData: z.boolean().optional(),
-  highRisk: z.boolean().optional(),
-  dataClassification: z.enum(["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED"]).nullable().optional(),
-  idempotencyKey: z.string().min(8).max(200),
-});
+import { actionGateApiSchema, parseJsonWithSchema, requestBodyTooLarge } from "@/lib/agent-authority/api-validation";
 
 export const Route = createFileRoute("/api/agent-authority/action")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
+          if (requestBodyTooLarge(request)) {
+            throw new AuthorityApiError(413, "INVALID_INPUT", "Action Gate request body exceeds 32 KiB");
+          }
           const { authenticateAuthorityApiKey } = await import("@/lib/agent-authority/api-auth.server");
           const identity = await authenticateAuthorityApiKey(request, "decisions:write");
-          let parsed: z.infer<typeof ActionSchema>;
+          let raw: unknown;
           try {
-            parsed = ActionSchema.parse(await request.json());
-          } catch (error) {
-            throw new AuthorityApiError(400, "INVALID_INPUT", "Invalid Action Gate request", {
-              issues: error instanceof z.ZodError ? error.issues.map((issue) => ({ path: issue.path.join("."), message: issue.message })) : undefined,
-            });
+            raw = await request.json();
+          } catch {
+            throw new AuthorityApiError(400, "INVALID_INPUT", "Request body must be valid JSON");
+          }
+          const parsed = parseJsonWithSchema(actionGateApiSchema, raw);
+          if (!parsed.success) {
+            throw new AuthorityApiError(400, "INVALID_INPUT", "Invalid Action Gate request", { issues: parsed.issues });
           }
           const { submitActionFromApiKey } = await import("@/lib/agent-authority/service.server");
           const result = await submitActionFromApiKey(identity, {
-            passportId: parsed.passportId,
+            passportId: parsed.data.passportId,
             request: {
-              actionKey: parsed.actionKey,
-              target: parsed.target,
-              resourceKey: parsed.resourceKey,
-              system: parsed.system,
-              amount: parsed.amount,
-              amountKind: parsed.amountKind,
-              currency: parsed.currency?.toUpperCase(),
-              externalCommunication: parsed.externalCommunication,
-              financialAction: parsed.financialAction,
-              sensitiveData: parsed.sensitiveData,
-              highRisk: parsed.highRisk,
-              dataClassification: parsed.dataClassification,
-              idempotencyKey: parsed.idempotencyKey,
+              actionKey: parsed.data.actionKey,
+              target: parsed.data.target,
+              resourceKey: parsed.data.resourceKey,
+              system: parsed.data.system,
+              amount: parsed.data.amount,
+              amountKind: parsed.data.amountKind,
+              currency: parsed.data.currency,
+              externalCommunication: parsed.data.externalCommunication,
+              financialAction: parsed.data.financialAction,
+              sensitiveData: parsed.data.sensitiveData,
+              highRisk: parsed.data.highRisk,
+              dataClassification: parsed.data.dataClassification,
+              idempotencyKey: parsed.data.idempotencyKey,
             },
           });
           return Response.json(result, {
             status: 200,
             headers: {
+              "cache-control": "no-store",
+              "x-content-type-options": "nosniff",
               "x-ratelimit-limit": String(identity.rateLimitPerMinute),
               "x-ratelimit-remaining": String(identity.rateLimitRemaining),
               "x-ratelimit-reset": identity.rateLimitResetAt,
