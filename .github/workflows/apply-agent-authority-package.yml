@@ -24,7 +24,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat .agent-authority-package/part-*.b64 > /tmp/agent-authority.zip.b64
+          : > /tmp/agent-authority.zip.b64
+          for p in .agent-authority-package/part-000.b64 .agent-authority-package/part-001.b64 .agent-authority-package/part-002.b64 .agent-authority-package/part-003.b64 .agent-authority-package/part-004.b64 .agent-authority-package/part-005.b64 .agent-authority-package/part-006.b64 .agent-authority-package/part-007.b64 .agent-authority-package/part-008.b64; do
+            test "$(wc -c < "$p")" -ge 15000
+            head -c 15000 "$p" >> /tmp/agent-authority.zip.b64
+          done
+          cat .agent-authority-package/part-009.b64 >> /tmp/agent-authority.zip.b64
+          test "$(wc -c < /tmp/agent-authority.zip.b64)" -eq 143080
           base64 -d /tmp/agent-authority.zip.b64 > /tmp/agent-authority.zip
           echo "80da266e3e8273e5c1f0019647207a2be0ff508c5042efe0cefc6623c544c35a  /tmp/agent-authority.zip" | sha256sum -c -
           rm -rf /tmp/agent-authority-extract
@@ -48,7 +54,7 @@ jobs:
           cp "$PKG/VERIFICATION.md" docs/ai-agent-authority-passport/VERIFICATION.md
           cp "$PKG/INTEGRATION_NOTES.md" docs/ai-agent-authority-passport/INTEGRATION_NOTES.md
 
-          # Deliberately do not copy validation stubs and do not apply schema.sql.
+          # Deliberately do not copy detached validation stubs and do not apply schema.sql.
           rm -rf .agent-authority-package
 
       - name: Set up Node
@@ -66,12 +72,13 @@ jobs:
       - name: Build full AurumVault application
         run: npm run build
 
-      - name: Commit verified source
+      - name: Commit verified source and remove transfer gate
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm --ignore-unmatch .github/workflows/apply-agent-authority-package.yml
           git add -A docs/ai-agent-authority-passport src/lib/agent-authority src/routes/_authenticated/agent-authority.tsx src/routes/api/agent-authority .agent-authority-package
           if [ -f src/routeTree.gen.ts ]; then git add src/routeTree.gen.ts; fi
           if git diff --cached --quiet; then
