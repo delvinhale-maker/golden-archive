@@ -16,10 +16,11 @@ Existing Digital Rights Passport staging changes: none
 6. Delegation / Chain of Authority with action/amount/time scope, revocation and narrowing-only re-delegation.
 7. Policy Change Approval with independent approval when another OWNER/ADMIN exists; sole-admin fallback requires an explicit note.
 8. Receipt Verification: VALID / TAMPERED / INCOMPLETE.
-9. API hardening: hash-only credentials, scopes, rate limits, rotation, revocation, expiry, last-used tracking, idempotency and structured errors.
+9. API hardening: hash-only credentials, scopes, rate limits, rotation, revocation, expiry, last-used tracking, bounded idempotent replay and structured retryable conflicts.
 10. Webhook reliability: HMAC verification, replay window, backoff/retries, dead letter, authorized single replay, concurrency-safe delivery claims and atomic endpoint counters.
-11. Data Classification: PUBLIC / INTERNAL / CONFIDENTIAL / RESTRICTED integrated into Action Gate decisions.
+11. Data Classification: PUBLIC / INTERNAL / CONFIDENTIAL / RESTRICTED integrated into Action Gate decisions with fail-closed protection against caller-driven classification downgrades.
 12. Governance Readiness Dashboard with explainable debt metrics.
+13. Financial limit hardening: daily purchase spend is derived server-side from recorded executed receipts and immutable action-request amounts rather than a caller-supplied spend-to-date value.
 
 ## Detached TypeScript integration parse
 
@@ -87,6 +88,20 @@ Covered:
 
 See `validation/verification-run.txt` in the transferred verification package.
 
+### Repository-attached trust-boundary regression coverage
+
+Additional repository-native Vitest coverage now verifies:
+
+- registered data classification cannot be downgraded by a lower caller-supplied classification
+- an explicitly stricter classification remains effective
+- bounded idempotent replay returns the winning decision once visible
+- bounded idempotent replay fails with an explicit retryable error instead of recursive re-entry
+- pending idempotent decisions map to HTTP 409 `IDEMPOTENCY_CONFLICT` with `Retry-After`
+- server-recorded purchase amounts are summed deterministically and invalid/negative values are ignored
+- the public action API no longer accepts `dailySpendToDate`
+
+These tests run under the permanent Agent Authority repository gate together with the original Agent Authority test suite and full AurumVault build.
+
 ## Schema static gate
 
 Result: **PASS**
@@ -122,6 +137,16 @@ Verified:
 
 See `validation/source-static-report.json` in the transferred verification package.
 
+## Repository-attached trust-boundary hardening
+
+The repository attachment review identified and corrected three source-level trust-boundary issues before staging:
+
+1. **Classification downgrade prevention.** When both a caller classification and registered resource classification exist, the stricter value wins. A request cannot downgrade a registered `RESTRICTED` resource to a lower classification.
+2. **Authoritative daily-spend input.** The public Action Gate API no longer accepts `dailySpendToDate`. For purchase actions governed by `maxDailySpend`, the server derives the current UTC-day total from database-generated executed receipt records linked to immutable purchase amounts.
+3. **Bounded idempotency races.** Existing/concurrent duplicate action submissions no longer recursively re-enter `submitAction`. They wait for the winning decision for a bounded interval and return an explicit retryable HTTP 409 when finalization is still in progress.
+
+These are source-level mitigations, not a claim of full database transactionality. The action-request/decision multi-write path and approval concurrency still require live isolated-staging concurrency testing before production enablement; a database transaction/RPC may still be warranted based on that evidence.
+
 ## AurumVault repository integration gate
 
 Result: **PASS**
@@ -136,8 +161,9 @@ Verified on the real `golden-archive` feature branch after reconstructing the SH
 - authenticated Agent Authority route attached: **PASS**
 - action/evidence API routes attached: **PASS**
 - temporary transfer chunks/workflow removed from the final branch: **PASS**
+- temporary source-hardening patch workflow removed after successful patch application: **PASS**
 
-A permanent `.github/workflows/agent-authority-gate.yml` now reruns the Agent Authority tests and full AurumVault build for relevant PR/main changes.
+A permanent `.github/workflows/agent-authority-gate.yml` reruns the Agent Authority tests and full AurumVault build for relevant PR/main changes.
 
 ## Repository regression context
 
@@ -159,10 +185,11 @@ The following are **not claimed as passing**:
 - live OWNER/ADMIN/APPROVER/AUDITOR/MEMBER matrix testing
 - live delegated-approval tests
 - live policy-change separation-of-duties tests
-- database concurrency/load testing
+- database transaction/concurrency/load testing for action requests, decisions and approvals
 - authenticated browser E2E against an isolated Agent Authority staging backend
 - real PDF/CSV browser download test against staging
 - real webhook delivery worker with secret store
+- connected-system reconciliation proving that every relevant financial execution was reported to Agent Authority
 
 ## Integration safety gate before production
 
@@ -171,7 +198,9 @@ The following are **not claimed as passing**:
 3. Reconcile `schema.sql` with the repository's current migration history and convert it into repository-standard ordered Supabase migration(s).
 4. Apply migrations only in isolated staging and regenerate Supabase types.
 5. Run live two-user RLS, role, Action Gate, policy-change, delegation, incident, export, API and webhook-worker tests.
-6. Run authenticated browser E2E against staging.
-7. Fix every staging blocker before production enablement.
+6. Run concurrency tests for action-request/decision idempotency and approval resolution; promote critical multi-write sequences into database transactions/RPCs if the evidence requires it.
+7. Run connected-system financial reconciliation tests so daily-spend enforcement is proven against actual executions, not only reported executions.
+8. Run authenticated browser E2E against staging.
+9. Fix every staging blocker before production enablement.
 
 Current status: **SOURCE + REPOSITORY INTEGRATION VERIFIED — ISOLATED STAGING VALIDATION REQUIRED**.
