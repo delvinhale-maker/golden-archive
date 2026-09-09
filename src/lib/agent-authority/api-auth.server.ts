@@ -21,9 +21,13 @@ export interface AuthorityApiIdentity {
 
 export async function authenticateAuthorityApiKey(request: Request, requiredScope: AuthorityApiScope): Promise<AuthorityApiIdentity> {
   const authorization = request.headers.get("authorization") ?? "";
-  const token = authorization.toLowerCase().startsWith("bearer ") ? authorization.slice(7).trim() : "";
+  const match = /^Bearer\s+([^\s]+)$/i.exec(authorization.trim());
+  const token = match?.[1] ?? "";
   if (!token) throw new AuthorityApiError(401, "AUTH_MISSING", "Bearer API key is required");
-  if (!token.startsWith("avap_live_")) throw new AuthorityApiError(401, "AUTH_INVALID", "Invalid API credential");
+  // Bound untrusted credential input before hashing/database work.
+  if (token.length < 32 || token.length > 200 || !/^avap_live_[A-Za-z0-9_-]+$/.test(token)) {
+    throw new AuthorityApiError(401, "AUTH_INVALID", "Invalid API credential");
+  }
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const client = supabaseAdmin as any;
@@ -51,16 +55,24 @@ export async function authenticateAuthorityApiKey(request: Request, requiredScop
     throw new AuthorityApiError(500, "INTERNAL_ERROR", "API rate-limit state could not be evaluated");
   }
   const rate = Array.isArray(consumed) ? consumed[0] : consumed;
-  if (!rate.allowed) {
+  if (!rate?.allowed) {
     throw new AuthorityApiError(429, "RATE_LIMITED", "API rate limit exceeded", {
       limit,
       remaining: 0,
-      resetAt: rate.reset_at,
+      resetAt: rate?.reset_at,
     });
   }
 
-  // Never persist or log the plaintext credential.
-  await client.from("agent_authority_api_keys").update({ last_used_at: new Date().toISOString() }).eq("id", key.id);
+  // Never persist or log the plaintext credential. Successful admission is observable.
+  const { error: usageError } = await client
+    .from("agent_authority_api_keys")
+    .update({ last_used_at: new Date().toISOString() })
+    .eq("id", key.id)
+    .is("revoked_at", null);
+  if (usageError) {
+    throw new AuthorityApiError(500, "INTERNAL_ERROR", "API key usage state could not be recorded");
+  }
+
   return {
     id: key.id,
     workspaceId: key.workspace_id,
