@@ -1,9 +1,12 @@
 name: SEO Regression Gate
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - seo/redirect-slug-hardening
+      - main
+      - marketing/trust-taxonomy-homepage
+      - "seo/**"
     paths:
       - "src/components/marketplace/**"
       - "src/lib/**"
@@ -14,6 +17,7 @@ on:
       - ".github/workflows/seo-regression.yml"
   pull_request:
     branches:
+      - main
       - marketing/trust-taxonomy-homepage
     paths:
       - "src/components/marketplace/**"
