@@ -1,0 +1,91 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { ShieldCheck, Clock3, AlertTriangle, RefreshCcw, FileText, Sparkles } from 'lucide-react'
+import { CRL_WORKFLOW } from '@/features/creator-rights-ledger/domain'
+
+export const Route = createFileRoute('/_authenticated/creator-rights-ledger')({
+  component: CreatorRightsLedgerPage,
+})
+
+const cards = [
+  ['Active Brand Deals', '—', ShieldCheck],
+  ['Rights Expiring Soon', '—', Clock3],
+  ['Potential Renewals', '—', RefreshCcw],
+  ['Possible Conflicts', '—', AlertTriangle],
+  ['Needs Attention', '—', FileText],
+] as const
+
+function CreatorRightsLedgerPage() {
+  return (
+    <main className="min-h-screen bg-[#f7f3ea] text-[#141414]">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <header className="mb-8 flex flex-col gap-4 border-b border-black/10 pb-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#9a772c]">
+              <Sparkles className="h-4 w-4" /> AurumVault
+            </div>
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Creator Rights Ledger™</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-black/65 sm:text-base">
+              Know exactly who can use your content, where they can use it, how they can use it, and when those rights expire.
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled
+            title="Enabled after the staging data adapter is connected"
+            className="rounded-xl bg-[#101b2d] px-5 py-3 text-sm font-semibold text-white opacity-60"
+          >
+            + Add Brand Deal
+          </button>
+        </header>
+
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Rights command center metrics">
+          {cards.map(([label, value, Icon]) => (
+            <article key={label} className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <Icon className="h-5 w-5 text-[#9a772c]" aria-hidden="true" />
+                <span className="text-2xl font-semibold">{value}</span>
+              </div>
+              <p className="mt-5 text-sm font-medium text-black/70">{label}</p>
+            </article>
+          ))}
+        </section>
+
+        <section className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+          <article className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a772c]">Rights Command Center</p>
+            <h2 className="mt-2 text-2xl font-semibold">Atomic rights, not vague agreement summaries.</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-black/65">
+              An agreement is not a right. An asset is not a right. A campaign is not a right. Each permission or restriction is its own traceable, time-aware record.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {CRL_WORKFLOW.map((step, index) => (
+                <span key={step} className="rounded-full border border-[#c9a95e]/50 bg-[#fbf7ec] px-3 py-1.5 text-xs font-semibold text-[#66501e]">
+                  {index + 1}. {step}
+                </span>
+              ))}
+            </div>
+          </article>
+
+          <aside className="rounded-2xl border border-amber-300/50 bg-amber-50 p-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+              <div>
+                <h2 className="font-semibold">Staging reconstruction in progress</h2>
+                <p className="mt-2 text-sm leading-6 text-black/65">
+                  The TanStack shell and hardened domain rules are restored. Live customer data remains intentionally disconnected until the isolated Creator Rights Ledger staging adapter and storage authorization gate are verified.
+                </p>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section className="mt-8 rounded-2xl border border-black/10 bg-[#101b2d] p-6 text-white">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#d4b76e]">Legal boundary</p>
+          <p className="mt-2 text-sm leading-6 text-white/75">
+            Rights Health™ and possible-conflict indicators organize recorded rights information. They are not legal conclusions and do not determine whether a contract has been breached.
+          </p>
+        </section>
+      </div>
+    </main>
+  )
+}
