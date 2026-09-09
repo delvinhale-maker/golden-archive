@@ -8,7 +8,7 @@ on:
 
 jobs:
   homepage-ui:
-    name: Playwright homepage row regression
+    name: Playwright homepage release regression
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -45,7 +45,10 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
 
-      - name: Light-surface guard (no bg-white/cream regressions)
+      - name: Category alias regression
+        run: bun test tests/integration/category-legacy-alias-query-fix.test.ts
+
+      - name: Light-surface guard (no unapproved bg-white/cream regressions)
         run: node scripts/check-light-surfaces.mjs
 
       - name: Cache Playwright browsers
@@ -107,13 +110,22 @@ jobs:
           tail -n 200 /tmp/dev-server.log
           exit 1
 
-      - name: Install Pillow (pixel diff)
-        run: pip install Pillow
+      - name: Run deterministic marketing release smoke
+        run: python tests/integration/marketing-homepage-smoke.spec.py
 
-      - name: Run homepage row tests
+      - name: Run live-catalog homepage row regressions when Supabase CI secrets exist
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
         run: |
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "SKIP: live-catalog row tests require Supabase CI secrets; deterministic release smoke already ran."
+            exit 0
+          fi
           python tests/integration/home-rows.spec.py
           python tests/integration/home-rows-empty.spec.py
+          python -m pip install Pillow
           python tests/integration/home-pixel-darkness.spec.py
 
       - name: Upload artifacts on failure
