@@ -6,6 +6,7 @@ on:
     paths:
       - "src/lib/creator-studio*"
       - "src/routes/_authenticated/creator-studio*"
+      - "src/routes/api/creator-studio-*"
       - "docs/proposed-migrations/*creator_studio*"
       - "docs/creator-studio-build-plan.md"
       - ".github/workflows/creator-studio-gate.yml"
@@ -37,7 +38,7 @@ jobs:
           fi
 
       - name: Creator Studio unit tests
-        run: bunx vitest run src/lib/creator-studio-template-engine.test.ts src/lib/creator-studio-entitlements.test.ts
+        run: bunx vitest run src/lib/creator-studio-template-engine.test.ts src/lib/creator-studio-entitlements.test.ts src/lib/creator-studio-rendering.test.ts
 
       - name: Build
         run: bun run build
