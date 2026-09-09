@@ -7,6 +7,8 @@ import { highestPermittedEvidenceLevel } from "./receipt";
 import { diffPolicyVersions } from "./policy-diff";
 import { resolveRequestDataClassification } from "./data-classification.server";
 import { assertActionApprovalAuthority } from "./delegation.server";
+import { waitForIdempotentDecision } from "./idempotency";
+import { loadRecordedDailyPurchaseSpend } from "./daily-spend.server";
 import type {
   ActionGateRequest,
   AgentPermission,
@@ -593,6 +595,19 @@ async function terminalReceipt(input: {
   return receipt;
 }
 
+async function loadIdempotentReplay(client: any, actionRequestId: string) {
+  const existingDecision = await waitForIdempotentDecision(async () => {
+    const { data, error } = await client
+      .from("action_decisions")
+      .select("id,decision,primary_reason,reason_codes,policy_code,policy_version,decided_at")
+      .eq("action_request_id", actionRequestId)
+      .maybeSingle();
+    if (error) throw error;
+    return data ?? null;
+  });
+  return { idempotentReplay: true, actionRequestId, decision: existingDecision };
+}
+
 export async function submitAction(
   userId: string,
   input: { workspaceId: string; passportId: string; request: ActionGateRequest },
@@ -609,21 +624,22 @@ export async function submitAction(
     .eq("idempotency_key", input.request.idempotencyKey)
     .maybeSingle();
   if (existingError) throw existingError;
-  if (existing) {
-    const { data: existingDecision, error } = await client
-      .from("action_decisions")
-      .select("id,decision,primary_reason,reason_codes,policy_code,policy_version,decided_at")
-      .eq("action_request_id", existing.id)
-      .single();
-    if (error) throw error;
-    return { idempotentReplay: true, actionRequestId: existing.id, decision: existingDecision };
-  }
+  if (existing) return loadIdempotentReplay(client, existing.id);
 
   const policy = await loadPolicy(input.workspaceId, input.passportId);
   const resolvedClassification = await resolveRequestDataClassification({
     workspaceId: input.workspaceId, explicit: input.request.dataClassification ?? null, resourceKey: input.request.resourceKey ?? null, target: input.request.target ?? null,
   });
-  const requestForEvaluation = { ...input.request, dataClassification: resolvedClassification };
+  const dailySpendToDate =
+    input.request.amountKind === "PURCHASE" && policy.limits.maxDailySpend != null
+      ? await loadRecordedDailyPurchaseSpend({ client, workspaceId: input.workspaceId, passportId: input.passportId })
+      : 0;
+  const requestForEvaluation = {
+    ...input.request,
+    dataClassification: resolvedClassification,
+    // Never trust a caller-supplied spend-to-date value for an authorization limit.
+    dailySpendToDate,
+  };
   const evaluated = evaluateActionGate(policy, requestForEvaluation);
   const requestedAt = input.request.requestedAt ?? new Date().toISOString();
 
@@ -655,7 +671,19 @@ export async function submitAction(
     .single();
   if (requestError) {
     // A concurrent duplicate is expected to lose on the unique idempotency constraint.
-    if (String(requestError.code) === "23505") return submitAction(userId, input, actorOverride);
+    // Read the winner directly and wait briefly for its decision instead of recursively
+    // re-entering submitAction, which could race against the winner's decision insert.
+    if (String(requestError.code) === "23505") {
+      const { data: winner, error: winnerError } = await client
+        .from("action_requests")
+        .select("id")
+        .eq("workspace_id", input.workspaceId)
+        .eq("idempotency_key", input.request.idempotencyKey)
+        .maybeSingle();
+      if (winnerError) throw winnerError;
+      if (!winner) throw requestError;
+      return loadIdempotentReplay(client, winner.id);
+    }
     throw requestError;
   }
 
