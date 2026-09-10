@@ -8,6 +8,7 @@ import { UploadFab } from "./UploadFab";
 import { useAuth } from "@/hooks/use-auth";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { countUnreadAnnouncements } from "@/lib/community.functions";
+import { isCreatorStudioEnabledClient } from "@/lib/creator-studio-feature-flags";
 
 function CommunityUnreadBadge() {
   const fn = useServerFn(countUnreadAnnouncements);
@@ -41,14 +42,20 @@ export const ACCENTS = {
   publishStep4: { color: "#B8860B", tint: "rgba(184,134,11,0.10)" },
   earn: { color: "#2D6A4F", tint: "rgba(45,106,79,0.08)" },
   help: { color: "#2E5B8A", tint: "rgba(46,91,138,0.08)" },
+  creatorStudio: { color: "#7A2E52", tint: "rgba(122,46,82,0.08)" },
 } satisfies Record<string, PublisherAccent>;
 
-const NAV_ITEMS: { label: string; to: string; featured?: boolean }[] = [
+const NAV_ITEMS: { label: string; to: string; featured?: boolean; creatorStudio?: boolean }[] = [
   { label: "Bookshelf", to: "/dashboard" as const },
   { label: "Publish", to: "/dashboard/new" as const },
   { label: "QR Generator", to: "/dashboard/qr" as const, featured: true },
   { label: "AI Studio", to: "/dashboard/ai-studio" as const },
   { label: "Kingdom Picks", to: "/dashboard/kingdom-picks" as const },
+  // Creator Studio™ — gated behind CREATOR_STUDIO_ENABLED (see the
+  // `.filter()` below) so the entry only appears once the product is
+  // explicitly turned on for this deployment; absent config fails safe
+  // (hidden), matching every server-side gate on the feature.
+  { label: "Creator Studio", to: "/creator-studio" as const, creatorStudio: true },
   { label: "Earn", to: "/dashboard/earn" as const },
   { label: "Payouts", to: "/dashboard/payouts" as const },
   { label: "Affiliate", to: "/dashboard/affiliate" as const },
@@ -56,6 +63,12 @@ const NAV_ITEMS: { label: string; to: string; featured?: boolean }[] = [
   { label: "Integrations", to: "/dashboard/integrations" as const },
   { label: "Help", to: "/dashboard/help" as const },
 ];
+
+function visibleNavItems() {
+  return NAV_ITEMS.filter(
+    (item) => !item.creatorStudio || isCreatorStudioEnabledClient(import.meta.env),
+  );
+}
 
 export function PublisherShell({
   accent,
@@ -88,7 +101,7 @@ export function PublisherShell({
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 flex items-center gap-6">
           <AVLogo />
           <nav className="hidden md:flex items-center gap-1 ml-6">
-            {NAV_ITEMS.map((item) => {
+            {visibleNavItems().map((item) => {
               const isActive =
                 item.to === "/dashboard"
                   ? pathname === "/dashboard"
@@ -132,7 +145,7 @@ export function PublisherShell({
         {/* Mobile nav */}
         <div className="md:hidden border-t border-white/10">
           <div className="mx-auto max-w-6xl px-2 flex">
-            {NAV_ITEMS.map((item) => {
+            {visibleNavItems().map((item) => {
               const isActive =
                 item.to === "/dashboard"
                   ? pathname === "/dashboard"

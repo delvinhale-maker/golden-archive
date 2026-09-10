@@ -1355,6 +1355,210 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_studio_projects: {
+        Row: {
+          aspect_ratio: string
+          created_at: string
+          creation_type: string
+          cta_text: string | null
+          cta_url: string | null
+          headline: string | null
+          id: string
+          metadata: Json
+          owner_user_id: string
+          price_text: string | null
+          product_id: string | null
+          project_name: string
+          status: string
+          style: string
+          duration_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          aspect_ratio?: string
+          created_at?: string
+          creation_type: string
+          cta_text?: string | null
+          cta_url?: string | null
+          headline?: string | null
+          id?: string
+          metadata?: Json
+          owner_user_id: string
+          price_text?: string | null
+          product_id?: string | null
+          project_name?: string
+          status?: string
+          style?: string
+          duration_seconds?: number
+          updated_at?: string
+        }
+        Update: {
+          aspect_ratio?: string
+          created_at?: string
+          creation_type?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          headline?: string | null
+          id?: string
+          metadata?: Json
+          owner_user_id?: string
+          price_text?: string | null
+          product_id?: string | null
+          project_name?: string
+          status?: string
+          style?: string
+          duration_seconds?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      creator_studio_assets: {
+        Row: {
+          asset_type: string
+          created_at: string
+          id: string
+          metadata: Json
+          owner_user_id: string
+          project_id: string
+          sort_order: number
+          source_product_asset_id: string | null
+          source_type: string
+          storage_path: string
+        }
+        Insert: {
+          asset_type: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          owner_user_id: string
+          project_id: string
+          sort_order?: number
+          source_product_asset_id?: string | null
+          source_type: string
+          storage_path: string
+        }
+        Update: {
+          asset_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          owner_user_id?: string
+          project_id?: string
+          sort_order?: number
+          source_product_asset_id?: string | null
+          source_type?: string
+          storage_path?: string
+        }
+        Relationships: []
+      }
+      creator_studio_render_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          duration_seconds: number
+          error_code: string | null
+          id: string
+          output_format: string
+          owner_user_id: string
+          project_id: string
+          provider: string
+          provider_cost_actual: number | null
+          provider_cost_estimate: number | null
+          provider_render_id: string | null
+          resolution: string
+          safe_error_message: string | null
+          started_at: string | null
+          status: string
+          template_key: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          duration_seconds: number
+          error_code?: string | null
+          id?: string
+          output_format?: string
+          owner_user_id: string
+          project_id: string
+          provider?: string
+          provider_cost_actual?: number | null
+          provider_cost_estimate?: number | null
+          provider_render_id?: string | null
+          resolution?: string
+          safe_error_message?: string | null
+          started_at?: string | null
+          status?: string
+          template_key?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          duration_seconds?: number
+          error_code?: string | null
+          id?: string
+          output_format?: string
+          owner_user_id?: string
+          project_id?: string
+          provider?: string
+          provider_cost_actual?: number | null
+          provider_cost_estimate?: number | null
+          provider_render_id?: string | null
+          resolution?: string
+          safe_error_message?: string | null
+          started_at?: string | null
+          status?: string
+          template_key?: string | null
+        }
+        Relationships: []
+      }
+      creator_studio_outputs: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          file_size_bytes: number | null
+          height: number
+          id: string
+          owner_user_id: string
+          preview_path: string | null
+          project_id: string
+          render_job_id: string
+          storage_path: string
+          thumbnail_path: string | null
+          duration_seconds: number
+          width: number
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          file_size_bytes?: number | null
+          height?: number
+          id?: string
+          owner_user_id: string
+          preview_path?: string | null
+          project_id: string
+          render_job_id: string
+          storage_path: string
+          thumbnail_path?: string | null
+          duration_seconds: number
+          width?: number
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          file_size_bytes?: number | null
+          height?: number
+          id?: string
+          owner_user_id?: string
+          preview_path?: string | null
+          project_id?: string
+          render_job_id?: string
+          storage_path?: string
+          thumbnail_path?: string | null
+          duration_seconds?: number
+          width?: number
+        }
+        Relationships: []
+      }
       creator_tax_forms: {
         Row: {
           admin_note: string | null
