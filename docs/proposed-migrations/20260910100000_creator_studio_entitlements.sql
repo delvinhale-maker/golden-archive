@@ -72,7 +72,9 @@ declare
   v_extra public.creator_studio_extra_credits%rowtype;
   v_usage_id uuid;
 begin
-  if auth.uid() is distinct from p_owner_user_id and not public.has_role(auth.uid(), 'admin') then
+  if auth.uid() is distinct from p_owner_user_id
+     and not public.has_role(auth.uid(), 'admin')
+     and coalesce(auth.jwt()->>'role', '') <> 'service_role' then
     raise exception 'not authorized';
   end if;
 
@@ -86,7 +88,10 @@ begin
   if v_ent.plan_key = 'FREE' then
     v_period_key := 'LIFETIME';
   else
-    v_period_key := coalesce(to_char(v_ent.period_start at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), to_char(date_trunc('month', now()) at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'));
+    v_period_key := coalesce(
+      to_char(v_ent.period_start at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+      to_char(date_trunc('month', now()) at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    );
   end if;
 
   select u.id, u.usage_type, u.period_key into v_usage_id, v_usage_type, v_period_key
@@ -98,7 +103,10 @@ begin
   end if;
 
   select count(*) into v_used from public.creator_studio_usage u
-  where u.owner_user_id = p_owner_user_id and u.period_key = v_period_key and u.status in ('RESERVED','CONSUMED') and u.usage_type in ('FREE_PREVIEW','INCLUDED');
+  where u.owner_user_id = p_owner_user_id
+    and u.period_key = v_period_key
+    and u.status in ('RESERVED','CONSUMED')
+    and u.usage_type in ('FREE_PREVIEW','INCLUDED');
 
   if v_used < v_ent.included_videos then
     v_usage_type := case when v_ent.plan_key = 'FREE' then 'FREE_PREVIEW' else 'INCLUDED' end;
@@ -131,15 +139,25 @@ as $$
 declare
   v_usage public.creator_studio_usage%rowtype;
 begin
-  if auth.uid() is distinct from p_owner_user_id and not public.has_role(auth.uid(), 'admin') then
+  if auth.uid() is distinct from p_owner_user_id
+     and not public.has_role(auth.uid(), 'admin')
+     and coalesce(auth.jwt()->>'role', '') <> 'service_role' then
     raise exception 'not authorized';
   end if;
-  select * into v_usage from public.creator_studio_usage where owner_user_id=p_owner_user_id and idempotency_key=p_idempotency_key for update;
+
+  select * into v_usage from public.creator_studio_usage
+  where owner_user_id=p_owner_user_id and idempotency_key=p_idempotency_key
+  for update;
   if not found or v_usage.status <> 'RESERVED' then return; end if;
+
   if p_success then
-    update public.creator_studio_usage set status='CONSUMED', render_job_id=p_render_job_id, updated_at=now() where id=v_usage.id;
+    update public.creator_studio_usage
+    set status='CONSUMED', render_job_id=p_render_job_id, updated_at=now()
+    where id=v_usage.id;
   else
-    update public.creator_studio_usage set status='RELEASED', render_job_id=p_render_job_id, updated_at=now() where id=v_usage.id;
+    update public.creator_studio_usage
+    set status='RELEASED', render_job_id=p_render_job_id, updated_at=now()
+    where id=v_usage.id;
     if v_usage.usage_type='EXTRA' and v_usage.extra_credit_id is not null then
       update public.creator_studio_extra_credits set remaining=remaining+1 where id=v_usage.extra_credit_id;
     end if;
