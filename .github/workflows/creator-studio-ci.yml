@@ -35,7 +35,7 @@ jobs:
 
       - name: Run Creator Studio tests
         run: >-
-          bun run test --
+          bunx vitest run
           src/lib/creator-studio.schema.test.ts
           src/lib/creator-studio.template-engine.test.ts
           tests/integration/creator-studio-cs1-foundation.test.ts
