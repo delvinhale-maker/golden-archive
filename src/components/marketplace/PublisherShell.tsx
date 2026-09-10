@@ -41,12 +41,14 @@ export const ACCENTS = {
   publishStep4: { color: "#B8860B", tint: "rgba(184,134,11,0.10)" },
   earn: { color: "#2D6A4F", tint: "rgba(45,106,79,0.08)" },
   help: { color: "#2E5B8A", tint: "rgba(46,91,138,0.08)" },
+  creatorStudio: { color: "#B8860B", tint: "rgba(184,134,11,0.08)" },
 } satisfies Record<string, PublisherAccent>;
 
 const NAV_ITEMS: { label: string; to: string; featured?: boolean }[] = [
   { label: "Bookshelf", to: "/dashboard" as const },
   { label: "Publish", to: "/dashboard/new" as const },
   { label: "QR Generator", to: "/dashboard/qr" as const, featured: true },
+  { label: "Creator Studio", to: "/creator-studio" as const },
   { label: "AI Studio", to: "/dashboard/ai-studio" as const },
   { label: "Kingdom Picks", to: "/dashboard/kingdom-picks" as const },
   { label: "Earn", to: "/dashboard/earn" as const },
@@ -87,7 +89,7 @@ export function PublisherShell({
       <header className="bg-navy text-white shadow-sm">
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 flex items-center gap-6">
           <AVLogo />
-          <nav className="hidden md:flex items-center gap-1 ml-6">
+          <nav className="hidden md:flex min-w-0 items-center gap-1 ml-6 overflow-x-auto">
             {NAV_ITEMS.map((item) => {
               const isActive =
                 item.to === "/dashboard"
@@ -99,8 +101,8 @@ export function PublisherShell({
                   to={item.to}
                   className={
                     item.featured
-                      ? "relative ml-1 inline-flex items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-sm font-bold text-navy hover:bg-gold/90 transition-colors"
-                      : "relative px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors"
+                      ? "relative ml-1 inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-sm font-bold text-navy hover:bg-gold/90 transition-colors"
+                      : "relative shrink-0 px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors"
                   }
                 >
                   {item.featured && <QrCode size={14} />}
@@ -119,7 +121,7 @@ export function PublisherShell({
               );
             })}
           </nav>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex shrink-0 items-center gap-3">
             <span className="hidden sm:inline text-sm text-white/70">{accountName}</span>
             <button
               onClick={handleSignOut}
@@ -129,9 +131,10 @@ export function PublisherShell({
             </button>
           </div>
         </div>
-        {/* Mobile nav */}
-        <div className="md:hidden border-t border-white/10">
-          <div className="mx-auto max-w-6xl px-2 flex">
+        {/* Mobile nav: horizontal scroll prevents the growing publisher toolset
+            from collapsing every tab into an unreadably narrow cell. */}
+        <div className="md:hidden border-t border-white/10 overflow-x-auto">
+          <div className="mx-auto flex min-w-max px-2">
             {NAV_ITEMS.map((item) => {
               const isActive =
                 item.to === "/dashboard"
@@ -143,8 +146,8 @@ export function PublisherShell({
                   to={item.to}
                   className={
                     item.featured
-                      ? "relative flex-1 text-center py-3 text-[13px] font-bold text-gold"
-                      : "relative flex-1 text-center py-3 text-[13px] font-medium text-white/80"
+                      ? "relative shrink-0 px-3 text-center py-3 text-[13px] font-bold text-gold"
+                      : "relative shrink-0 px-3 text-center py-3 text-[13px] font-medium text-white/80"
                   }
                 >
                   {item.label}
