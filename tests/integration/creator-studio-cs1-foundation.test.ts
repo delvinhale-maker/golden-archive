@@ -5,6 +5,10 @@ const migration = readFileSync(
   "supabase/migrations/20260910120000_creator_studio_cs1_foundation.sql",
   "utf8",
 );
+const hardeningMigration = readFileSync(
+  "supabase/migrations/20260910143000_creator_studio_cs1_rpc_hardening.sql",
+  "utf8",
+);
 const schema = readFileSync("src/lib/creator-studio.schema.ts", "utf8");
 const functions = readFileSync("src/lib/creator-studio.functions.ts", "utf8");
 const home = readFileSync(
@@ -100,20 +104,58 @@ describe("Creator Studio CS1 private assets and abuse controls", () => {
   });
 
   it("enforces file-size, MIME, and category ceilings server-side", () => {
-    expect(migration).toContain("_byte_size > 52428800");
-    expect(migration).toContain("'video/mp4'");
-    expect(migration).toContain("when 'PRODUCT_COVER' then 1");
-    expect(migration).toContain("when 'SCREENSHOT' then 8");
-    expect(migration).toContain("when 'LOGO' then 1");
-    expect(migration).toContain("else 4");
+    expect(hardeningMigration).toContain("_byte_size > 52428800");
+    expect(hardeningMigration).toContain("'video/mp4'");
+    expect(hardeningMigration).toContain("when 'PRODUCT_COVER' then 1");
+    expect(hardeningMigration).toContain("when 'SCREENSHOT' then 8");
+    expect(hardeningMigration).toContain("when 'LOGO' then 1");
+    expect(hardeningMigration).toContain("else 4");
     expect(schema).toContain("MAX_CREATOR_STUDIO_ASSET_BYTES");
   });
 
   it("serializes quota checks by row-locking the project", () => {
-    expect(migration).toMatch(
+    expect(hardeningMigration).toMatch(
       /from public\.creator_studio_projects[\s\S]*where id = _project_id[\s\S]*for update;/,
     );
-    expect(migration).toContain("PENDING_UPLOAD','READY");
+    expect(hardeningMigration).toContain("PENDING_UPLOAD','READY");
+  });
+
+  it("removes authenticated-callable privileged asset RPCs", () => {
+    for (const oldFunction of [
+      "creator_studio_reserve_asset",
+      "creator_studio_release_reserved_asset",
+      "creator_studio_complete_asset",
+      "creator_studio_remove_asset",
+    ]) {
+      expect(hardeningMigration).toContain(`drop function public.${oldFunction}`);
+    }
+    expect(hardeningMigration).not.toMatch(
+      /grant execute on function public\.creator_studio_server_[^;]+to authenticated/i,
+    );
+  });
+
+  it("uses service-role-only SECURITY INVOKER RPCs with an explicit actor", () => {
+    for (const serverFunction of [
+      "creator_studio_server_reserve_asset",
+      "creator_studio_server_release_reserved_asset",
+      "creator_studio_server_complete_asset",
+      "creator_studio_server_remove_asset",
+    ]) {
+      expect(hardeningMigration).toContain(`function public.${serverFunction}`);
+    }
+    expect(hardeningMigration).toContain("security invoker");
+    expect(hardeningMigration).toContain("_actor_user_id uuid");
+    expect(hardeningMigration).toContain("v_owner <> _actor_user_id");
+    expect(hardeningMigration).toContain("to service_role");
+  });
+
+  it("routes privileged asset mutations through the trusted server client", () => {
+    expect(functions).toContain("trustedServerClient");
+    expect(functions).toContain("creator_studio_server_reserve_asset");
+    expect(functions).toContain("creator_studio_server_release_reserved_asset");
+    expect(functions).toContain("creator_studio_server_complete_asset");
+    expect(functions).toContain("creator_studio_server_remove_asset");
+    expect(functions).not.toContain("(context.supabase.rpc as any)");
   });
 
   it("uses server-issued signed upload tokens and signed read URLs", () => {
