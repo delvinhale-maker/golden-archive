@@ -1,0 +1,45 @@
+name: SEO Post-Deploy Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Deployment origin to verify, e.g. https://staging.example.com"
+        required: true
+        type: string
+      product_uuid:
+        description: "Published product UUID that should 301 to the canonical slug"
+        required: true
+        type: string
+      canonical_slug:
+        description: "Current canonical published product slug"
+        required: true
+        type: string
+      old_slug:
+        description: "Optional historical slug already seeded in product_slug_redirects"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Read-only SEO HTTP release verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate verifier CLI
+        run: node scripts/verify-seo-postdeploy.mjs --help
+
+      - name: Verify deployed SEO behavior
+        env:
+          SEO_VERIFY_BASE_URL: ${{ inputs.base_url }}
+          SEO_VERIFY_PRODUCT_UUID: ${{ inputs.product_uuid }}
+          SEO_VERIFY_CANONICAL_SLUG: ${{ inputs.canonical_slug }}
+          SEO_VERIFY_OLD_SLUG: ${{ inputs.old_slug }}
+        run: node scripts/verify-seo-postdeploy.mjs

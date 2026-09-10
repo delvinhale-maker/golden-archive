@@ -220,7 +220,9 @@ export const Route = createFileRoute("/store/$slug")({
     const sameAs = d.socialLinks
       ? Object.values(d.socialLinks).filter((v): v is string => !!v && /^https?:\/\//.test(v))
       : [];
-    if (d.website) sameAs.push(d.website);
+    if (d.website && /^https?:\/\//.test(d.website)) sameAs.push(d.website);
+    const entityName = d.displayName || d.brandName;
+    const profileImage = d.avatarUrl || undefined;
     return {
       meta,
       links: [{ rel: "canonical", href: url }],
@@ -229,18 +231,30 @@ export const Route = createFileRoute("/store/$slug")({
           type: "application/ld+json",
           children: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "Person",
-            name: d.displayName || d.brandName,
-            alternateName: d.brandName,
-            url,
-            image: image || undefined,
-            description: desc,
-            sameAs: sameAs.length ? sameAs : undefined,
-            worksFor: {
-              "@type": "Organization",
-              name: "AurumVault",
-              url: SITE_URL,
+            "@type": "ProfilePage",
+            dateCreated: d.memberSince,
+            mainEntity: {
+              "@id": `${url}#creator`,
+              "@type": "Person",
+              name: entityName,
+              alternateName: d.brandName !== entityName ? d.brandName : undefined,
+              identifier: d.brandSlug,
+              url,
+              image: profileImage,
+              description: desc,
+              sameAs: sameAs.length ? Array.from(new Set(sameAs)) : undefined,
+              interactionStatistic: {
+                "@type": "InteractionCounter",
+                interactionType: "https://schema.org/FollowAction",
+                userInteractionCount: d.followerCount,
+              },
             },
+            hasPart: d.products.slice(0, 12).map((product) => ({
+              "@type": "WebPage",
+              name: product.title,
+              url: `${SITE_URL}/products/${product.slug || product.id}`,
+              image: product.cover_url || undefined,
+            })),
           }),
         },
         {
@@ -795,7 +809,7 @@ function ProductCard({ p, rating }: { p: Product; rating: number }) {
   return (
     <Link
       to="/products/$id"
-      params={{ id: p.id }}
+      params={{ id: p.slug ?? p.id }}
       className="group bg-white border border-ink/10 rounded-2xl overflow-hidden hover:shadow-lg hover:border-gold/40 transition"
     >
       <div

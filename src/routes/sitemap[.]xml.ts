@@ -15,6 +15,7 @@ interface SitemapEntry {
     | "yearly"
     | "never";
   priority?: string;
+  imageUrl?: string;
 }
 
 export const Route = createFileRoute("/sitemap.xml")({
@@ -27,6 +28,11 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/academy", changefreq: "daily", priority: "0.9" },
           { path: "/bundles", changefreq: "weekly", priority: "0.8" },
           { path: "/tools/revenue-calculator", changefreq: "monthly", priority: "0.6" },
+          { path: "/tools/ai-likeness-rights-risk-checker", changefreq: "monthly", priority: "0.8" },
+          { path: "/ebooks", changefreq: "weekly", priority: "0.8" },
+          { path: "/journals", changefreq: "weekly", priority: "0.8" },
+          { path: "/planners", changefreq: "weekly", priority: "0.8" },
+          { path: "/ai-prompt-packs", changefreq: "weekly", priority: "0.8" },
           // Brand / entity pages
           { path: "/about", changefreq: "monthly", priority: "0.8" },
           { path: "/about/trust", changefreq: "monthly", priority: "0.8" },
@@ -84,11 +90,11 @@ export const Route = createFileRoute("/sitemap.xml")({
 
             const [prodRes, storeRes, catRes, articleRes] = await Promise.all([
               fetch(
-                `${url}/rest/v1/marketplace_products?select=id,slug,updated_at&status=eq.approved&published=eq.true`,
+                `${url}/rest/v1/marketplace_products?select=id,slug,updated_at,cover_url,seller_id&status=eq.approved&published=eq.true`,
                 { headers },
               ),
               fetch(
-                `${url}/rest/v1/seller_applications?select=brand_slug,created_at&status=eq.approved`,
+                `${url}/rest/v1/seller_applications?select=user_id,brand_slug,created_at&status=eq.approved`,
                 { headers },
               ),
               fetch(`${url}/rest/v1/academy_categories?select=slug`, { headers }),
@@ -97,13 +103,17 @@ export const Route = createFileRoute("/sitemap.xml")({
                 { headers },
               ),
             ]);
+            const publishedSellerIds = new Set<string>();
             if (prodRes.ok) {
               const rows = (await prodRes.json()) as Array<{
                 id: string;
                 slug?: string | null;
                 updated_at?: string | null;
+                cover_url?: string | null;
+                seller_id?: string | null;
               }>;
               for (const row of rows) {
+                if (row.seller_id) publishedSellerIds.add(row.seller_id);
                 // Prefer the clean, canonical slug URL; fall back to the UUID
                 // path for products that have no slug yet.
                 const segment = row.slug?.trim() ? row.slug.trim() : row.id;
@@ -114,6 +124,7 @@ export const Route = createFileRoute("/sitemap.xml")({
                     : undefined,
                   changefreq: "weekly",
                   priority: "0.8",
+                  imageUrl: row.cover_url && /^https?:\/\//i.test(row.cover_url) ? row.cover_url : undefined,
                 });
               }
             } else {
@@ -121,11 +132,12 @@ export const Route = createFileRoute("/sitemap.xml")({
             }
             if (storeRes.ok) {
               const stores = (await storeRes.json()) as Array<{
+                user_id: string | null;
                 brand_slug: string | null;
                 created_at?: string | null;
               }>;
               for (const s of stores) {
-                if (!s.brand_slug) continue;
+                if (!s.brand_slug || !s.user_id || !publishedSellerIds.has(s.user_id)) continue;
                 entries.push({
                   path: `/store/${s.brand_slug}`,
                   lastmod: s.created_at
@@ -177,10 +189,11 @@ export const Route = createFileRoute("/sitemap.xml")({
         const urls = entries.map((e) =>
           [
             `  <url>`,
-            `    <loc>${BASE_URL}${e.path}</loc>`,
+            `    <loc>${`${BASE_URL}${e.path}`.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</loc>`,
             e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null,
             e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
             e.priority ? `    <priority>${e.priority}</priority>` : null,
+            e.imageUrl ? `    <image:image>\n      <image:loc>${e.imageUrl.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</image:loc>\n    </image:image>` : null,
             `  </url>`,
           ]
             .filter(Boolean)
@@ -189,7 +202,7 @@ export const Route = createFileRoute("/sitemap.xml")({
 
         const xml = [
           `<?xml version="1.0" encoding="UTF-8"?>`,
-          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">`,
           ...urls,
           `</urlset>`,
         ].join("\n");
