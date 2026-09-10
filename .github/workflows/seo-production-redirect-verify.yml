@@ -1,0 +1,26 @@
+name: SEO Production Redirect Verification
+
+on:
+  push:
+    branches:
+      - verify/seo-production-redirect
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Production redirect HTTP verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify production redirect foundation
+        run: |
+          node scripts/verify-seo-redirect-production.mjs \
+            --base-url https://www.aurumvault.store \
+            --product-uuid 22945d35-29d7-4286-9362-5e348d47f938 \
+            --canonical-slug digital \
+            --old-slug seo-redirect-foundation-probe-20260909
