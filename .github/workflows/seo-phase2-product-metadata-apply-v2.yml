@@ -1,0 +1,240 @@
+name: Apply SEO Phase 2 Product Metadata v2
+
+on:
+  push:
+    branches:
+      - seo/phase2-product-metadata
+    paths:
+      - .github/workflows/seo-phase2-product-metadata-apply-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    name: Apply Phase 2 source changes and verify production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply fail-fast Phase 2 source edits
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str, label: str):
+              p = Path(path)
+              text = p.read_text()
+              if new in text:
+                  print(f"SKIP {label}: already applied")
+                  return
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected exactly one anchor, found {count}")
+              p.write_text(text.replace(old, new, 1))
+              print(f"APPLY {label}")
+
+          mp = "src/lib/marketplace.functions.ts"
+          replace_once(
+              mp,
+              "  delivery_contents?: string[] | null;\n};",
+              "  delivery_contents?: string[] | null;\n  seo_title?: string | null;\n  seo_description?: string | null;\n  seo_focus_keyword?: string | null;\n  seo_secondary_keywords?: string[] | null;\n  seo_image_alt?: string | null;\n  seo_og_title?: string | null;\n  seo_og_description?: string | null;\n  seo_robots_index?: boolean | null;\n  seo_robots_follow?: boolean | null;\n};",
+              "DbProductRow SEO fields",
+          )
+          replace_once(
+              mp,
+              "    deliveryContents: Array.isArray(r.delivery_contents) ? r.delivery_contents : [],\n  };",
+              "    deliveryContents: Array.isArray(r.delivery_contents) ? r.delivery_contents : [],\n    ...(Object.prototype.hasOwnProperty.call(r, \\\"seo_title\\\")\n      ? {\n          seoTitle: r.seo_title ?? null,\n          seoDescription: r.seo_description ?? null,\n          seoFocusKeyword: r.seo_focus_keyword ?? null,\n          seoSecondaryKeywords: Array.isArray(r.seo_secondary_keywords) ? r.seo_secondary_keywords : [],\n          seoImageAlt: r.seo_image_alt ?? null,\n          seoOgTitle: r.seo_og_title ?? null,\n          seoOgDescription: r.seo_og_description ?? null,\n          seoRobotsIndex: r.seo_robots_index ?? true,\n          seoRobotsFollow: r.seo_robots_follow ?? true,\n        }\n      : {}),\n  };",
+              "detail-only product SEO mapping",
+          )
+          replace_once(
+              mp,
+              "  deliveryContents?: string[];\n};",
+              "  deliveryContents?: string[];\n  seoTitle?: string | null;\n  seoDescription?: string | null;\n  seoFocusKeyword?: string | null;\n  seoSecondaryKeywords?: string[];\n  seoImageAlt?: string | null;\n  seoOgTitle?: string | null;\n  seoOgDescription?: string | null;\n  seoRobotsIndex?: boolean;\n  seoRobotsFollow?: boolean;\n};",
+              "Product SEO fields",
+          )
+          replace_once(
+              mp,
+              '"id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages" as const;',
+              '"id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages,seo_title,seo_description,seo_focus_keyword,seo_secondary_keywords,seo_image_alt,seo_og_title,seo_og_description,seo_robots_index,seo_robots_follow" as const;',
+              "detail SELECT SEO fields",
+          )
+          p = Path(mp)
+          text = p.read_text()
+          plain = text.count(".select(detailSelect)")
+          casted = text.count(".select(detailSelect as any)")
+          if plain == 2 and casted == 0:
+              p.write_text(text.replace(".select(detailSelect)", ".select(detailSelect as any)"))
+              print("APPLY narrow detail SELECT compatibility casts")
+          elif plain == 0 and casted == 2:
+              print("SKIP narrow detail SELECT compatibility casts: already applied")
+          else:
+              raise SystemExit(f"detail SELECT casts: unexpected anchors plain={plain} casted={casted}")
+
+          pr = "src/routes/products.$id.tsx"
+          replace_once(
+              pr,
+              '      baseTitle = `${p.title} | AurumVault`;',
+              '      baseTitle = p.seoTitle?.trim() || `${p.title} | AurumVault`;',
+              "SEO title precedence",
+          )
+          replace_once(
+              pr,
+              '      rawDesc = p.description?.trim()',
+              '      rawDesc = p.seoDescription?.trim() || (p.description?.trim()',
+              "SEO description precedence start",
+          )
+          replace_once(
+              pr,
+              '          });\n    } else {',
+              '          }));\n    } else {',
+              "SEO description precedence close",
+          )
+          replace_once(
+              pr,
+              '    const desc = rawDesc.length > 160 ? `${rawDesc.slice(0, 157)}…` : rawDesc;',
+              '''    const desc = rawDesc.length > 160 ? `${rawDesc.slice(0, 157)}…` : rawDesc;
+    const structuredProductDescription = p
+      ? (p.description?.trim()
+          ? p.description.replace(/\\s+/g, " ").trim()
+          : buildFallbackProductDescription({
+              title: p.title,
+              category: p.category,
+              creatorName: p.creator.name,
+              isAurumVaultOwned: p.creator.isAurumVaultOwned,
+            }))
+      : rawDesc;''',
+              "structured description separation",
+          )
+          replace_once(
+              pr,
+              '''    const imageAlt = p?.title
+      ? `Cover for ${p.title} on AurumVault`
+      : "AurumVault | Digital Product Marketplace for Creators";''',
+              '''    const imageAlt = p?.seoImageAlt?.trim() || (p?.title
+      ? `Cover for ${p.title} on AurumVault`
+      : "AurumVault | Digital Product Marketplace for Creators");
+    const ogTitle = p?.seoOgTitle?.trim() || baseTitle;
+    const ogDescriptionRaw = p?.seoOgDescription?.trim() || rawDesc;
+    const ogDescription = ogDescriptionRaw.length > 200
+      ? `${ogDescriptionRaw.slice(0, 197)}…`
+      : ogDescriptionRaw;
+    const publishedRobots = `${p?.seoRobotsIndex === false ? "noindex" : "index"}, ${p?.seoRobotsFollow === false ? "nofollow" : "follow"}`;''',
+              "SEO image OG robots setup",
+          )
+          replace_once(
+              pr,
+              '{ name: "robots", content: isUnpublished ? "noindex, follow" : "index, follow" },',
+              '{ name: "robots", content: isUnpublished ? "noindex, follow" : publishedRobots },',
+              "published robots metadata",
+          )
+          replace_once(pr, '{ property: "og:title", content: baseTitle },', '{ property: "og:title", content: ogTitle },', "OG title")
+          replace_once(pr, '{ property: "og:description", content: desc },', '{ property: "og:description", content: ogDescription },', "OG description")
+          replace_once(pr, '{ name: "twitter:title", content: baseTitle },', '{ name: "twitter:title", content: ogTitle },', "Twitter title")
+          replace_once(pr, '{ name: "twitter:description", content: desc },', '{ name: "twitter:description", content: ogDescription },', "Twitter description")
+          replace_once(pr, "        description: rawDesc,", "        description: structuredProductDescription,", "Product JSON-LD description")
+
+          p = Path(pr)
+          text = p.read_text()
+          plain_alt = text.count("alt={product.title}")
+          seo_alt = text.count("alt={product.seoImageAlt?.trim() || product.title}")
+          if plain_alt == 2 and seo_alt == 0:
+              p.write_text(text.replace("alt={product.title}", "alt={product.seoImageAlt?.trim() || product.title}"))
+              print("APPLY visible primary product image alt")
+          elif plain_alt == 0 and seo_alt == 2:
+              print("SKIP visible primary product image alt: already applied")
+          else:
+              raise SystemExit(f"image alt anchors: unexpected plain={plain_alt} seo={seo_alt}")
+
+          sm = "src/routes/sitemap[.]xml.ts"
+          replace_once(
+              sm,
+              'marketplace_products?select=id,slug,updated_at&status=eq.approved&published=eq.true',
+              'marketplace_products?select=id,slug,updated_at,seo_robots_index&status=eq.approved&published=eq.true',
+              "sitemap SEO robots selection",
+          )
+          replace_once(
+              sm,
+              '                updated_at?: string | null;\n              }>;',
+              '                updated_at?: string | null;\n                seo_robots_index?: boolean | null;\n              }>;',
+              "sitemap SEO robots type",
+          )
+          replace_once(
+              sm,
+              '              for (const row of rows) {\n                // Prefer the clean, canonical slug URL; fall back to the UUID',
+              '              for (const row of rows) {\n                if (row.seo_robots_index === false) continue;\n                // Prefer the clean, canonical slug URL; fall back to the UUID',
+              "sitemap excludes noindex products",
+          )
+
+          au = "src/routes/_authenticated/admin.academy.upload.tsx"
+          replace_once(
+              au,
+              '      <h1 className="mt-4 font-serif text-3xl text-ink">Bulk import an Academy article</h1>',
+              '''      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-serif text-3xl text-ink">Bulk import an Academy article</h1>
+        <Link
+          to="/admin/academy/product-seo"
+          className="rounded-full border border-[#B8860B]/40 bg-[#B8860B]/5 px-4 py-2 text-sm font-medium text-ink hover:bg-[#B8860B]/10"
+        >
+          Product SEO JSON
+        </Link>
+      </div>''',
+              "Academy importer Product SEO entry point",
+          )
+          PY
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run Phase 2 and redirect regressions
+        run: |
+          bunx vitest run \
+            tests/integration/product-seo-phase2-source-contract.test.ts \
+            tests/integration/product-seo-brand.test.ts \
+            tests/integration/product-slug-redirect.test.ts \
+            tests/integration/product-canonical-list-links.test.ts \
+            tests/integration/seo-redirect-release-source-contract.test.ts
+
+      - name: Enforce additive Phase 2 migration boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          migration='supabase/migrations/20260910162000_product_seo_metadata.sql'
+          test -f "$migration"
+          if grep -Eiq 'update[[:space:]]+public\.marketplace_products|delete[[:space:]]+from[[:space:]]+public\.marketplace_products|set[[:space:]]+slug[[:space:]]*=' "$migration"; then
+            echo 'ERROR: Phase 2 migration must be additive and must not mutate product rows'
+            exit 1
+          fi
+
+      - name: Production build
+        run: bun run build
+
+      - name: Re-run Phase 2 contract after route generation
+        run: bunx vitest run tests/integration/product-seo-phase2-source-contract.test.ts
+
+      - name: Diff safety check
+        run: git diff --check
+
+      - name: Commit verified Phase 2 source changes and remove temporary workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/seo-phase2-product-metadata-apply.yml
+          rm -f .github/workflows/seo-phase2-product-metadata-apply-v2.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "feat(seo): implement product metadata phase 2"
+          git push origin HEAD:seo/phase2-product-metadata
