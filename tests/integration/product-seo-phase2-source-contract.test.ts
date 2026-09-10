@@ -50,11 +50,40 @@ describe("Phase 2 product SEO contract", () => {
     expect(adminRoute).toContain("Provide product_id or product_slug");
     expect(adminRoute).toContain("data.length !== 1");
     expect(adminRoute).toContain("seo_updated_at");
-    expect(adminRoute).not.toMatch(/title:\s*product\.title/);
-    expect(adminRoute).not.toMatch(/category:\s/);
-    expect(adminRoute).not.toMatch(/price_cents:\s/);
-    expect(adminRoute).not.toMatch(/published:\s/);
-    expect(adminRoute).not.toMatch(/seller_id:\s/);
+
+    const patchMatch = adminRoute.match(
+      /const patch: Record<string, unknown> = \{([\s\S]*?)\n    \};/,
+    );
+    expect(patchMatch).not.toBeNull();
+    const patchBody = patchMatch?.[1] ?? "";
+    for (const forbidden of [
+      "title",
+      "description",
+      "category",
+      "price_cents",
+      "published",
+      "status",
+      "seller_id",
+      "slug",
+      "file_path",
+    ]) {
+      const bareField = new RegExp(`(^|\\n)\\s*${forbidden}\\s*:`, "m");
+      expect(patchBody).not.toMatch(bareField);
+    }
+    for (const allowed of [
+      "seo_title",
+      "seo_description",
+      "seo_focus_keyword",
+      "seo_secondary_keywords",
+      "seo_image_alt",
+      "seo_og_title",
+      "seo_og_description",
+      "seo_robots_index",
+      "seo_robots_follow",
+      "seo_updated_at",
+    ]) {
+      expect(patchBody).toContain(allowed);
+    }
     expect(adminRoute).toContain('as any)\n      .update(patch)');
   });
 
