@@ -1,0 +1,46 @@
+name: Verify Live Canonical Product Links
+
+on:
+  push:
+    branches:
+      - verify/live-canonical-product-links
+    paths:
+      - .github/workflows/verify-live-canonical-product-links-temp.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify homepage and browse links are canonical
+        shell: bash
+        run: |
+          set -euo pipefail
+          ts="$(date +%s)"
+          for path in / /products; do
+            url="https://www.aurumvault.store${path}?canonical-link-verify=${ts}"
+            echo "Fetching $url"
+            curl -fsSL -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "$url" -o page.html
+
+            product_links=$(grep -Eo 'href="/products/[^"]+"' page.html | sort -u || true)
+            count=$(printf '%s\n' "$product_links" | sed '/^$/d' | wc -l | tr -d ' ')
+            echo "Unique product hrefs on ${path}: ${count}"
+            printf '%s\n' "$product_links" | head -40
+
+            if [ "$count" -lt 1 ]; then
+              echo "ERROR: no product links found on ${path}"
+              exit 1
+            fi
+
+            uuid_links=$(printf '%s\n' "$product_links" | grep -Ei 'href="/products/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"' || true)
+            if [ -n "$uuid_links" ]; then
+              echo "ERROR: UUID-first product links still present on ${path}:"
+              printf '%s\n' "$uuid_links"
+              exit 1
+            fi
+          done
+
+          echo "PASS: homepage and /products contain product links with zero UUID-first hrefs."
