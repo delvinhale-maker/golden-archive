@@ -9,6 +9,14 @@ const hardeningMigration = readFileSync(
   "supabase/migrations/20260910143000_creator_studio_cs1_rpc_hardening.sql",
   "utf8",
 );
+const searchPathMigration = readFileSync(
+  "supabase/migrations/20260910144500_creator_studio_cs1_search_path_hardening.sql",
+  "utf8",
+);
+const performanceMigration = readFileSync(
+  "supabase/migrations/20260910145500_creator_studio_cs1_performance_hardening.sql",
+  "utf8",
+);
 const schema = readFileSync("src/lib/creator-studio.schema.ts", "utf8");
 const functions = readFileSync("src/lib/creator-studio.functions.ts", "utf8");
 const home = readFileSync(
@@ -94,6 +102,13 @@ describe("Creator Studio CS1 lifecycle", () => {
     expect(migration).toContain("old.status = 'READY' and new.status = 'READY'");
     expect(migration).toContain("new.status := 'DRAFT'");
   });
+
+  it("pins the pure transition helper search path", () => {
+    expect(searchPathMigration).toContain(
+      "alter function public.creator_studio_valid_transition(text, text)",
+    );
+    expect(searchPathMigration).toContain("set search_path = ''");
+  });
 });
 
 describe("Creator Studio CS1 private assets and abuse controls", () => {
@@ -163,6 +178,40 @@ describe("Creator Studio CS1 private assets and abuse controls", () => {
     expect(project).toContain("uploadToSignedUrl");
     expect(functions).toContain("createSignedUrl");
     expect(functions).toContain('const BUCKET = "creator-studio-assets"');
+  });
+});
+
+describe("Creator Studio CS1 database performance guards", () => {
+  it("adds covering indexes for the project and asset foreign keys", () => {
+    expect(performanceMigration).toContain(
+      "creator_studio_events_project_idx",
+    );
+    expect(performanceMigration).toContain(
+      "on public.creator_studio_events(project_id)",
+    );
+    expect(performanceMigration).toContain(
+      "creator_studio_project_assets_asset_idx",
+    );
+    expect(performanceMigration).toContain(
+      "on public.creator_studio_project_assets(asset_id)",
+    );
+  });
+
+  it("uses init-plan-safe auth checks in every Creator Studio RLS policy", () => {
+    for (const policy of [
+      "creator_studio_projects_select_owner",
+      "creator_studio_projects_insert_owner",
+      "creator_studio_projects_update_owner",
+      "creator_studio_assets_select_owner",
+      "creator_studio_project_assets_select_owner",
+      "creator_studio_events_select_owner",
+    ]) {
+      expect(performanceMigration).toContain(`policy ${policy}`);
+    }
+    expect(performanceMigration).toContain("owner_user_id = (select auth.uid())");
+    expect(performanceMigration).toContain(
+      "(select public.has_role((select auth.uid()), 'admin'))",
+    );
   });
 });
 
