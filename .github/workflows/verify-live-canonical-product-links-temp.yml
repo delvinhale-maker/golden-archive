@@ -23,9 +23,9 @@ jobs:
           for path in / /products; do
             url="https://www.aurumvault.store${path}?canonical-link-verify=${ts}"
             echo "Fetching $url"
-            curl -fsSL -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "$url" -o page.html
+            curl --compressed -fsSL -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "$url" -o page.html
 
-            product_links=$(grep -Eo 'href="/products/[^"]+"' page.html | sort -u || true)
+            product_links=$(grep -aEo 'href="/products/[^"]+"' page.html | sort -u || true)
             count=$(printf '%s\n' "$product_links" | sed '/^$/d' | wc -l | tr -d ' ')
             echo "Unique product hrefs on ${path}: ${count}"
             printf '%s\n' "$product_links" | head -40
@@ -35,7 +35,7 @@ jobs:
               exit 1
             fi
 
-            uuid_links=$(printf '%s\n' "$product_links" | grep -Ei 'href="/products/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"' || true)
+            uuid_links=$(printf '%s\n' "$product_links" | grep -aEi 'href="/products/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"' || true)
             if [ -n "$uuid_links" ]; then
               echo "ERROR: UUID-first product links still present on ${path}:"
               printf '%s\n' "$uuid_links"
