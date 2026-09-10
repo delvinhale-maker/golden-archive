@@ -77,13 +77,33 @@ pr = "src/routes/products.$id.tsx"
 replace_once(
     pr,
     '    const desc = rawDesc.length > 160 ? `${rawDesc.slice(0, 157)}…` : rawDesc;',
-    '''    // SEO Phase 2 overrides affect search/social metadata only. The visible\n    // product description remains the source for Product JSON-LD.\n    const seoTitle = p?.seoTitle?.trim();\n    if (seoTitle) baseTitle = seoTitle;\n    const seoDescription = p?.seoDescription?.trim();\n    const metaSource = seoDescription || rawDesc;\n    const desc = metaSource.length > 160 ? `${metaSource.slice(0, 157)}…` : metaSource;\n    const ogTitle = p?.seoOgTitle?.trim() || baseTitle;\n    const ogDescRaw = p?.seoOgDescription?.trim() || metaSource;\n    const ogDesc = ogDescRaw.length > 200 ? `${ogDescRaw.slice(0, 197)}…` : ogDescRaw;\n    const robots = isUnpublished\n      ? "noindex, follow"\n      : `${p?.seoRobotsIndex === false ? "noindex" : "index"}, ${\n          p?.seoRobotsFollow === false ? "nofollow" : "follow"\n        }`;''',
+    '''    // SEO Phase 2 overrides affect search/social metadata only. The visible
+    // product description remains the source for Product JSON-LD.
+    const seoTitle = p?.seoTitle?.trim();
+    if (seoTitle) baseTitle = seoTitle;
+    const seoDescription = p?.seoDescription?.trim();
+    const metaSource = seoDescription || rawDesc;
+    const desc = metaSource.length > 160 ? `${metaSource.slice(0, 157)}…` : metaSource;
+    const ogTitle = p?.seoOgTitle?.trim() || baseTitle;
+    const ogDescRaw = p?.seoOgDescription?.trim() || metaSource;
+    const ogDesc = ogDescRaw.length > 200 ? `${ogDescRaw.slice(0, 197)}…` : ogDescRaw;
+    const robots = isUnpublished
+      ? "noindex, follow"
+      : `${p?.seoRobotsIndex === false ? "noindex" : "index"}, ${
+          p?.seoRobotsFollow === false ? "nofollow" : "follow"
+        }`;''',
     "SEO metadata precedence",
 )
 replace_once(
     pr,
-    '''    const imageAlt = p?.title\n      ? `Cover for ${p.title} on AurumVault`\n      : "AurumVault | Digital Product Marketplace for Creators";''',
-    '''    const imageAlt =\n      p?.seoImageAlt?.trim() ||\n      (p?.title\n        ? `Cover for ${p.title} on AurumVault`\n        : "AurumVault | Digital Product Marketplace for Creators");''',
+    '''    const imageAlt = p?.title
+      ? `Cover for ${p.title} on AurumVault`
+      : "AurumVault | Digital Product Marketplace for Creators";''',
+    '''    const imageAlt =
+      p?.seoImageAlt?.trim() ||
+      (p?.title
+        ? `Cover for ${p.title} on AurumVault`
+        : "AurumVault | Digital Product Marketplace for Creators");''',
     "SEO image alt metadata",
 )
 replace_once(pr, '{ name: "robots", content: isUnpublished ? "noindex, follow" : "index, follow" },', '{ name: "robots", content: robots },', "robots flags")
@@ -113,9 +133,18 @@ replace_once(
 )
 replace_once(
     sm,
-    '                updated_at?: string | null;\n              }>;',
-    '                updated_at?: string | null;\n                seo_robots_index?: boolean | null;\n              }>;',
-    "sitemap SEO robots type",
+    '''              const rows = (await prodRes.json()) as Array<{
+                id: string;
+                slug?: string | null;
+                updated_at?: string | null;
+              }>;''',
+    '''              const rows = (await prodRes.json()) as Array<{
+                id: string;
+                slug?: string | null;
+                updated_at?: string | null;
+                seo_robots_index?: boolean | null;
+              }>;''',
+    "sitemap product SEO robots type",
 )
 replace_once(
     sm,
@@ -127,7 +156,25 @@ replace_once(
 au = "src/routes/_authenticated/admin.academy.upload.tsx"
 replace_once(
     au,
-    '''      <p className="mt-2 max-w-2xl text-sm text-ink/70">\n        Drop in a single <code>.json</code> file, review the populated fields, then save as a draft\n        or publish. Nothing goes live from the upload step.\n      </p>''',
-    '''      <p className="mt-2 max-w-2xl text-sm text-ink/70">\n        Drop in a single <code>.json</code> file, review the populated fields, then save as a draft\n        or publish. Nothing goes live from the upload step.\n      </p>\n\n      <div className="mt-4 flex flex-col gap-2 rounded-xl border border-ink/10 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">\n        <p className="text-sm text-ink/70">\n          Editing search metadata for an existing product instead of an article?\n        </p>\n        <Link\n          to="/admin/academy/product-seo"\n          className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-[#B8860B] bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-[#B8860B]/10"\n        >\n          <FileJson className="h-4 w-4" /> Open the Product SEO editor\n        </Link>\n      </div>''',
+    '''      <p className="mt-2 max-w-2xl text-sm text-ink/70">
+        Drop in a single <code>.json</code> file, review the populated fields, then save as a draft
+        or publish. Nothing goes live from the upload step.
+      </p>''',
+    '''      <p className="mt-2 max-w-2xl text-sm text-ink/70">
+        Drop in a single <code>.json</code> file, review the populated fields, then save as a draft
+        or publish. Nothing goes live from the upload step.
+      </p>
+
+      <div className="mt-4 flex flex-col gap-2 rounded-xl border border-ink/10 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-ink/70">
+          Editing search metadata for an existing product instead of an article?
+        </p>
+        <Link
+          to="/admin/academy/product-seo"
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-[#B8860B] bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-[#B8860B]/10"
+        >
+          <FileJson className="h-4 w-4" /> Open the Product SEO editor
+        </Link>
+      </div>''',
     "Academy importer Product SEO entry point",
 )
