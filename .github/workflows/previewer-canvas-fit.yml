@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["**"]
 
+concurrency:
+  group: previewer-canvas-fit-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   canvas-fit:
     name: Canvas fit & center (${{ matrix.browser }})
@@ -30,7 +34,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
 
       - name: Cache Bun global store
         uses: actions/cache@v4
@@ -131,7 +134,6 @@ jobs:
           BROWSER: ${{ matrix.browser }}
         run: python tests/mobile/previewer-visual-diff.spec.py
 
-
       - name: Upload artifacts on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -142,7 +144,6 @@ jobs:
             tests/mobile/baselines/${{ matrix.browser }}/**
             /tmp/dev-server.log
           if-no-files-found: ignore
-
 
       - name: Stop dev server
         if: always()
