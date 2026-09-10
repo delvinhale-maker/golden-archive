@@ -16,6 +16,7 @@ const PROJECT_TYPES: CreatorStudioProjectType[] = [
 function input(
   projectType: CreatorStudioProjectType = "PROMOTE_EBOOK",
   durationSeconds: 15 | 30 | 45 = 30,
+  quality: "PREVIEW" | "STANDARD" = "STANDARD",
 ) {
   return {
     project: {
@@ -56,7 +57,7 @@ function input(
       },
     ],
     source_product_media: { has_cover: false, preview_count: 2 },
-    quality: "STANDARD" as const,
+    quality,
   };
 }
 
@@ -119,21 +120,19 @@ describe("Creator Studio CS2 deterministic template engine", () => {
   });
 
   it("rejects projects that are not READY", () => {
-    const raw = input() as ReturnType<typeof input> & { project: { status: string } };
+    const raw: any = input();
     raw.project.status = "DRAFT";
     expect(() => buildCreatorStudioRenderPlan(raw)).toThrow();
   });
 
   it("rejects invalid assets before scene generation", () => {
-    const raw = input();
-    raw.assets[0] = { ...raw.assets[0], mime_type: "application/pdf" as "image/png" };
+    const raw: any = input();
+    raw.assets[0].mime_type = "application/pdf";
     expect(() => buildCreatorStudioRenderPlan(raw)).toThrow();
   });
 
   it("adds a deterministic AurumVault watermark to preview plans", () => {
-    const raw = input();
-    raw.quality = "PREVIEW";
-    const plan = buildCreatorStudioRenderPlan(raw);
+    const plan = buildCreatorStudioRenderPlan(input("PROMOTE_EBOOK", 30, "PREVIEW"));
     expect(plan.output.quality).toBe("PREVIEW");
     expect(
       plan.scenes.every((scene) =>
