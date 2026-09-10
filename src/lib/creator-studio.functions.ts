@@ -102,6 +102,11 @@ async function requireOwnedProject(supabase: any, userId: string, projectId: str
   return data as CreatorStudioProject;
 }
 
+async function trustedServerClient() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+}
+
 export const listCreatorStudioProjects = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<CreatorStudioProject[]> => {
@@ -164,7 +169,7 @@ export const getCreatorStudioProject = createServerFn({ method: "GET" })
       const sortById = new Map(
         (links ?? []).map((row: any) => [String(row.asset_id), Number(row.sort_order ?? 0)]),
       );
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const supabaseAdmin = await trustedServerClient();
 
       const assets = await Promise.all(
         ((rows ?? []) as any[]).map(async (row) => {
@@ -309,10 +314,12 @@ export const requestCreatorStudioAssetUpload = createServerFn({ method: "POST" }
       const filename = safeFilename(data.filename);
       const contentType = normalizeUploadMime(filename, data.mimeType);
       const storagePath = `${context.userId}/${data.projectId}/${assetId}/${filename}`;
+      const supabaseAdmin = await trustedServerClient();
 
-      const { error: reserveError } = await (context.supabase.rpc as any)(
-        "creator_studio_reserve_asset",
+      const { error: reserveError } = await (supabaseAdmin.rpc as any)(
+        "creator_studio_server_reserve_asset",
         {
+          _actor_user_id: context.userId,
           _project_id: data.projectId,
           _asset_id: assetId,
           _category: data.category,
@@ -325,14 +332,14 @@ export const requestCreatorStudioAssetUpload = createServerFn({ method: "POST" }
       if (reserveError) throw new Error(userFacingAssetError(reserveError.message));
 
       try {
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data: signed, error: signError } = await supabaseAdmin.storage
           .from(BUCKET)
           .createSignedUploadUrl(storagePath, { upsert: false });
         if (signError || !signed?.token) throw signError ?? new Error("Signed upload token missing.");
         return { assetId, path: storagePath, token: signed.token, contentType };
       } catch {
-        await (context.supabase.rpc as any)("creator_studio_release_reserved_asset", {
+        await (supabaseAdmin.rpc as any)("creator_studio_server_release_reserved_asset", {
+          _actor_user_id: context.userId,
           _asset_id: assetId,
         });
         throw new Error("Creator Studio could not start this upload. No asset slot was consumed.");
@@ -357,7 +364,7 @@ export const completeCreatorStudioAssetUpload = createServerFn({ method: "POST" 
     const folder = parts.join("/");
     if (!filename || !folder) throw new Error("Creator Studio could not verify this upload.");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await trustedServerClient();
     const listed = await supabaseAdmin.storage.from(BUCKET).list(folder, {
       limit: 10,
       search: filename,
@@ -375,15 +382,17 @@ export const completeCreatorStudioAssetUpload = createServerFn({ method: "POST" 
 
     if (sizeMismatch || mimeMismatch) {
       await supabaseAdmin.storage.from(BUCKET).remove([asset.storage_path]);
-      await (context.supabase.rpc as any)("creator_studio_release_reserved_asset", {
+      await (supabaseAdmin.rpc as any)("creator_studio_server_release_reserved_asset", {
+        _actor_user_id: context.userId,
         _asset_id: data.assetId,
       });
       throw new Error("Uploaded file metadata did not match the reserved asset.");
     }
 
-    const { data: completed, error: completeError } = await (context.supabase.rpc as any)(
-      "creator_studio_complete_asset",
+    const { data: completed, error: completeError } = await (supabaseAdmin.rpc as any)(
+      "creator_studio_server_complete_asset",
       {
+        _actor_user_id: context.userId,
         _asset_id: data.assetId,
         _width: data.width ?? null,
         _height: data.height ?? null,
@@ -406,15 +415,15 @@ export const removeCreatorStudioAsset = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error || !asset) throw new Error("Creator Studio asset not found.");
 
-    const { data: storagePath, error: removeError } = await (context.supabase.rpc as any)(
-      "creator_studio_remove_asset",
-      { _asset_id: data.assetId },
+    const supabaseAdmin = await trustedServerClient();
+    const { data: storagePath, error: removeError } = await (supabaseAdmin.rpc as any)(
+      "creator_studio_server_remove_asset",
+      { _actor_user_id: context.userId, _asset_id: data.assetId },
     );
     if (removeError || typeof storagePath !== "string") {
       throw new Error(userFacingAssetError(removeError?.message));
     }
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const cleanup = await supabaseAdmin.storage.from(BUCKET).remove([storagePath]);
     if (cleanup.error) {
       console.error("[creator-studio] private orphan cleanup pending", {
