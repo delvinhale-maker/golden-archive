@@ -1,0 +1,82 @@
+name: SEO Live Canonical Product Links Verification
+
+on:
+  push:
+    branches:
+      - verify/live-canonical-links
+    paths:
+      - .github/workflows/seo-live-canonical-links-temp.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify published homepage uses canonical product slugs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Fetch and verify live homepage
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://www.aurumvault.store/?seo_verify=$(date +%s)"
+          curl -fsSL --retry 3 --retry-delay 2 \
+            -H 'Cache-Control: no-cache' \
+            -H 'Pragma: no-cache' \
+            -H 'User-Agent: AurumVault-SEO-Live-Verification/1.0' \
+            "$url" -o /tmp/home.html
+
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          html = Path('/tmp/home.html').read_text(errors='replace')
+          hrefs = re.findall(r'''href=["'](?:https://www\.aurumvault\.store)?(/products/([^"'?#]+))''', html, flags=re.I)
+          paths = [path for path, _ in hrefs]
+          segments = [segment for _, segment in hrefs]
+          uuid_re = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.I)
+          clean_slug_re = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
+
+          if not paths:
+              raise SystemExit('FAIL: no product hrefs found in live homepage HTML')
+
+          uuid_paths = [p for p, s in zip(paths, segments) if uuid_re.fullmatch(s)]
+          invalid_paths = [p for p, s in zip(paths, segments) if not clean_slug_re.fullmatch(s)]
+
+          print(f'Found {len(paths)} product hrefs in live homepage HTML')
+          print('Sample:', *paths[:12], sep='\n  ')
+
+          if uuid_paths:
+              print('UUID-first product hrefs still present:')
+              for p in uuid_paths:
+                  print(' ', p)
+              raise SystemExit(f'FAIL: {len(uuid_paths)} UUID-first product href(s) remain')
+
+          if invalid_paths:
+              print('Invalid/noncanonical product hrefs:')
+              for p in invalid_paths:
+                  print(' ', p)
+              raise SystemExit(f'FAIL: {len(invalid_paths)} invalid product href(s) remain')
+
+          print(f'PASS: {len(paths)}/{len(paths)} live product hrefs use clean slug segments; 0 UUID hrefs')
+          PY
+
+      - name: Confirm legacy UUID compatibility redirect remains intact
+        shell: bash
+        run: |
+          set -euo pipefail
+          uuid='067305cd-f20b-46dc-ba60-975fbb71a374'
+          expected='/products/group-chat-disaster'
+          headers="$(curl -sS -D - -o /dev/null --max-redirs 0 \
+            -H 'Cache-Control: no-cache' \
+            -H 'User-Agent: AurumVault-SEO-Live-Verification/1.0' \
+            "https://www.aurumvault.store/products/$uuid")"
+          status="$(printf '%s\n' "$headers" | awk 'toupper($1) ~ /^HTTP\// {code=$2} END {print code}')"
+          location="$(printf '%s\n' "$headers" | awk 'BEGIN{IGNORECASE=1} /^location:/ {gsub(/\r/, ""); print $2}' | tail -1)"
+          test "$status" = '301'
+          case "$location" in
+            "$expected"|"https://www.aurumvault.store$expected") ;;
+            *) echo "FAIL: UUID redirect location=$location expected=$expected"; exit 1 ;;
+          esac
+          echo "PASS: legacy UUID remains a 301 to $expected"
