@@ -40,6 +40,8 @@ describe("Phase 2 product SEO contract", () => {
     expect(productRoute).not.toMatch(/name:\s*["']keywords["']/i);
     expect(productRoute).not.toMatch(/seoFocusKeyword/);
     expect(productRoute).not.toMatch(/seoSecondaryKeywords/);
+    expect(marketplace).not.toMatch(/preview_pages[^\n]*seo_focus_keyword/);
+    expect(marketplace).not.toMatch(/preview_pages[^\n]*seo_secondary_keywords/);
   });
 
   it("requires an exact product selector and writes only SEO fields", () => {
@@ -57,28 +59,39 @@ describe("Phase 2 product SEO contract", () => {
   });
 
   it("maps product-detail SEO fields without bloating list SELECTs", () => {
-    expect(marketplace).toContain("seoTitle");
-    expect(marketplace).toContain("seoDescription");
-    expect(marketplace).toContain("seoImageAlt");
-    expect(marketplace).toContain("seoOgTitle");
-    expect(marketplace).toContain("seoOgDescription");
-    expect(marketplace).toContain("seoRobotsIndex");
-    expect(marketplace).toContain("seoRobotsFollow");
+    for (const field of [
+      "seoTitle",
+      "seoDescription",
+      "seoImageAlt",
+      "seoOgTitle",
+      "seoOgDescription",
+      "seoRobotsIndex",
+      "seoRobotsFollow",
+    ]) {
+      expect(marketplace).toContain(field);
+    }
     expect(marketplace).toMatch(/preview_pages[^\n]*seo_title,seo_description/);
-    const listSelects = marketplace.match(/id,slug,title,category[^"\n]*/g) ?? [];
-    expect(listSelects.some((select) => select.includes("seo_title"))).toBe(false);
+    expect(marketplace).toContain(
+      '"id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at"',
+    );
+    expect(marketplace).toContain(
+      '"id,slug,title,category,price_cents,cover_url,description,seller_id,created_at"',
+    );
+    expect(marketplace).toContain(
+      '"id,slug,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at"',
+    );
   });
 
   it("uses SEO metadata for head tags while keeping Product JSON-LD descriptive", () => {
-    expect(productRoute).toContain("p.seoTitle?.trim()");
-    expect(productRoute).toContain("p.seoDescription?.trim()");
+    expect(productRoute).toContain("p?.seoTitle?.trim()");
+    expect(productRoute).toContain("p?.seoDescription?.trim()");
     expect(productRoute).toContain("p?.seoOgTitle?.trim()");
     expect(productRoute).toContain("p?.seoOgDescription?.trim()");
     expect(productRoute).toContain("p?.seoImageAlt?.trim()");
     expect(productRoute).toContain("p?.seoRobotsIndex === false");
     expect(productRoute).toContain("p?.seoRobotsFollow === false");
-    expect(productRoute).toContain("structuredProductDescription");
-    expect(productRoute).toMatch(/description:\s*structuredProductDescription/);
+    expect(productRoute).toContain("const metaSource = seoDescription || rawDesc");
+    expect(productRoute).toMatch(/description:\s*rawDesc/);
   });
 
   it("keeps noindex products out of the sitemap", () => {
