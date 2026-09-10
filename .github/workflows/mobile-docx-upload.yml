@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["**"]
 
+concurrency:
+  group: mobile-docx-upload-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # Runs the mobile .docx upload regression suite against a fresh
 # preview build with a real managed-Supabase session injected via
 # LOVABLE_BROWSER_SUPABASE_* secrets, so the authenticated
@@ -66,7 +70,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
 
       - name: Cache Bun global store
         uses: actions/cache@v4
