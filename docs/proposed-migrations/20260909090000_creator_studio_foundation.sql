@@ -66,8 +66,26 @@ create policy creator_studio_assets_owner_insert on public.creator_studio_assets
   );
 create policy creator_studio_assets_owner_update on public.creator_studio_assets
   for update to authenticated
-  using (owner_user_id = auth.uid() or public.has_role(auth.uid(), 'admin'))
-  with check (owner_user_id = auth.uid() or public.has_role(auth.uid(), 'admin'));
+  using (
+    (owner_user_id = auth.uid() or public.has_role(auth.uid(), 'admin'))
+    and exists (
+      select 1 from public.creator_studio_projects p
+      where p.id = project_id
+        and (p.owner_user_id = auth.uid() or public.has_role(auth.uid(), 'admin'))
+    )
+  )
+  with check (
+    (owner_user_id = auth.uid() or public.has_role(auth.uid(), 'admin'))
+    and exists (
+      select 1 from public.creator_studio_projects p
+      where p.id = project_id
+        and (p.owner_user_id = auth.uid() or public.has_role(auth.uid(), 'admin'))
+    )
+  );
+
+-- Defense in depth: CS1 supports soft archive, not destructive table deletion.
+revoke delete on table public.creator_studio_projects from anon, authenticated;
+revoke delete on table public.creator_studio_assets from anon, authenticated;
 
 insert into storage.buckets (id, name, public)
 values ('creator-studio-assets', 'creator-studio-assets', false)
@@ -96,4 +114,5 @@ create policy creator_studio_assets_storage_update on storage.objects
     and (storage.foldername(name))[1] = auth.uid()::text
   );
 
--- Intentionally no DELETE table policies. Projects are archived in-app.
+-- Intentionally no DELETE storage policy. Orphan cleanup, if introduced later,
+-- must be a trusted server-side maintenance operation rather than a client grant.
