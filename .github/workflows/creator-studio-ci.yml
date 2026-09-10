@@ -1,0 +1,48 @@
+name: Creator Studio Isolated CI
+
+on:
+  push:
+    branches:
+      - creator-studio/cs1-foundation-20260910
+    paths:
+      - "src/lib/creator-studio*.ts"
+      - "src/lib/creator-studio*.tsx"
+      - "src/routes/_authenticated/creator-studio*.tsx"
+      - "supabase/migrations/*creator_studio*.sql"
+      - "tests/integration/creator-studio*.test.ts"
+      - ".github/workflows/creator-studio-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  creator-studio-tests:
+    name: Creator Studio targeted tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run Creator Studio tests
+        run: >-
+          bun run test --
+          src/lib/creator-studio.schema.test.ts
+          src/lib/creator-studio.template-engine.test.ts
+          tests/integration/creator-studio-cs1-foundation.test.ts
+
+      - name: Verify no provider credentials are required by CS2
+        run: |
+          if grep -RniE 'SHOTSTACK_(API_)?KEY|api\.shotstack\.io' src/lib/creator-studio.render-plan.ts src/lib/creator-studio.template-engine.ts; then
+            echo "CS2 must remain provider-independent"
+            exit 1
+          fi
