@@ -15,6 +15,7 @@ on:
       - "supabase/migrations/20260909062000_product_slug_redirects.sql"
       - "tests/integration/product-slug-redirect.test.ts"
       - "tests/integration/product-seo-brand.test.ts"
+      - "tests/integration/product-canonical-list-links.test.ts"
       - "tests/integration/seo-redirect-release-source-contract.test.ts"
       - "scripts/verify-seo-redirect-production.mjs"
       - ".github/workflows/seo-redirect-release-gate.yml"
@@ -31,6 +32,7 @@ on:
       - "supabase/migrations/20260909062000_product_slug_redirects.sql"
       - "tests/integration/product-slug-redirect.test.ts"
       - "tests/integration/product-seo-brand.test.ts"
+      - "tests/integration/product-canonical-list-links.test.ts"
       - "tests/integration/seo-redirect-release-source-contract.test.ts"
       - "scripts/verify-seo-redirect-production.mjs"
       - ".github/workflows/seo-redirect-release-gate.yml"
@@ -64,6 +66,7 @@ jobs:
           bunx vitest run \
             tests/integration/product-slug-redirect.test.ts \
             tests/integration/product-seo-brand.test.ts \
+            tests/integration/product-canonical-list-links.test.ts \
             tests/integration/seo-redirect-release-source-contract.test.ts
 
       - name: Validate production verifier
