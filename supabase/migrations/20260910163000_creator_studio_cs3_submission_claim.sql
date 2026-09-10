@@ -51,14 +51,23 @@ declare
   v_job public.creator_studio_render_jobs%rowtype;
   v_hash text;
 begin
-  select j.*, s.callback_secret_hash into v_job, v_hash
-  from public.creator_studio_render_jobs j
-  join public.creator_studio_provider_state s on s.render_job_id = j.id
-  where j.id = _render_job_id
-  for update of j;
+  select * into v_job
+  from public.creator_studio_render_jobs
+  where id = _render_job_id
+  for update;
 
   if v_job.id is null then return false; end if;
-  if v_job.status <> 'QUEUED' then return v_job.provider_job_id = _provider_job_id; end if;
+
+  select callback_secret_hash into v_hash
+  from public.creator_studio_provider_state
+  where render_job_id = _render_job_id;
+
+  if v_hash is null then
+    raise exception 'creator_studio_callback_claim_missing';
+  end if;
+  if v_job.status <> 'QUEUED' then
+    return v_job.provider_job_id = _provider_job_id;
+  end if;
   if v_hash is distinct from _callback_secret_hash then
     raise exception 'creator_studio_callback_claim_mismatch';
   end if;
