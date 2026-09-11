@@ -1,0 +1,40 @@
+name: SEO Phase 2 Hardening Verification
+
+on:
+  push:
+    branches:
+      - "seo/phase2-server-boundary-hardening"
+    paths:
+      - "src/lib/product-seo-admin.functions.ts"
+      - "src/routes/_authenticated/admin.academy.product-seo.tsx"
+      - "tests/integration/product-seo-phase2-source-contract.test.ts"
+      - ".github/workflows/seo-phase2-hardening-verify-temp.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify Phase 2 server boundary and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run Phase 2 source contract
+        run: bunx vitest run tests/integration/product-seo-phase2-source-contract.test.ts
+
+      - name: Typecheck
+        run: bunx tsc --noEmit
+
+      - name: Production build
+        run: bun run build
