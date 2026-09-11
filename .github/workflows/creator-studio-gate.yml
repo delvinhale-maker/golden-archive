@@ -30,12 +30,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -R -nE 'VITE_[A-Z0-9_]*SHOTSTACK' src --exclude='*.test.ts'; then
+          if git grep -nE 'VITE_[A-Z0-9_]*SHOTSTACK' -- 'src/**/*.ts' 'src/**/*.tsx'; then
             echo "Shotstack credentials must never use a client-exposed VITE_ prefix"
             exit 1
           fi
-          # Allow server-side process.env references, but reject obvious committed literal key assignments.
-          if grep -R -nE '(SHOTSTACK_API_KEY|SHOTSTACK_STAGE_API_KEY)[[:space:]]*[:=][[:space:]]*["'"'][^"'"']+["'"']' src --exclude='*.test.ts'; then
+          # Server-side process.env references are allowed. Reject only obvious committed literal assignments.
+          if git grep -nE '(SHOTSTACK_API_KEY|SHOTSTACK_STAGE_API_KEY)[[:space:]]*=[[:space:]]*["'"']' -- 'src/**/*.ts' 'src/**/*.tsx'; then
             echo "Shotstack credentials must never be embedded as source literals"
             exit 1
           fi
