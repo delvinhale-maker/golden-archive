@@ -1,0 +1,59 @@
+name: Creator Studio Release Gate
+
+on:
+  pull_request:
+    branches: ["**"]
+    paths:
+      - "src/lib/creator-studio*"
+      - "src/routes/_authenticated/creator-studio*"
+      - "src/routes/api/creator-studio-*"
+      - "docs/proposed-migrations/*creator_studio*"
+      - "docs/creator-studio-build-plan.md"
+      - ".github/workflows/creator-studio-gate.yml"
+  workflow_dispatch:
+
+jobs:
+  creator-studio-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Provider secret/client safety check
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -nE 'VITE_[A-Z0-9_]*SHOTSTACK' -- 'src/**/*.ts' 'src/**/*.tsx'; then
+            echo "Shotstack credentials must never use a client-exposed VITE_ prefix"
+            exit 1
+          fi
+          # Server-side process.env references are allowed. Reject committed direct key assignments.
+          if git grep -nE '(SHOTSTACK_API_KEY|SHOTSTACK_STAGE_API_KEY)[[:space:]]*=' -- 'src/**/*.ts' 'src/**/*.tsx'; then
+            echo "Shotstack credentials must never be embedded as source literals"
+            exit 1
+          fi
+          # Exclude this gate file so the literal test expression does not match itself.
+          if grep -R -n 'CREATOR_STUDIO_SHOTSTACK_PRODUCTION_ENABLED: "true"' .github --include='*.yml' --include='*.yaml' --exclude='creator-studio-gate.yml'; then
+            echo "Production provider rendering must not be hard-enabled in committed workflow configuration"
+            exit 1
+          fi
+
+      - name: Creator Studio unit tests
+        run: bunx vitest run src/lib/creator-studio-template-engine.test.ts src/lib/creator-studio-entitlements.test.ts src/lib/creator-studio-rendering.test.ts
+
+      - name: Build
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+          CREATOR_STUDIO_ENABLED: "false"
+          CREATOR_STUDIO_PROVIDER_ENABLED: "false"
+          CREATOR_STUDIO_SHOTSTACK_PRODUCTION_ENABLED: "false"
