@@ -34,8 +34,8 @@ jobs:
             echo "Shotstack credentials must never use a client-exposed VITE_ prefix"
             exit 1
           fi
-          # Server-side process.env references are allowed. Reject only obvious committed literal assignments.
-          if git grep -nE '(SHOTSTACK_API_KEY|SHOTSTACK_STAGE_API_KEY)[[:space:]]*=[[:space:]]*["'"']' -- 'src/**/*.ts' 'src/**/*.tsx'; then
+          # Server-side process.env references are allowed. Reject committed direct key assignments.
+          if git grep -nE '(SHOTSTACK_API_KEY|SHOTSTACK_STAGE_API_KEY)[[:space:]]*=' -- 'src/**/*.ts' 'src/**/*.tsx'; then
             echo "Shotstack credentials must never be embedded as source literals"
             exit 1
           fi
