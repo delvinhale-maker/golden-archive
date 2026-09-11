@@ -85,6 +85,14 @@ describe("Phase 2 product SEO contract", () => {
       expect(patchBody).toContain(allowed);
     }
     expect(adminRoute).toContain('as any)\n      .update(patch)');
+    expect(adminRoute).toContain('seo_robots_index: z.boolean().optional()');
+    expect(adminRoute).toContain('seo_robots_follow: z.boolean().optional()');
+    expect(adminRoute).not.toContain('seo_robots_index: z.boolean().optional().default(true)');
+    expect(adminRoute).not.toContain('seo_robots_follow: z.boolean().optional().default(true)');
+    expect(patchBody).toContain('payload.seo_robots_index !== undefined');
+    expect(patchBody).toContain('payload.seo_robots_follow !== undefined');
+    expect(patchBody).toContain('payload.seo_title !== undefined');
+    expect(patchBody).toContain('payload.seo_secondary_keywords !== undefined');
   });
 
   it("maps product-detail SEO fields without bloating list SELECTs", () => {

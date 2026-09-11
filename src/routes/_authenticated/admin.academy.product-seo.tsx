@@ -44,8 +44,8 @@ const ProductSeoPayloadSchema = z
     seo_image_alt: optionalText(300),
     seo_og_title: optionalText(200),
     seo_og_description: optionalText(500),
-    seo_robots_index: z.boolean().optional().default(true),
-    seo_robots_follow: z.boolean().optional().default(true),
+    seo_robots_index: z.boolean().optional(),
+    seo_robots_follow: z.boolean().optional(),
   })
   .superRefine((value, ctx) => {
     if (!value.product_id && !value.product_slug) {
@@ -218,8 +218,12 @@ function ProductSeoEditor() {
       ...(payload.seo_og_description !== undefined
         ? { seo_og_description: normalizeNullable(payload.seo_og_description) }
         : {}),
-      seo_robots_index: payload.seo_robots_index,
-      seo_robots_follow: payload.seo_robots_follow,
+      ...(payload.seo_robots_index !== undefined
+        ? { seo_robots_index: payload.seo_robots_index }
+        : {}),
+      ...(payload.seo_robots_follow !== undefined
+        ? { seo_robots_follow: payload.seo_robots_follow }
+        : {}),
       seo_updated_at: new Date().toISOString(),
     };
 
