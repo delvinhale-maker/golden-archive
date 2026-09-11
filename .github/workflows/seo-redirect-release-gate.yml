@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - "release/seo-redirect-foundation"
+      - "seo/**"
     paths:
       - "src/lib/categories.ts"
       - "src/lib/marketplace.functions.ts"
