@@ -47,6 +47,13 @@ type DbProductRow = {
   preview_pages?: number[] | null;
   product_type?: string | null;
   delivery_contents?: string[] | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_image_alt?: string | null;
+  seo_og_title?: string | null;
+  seo_og_description?: string | null;
+  seo_robots_index?: boolean | null;
+  seo_robots_follow?: boolean | null;
 };
 
 export function parseWhatsIncluded(adminNotes?: string | null): string[] | undefined {
@@ -108,6 +115,17 @@ function dbRowToProduct(r: DbProductRow): Product {
     fileExt: (r.file_path ?? "").split(".").pop()?.toLowerCase() ?? null,
     productType: r.product_type ?? null,
     deliveryContents: Array.isArray(r.delivery_contents) ? r.delivery_contents : [],
+    ...(Object.prototype.hasOwnProperty.call(r, "seo_title")
+      ? {
+          seoTitle: r.seo_title?.trim() || null,
+          seoDescription: r.seo_description?.trim() || null,
+          seoImageAlt: r.seo_image_alt?.trim() || null,
+          seoOgTitle: r.seo_og_title?.trim() || null,
+          seoOgDescription: r.seo_og_description?.trim() || null,
+          seoRobotsIndex: r.seo_robots_index ?? true,
+          seoRobotsFollow: r.seo_robots_follow ?? true,
+        }
+      : {}),
   };
 }
 
@@ -358,6 +376,17 @@ export type Product = {
   productType?: string | null;
   /** What the buyer receives (formats/assets) — descriptive, not taxonomy. */
   deliveryContents?: string[];
+  /** SEO Phase 2 overrides populated on product-detail reads only. */
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  seoImageAlt?: string | null;
+  seoOgTitle?: string | null;
+  seoOgDescription?: string | null;
+  seoRobotsIndex?: boolean;
+  seoRobotsFollow?: boolean;
+  /** Internal planning-only fields; never selected into public product reads. */
+  seoFocusKeyword?: never;
+  seoSecondaryKeywords?: never;
 };
 
 export type ProductReviewSnippet = {
@@ -722,7 +751,7 @@ export const getProduct = createServerFn({ method: "GET" })
     // "exists but is not yet published/approved" despite RLS policies.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const detailSelect =
-      "id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages" as const;
+      "id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages,seo_title,seo_description,seo_image_alt,seo_og_title,seo_og_description,seo_robots_index,seo_robots_follow" as const;
 
     const direct = await supabaseAdmin
       .from("marketplace_products")
