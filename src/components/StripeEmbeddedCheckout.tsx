@@ -6,6 +6,10 @@ import {
   createCartCheckout,
   createBundleCheckout,
 } from "@/lib/payments.functions";
+import {
+  createExtraCreditCheckoutFn,
+  createSubscriptionCheckoutFn,
+} from "@/lib/creator-studio/billing.functions";
 import { getStoredRef } from "@/lib/referral";
 import type { CartItem } from "@/hooks/use-av-store";
 import { AlertCircle, Loader2 } from "lucide-react";
@@ -185,6 +189,50 @@ export function StripeEmbeddedBundleCheckout({ bundleId, returnUrl }: BundleProp
           `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
         environment: getStripeEnvironment(),
         referralCode: getStoredRef() ?? undefined,
+      },
+    });
+    if ("error" in result) throw new Error(result.error);
+    if (!result.clientSecret) throw new Error("Stripe did not return a client secret");
+    return result.clientSecret;
+  };
+
+  return <CheckoutFrame fetchClientSecret={fetchClientSecret} />;
+}
+
+interface CreatorStudioExtraCreditProps {
+  returnUrl?: string;
+}
+
+/** One extra Creator Studio video credit, one-time purchase (mode:"payment", reusing the same checkout primitive as every other one-time purchase in this file). */
+export function StripeEmbeddedCreatorStudioExtraCreditCheckout({ returnUrl }: CreatorStudioExtraCreditProps) {
+  const fetchClientSecret = async (): Promise<string> => {
+    const result = await createExtraCreditCheckoutFn({
+      data: {
+        returnUrl: returnUrl ?? `${window.location.origin}/creator-studio/library?upgraded=1`,
+        environment: getStripeEnvironment(),
+      },
+    });
+    if ("error" in result) throw new Error(result.error);
+    if (!result.clientSecret) throw new Error("Stripe did not return a client secret");
+    return result.clientSecret;
+  };
+
+  return <CheckoutFrame fetchClientSecret={fetchClientSecret} />;
+}
+
+interface CreatorStudioSubscriptionProps {
+  plan: "CREATOR_PRO" | "CREATOR_BUSINESS";
+  returnUrl?: string;
+}
+
+/** Creator Studio Pro/Business subscription (mode:"subscription") -- the repo's first recurring-billing checkout; see billing.functions.ts's header comment for why. */
+export function StripeEmbeddedCreatorStudioSubscriptionCheckout({ plan, returnUrl }: CreatorStudioSubscriptionProps) {
+  const fetchClientSecret = async (): Promise<string> => {
+    const result = await createSubscriptionCheckoutFn({
+      data: {
+        plan,
+        returnUrl: returnUrl ?? `${window.location.origin}/creator-studio/library?upgraded=1`,
+        environment: getStripeEnvironment(),
       },
     });
     if ("error" in result) throw new Error(result.error);

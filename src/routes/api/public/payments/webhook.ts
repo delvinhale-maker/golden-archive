@@ -1,7 +1,7 @@
 import * as React from "react";
 import { render } from "react-email";
 import { createFileRoute } from "@tanstack/react-router";
-import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
+import { type StripeEnv, verifyWebhook, createStripeClient } from "@/lib/stripe.server";
 import { TEMPLATES } from "@/lib/email-templates/registry";
 
 const PUBLIC_BASE_URL = "https://www.aurumvault.store";
@@ -16,6 +16,102 @@ function generateToken(): string {
   return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+/**
+ * Creator Studio checkout fulfillment (extra video credits, Pro/Business
+ * subscriptions). Kept entirely separate from the `orders` table used by
+ * every other checkout below -- Creator Studio entitlements have their own
+ * ledger (creator_studio_usage_ledger) and their own idempotency key (the
+ * Stripe event/session id, checked inside the RPC), so this never touches
+ * `orders`, seller payouts, or any of the existing fulfillment paths.
+ */
+export async function handleCreatorStudioCheckoutCompleted(session: any, env: StripeEnv) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const kind = session.metadata?.creator_studio_kind as string | undefined;
+  const userId = session.metadata?.creator_studio_user_id as string | undefined;
+  if (!kind || !userId) {
+    console.error("Creator Studio checkout missing kind/user_id metadata", session.id);
+    return;
+  }
+  const stripeCustomerId = typeof session.customer === "string" ? session.customer : null;
+
+  if (kind === "EXTRA_CREDIT") {
+    await supabaseAdmin.rpc("creator_studio_apply_stripe_fulfillment" as any, {
+      p_user_id: userId,
+      p_kind: "EXTRA_CREDIT",
+      p_stripe_event_id: session.id,
+      p_extra_credits: 1,
+      p_stripe_customer_id: stripeCustomerId,
+    });
+    return;
+  }
+
+  if (kind === "SUBSCRIPTION_PRO" || kind === "SUBSCRIPTION_BUSINESS") {
+    let periodEnd: string | null = null;
+    const subscriptionId = typeof session.subscription === "string" ? session.subscription : null;
+    try {
+      const stripe = createStripeClient(env);
+      if (subscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        periodEnd = new Date((subscription as any).current_period_end * 1000).toISOString();
+      }
+    } catch (e) {
+      console.error("Failed to read subscription period for Creator Studio fulfillment", e);
+    }
+
+    await supabaseAdmin.rpc("creator_studio_apply_stripe_fulfillment" as any, {
+      p_user_id: userId,
+      p_kind: kind,
+      p_stripe_event_id: session.id,
+      p_period_end: periodEnd,
+      p_stripe_customer_id: stripeCustomerId,
+      p_stripe_subscription_id: subscriptionId,
+    });
+  }
+}
+
+/** customer.subscription.deleted -- cancellation, at-period-end or immediate. Downgrades to FREE. */
+export async function handleCreatorStudioSubscriptionDeleted(subscription: any) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: row } = await supabaseAdmin
+    .from("creator_studio_entitlements" as any)
+    .select("user_id")
+    .eq("stripe_subscription_id", subscription.id)
+    .maybeSingle();
+  if (!row) return;
+  await supabaseAdmin.rpc("creator_studio_apply_stripe_fulfillment" as any, {
+    p_user_id: (row as any).user_id,
+    p_kind: "SUBSCRIPTION_CANCELLED",
+    p_stripe_event_id: `sub_deleted_${subscription.id}_${subscription.canceled_at ?? subscription.current_period_end ?? "0"}`,
+  });
+}
+
+/**
+ * customer.subscription.updated fires on renewal AND on unrelated changes
+ * (payment method swap, plan metadata edit, etc.) -- only reset the quota
+ * when the billing period actually advanced past what we already recorded,
+ * so an unrelated update never grants a free extra reset.
+ */
+export async function handleCreatorStudioSubscriptionRenewed(subscription: any) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: row } = await supabaseAdmin
+    .from("creator_studio_entitlements" as any)
+    .select("user_id,plan,period_end")
+    .eq("stripe_subscription_id", subscription.id)
+    .maybeSingle();
+  if (!row || (row as any).plan === "FREE") return;
+  const newPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
+  const existingPeriodEnd = (row as any).period_end as string | null;
+  if (existingPeriodEnd && new Date(existingPeriodEnd).getTime() >= new Date(newPeriodEnd).getTime()) return;
+
+  await supabaseAdmin.rpc("creator_studio_apply_stripe_fulfillment" as any, {
+    p_user_id: (row as any).user_id,
+    p_kind: (row as any).plan,
+    p_stripe_event_id: `sub_renewed_${subscription.id}_${subscription.current_period_end}`,
+    p_period_end: newPeriodEnd,
+    p_stripe_subscription_id: subscription.id,
+  });
 }
 
 export async function handleCheckoutCompleted(session: any, env: StripeEnv) {
@@ -942,7 +1038,16 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
         try {
           const event = await verifyWebhook(request, env);
           if (event.type === "checkout.session.completed") {
-            await handleCheckoutCompleted(event.data.object, env);
+            const session = event.data.object as any;
+            if (session.metadata?.creator_studio_kind) {
+              await handleCreatorStudioCheckoutCompleted(session, env);
+            } else {
+              await handleCheckoutCompleted(session, env);
+            }
+          } else if (event.type === "customer.subscription.deleted") {
+            await handleCreatorStudioSubscriptionDeleted(event.data.object);
+          } else if (event.type === "customer.subscription.updated") {
+            await handleCreatorStudioSubscriptionRenewed(event.data.object);
           } else {
             console.log("Unhandled event:", event.type);
           }
