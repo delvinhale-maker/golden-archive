@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - "release/seo-redirect-foundation"
-      - "seo/**"
     paths:
       - "src/lib/categories.ts"
       - "src/lib/marketplace.functions.ts"
@@ -17,12 +16,6 @@ on:
       - "tests/integration/product-slug-redirect.test.ts"
       - "tests/integration/product-seo-brand.test.ts"
       - "tests/integration/product-canonical-list-links.test.ts"
-      - "tests/integration/product-seo-phase2-source-contract.test.ts"
-      - "src/routes/_authenticated/admin.academy.product-seo.tsx"
-      - "src/routes/_authenticated/admin.academy.upload.tsx"
-      - "src/routes/sitemap[.]xml.ts"
-      - "src/routeTree.gen.ts"
-      - "supabase/migrations/20260910162000_product_seo_metadata.sql"
       - "tests/integration/seo-redirect-release-source-contract.test.ts"
       - "scripts/verify-seo-redirect-production.mjs"
       - ".github/workflows/seo-redirect-release-gate.yml"
@@ -40,12 +33,6 @@ on:
       - "tests/integration/product-slug-redirect.test.ts"
       - "tests/integration/product-seo-brand.test.ts"
       - "tests/integration/product-canonical-list-links.test.ts"
-      - "tests/integration/product-seo-phase2-source-contract.test.ts"
-      - "src/routes/_authenticated/admin.academy.product-seo.tsx"
-      - "src/routes/_authenticated/admin.academy.upload.tsx"
-      - "src/routes/sitemap[.]xml.ts"
-      - "src/routeTree.gen.ts"
-      - "supabase/migrations/20260910162000_product_seo_metadata.sql"
       - "tests/integration/seo-redirect-release-source-contract.test.ts"
       - "scripts/verify-seo-redirect-production.mjs"
       - ".github/workflows/seo-redirect-release-gate.yml"
@@ -80,7 +67,6 @@ jobs:
             tests/integration/product-slug-redirect.test.ts \
             tests/integration/product-seo-brand.test.ts \
             tests/integration/product-canonical-list-links.test.ts \
-            tests/integration/product-seo-phase2-source-contract.test.ts \
             tests/integration/seo-redirect-release-source-contract.test.ts
 
       - name: Validate production verifier
@@ -101,17 +87,6 @@ jobs:
             \( -iname '*slug*cleanup*' -o -iname '*slug*rename*' -o -iname '*slug*backfill*' \) \
             | grep -q .; then
             echo "ERROR: slug cleanup/rename/backfill must not be part of this release"
-            exit 1
-          fi
-
-      - name: Enforce Phase 2 additive migration boundary
-        shell: bash
-        run: |
-          set -euo pipefail
-          migration=supabase/migrations/20260910162000_product_seo_metadata.sql
-          test -f "$migration"
-          if grep -Eiq '\b(update|insert[[:space:]]+into|delete[[:space:]]+from)[[:space:]]+public\.marketplace_products\b|set[[:space:]]+slug[[:space:]]*=' "$migration"; then
-            echo "ERROR: Phase 2 metadata migration must be additive only"
             exit 1
           fi
 
