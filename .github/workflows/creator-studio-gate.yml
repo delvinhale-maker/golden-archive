@@ -39,9 +39,8 @@ jobs:
             echo "Shotstack credentials must never be embedded as source literals"
             exit 1
           fi
-          # Runtime comparison against the string "true" is expected in server code.
-          # Reject only committed workflow configuration that explicitly enables production rendering.
-          if grep -R -n 'CREATOR_STUDIO_SHOTSTACK_PRODUCTION_ENABLED: "true"' .github --include='*.yml' --include='*.yaml'; then
+          # Exclude this gate file so the literal test expression does not match itself.
+          if grep -R -n 'CREATOR_STUDIO_SHOTSTACK_PRODUCTION_ENABLED: "true"' .github --include='*.yml' --include='*.yaml' --exclude='creator-studio-gate.yml'; then
             echo "Production provider rendering must not be hard-enabled in committed workflow configuration"
             exit 1
           fi
