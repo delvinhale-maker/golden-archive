@@ -39,3 +39,14 @@ export function buildFallbackProductDescription(product: {
   }
   return `Explore ${title}, a digital resource available on AurumVault.`;
 }
+
+export function resolveProductBrandName(input: {
+  creatorName?: string | null;
+  creatorVerified?: boolean;
+  isAurumVaultOwned?: boolean;
+}): string | undefined {
+  if (input.isAurumVaultOwned) return "AurumVault";
+  const creator = input.creatorName?.trim();
+  if (input.creatorVerified && creator) return creator;
+  return undefined;
+}

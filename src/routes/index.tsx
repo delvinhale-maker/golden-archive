@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { CanvaHomeBanner } from "@/components/marketplace/CanvaHomeBanner";
+import { QrCodeHomeBanner } from "@/components/marketplace/QrCodeHomeBanner";
 import {
   ProductCard,
   ProductCardSkeleton,
@@ -278,6 +279,10 @@ function Home() {
 
       <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
         <CanvaHomeBanner />
+      </div>
+
+      <div className="mx-auto w-full max-w-7xl px-6 pt-6 lg:px-8">
+        <QrCodeHomeBanner />
       </div>
 
       <RefreshHighlightsBar />
