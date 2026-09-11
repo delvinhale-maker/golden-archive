@@ -27,14 +27,21 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Provider secret/client safety check
+        shell: bash
         run: |
-          if grep -R "VITE_.*SHOTSTACK\|SHOTSTACK_API_KEY.*=" src --exclude='*.test.ts'; then
-            echo "Shotstack credentials must never be client-prefixed or embedded in source"
+          set -euo pipefail
+          if grep -R -nE 'VITE_[A-Z0-9_]*SHOTSTACK' src --exclude='*.test.ts'; then
+            echo "Shotstack credentials must never use a client-exposed VITE_ prefix"
+            exit 1
+          fi
+          # Allow server-side process.env references, but reject obvious committed literal key assignments.
+          if grep -R -nE '(SHOTSTACK_API_KEY|SHOTSTACK_STAGE_API_KEY)[[:space:]]*[:=][[:space:]]*["'"'][^"'"']+["'"']' src --exclude='*.test.ts'; then
+            echo "Shotstack credentials must never be embedded as source literals"
             exit 1
           fi
           # Runtime comparison against the string "true" is expected in server code.
           # Reject only committed workflow configuration that explicitly enables production rendering.
-          if grep -R 'CREATOR_STUDIO_SHOTSTACK_PRODUCTION_ENABLED: "true"' .github --include='*.yml' --include='*.yaml'; then
+          if grep -R -n 'CREATOR_STUDIO_SHOTSTACK_PRODUCTION_ENABLED: "true"' .github --include='*.yml' --include='*.yaml'; then
             echo "Production provider rendering must not be hard-enabled in committed workflow configuration"
             exit 1
           fi
