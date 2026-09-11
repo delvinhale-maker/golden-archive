@@ -1,0 +1,431 @@
+name: SEO Phase 2 Harden Apply
+
+on:
+  push:
+    branches:
+      - seo/phase2-harden-staging2
+    paths:
+      - .github/workflows/seo-phase2-harden-apply.yml
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: seo/phase2-harden-staging2
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Apply deterministic Phase 2 hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cat > src/lib/product-seo-admin.functions.ts <<'EOF'
+          import { createServerFn } from "@tanstack/react-start";
+          import { z } from "zod";
+          import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+          const cleanSlug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+          const nullableText = (max: number) =>
+            z
+              .union([z.string(), z.null(), z.undefined()])
+              .transform((value) => {
+                if (value === undefined) return undefined;
+                if (value === null) return null;
+                const trimmed = value.trim();
+                return trimmed || null;
+              })
+              .refine((value) => value == null || value.length <= max, {
+                message: `must be ${max} characters or fewer`,
+              });
+
+          const keywordList = z
+            .union([z.array(z.string()), z.string(), z.null(), z.undefined()])
+            .transform((value) => {
+              if (value === undefined) return undefined;
+              if (value === null) return [] as string[];
+              const raw = Array.isArray(value) ? value : value.split(",");
+              return [...new Set(raw.map((item) => String(item).trim()).filter(Boolean))].slice(0, 50);
+            });
+
+          const TargetSchema = z
+            .object({
+              product_id: z.string().uuid().optional(),
+              product_slug: z.string().trim().regex(cleanSlug).optional(),
+            })
+            .refine((value) => Boolean(value.product_id || value.product_slug), {
+              message: "product_id or product_slug is required",
+              path: ["product_id"],
+            });
+
+          const SaveSchema = TargetSchema.and(
+            z.object({
+              seo_title: nullableText(200),
+              seo_description: nullableText(500),
+              seo_focus_keyword: nullableText(200),
+              seo_secondary_keywords: keywordList,
+              seo_image_alt: nullableText(300),
+              seo_og_title: nullableText(200),
+              seo_og_description: nullableText(500),
+              seo_robots_index: z.boolean().optional(),
+              seo_robots_follow: z.boolean().optional(),
+            }),
+          );
+
+          export type ProductSeoTarget = {
+            id: string;
+            title: string;
+            slug: string | null;
+            status: string;
+            published: boolean;
+          };
+
+          async function assertAdmin(userId: string) {
+            const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+            const { data, error } = await supabaseAdmin
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", userId)
+              .eq("role", "admin")
+              .maybeSingle();
+            if (error || !data) throw new Error("forbidden");
+          }
+
+          async function resolveTarget(input: z.infer<typeof TargetSchema>): Promise<ProductSeoTarget> {
+            const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+            let query = supabaseAdmin
+              .from("marketplace_products")
+              .select("id,title,slug,status,published");
+            if (input.product_id) query = query.eq("id", input.product_id);
+            if (input.product_slug) query = query.eq("slug", input.product_slug);
+            const { data, error } = await query.limit(2);
+            if (error) throw new Error(error.message);
+            if (!data || data.length === 0) throw new Error("No product matched that product_id/product_slug");
+            if (data.length !== 1) throw new Error("The selector matched more than one product; use product_id");
+            const row = data[0];
+            return {
+              id: row.id,
+              title: row.title,
+              slug: row.slug ?? null,
+              status: row.status,
+              published: row.published,
+            };
+          }
+
+          export const resolveProductSeoTarget = createServerFn({ method: "POST" })
+            .middleware([requireSupabaseAuth])
+            .inputValidator((input: unknown) => TargetSchema.parse(input))
+            .handler(async ({ data, context }): Promise<ProductSeoTarget> => {
+              await assertAdmin(context.userId);
+              return resolveTarget(data);
+            });
+
+          export const saveProductSeoMetadata = createServerFn({ method: "POST" })
+            .middleware([requireSupabaseAuth])
+            .inputValidator((input: unknown) => SaveSchema.parse(input))
+            .handler(async ({ data, context }): Promise<ProductSeoTarget> => {
+              await assertAdmin(context.userId);
+              const product = await resolveTarget({
+                product_id: data.product_id,
+                product_slug: data.product_slug,
+              });
+              const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+              const patch: Record<string, unknown> = {
+                seo_updated_at: new Date().toISOString(),
+              };
+              if (data.seo_title !== undefined) patch.seo_title = data.seo_title;
+              if (data.seo_description !== undefined) patch.seo_description = data.seo_description;
+              if (data.seo_focus_keyword !== undefined) patch.seo_focus_keyword = data.seo_focus_keyword;
+              if (data.seo_secondary_keywords !== undefined) patch.seo_secondary_keywords = data.seo_secondary_keywords;
+              if (data.seo_image_alt !== undefined) patch.seo_image_alt = data.seo_image_alt;
+              if (data.seo_og_title !== undefined) patch.seo_og_title = data.seo_og_title;
+              if (data.seo_og_description !== undefined) patch.seo_og_description = data.seo_og_description;
+              if (data.seo_robots_index !== undefined) patch.seo_robots_index = data.seo_robots_index;
+              if (data.seo_robots_follow !== undefined) patch.seo_robots_follow = data.seo_robots_follow;
+
+              const { error } = await (supabaseAdmin.from("marketplace_products") as any)
+                .update(patch)
+                .eq("id", product.id);
+              if (error) throw new Error(error.message);
+              return product;
+            });
+          EOF
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          route = Path('src/routes/_authenticated/admin.academy.product-seo.tsx')
+          s = route.read_text()
+          if 'useServerFn' not in s:
+              s = s.replace(
+                  'import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";\n',
+                  'import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";\nimport { useServerFn } from "@tanstack/react-start";\n',
+                  1,
+              )
+          if 'product-seo-admin.functions' not in s:
+              s = s.replace(
+                  'import { useAuth } from "@/hooks/use-auth";\n',
+                  'import { useAuth } from "@/hooks/use-auth";\nimport { resolveProductSeoTarget, saveProductSeoMetadata } from "@/lib/product-seo-admin.functions";\n',
+                  1,
+              )
+          marker = 'function ProductSeoEditor() {\n'
+          if marker not in s:
+              raise SystemExit('ProductSeoEditor marker missing')
+          if 'useServerFn(saveProductSeoMetadata)' not in s:
+              s = s.replace(
+                  marker,
+                  marker + '  const resolveSeoTarget = useServerFn(resolveProductSeoTarget);\n  const saveSeoServer = useServerFn(saveProductSeoMetadata);\n',
+                  1,
+              )
+
+          start = s.index('  async function parseAndResolve(')
+          end = s.index('  async function onFile(', start)
+          replacement = '''  async function parseAndResolve(text = rawJson) {
+            setErrors([]);
+            setPayload(null);
+            setProduct(null);
+            let decoded: unknown;
+            try {
+              decoded = JSON.parse(text.replace(/^\\uFEFF/, "").trim());
+            } catch {
+              setErrors(["The content is not valid JSON."]);
+              return;
+            }
+            if (Array.isArray(decoded)) {
+              setErrors(["Upload one product SEO object at a time, not an array."]);
+              return;
+            }
+            const parsed = ProductSeoPayloadSchema.safeParse(decoded);
+            if (!parsed.success) {
+              setErrors(parsed.error.issues.map((issue) => `${issue.path.join(".") || "payload"}: ${issue.message}`));
+              return;
+            }
+            setResolving(true);
+            try {
+              const resolved = await resolveSeoTarget({
+                data: {
+                  product_id: parsed.data.product_id,
+                  product_slug: parsed.data.product_slug,
+                },
+              });
+              setPayload(parsed.data);
+              setProduct(resolved);
+              toast.success("Product resolved. Review the SEO-only patch before saving.");
+            } catch (error) {
+              setErrors([error instanceof Error ? error.message : "Could not resolve that product."]);
+            } finally {
+              setResolving(false);
+            }
+          }
+
+          async function saveSeo() {
+            if (!payload || !product) return;
+            setSaving(true);
+            try {
+              await saveSeoServer({
+                data: {
+                  product_id: product.id,
+                  seo_title: payload.seo_title,
+                  seo_description: payload.seo_description,
+                  seo_focus_keyword: payload.seo_focus_keyword,
+                  seo_secondary_keywords: payload.seo_secondary_keywords,
+                  seo_image_alt: payload.seo_image_alt,
+                  seo_og_title: payload.seo_og_title,
+                  seo_og_description: payload.seo_og_description,
+                  seo_robots_index: payload.seo_robots_index,
+                  seo_robots_follow: payload.seo_robots_follow,
+                },
+              });
+              toast.success(`SEO metadata saved for “${product.title}”.`);
+            } catch (error) {
+              toast.error(error instanceof Error ? error.message : "Could not save SEO metadata.");
+            } finally {
+              setSaving(false);
+            }
+          }
+
+'''
+          s = s[:start] + replacement + s[end:]
+          if '.from("marketplace_products")' in s[s.index('function ProductSeoEditor'):]:
+              raise SystemExit('browser marketplace_products access remains in ProductSeoEditor')
+          route.write_text(s)
+
+          wf = Path('.github/workflows/seo-redirect-release-gate.yml')
+          w = wf.read_text()
+          path_anchor = '      - "tests/integration/product-canonical-list-links.test.ts"\n'
+          additions = (
+              '      - "src/lib/product-seo-admin.functions.ts"\n'
+              '      - "src/routes/_authenticated/admin.academy.product-seo.tsx"\n'
+              '      - "src/routes/_authenticated/admin.academy.upload.tsx"\n'
+              '      - "src/routes/sitemap[.]xml.ts"\n'
+              '      - "supabase/migrations/20260910162000_product_seo_metadata.sql"\n'
+              '      - "tests/integration/product-seo-phase2-source-contract.test.ts"\n'
+          )
+          # Add to both push and pull_request path blocks exactly once each.
+          parts = w.split(path_anchor)
+          if len(parts) != 3:
+              raise SystemExit(f'unexpected canonical path anchor count: {len(parts)-1}')
+          w = parts[0] + path_anchor + additions + parts[1] + path_anchor + additions + parts[2]
+          test_anchor = '            tests/integration/product-canonical-list-links.test.ts \\\n'
+          if test_anchor not in w:
+              raise SystemExit('test command anchor missing')
+          w = w.replace(
+              test_anchor,
+              test_anchor + '            tests/integration/product-seo-phase2-source-contract.test.ts \\\n',
+              1,
+          )
+          wf.write_text(w)
+          PY
+
+          cat > tests/integration/product-seo-phase2-source-contract.test.ts <<'EOF'
+          import { describe, expect, it } from "vitest";
+          import fs from "node:fs";
+          import path from "node:path";
+
+          const root = process.cwd();
+          const read = (file: string) => fs.readFileSync(path.join(root, file), "utf8");
+          const migration = read("supabase/migrations/20260910162000_product_seo_metadata.sql");
+          const adminRoute = read("src/routes/_authenticated/admin.academy.product-seo.tsx");
+          const adminFn = read("src/lib/product-seo-admin.functions.ts");
+          const marketplace = read("src/lib/marketplace.functions.ts");
+          const productRoute = read("src/routes/products.$id.tsx");
+          const sitemap = read("src/routes/sitemap[.]xml.ts");
+          const upload = read("src/routes/_authenticated/admin.academy.upload.tsx");
+
+          describe("Phase 2 product SEO contract", () => {
+            it("adds exactly the additive SEO schema without product-row mutation", () => {
+              for (const column of [
+                "seo_title", "seo_description", "seo_focus_keyword", "seo_secondary_keywords",
+                "seo_image_alt", "seo_og_title", "seo_og_description", "seo_robots_index",
+                "seo_robots_follow", "seo_updated_at",
+              ]) expect(migration).toContain(column);
+              expect(migration.match(/add column if not exists/gi)?.length).toBe(10);
+              expect(migration).toContain("marketplace_products_seo_title_len");
+              expect(migration).toContain("marketplace_products_seo_description_len");
+              expect(migration).toContain("marketplace_products_seo_image_alt_len");
+              expect(migration).not.toMatch(/update\s+public\.marketplace_products/i);
+              expect(migration).not.toMatch(/insert\s+into\s+public\.marketplace_products/i);
+              expect(migration).not.toMatch(/delete\s+from\s+public\.marketplace_products/i);
+              expect(migration).not.toMatch(/set\s+slug\s*=/i);
+            });
+
+            it("keeps planning keywords internal and out of rendered metadata", () => {
+              expect(migration).toMatch(/Internal SEO planning field/i);
+              expect(migration).toMatch(/Internal SEO planning terms/i);
+              expect(productRoute).not.toMatch(/name:\s*["']keywords["']/i);
+              expect(productRoute).not.toMatch(/seoFocusKeyword/);
+              expect(productRoute).not.toMatch(/seoSecondaryKeywords/);
+            });
+
+            it("uses a server-authenticated admin boundary for resolve and save", () => {
+              expect(adminFn).toContain('createServerFn({ method: "POST" })');
+              expect(adminFn).toContain(".middleware([requireSupabaseAuth])");
+              expect(adminFn).toContain("await assertAdmin(context.userId)");
+              expect(adminFn).toContain('.from("user_roles")');
+              expect(adminFn).toContain('.eq("role", "admin")');
+              expect(adminRoute).toContain("useServerFn(resolveProductSeoTarget)");
+              expect(adminRoute).toContain("useServerFn(saveProductSeoMetadata)");
+              expect(adminRoute).not.toMatch(/\.from\("marketplace_products"\)/);
+              expect(adminRoute).not.toMatch(/\.update\(/);
+            });
+
+            it("requires id or clean slug and never resolves by title", () => {
+              expect(adminFn).toContain("product_id or product_slug is required");
+              expect(adminFn).toContain("cleanSlug");
+              expect(adminFn).not.toMatch(/\.eq\("title"/);
+              expect(adminFn).not.toMatch(/\.ilike\("title"/);
+              expect(adminRoute).toContain("product_id");
+              expect(adminRoute).toContain("product_slug");
+            });
+
+            it("restricts the write patch to SEO fields plus seo_updated_at", () => {
+              const patch = adminFn.slice(adminFn.indexOf("const patch:"), adminFn.indexOf("const { error }"));
+              for (const allowed of [
+                "seo_title", "seo_description", "seo_focus_keyword", "seo_secondary_keywords",
+                "seo_image_alt", "seo_og_title", "seo_og_description", "seo_robots_index",
+                "seo_robots_follow", "seo_updated_at",
+              ]) expect(patch).toContain(allowed);
+              for (const forbidden of ["slug", "title", "description", "category", "price_cents", "status", "published", "seller_id", "file_path"]) {
+                expect(patch).not.toMatch(new RegExp(`patch\\.${forbidden}\\b|${forbidden}\\s*:`));
+              }
+            });
+
+            it("maps detail-only overrides and preserves redirect handling", () => {
+              expect(marketplace).toMatch(/preview_pages[^\n]*seo_title,seo_description/);
+              expect(marketplace).toContain("seoTitle: r.seo_title?.trim() || null");
+              expect(marketplace).toContain("seoRobotsIndex: r.seo_robots_index ?? true");
+              expect(marketplace).toContain("resolve_product_slug_redirect");
+            });
+
+            it("uses SEO precedence while keeping Product JSON-LD descriptive", () => {
+              expect(productRoute).toContain("p?.seoTitle?.trim()");
+              expect(productRoute).toContain("p?.seoDescription?.trim()");
+              expect(productRoute).toContain("p?.seoOgTitle?.trim()");
+              expect(productRoute).toContain("p?.seoOgDescription?.trim()");
+              expect(productRoute).toContain("p?.seoImageAlt?.trim()");
+              expect(productRoute).toContain("p?.seoRobotsIndex === false");
+              expect(productRoute).toContain("p?.seoRobotsFollow === false");
+              expect(productRoute).toMatch(/description:\s*rawDesc/);
+            });
+
+            it("omits noindex products from sitemap and keeps Academy importer separate", () => {
+              expect(sitemap).toContain("seo_robots_index");
+              expect(sitemap).toContain("if (row.seo_robots_index === false) continue;");
+              expect(upload).toContain('to="/admin/academy/product-seo"');
+              expect(upload).toContain("Open the Product SEO editor");
+            });
+          });
+          EOF
+
+      - name: Verify hardened source contract
+        run: |
+          bunx vitest run \
+            tests/integration/product-seo-phase2-source-contract.test.ts \
+            tests/integration/product-slug-redirect.test.ts \
+            tests/integration/product-seo-brand.test.ts \
+            tests/integration/product-canonical-list-links.test.ts \
+            tests/integration/seo-redirect-release-source-contract.test.ts
+
+      - name: Typecheck
+        run: bunx tsgo --noEmit
+
+      - name: Production build
+        run: bun run build
+
+      - name: Validate diff
+        run: |
+          git diff --check
+          if grep -Eiq 'update[[:space:]]+public\.marketplace_products|set[[:space:]]+slug[[:space:]]*=' supabase/migrations/20260910162000_product_seo_metadata.sql; then
+            echo 'ERROR: Phase 2 migration mutates product rows or slugs'
+            exit 1
+          fi
+
+      - name: Commit hardened Phase 2 candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            src/lib/product-seo-admin.functions.ts \
+            src/routes/_authenticated/admin.academy.product-seo.tsx \
+            tests/integration/product-seo-phase2-source-contract.test.ts \
+            .github/workflows/seo-redirect-release-gate.yml
+          git diff --cached --quiet && { echo 'No hardened changes to commit'; exit 0; }
+          git commit -m 'fix(seo): enforce server-side Phase 2 admin boundary'
+          git push origin HEAD:seo/phase2-harden-staging2
