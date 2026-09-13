@@ -42,10 +42,13 @@ jobs:
           SESSION_JSON: ${{ secrets.AGENT_AUTHORITY_BROWSER_SUPABASE_SESSION_JSON }}
         run: |
           test -n "$STAGING_PROJECT_ID" || { echo "Missing dedicated Agent Authority staging project id"; exit 1; }
+          test -n "$PROD_PROJECT_ID" || { echo "Missing production project identity safety secret"; exit 1; }
+          test -n "$RIGHTS_PROJECT_ID" || { echo "Missing Digital Rights Passport staging identity safety secret"; exit 1; }
+          test "$STAGING_PROJECT_ID" != "ypelutaddlibqvpaekyq" || { echo "Refusing known Digital Rights Passport staging backend"; exit 1; }
           test -n "$STORAGE_KEY" || { echo "Missing Agent Authority browser storage key"; exit 1; }
           test -n "$SESSION_JSON" || { echo "Missing Agent Authority browser session"; exit 1; }
-          if [ -n "$PROD_PROJECT_ID" ] && [ "$STAGING_PROJECT_ID" = "$PROD_PROJECT_ID" ]; then echo "Refusing production backend"; exit 1; fi
-          if [ -n "$RIGHTS_PROJECT_ID" ] && [ "$STAGING_PROJECT_ID" = "$RIGHTS_PROJECT_ID" ]; then echo "Refusing Digital Rights Passport staging backend"; exit 1; fi
+          if [ "$STAGING_PROJECT_ID" = "$PROD_PROJECT_ID" ]; then echo "Refusing production backend"; exit 1; fi
+          if [ "$STAGING_PROJECT_ID" = "$RIGHTS_PROJECT_ID" ]; then echo "Refusing Digital Rights Passport staging backend"; exit 1; fi
           echo "Dedicated staging boundary verified"
 
       - name: Build app against isolated staging
