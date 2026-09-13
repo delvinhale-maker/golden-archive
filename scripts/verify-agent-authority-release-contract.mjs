@@ -66,6 +66,7 @@ const migrationFiles = fs.existsSync(migrationDir)
   : [];
 if (migrationFiles.length < 3) throw new Error(`Agent Authority release contract failed: expected at least 3 CLI-generated Agent Authority migrations, found ${migrationFiles.length}`);
 const migrationText = migrationFiles.map((name) => fs.readFileSync(path.join(migrationDir, name), "utf8")).join("\n");
+const migrationTextLower = migrationText.toLowerCase();
 for (const marker of [
   "enable row level security",
   "resolve_agent_authority_approval_atomic",
@@ -73,7 +74,7 @@ for (const marker of [
   "authorization_receipts",
   "private.agent_authority_has_role",
   "set search_path = ''",
-]) requireText(migrationText.toLowerCase(), marker.toLowerCase(), `migration set must retain ${marker}`);
-forbidText(migrationText.toLowerCase(), "create or replace function public.agent_authority_has_role", "SECURITY DEFINER membership helper must not live in exposed public schema");
+]) requireText(migrationTextLower, marker.toLowerCase(), `migration set must retain ${marker}`);
+forbidText(migrationTextLower, "create or replace function public.agent_authority_has_role", "SECURITY DEFINER membership helper must not live in exposed public schema");
 
 console.log(`AGENT_AUTHORITY_RELEASE_CONTRACT_PASS migrations=${migrationFiles.length} providers=${providers.length}`);
