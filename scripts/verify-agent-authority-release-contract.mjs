@@ -89,5 +89,8 @@ for (const marker of [
 ]) requireText(migrationTextLower, marker.toLowerCase(), `migration set must retain ${marker}`);
 // Current Supabase guidance: SECURITY DEFINER helpers should live outside exposed public schemas.
 forbidText(migrationTextLower, "create or replace function public.agent_authority_has_role", "SECURITY DEFINER membership helper must not live in exposed public schema");
+if (/create or replace function public\.reserve_agent_daily_spend[\s\S]*?language plpgsql\s+security definer/i.test(migrationText)) {
+  throw new Error("Agent Authority release contract failed: daily-spend reservation RPC must not use SECURITY DEFINER in exposed public schema");
+}
 
 console.log(`AGENT_AUTHORITY_RELEASE_CONTRACT_PASS migrations=${migrationFiles.length} providers=${providers.length}`);

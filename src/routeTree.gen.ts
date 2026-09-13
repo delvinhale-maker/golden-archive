@@ -16,6 +16,7 @@ import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AffiliateDisclosureRouteImport } from './routes/affiliate-disclosure'
 import { Route as AffiliatesRouteImport } from './routes/affiliates'
+import { Route as AgentAuthorityPassportRouteImport } from './routes/agent-authority-passport'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeACreatorRouteImport } from './routes/become-a-creator'
 import { Route as BusinessSystemsRouteImport } from './routes/business-systems'
@@ -179,6 +180,11 @@ const AffiliateDisclosureRoute = AffiliateDisclosureRouteImport.update({
 const AffiliatesRoute = AffiliatesRouteImport.update({
   id: '/affiliates',
   path: '/affiliates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentAuthorityPassportRoute = AgentAuthorityPassportRouteImport.update({
+  id: '/agent-authority-passport',
+  path: '/agent-authority-passport',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -908,6 +914,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
+  '/agent-authority-passport': typeof AgentAuthorityPassportRoute
   '/auth': typeof AuthRoute
   '/become-a-creator': typeof BecomeACreatorRoute
   '/business-systems': typeof BusinessSystemsRoute
@@ -1045,6 +1052,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
+  '/agent-authority-passport': typeof AgentAuthorityPassportRoute
   '/auth': typeof AuthRoute
   '/become-a-creator': typeof BecomeACreatorRoute
   '/business-systems': typeof BusinessSystemsRoute
@@ -1183,6 +1191,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
+  '/agent-authority-passport': typeof AgentAuthorityPassportRoute
   '/auth': typeof AuthRoute
   '/become-a-creator': typeof BecomeACreatorRoute
   '/business-systems': typeof BusinessSystemsRoute
@@ -1323,6 +1332,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/affiliate-disclosure'
     | '/affiliates'
+    | '/agent-authority-passport'
     | '/auth'
     | '/become-a-creator'
     | '/business-systems'
@@ -1460,6 +1470,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/affiliate-disclosure'
     | '/affiliates'
+    | '/agent-authority-passport'
     | '/auth'
     | '/become-a-creator'
     | '/business-systems'
@@ -1597,6 +1608,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/affiliate-disclosure'
     | '/affiliates'
+    | '/agent-authority-passport'
     | '/auth'
     | '/become-a-creator'
     | '/business-systems'
@@ -1737,6 +1749,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRouteWithChildren
   AffiliateDisclosureRoute: typeof AffiliateDisclosureRoute
   AffiliatesRoute: typeof AffiliatesRoute
+  AgentAuthorityPassportRoute: typeof AgentAuthorityPassportRoute
   AuthRoute: typeof AuthRoute
   BecomeACreatorRoute: typeof BecomeACreatorRoute
   BusinessSystemsRoute: typeof BusinessSystemsRoute
@@ -1860,6 +1873,13 @@ declare module '@tanstack/react-router' {
       path: '/affiliates'
       fullPath: '/affiliates'
       preLoaderRoute: typeof AffiliatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agent-authority-passport': {
+      id: '/agent-authority-passport'
+      path: '/agent-authority-passport'
+      fullPath: '/agent-authority-passport'
+      preLoaderRoute: typeof AgentAuthorityPassportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -2966,6 +2986,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRouteWithChildren,
   AffiliateDisclosureRoute: AffiliateDisclosureRoute,
   AffiliatesRoute: AffiliatesRoute,
+  AgentAuthorityPassportRoute: AgentAuthorityPassportRoute,
   AuthRoute: AuthRoute,
   BecomeACreatorRoute: BecomeACreatorRoute,
   BusinessSystemsRoute: BusinessSystemsRoute,

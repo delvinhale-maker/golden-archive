@@ -42,7 +42,7 @@ returns table(
   reservation_expires_at timestamptz
 )
 language plpgsql
-security definer
+security invoker
 set search_path = ''
 as $$
 declare
