@@ -29,6 +29,11 @@ forbidText(approvalBody, '.from("approval_decisions").insert', "resolveApproval 
 forbidText(approvalBody, '.from("approval_requests").update', "resolveApproval must not directly update approval state outside the atomic RPC");
 requireText(service, "Passport policy version changed after authorization; submit a new Action Gate request", "execution must reject stale policy versions");
 requireText(service, "Passport authorization has expired; re-evaluate before execution", "execution must reject expired authorization");
+requireText(service, "reserveDailyPurchaseSpend", "daily purchase limits must use the atomic reservation RPC path");
+requireText(service, "applyDailySpendReservation", "reservation rejection must fail closed into the Action Gate decision");
+requireText(service, "const requestedAt = new Date().toISOString()", "Action Request timestamps must be server owned");
+forbidText(service, "loadRecordedDailyPurchaseSpend", "daily spend authorization must not use read-then-check accounting");
+forbidText(service, "input.request.requestedAt ??", "Action Request timestamps must not trust caller input");
 
 requireText(decision, 'passport.status === "SUSPENDED"', "suspended Passports must fail closed");
 requireText(decision, 'passport.status === "REVOKED"', "revoked Passports must fail closed");
@@ -74,6 +79,13 @@ for (const marker of [
   "authorization_receipts",
   "private.agent_authority_has_role",
   "set search_path = ''",
+  "agent_daily_spend_reservations",
+  "reserve_agent_daily_spend",
+  "pg_advisory_xact_lock",
+  "execution_daily_spend_reservation_required",
+  "settle_agent_daily_spend_from_receipt",
+  "execution_passport_not_authorized",
+  "ad.approval_request_id",
 ]) requireText(migrationTextLower, marker.toLowerCase(), `migration set must retain ${marker}`);
 // Current Supabase guidance: SECURITY DEFINER helpers should live outside exposed public schemas.
 forbidText(migrationTextLower, "create or replace function public.agent_authority_has_role", "SECURITY DEFINER membership helper must not live in exposed public schema");

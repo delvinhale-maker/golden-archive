@@ -8,7 +8,7 @@ import { diffPolicyVersions } from "./policy-diff";
 import { resolveRequestDataClassification } from "./data-classification.server";
 import { assertActionApprovalAuthority } from "./delegation.server";
 import { waitForIdempotentDecision } from "./idempotency";
-import { loadRecordedDailyPurchaseSpend } from "./daily-spend.server";
+import { applyDailySpendReservation, approvalExpiryForReservation, reserveDailyPurchaseSpend } from "./daily-spend-reservation.server";
 import { minimizeAuditMetadata } from "./audit-minimization";
 import { loadPassportVersionIdentity } from "./policy-version-identity.server";
 import type {
@@ -634,18 +634,20 @@ export async function submitAction(
   const resolvedClassification = await resolveRequestDataClassification({
     workspaceId: input.workspaceId, explicit: input.request.dataClassification ?? null, resourceKey: input.request.resourceKey ?? null, target: input.request.target ?? null,
   });
-  const dailySpendToDate =
-    input.request.amountKind === "PURCHASE" && policy.limits.maxDailySpend != null
-      ? await loadRecordedDailyPurchaseSpend({ client, workspaceId: input.workspaceId, passportId: input.passportId })
-      : 0;
+  // Action timestamps and daily spend state are server/database-owned trust inputs.
+  const requestedAt = new Date().toISOString();
+  const effectiveCurrency = input.request.amount != null
+    ? (input.request.currency?.toUpperCase() ?? policy.limits.currency.toUpperCase())
+    : null;
   const requestForEvaluation = {
     ...input.request,
     dataClassification: resolvedClassification,
-    // Never trust a caller-supplied spend-to-date value for an authorization limit.
-    dailySpendToDate,
+    currency: effectiveCurrency,
+    requestedAt,
+    // Daily spend is enforced atomically after the immutable Action Request exists.
+    dailySpendToDate: 0,
   };
-  const evaluated = evaluateActionGate(policy, requestForEvaluation);
-  const requestedAt = input.request.requestedAt ?? new Date().toISOString();
+  let evaluated = evaluateActionGate(policy, requestForEvaluation, new Date(requestedAt));
 
   const { data: actionRequest, error: requestError } = await client
     .from("action_requests")
@@ -658,7 +660,7 @@ export async function submitAction(
       system_name: input.request.system ?? null,
       amount: input.request.amount ?? null,
       amount_kind: input.request.amountKind ?? null,
-      currency: input.request.currency?.toUpperCase() ?? null,
+      currency: effectiveCurrency,
       external_communication: Boolean(input.request.externalCommunication),
       financial_action: Boolean(input.request.financialAction),
       sensitive_data: Boolean(input.request.sensitiveData),
@@ -691,6 +693,21 @@ export async function submitAction(
     throw requestError;
   }
 
+  let dailySpendReservation: Awaited<ReturnType<typeof reserveDailyPurchaseSpend>> | null = null;
+  if (
+    evaluated.decision !== "BLOCK" &&
+    input.request.amountKind === "PURCHASE" &&
+    input.request.amount != null &&
+    policy.limits.maxDailySpend != null
+  ) {
+    dailySpendReservation = await reserveDailyPurchaseSpend({
+      client,
+      workspaceId: input.workspaceId,
+      actionRequestId: actionRequest.id,
+    });
+    evaluated = applyDailySpendReservation(evaluated, dailySpendReservation);
+  }
+
   const policyCode = `PASSPORT:${policy.passportCode}`;
   const { data: decision, error: decisionError } = await client
     .from("action_decisions")
@@ -721,13 +738,18 @@ export async function submitAction(
       reasonCodes: evaluated.reasonCodes,
       policyCode,
       policyVersion: policy.version,
+      dailySpendReservationId: dailySpendReservation?.reservationId ?? null,
+      dailySpendProjectedAmount: dailySpendReservation?.projectedAmount ?? null,
     },
   });
 
   let approval = null;
   let receipt = null;
   if (evaluated.decision === "APPROVAL_REQUIRED") {
-    const expiresAt = new Date(new Date(requestedAt).getTime() + 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = approvalExpiryForReservation(
+      requestedAt,
+      dailySpendReservation?.reservationExpiresAt ?? null,
+    );
     const { data, error } = await client
       .from("approval_requests")
       .insert({

@@ -4,7 +4,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(20);
+select plan(21);
 
 -- Deterministic synthetic users/workspaces. No real customer data.
 insert into auth.users (id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, aud, role)
@@ -80,6 +80,7 @@ select is((select count(*) from public.agent_authority_audit_events where worksp
 -- Credential/rate-window tables do not expose SELECT to authenticated users at all.
 select throws_ok($$select count(*) from public.agent_authority_api_keys$$, '42501', null, 'API key hashes are not client-readable');
 select throws_ok($$select count(*) from public.agent_authority_api_rate_windows$$, '42501', null, 'rate windows are not client-readable');
+select throws_ok($$select count(*) from public.agent_daily_spend_reservations$$, '42501', null, 'daily spend reservations are server-only');
 
 select * from finish();
 rollback;
