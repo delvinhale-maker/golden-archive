@@ -1,0 +1,71 @@
+name: Agent Authority Daily Spend Function Security
+
+on:
+  push:
+    branches:
+      - feature/ai-agent-authority-passport
+    paths:
+      - .github/workflows/agent-authority-daily-spend-security.yml
+      - scripts/agent-authority-daily-spend-security-patch.py
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agent-authority-daily-spend-function-security
+  cancel-in-progress: false
+
+jobs:
+  patch-verify-persist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/ai-agent-authority-passport
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Apply function security patch
+        run: python scripts/agent-authority-daily-spend-security-patch.py
+
+      - name: Verify reservation RPC is security invoker
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='supabase/migrations/20260913120437_agent_authority_daily_spend_reservations.sql'
+          grep -A20 'create or replace function public.reserve_agent_daily_spend' "$file" | grep -q 'security invoker'
+          if grep -A20 'create or replace function public.reserve_agent_daily_spend' "$file" | grep -q 'security definer'; then
+            echo 'reserve_agent_daily_spend must not be SECURITY DEFINER in public schema' >&2
+            exit 1
+          fi
+
+      - name: Run Agent Authority tests
+        run: bunx vitest run src/lib/agent-authority
+
+      - name: Verify Agent Authority release contract
+        run: bun scripts/verify-agent-authority-release-contract.mjs
+
+      - name: Build AurumVault application
+        run: bun run build
+
+      - name: Remove temporary hardening machinery
+        run: |
+          rm .github/workflows/agent-authority-daily-spend-security.yml
+          rm scripts/agent-authority-daily-spend-security-patch.py
+
+      - name: Commit verified function hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Harden Agent Authority daily spend RPC privileges'
+          git push origin HEAD:feature/ai-agent-authority-passport
