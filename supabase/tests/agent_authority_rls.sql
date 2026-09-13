@@ -4,7 +4,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(18);
+select plan(20);
 
 -- Deterministic synthetic users/workspaces. No real customer data.
 insert into auth.users (id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, aud, role)
@@ -30,10 +30,10 @@ insert into public.agent_authority_members(workspace_id, user_id, role) values
   ('10000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000005','MEMBER'),
   ('10000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000099','OWNER');
 
-insert into public.agent_passports(id, workspace_id, agent_name, human_sponsor, business_purpose, status, current_version, created_by)
+insert into public.agent_passports(id, workspace_id, agent_name, human_sponsor, business_purpose, status, current_version, authorized_at, created_by)
 values
-  ('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','Alpha Agent','Owner','Test','AUTHORIZED',1,'00000000-0000-4000-8000-000000000001'),
-  ('20000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000002','Beta Agent','Outsider','Test','AUTHORIZED',1,'00000000-0000-4000-8000-000000000099');
+  ('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','Alpha Agent','Owner','Test','AUTHORIZED',1,now(),'00000000-0000-4000-8000-000000000001'),
+  ('20000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000002','Beta Agent','Outsider','Test','AUTHORIZED',1,now(),'00000000-0000-4000-8000-000000000099');
 
 insert into public.agent_authority_audit_events(workspace_id, actor_user_id, event_type, resource_type, resource_id, metadata)
 values
