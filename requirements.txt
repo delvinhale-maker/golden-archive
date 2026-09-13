@@ -1,0 +1,4 @@
+# Python dependencies used by GitHub Actions browser regression suites.
+# actions/setup-python with cache: pip requires a dependency manifest.
+playwright
+Pillow

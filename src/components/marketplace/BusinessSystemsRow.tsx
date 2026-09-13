@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import { ProductCard } from "@/components/marketplace/ProductCard";
 import { getProducts } from "@/lib/marketplace.functions";
 import {
@@ -9,8 +9,9 @@ import {
 } from "@/lib/business-systems";
 
 /**
- * Homepage band for the Business Systems department. Renders nothing until at
- * least one live system exists, so the homepage never shows an empty shelf.
+ * Homepage band for AurumVault Business Systems. The Agent Authority feature
+ * is live software, so it remains distinct from downloadable operating-system
+ * products while still living inside the AurumVault brand and department.
  */
 export function BusinessSystemsRow() {
   const { data } = useQuery({
@@ -22,7 +23,6 @@ export function BusinessSystemsRow() {
     staleTime: 60_000,
   });
   const products = (data?.items ?? []).slice(0, 6);
-  if (!products.length) return null;
 
   return (
     <section
@@ -42,7 +42,7 @@ export function BusinessSystemsRow() {
               {BUSINESS_SYSTEMS_LABEL}
             </h2>
             <p className="mt-2 max-w-xl text-sm text-white/65">
-              More than templates. Complete systems you can put to work.
+              Downloadable operating systems and live software built for real business workflows.
             </p>
           </div>
           <Link
@@ -53,11 +53,45 @@ export function BusinessSystemsRow() {
           </Link>
         </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((p, i) => (
-            <ProductCard key={p.id} product={p} index={i} />
-          ))}
-        </div>
+        <a
+          href="/agent-authority-passport"
+          className="group mt-8 grid gap-5 rounded-2xl border border-gold/30 bg-[linear-gradient(135deg,rgba(184,134,11,0.11),rgba(255,255,255,0.025))] p-5 transition hover:border-gold/60 sm:p-6 lg:grid-cols-[auto_1fr_auto] lg:items-center"
+          data-testid="home-agent-authority-card"
+        >
+          <span
+            aria-hidden
+            className="flex h-12 w-12 items-center justify-center rounded-2xl border border-gold/30 bg-gold/10 text-gold"
+          >
+            <ShieldCheck size={23} />
+          </span>
+          <span className="min-w-0">
+            <span className="inline-flex rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-emerald-200">
+              Live Software
+            </span>
+            <span className="mt-2 block font-display text-xl font-bold text-white md:text-2xl">
+              AI Agent Authority Passport™
+            </span>
+            <span className="mt-1 block max-w-3xl text-[13px] leading-relaxed text-white/60">
+              Govern AI employees with enforceable authority, human approvals, risk controls, execution receipts, and a defensible evidence trail.
+            </span>
+          </span>
+          <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-caps text-gold">
+            Explore Software
+            <ArrowRight
+              size={14}
+              aria-hidden
+              className="transition-transform group-hover:translate-x-0.5"
+            />
+          </span>
+        </a>
+
+        {products.length > 0 && (
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {products.map((p, i) => (
+              <ProductCard key={p.id} product={p} index={i} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

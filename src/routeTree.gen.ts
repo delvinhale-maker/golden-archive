@@ -16,6 +16,7 @@ import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AffiliateDisclosureRouteImport } from './routes/affiliate-disclosure'
 import { Route as AffiliatesRouteImport } from './routes/affiliates'
+import { Route as AgentAuthorityPassportRouteImport } from './routes/agent-authority-passport'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeACreatorRouteImport } from './routes/become-a-creator'
 import { Route as BusinessSystemsRouteImport } from './routes/business-systems'
@@ -50,6 +51,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as AuthenticatedAgentAuthorityRouteImport } from './routes/_authenticated/agent-authority'
 import { Route as AuthenticatedReferRouteImport } from './routes/_authenticated/refer'
 import { Route as ABrandSlugRouteImport } from './routes/a.$brandSlug'
 import { Route as AboutTrustRouteImport } from './routes/about_.trust'
@@ -110,6 +112,8 @@ import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authent
 import { Route as AuthenticatedDashboardPayoutsRouteImport } from './routes/_authenticated/dashboard.payouts'
 import { Route as AuthenticatedDashboardStorefrontRouteImport } from './routes/_authenticated/dashboard.storefront'
 import { Route as AcademyArticleSlugRouteImport } from './routes/academy.article.$slug'
+import { Route as ApiAgentAuthorityActionRouteImport } from './routes/api/agent-authority/action'
+import { Route as ApiAgentAuthorityEvidenceRouteImport } from './routes/api/agent-authority/evidence'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedAdminAcademyIndexRouteImport } from './routes/_authenticated/admin.academy.index'
@@ -177,6 +181,11 @@ const AffiliateDisclosureRoute = AffiliateDisclosureRouteImport.update({
 const AffiliatesRoute = AffiliatesRouteImport.update({
   id: '/affiliates',
   path: '/affiliates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentAuthorityPassportRoute = AgentAuthorityPassportRouteImport.update({
+  id: '/agent-authority-passport',
+  path: '/agent-authority-passport',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -349,6 +358,12 @@ const WishlistRoute = WishlistRouteImport.update({
   path: '/wishlist',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAgentAuthorityRoute =
+  AuthenticatedAgentAuthorityRouteImport.update({
+    id: '/agent-authority',
+    path: '/agent-authority',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedReferRoute = AuthenticatedReferRouteImport.update({
   id: '/refer',
   path: '/refer',
@@ -685,6 +700,17 @@ const AcademyArticleSlugRoute = AcademyArticleSlugRouteImport.update({
   path: '/article/$slug',
   getParentRoute: () => AcademyRoute,
 } as any)
+const ApiAgentAuthorityActionRoute = ApiAgentAuthorityActionRouteImport.update({
+  id: '/api/agent-authority/action',
+  path: '/api/agent-authority/action',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAgentAuthorityEvidenceRoute =
+  ApiAgentAuthorityEvidenceRouteImport.update({
+    id: '/api/agent-authority/evidence',
+    path: '/api/agent-authority/evidence',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicContactRoute = ApiPublicContactRouteImport.update({
   id: '/api/public/contact',
   path: '/api/public/contact',
@@ -895,6 +921,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
+  '/agent-authority-passport': typeof AgentAuthorityPassportRoute
   '/auth': typeof AuthRoute
   '/become-a-creator': typeof BecomeACreatorRoute
   '/business-systems': typeof BusinessSystemsRoute
@@ -929,6 +956,7 @@ export interface FileRoutesByFullPath {
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
+  '/agent-authority': typeof AuthenticatedAgentAuthorityRoute
   '/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
   '/about/trust': typeof AboutTrustRoute
@@ -987,6 +1015,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
   '/academy/article/$slug': typeof AcademyArticleSlugRoute
+  '/api/agent-authority/action': typeof ApiAgentAuthorityActionRoute
+  '/api/agent-authority/evidence': typeof ApiAgentAuthorityEvidenceRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -1030,6 +1060,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
+  '/agent-authority-passport': typeof AgentAuthorityPassportRoute
   '/auth': typeof AuthRoute
   '/become-a-creator': typeof BecomeACreatorRoute
   '/business-systems': typeof BusinessSystemsRoute
@@ -1062,6 +1093,7 @@ export interface FileRoutesByTo {
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
+  '/agent-authority': typeof AuthenticatedAgentAuthorityRoute
   '/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
   '/about/trust': typeof AboutTrustRoute
@@ -1120,6 +1152,8 @@ export interface FileRoutesByTo {
   '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
   '/academy/article/$slug': typeof AcademyArticleSlugRoute
+  '/api/agent-authority/action': typeof ApiAgentAuthorityActionRoute
+  '/api/agent-authority/evidence': typeof ApiAgentAuthorityEvidenceRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -1166,6 +1200,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/affiliates': typeof AffiliatesRoute
+  '/agent-authority-passport': typeof AgentAuthorityPassportRoute
   '/auth': typeof AuthRoute
   '/become-a-creator': typeof BecomeACreatorRoute
   '/business-systems': typeof BusinessSystemsRoute
@@ -1200,6 +1235,7 @@ export interface FileRoutesById {
   '/unsubscribe': typeof UnsubscribeRoute
   '/vault': typeof VaultRoute
   '/wishlist': typeof WishlistRoute
+  '/_authenticated/agent-authority': typeof AuthenticatedAgentAuthorityRoute
   '/_authenticated/refer': typeof AuthenticatedReferRoute
   '/a/$brandSlug': typeof ABrandSlugRoute
   '/about_/trust': typeof AboutTrustRoute
@@ -1258,6 +1294,8 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/_authenticated/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRoute
   '/academy/article/$slug': typeof AcademyArticleSlugRoute
+  '/api/agent-authority/action': typeof ApiAgentAuthorityActionRoute
+  '/api/agent-authority/evidence': typeof ApiAgentAuthorityEvidenceRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -1304,6 +1342,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/affiliate-disclosure'
     | '/affiliates'
+    | '/agent-authority-passport'
     | '/auth'
     | '/become-a-creator'
     | '/business-systems'
@@ -1338,6 +1377,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/vault'
     | '/wishlist'
+    | '/agent-authority'
     | '/refer'
     | '/a/$brandSlug'
     | '/about/trust'
@@ -1396,6 +1436,8 @@ export interface FileRouteTypes {
     | '/dashboard/payouts'
     | '/dashboard/storefront'
     | '/academy/article/$slug'
+    | '/api/agent-authority/action'
+    | '/api/agent-authority/evidence'
     | '/api/public/contact'
     | '/lovable/email/suppression'
     | '/admin/'
@@ -1439,6 +1481,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/affiliate-disclosure'
     | '/affiliates'
+    | '/agent-authority-passport'
     | '/auth'
     | '/become-a-creator'
     | '/business-systems'
@@ -1471,6 +1514,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/vault'
     | '/wishlist'
+    | '/agent-authority'
     | '/refer'
     | '/a/$brandSlug'
     | '/about/trust'
@@ -1529,6 +1573,8 @@ export interface FileRouteTypes {
     | '/dashboard/payouts'
     | '/dashboard/storefront'
     | '/academy/article/$slug'
+    | '/api/agent-authority/action'
+    | '/api/agent-authority/evidence'
     | '/api/public/contact'
     | '/lovable/email/suppression'
     | '/admin'
@@ -1574,6 +1620,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/affiliate-disclosure'
     | '/affiliates'
+    | '/agent-authority-passport'
     | '/auth'
     | '/become-a-creator'
     | '/business-systems'
@@ -1608,6 +1655,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/vault'
     | '/wishlist'
+    | '/_authenticated/agent-authority'
     | '/_authenticated/refer'
     | '/a/$brandSlug'
     | '/about_/trust'
@@ -1666,6 +1714,8 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/payouts'
     | '/_authenticated/dashboard/storefront'
     | '/academy/article/$slug'
+    | '/api/agent-authority/action'
+    | '/api/agent-authority/evidence'
     | '/api/public/contact'
     | '/lovable/email/suppression'
     | '/_authenticated/admin/'
@@ -1712,6 +1762,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRouteWithChildren
   AffiliateDisclosureRoute: typeof AffiliateDisclosureRoute
   AffiliatesRoute: typeof AffiliatesRoute
+  AgentAuthorityPassportRoute: typeof AgentAuthorityPassportRoute
   AuthRoute: typeof AuthRoute
   BecomeACreatorRoute: typeof BecomeACreatorRoute
   BusinessSystemsRoute: typeof BusinessSystemsRoute
@@ -1763,6 +1814,8 @@ export interface RootRouteChildren {
   ToolsRevenueCalculatorRoute: typeof ToolsRevenueCalculatorRoute
   BundlesIndexRoute: typeof BundlesIndexRoute
   InsiderIndexRoute: typeof InsiderIndexRoute
+  ApiAgentAuthorityActionRoute: typeof ApiAgentAuthorityActionRoute
+  ApiAgentAuthorityEvidenceRoute: typeof ApiAgentAuthorityEvidenceRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicAcademyReceiveArticleRoute: typeof ApiPublicAcademyReceiveArticleRoute
@@ -1833,6 +1886,13 @@ declare module '@tanstack/react-router' {
       path: '/affiliates'
       fullPath: '/affiliates'
       preLoaderRoute: typeof AffiliatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agent-authority-passport': {
+      id: '/agent-authority-passport'
+      path: '/agent-authority-passport'
+      fullPath: '/agent-authority-passport'
+      preLoaderRoute: typeof AgentAuthorityPassportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -2072,6 +2132,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/wishlist'
       preLoaderRoute: typeof WishlistRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/agent-authority': {
+      id: '/_authenticated/agent-authority'
+      path: '/agent-authority'
+      fullPath: '/agent-authority'
+      preLoaderRoute: typeof AuthenticatedAgentAuthorityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/refer': {
       id: '/_authenticated/refer'
@@ -2493,6 +2560,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcademyArticleSlugRouteImport
       parentRoute: typeof AcademyRoute
     }
+    '/api/agent-authority/action': {
+      id: '/api/agent-authority/action'
+      path: '/api/agent-authority/action'
+      fullPath: '/api/agent-authority/action'
+      preLoaderRoute: typeof ApiAgentAuthorityActionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/agent-authority/evidence': {
+      id: '/api/agent-authority/evidence'
+      path: '/api/agent-authority/evidence'
+      fullPath: '/api/agent-authority/evidence'
+      preLoaderRoute: typeof ApiAgentAuthorityEvidenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/contact': {
       id: '/api/public/contact'
       path: '/api/public/contact'
@@ -2750,6 +2831,7 @@ const AuthenticatedAdminHealthCoversRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAgentAuthorityRoute: typeof AuthenticatedAgentAuthorityRoute
   AuthenticatedReferRoute: typeof AuthenticatedReferRoute
   AuthenticatedAdminAutoReleaseRoute: typeof AuthenticatedAdminAutoReleaseRoute
   AuthenticatedAdminBundlesRoute: typeof AuthenticatedAdminBundlesRoute
@@ -2802,6 +2884,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAgentAuthorityRoute: AuthenticatedAgentAuthorityRoute,
   AuthenticatedReferRoute: AuthenticatedReferRoute,
   AuthenticatedAdminAutoReleaseRoute: AuthenticatedAdminAutoReleaseRoute,
   AuthenticatedAdminBundlesRoute: AuthenticatedAdminBundlesRoute,
@@ -2926,6 +3009,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRouteWithChildren,
   AffiliateDisclosureRoute: AffiliateDisclosureRoute,
   AffiliatesRoute: AffiliatesRoute,
+  AgentAuthorityPassportRoute: AgentAuthorityPassportRoute,
   AuthRoute: AuthRoute,
   BecomeACreatorRoute: BecomeACreatorRoute,
   BusinessSystemsRoute: BusinessSystemsRoute,
@@ -2978,6 +3062,8 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsRevenueCalculatorRoute: ToolsRevenueCalculatorRoute,
   BundlesIndexRoute: BundlesIndexRoute,
   InsiderIndexRoute: InsiderIndexRoute,
+  ApiAgentAuthorityActionRoute: ApiAgentAuthorityActionRoute,
+  ApiAgentAuthorityEvidenceRoute: ApiAgentAuthorityEvidenceRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicAcademyReceiveArticleRoute: ApiPublicAcademyReceiveArticleRoute,
