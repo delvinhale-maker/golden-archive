@@ -65,17 +65,23 @@ grant select on table
 -- API key hashes and rate windows stay server-only: no authenticated grant/policy.
 
 -- ------------------------------------------------------------------
--- Role-aware membership helper. SECURITY DEFINER prevents policy recursion
--- on agent_authority_members while remaining scoped only to auth.uid().
+-- Role-aware membership helper. Keep SECURITY DEFINER helpers out of the
+-- exposed public schema. The private helper has an empty search_path and
+-- fully-qualified references, while remaining scoped only to auth.uid().
 -- ------------------------------------------------------------------
-create or replace function public.agent_authority_has_role(
+create schema if not exists private;
+revoke all on schema private from public, anon;
+grant usage on schema private to authenticated, service_role;
+
+drop function if exists public.agent_authority_has_role(uuid, text[]);
+create or replace function private.agent_authority_has_role(
   p_workspace_id uuid,
   p_roles text[] default null
 ) returns boolean
 language sql
 stable
 security definer
-set search_path = public
+set search_path = ''
 as $$
   select exists (
     select 1
@@ -85,8 +91,8 @@ as $$
       and (p_roles is null or m.role = any(p_roles))
   );
 $$;
-revoke all on function public.agent_authority_has_role(uuid, text[]) from public, anon;
-grant execute on function public.agent_authority_has_role(uuid, text[]) to authenticated, service_role;
+revoke all on function private.agent_authority_has_role(uuid, text[]) from public, anon;
+grant execute on function private.agent_authority_has_role(uuid, text[]) to authenticated, service_role;
 
 -- Replace broad member-read policies with least-privilege read policies.
 drop policy if exists "aa members read own membership" on agent_authority_members;
@@ -118,44 +124,44 @@ create policy "aa membership self or admins"
 on agent_authority_members for select to authenticated
 using (
   user_id = auth.uid()
-  or public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN'])
+  or private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN'])
 );
 
 create policy "aa workspace members"
 on agent_authority_workspaces for select to authenticated
-using (public.agent_authority_has_role(id, null));
+using (private.agent_authority_has_role(id, null));
 
 -- All roles may see the Passport's declared identity/authority configuration.
-create policy "aa passport members" on agent_passports for select to authenticated using (public.agent_authority_has_role(workspace_id, null));
-create policy "aa passport versions members" on agent_passport_versions for select to authenticated using (public.agent_authority_has_role(workspace_id, null));
-create policy "aa permissions members" on agent_permissions for select to authenticated using (public.agent_authority_has_role(workspace_id, null));
-create policy "aa limits members" on agent_limits for select to authenticated using (public.agent_authority_has_role(workspace_id, null));
-create policy "aa classifications members" on agent_data_classifications for select to authenticated using (public.agent_authority_has_role(workspace_id, null));
+create policy "aa passport members" on agent_passports for select to authenticated using (private.agent_authority_has_role(workspace_id, null));
+create policy "aa passport versions members" on agent_passport_versions for select to authenticated using (private.agent_authority_has_role(workspace_id, null));
+create policy "aa permissions members" on agent_permissions for select to authenticated using (private.agent_authority_has_role(workspace_id, null));
+create policy "aa limits members" on agent_limits for select to authenticated using (private.agent_authority_has_role(workspace_id, null));
+create policy "aa classifications members" on agent_data_classifications for select to authenticated using (private.agent_authority_has_role(workspace_id, null));
 
 -- Operational action/approval data is available to administrators, approvers and auditors.
-create policy "aa action requests operational roles" on action_requests for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
-create policy "aa action decisions operational roles" on action_decisions for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
-create policy "aa approval requests operational roles" on approval_requests for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
-create policy "aa approval decisions operational roles" on approval_decisions for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
+create policy "aa action requests operational roles" on action_requests for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
+create policy "aa action decisions operational roles" on action_decisions for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
+create policy "aa approval requests operational roles" on approval_requests for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
+create policy "aa approval decisions operational roles" on approval_decisions for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
 
 -- Evidence, reviews and audit data are for governance/audit roles only.
-create policy "aa receipts audit roles" on authorization_receipts for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
-create policy "aa evidence audit roles" on evidence_events for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
-create policy "aa reviews audit roles" on authority_reviews for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
-create policy "aa audit events audit roles" on agent_authority_audit_events for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
-create policy "aa analyses audit roles" on agent_governance_analyses for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
+create policy "aa receipts audit roles" on authorization_receipts for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
+create policy "aa evidence audit roles" on evidence_events for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
+create policy "aa reviews audit roles" on authority_reviews for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
+create policy "aa audit events audit roles" on agent_authority_audit_events for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
+create policy "aa analyses audit roles" on agent_governance_analyses for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
 
 -- Simulations/policy changes/incidents/delegations are governance operations.
-create policy "aa shadow simulations governance roles" on agent_shadow_simulations for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
-create policy "aa policy changes governance roles" on agent_policy_change_requests for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
-create policy "aa incidents governance roles" on agent_incidents for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
-create policy "aa incident events governance roles" on agent_incident_events for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
-create policy "aa delegations governance roles" on agent_delegations for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
-create policy "aa delegation events governance roles" on agent_delegation_events for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
+create policy "aa shadow simulations governance roles" on agent_shadow_simulations for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
+create policy "aa policy changes governance roles" on agent_policy_change_requests for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
+create policy "aa incidents governance roles" on agent_incidents for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
+create policy "aa incident events governance roles" on agent_incident_events for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
+create policy "aa delegations governance roles" on agent_delegations for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
+create policy "aa delegation events governance roles" on agent_delegation_events for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','APPROVER','AUDITOR']));
 
 -- Integration/webhook operational metadata is admin/auditor only.
-create policy "aa webhook endpoints admin audit" on agent_authority_webhook_endpoints for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
-create policy "aa webhook deliveries admin audit" on agent_authority_webhook_deliveries for select to authenticated using (public.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
+create policy "aa webhook endpoints admin audit" on agent_authority_webhook_endpoints for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
+create policy "aa webhook deliveries admin audit" on agent_authority_webhook_deliveries for select to authenticated using (private.agent_authority_has_role(workspace_id, array['OWNER','ADMIN','AUDITOR']));
 
 -- ------------------------------------------------------------------
 -- Atomic approval resolution. The application proves role/delegation first;
