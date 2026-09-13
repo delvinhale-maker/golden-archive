@@ -71,6 +71,9 @@ for (const marker of [
   "resolve_agent_authority_approval_atomic",
   "for update",
   "authorization_receipts",
+  "private.agent_authority_has_role",
+  "set search_path = ''",
 ]) requireText(migrationText.toLowerCase(), marker.toLowerCase(), `migration set must retain ${marker}`);
+forbidText(migrationText.toLowerCase(), "create or replace function public.agent_authority_has_role", "SECURITY DEFINER membership helper must not live in exposed public schema");
 
 console.log(`AGENT_AUTHORITY_RELEASE_CONTRACT_PASS migrations=${migrationFiles.length} providers=${providers.length}`);
