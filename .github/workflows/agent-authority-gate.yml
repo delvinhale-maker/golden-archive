@@ -8,6 +8,10 @@ on:
       - "src/routes/_authenticated/agent-authority.tsx"
       - "src/routes/api/agent-authority/**"
       - "docs/ai-agent-authority-passport/**"
+      - "supabase/migrations/*_agent_authority_*.sql"
+      - "tests/agent-authority/**"
+      - "scripts/verify-agent-authority-release-contract.mjs"
+      - ".github/workflows/agent-authority-e2e.yml"
       - "src/routeTree.gen.ts"
       - "package.json"
       - "bun.lock"
@@ -20,6 +24,10 @@ on:
       - "src/routes/_authenticated/agent-authority.tsx"
       - "src/routes/api/agent-authority/**"
       - "docs/ai-agent-authority-passport/**"
+      - "supabase/migrations/*_agent_authority_*.sql"
+      - "tests/agent-authority/**"
+      - "scripts/verify-agent-authority-release-contract.mjs"
+      - ".github/workflows/agent-authority-e2e.yml"
       - "src/routeTree.gen.ts"
       - "package.json"
       - "bun.lock"
@@ -62,6 +70,9 @@ jobs:
 
       - name: Run Agent Authority behavior and receipt tests
         run: bunx vitest run src/lib/agent-authority
+
+      - name: Verify permanent Agent Authority release contract
+        run: bun run scripts/verify-agent-authority-release-contract.mjs
 
       - name: Build AurumVault application
         run: bun run build
