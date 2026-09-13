@@ -75,6 +75,7 @@ for (const marker of [
   "private.agent_authority_has_role",
   "set search_path = ''",
 ]) requireText(migrationTextLower, marker.toLowerCase(), `migration set must retain ${marker}`);
+// Current Supabase guidance: SECURITY DEFINER helpers should live outside exposed public schemas.
 forbidText(migrationTextLower, "create or replace function public.agent_authority_has_role", "SECURITY DEFINER membership helper must not live in exposed public schema");
 
 console.log(`AGENT_AUTHORITY_RELEASE_CONTRACT_PASS migrations=${migrationFiles.length} providers=${providers.length}`);
