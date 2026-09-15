@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { countUnreadAnnouncements } from "@/lib/community.functions";
 import { isRightsPassportEnabledClient } from "@/lib/rights-passport-feature-flags";
+import { isAudiobookStudioEnabledClient } from "@/lib/audiobook-feature-flags";
 
 function CommunityUnreadBadge() {
   const fn = useServerFn(countUnreadAnnouncements);
@@ -44,11 +45,22 @@ export const ACCENTS = {
   help: { color: "#2E5B8A", tint: "rgba(46,91,138,0.08)" },
 } satisfies Record<string, PublisherAccent>;
 
-const NAV_ITEMS: { label: string; to: string; featured?: boolean; rightsPassport?: boolean }[] = [
+const NAV_ITEMS: {
+  label: string;
+  to: string;
+  featured?: boolean;
+  rightsPassport?: boolean;
+  audiobookStudio?: boolean;
+}[] = [
   { label: "Bookshelf", to: "/dashboard" as const },
   { label: "Publish", to: "/dashboard/new" as const },
   { label: "QR Generator", to: "/dashboard/qr" as const, featured: true },
   { label: "AI Studio", to: "/dashboard/ai-studio" as const },
+  // Audiobook Studio — gated behind VITE_AUDIOBOOK_STUDIO_ENABLED (client
+  // render gate only; the server middleware remains the security boundary).
+  // Absent config fails safe: hidden.
+  { label: "Audiobook Studio", to: "/dashboard/audiobooks" as const, audiobookStudio: true },
+  { label: "License Wallet", to: "/dashboard/license-wallet" as const },
   { label: "Kingdom Picks", to: "/dashboard/kingdom-picks" as const },
   { label: "Earn", to: "/dashboard/earn" as const },
   { label: "Payouts", to: "/dashboard/payouts" as const },
@@ -76,7 +88,7 @@ export function PublisherShell({
 }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const accountName = user?.email?.split("@")[0] ?? "Publisher";
 
   async function handleSignOut() {
@@ -99,7 +111,9 @@ export function PublisherShell({
           <AVLogo />
           <nav className="hidden md:flex items-center gap-1 ml-6">
             {NAV_ITEMS.filter(
-              (item) => !item.rightsPassport || isRightsPassportEnabledClient(import.meta.env),
+              (item) =>
+                (!item.rightsPassport || isRightsPassportEnabledClient(import.meta.env)) &&
+                (!item.audiobookStudio || (isAudiobookStudioEnabledClient(import.meta.env) && isAdmin)),
             ).map((item) => {
               const isActive =
                 item.to === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.to);
@@ -143,7 +157,9 @@ export function PublisherShell({
         <div className="md:hidden border-t border-white/10">
           <div className="mx-auto max-w-6xl px-2 flex">
             {NAV_ITEMS.filter(
-              (item) => !item.rightsPassport || isRightsPassportEnabledClient(import.meta.env),
+              (item) =>
+                (!item.rightsPassport || isRightsPassportEnabledClient(import.meta.env)) &&
+                (!item.audiobookStudio || (isAudiobookStudioEnabledClient(import.meta.env) && isAdmin)),
             ).map((item) => {
               const isActive =
                 item.to === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.to);
