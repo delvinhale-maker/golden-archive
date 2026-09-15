@@ -179,33 +179,150 @@ function WalletDocumentPage() {
           className="space-y-4 rounded-2xl border border-ink/10 bg-white p-5"
         >
           <div className="grid gap-3 md:grid-cols-2">
-            <Field label="Title *"><input name="title" required defaultValue={doc.title} className={inputCls} /></Field>
-            <Field label="Category *"><select name="category" defaultValue={doc.category} className={inputCls}>{LICENSE_WALLET_CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}</select></Field>
-            <Field label="Issuer"><input name="issuer" defaultValue={doc.issuer ?? ""} className={inputCls} /></Field>
-            <Field label="Number"><input name="doc_number" defaultValue={doc.doc_number ?? ""} className={inputCls} /></Field>
-            <Field label="Issue date"><input type="date" name="issue_date" defaultValue={doc.issue_date ?? ""} className={inputCls} /></Field>
-            <Field label="Expiration date"><input type="date" name="expiration_date" defaultValue={doc.expiration_date ?? ""} className={inputCls} /></Field>
-            <Field label="Location"><select name="location_id" defaultValue={doc.location_id ?? ""} className={inputCls}><option value="">No location</option>{data.locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select></Field>
-            <label className="flex items-end gap-2 pb-2 text-sm text-navy"><input type="checkbox" name="no_expiration" defaultChecked={doc.no_expiration} className="size-4 accent-[#b8860b]" />This document does not expire</label>
+            <Field label="Title *">
+              <input name="title" required defaultValue={doc.title} className={inputCls} />
+            </Field>
+            <Field label="Category *">
+              <select name="category" defaultValue={doc.category} className={inputCls}>
+                {LICENSE_WALLET_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {CATEGORY_LABELS[c]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Issuer">
+              <input name="issuer" defaultValue={doc.issuer ?? ""} className={inputCls} />
+            </Field>
+            <Field label="Number">
+              <input name="doc_number" defaultValue={doc.doc_number ?? ""} className={inputCls} />
+            </Field>
+            <Field label="Issue date">
+              <input type="date" name="issue_date" defaultValue={doc.issue_date ?? ""} className={inputCls} />
+            </Field>
+            <Field label="Expiration date">
+              <input
+                type="date"
+                name="expiration_date"
+                defaultValue={doc.expiration_date ?? ""}
+                className={inputCls}
+              />
+            </Field>
+            <Field label="Location">
+              <select name="location_id" defaultValue={doc.location_id ?? ""} className={inputCls}>
+                <option value="">No location</option>
+                {data.locations.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <label className="flex items-end gap-2 pb-2 text-sm text-navy">
+              <input
+                type="checkbox"
+                name="no_expiration"
+                defaultChecked={doc.no_expiration}
+                className="size-4 accent-[#b8860b]"
+              />
+              This document does not expire
+            </label>
           </div>
-          <Field label="Notes"><textarea name="notes" rows={3} defaultValue={doc.notes ?? ""} className={inputCls} /></Field>
-          <Field label="Replace file (PDF, JPG or PNG · up to 10 MB · stored privately)"><input type="file" name="file" accept={WALLET_ACCEPT} className={inputCls} /></Field>
+          <Field label="Notes">
+            <textarea name="notes" rows={3} defaultValue={doc.notes ?? ""} className={inputCls} />
+          </Field>
+          <Field label="Replace file (PDF, JPG or PNG · up to 10 MB · stored privately)">
+            <input type="file" name="file" accept={WALLET_ACCEPT} className={inputCls} />
+          </Field>
 
           <div className="flex flex-wrap items-center gap-3">
-            <button type="submit" disabled={saving} className="inline-flex items-center gap-1.5 rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-navy disabled:opacity-60">{saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}{saving ? "Saving…" : "Save changes"}</button>
-            <button type="button" onClick={async () => { if (!window.confirm(`Delete "${doc.title}" and its file? This can't be undone.`)) return; try { await deleteFn({ data: { id: doc.id } }); toast.success("Document deleted"); await queryClient.invalidateQueries({ queryKey: ["license-wallet"] }); navigate({ to: "/dashboard/license-wallet" }); } catch (e: any) { toast.error(e?.message ?? "We couldn't delete that document."); } }} className="inline-flex items-center gap-1.5 rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"><Trash2 size={14} /> Delete</button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="inline-flex items-center gap-1.5 rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-navy disabled:opacity-60"
+            >
+              {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+              {saving ? "Saving…" : "Save changes"}
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!window.confirm(`Delete "${doc.title}" and its file? This can't be undone.`)) return;
+                try {
+                  await deleteFn({ data: { id: doc.id } });
+                  toast.success("Document deleted");
+                  await queryClient.invalidateQueries({ queryKey: ["license-wallet"] });
+                  navigate({ to: "/dashboard/license-wallet" });
+                } catch (e: any) {
+                  toast.error(e?.message ?? "We couldn't delete that document.");
+                }
+              }}
+              className="inline-flex items-center gap-1.5 rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
+            >
+              <Trash2 size={14} /> Delete
+            </button>
           </div>
         </form>
 
         <div className="space-y-6">
           <div className="rounded-2xl border border-ink/10 bg-white p-5">
-            <h2 className="flex items-center gap-2 font-display text-lg text-navy"><UploadCloud size={16} className="text-gold-ink" /> Stored file</h2>
-            {doc.file_name ? <><p className="mt-2 truncate text-sm text-navy" title={doc.file_name}>{doc.file_name}</p><p className="text-xs text-mute">{formatFileSize(doc.file_size_bytes)} · private · signed links expire in 5 minutes</p><button type="button" disabled={opening} onClick={async () => { setOpening(true); try { const { url } = await fileUrlFn({ data: { id: doc.id } }); window.open(url, "_blank", "noopener,noreferrer"); await queryClient.invalidateQueries({ queryKey: ["license-wallet", "document", doc.id] }); } catch (e: any) { toast.error(e?.message ?? "We couldn't open that file."); } finally { setOpening(false); } }} className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-navy px-4 py-2 text-sm font-bold text-white disabled:opacity-60">{opening ? <Loader2 size={14} className="animate-spin" /> : <ExternalLink size={14} />}View file</button></> : <p className="mt-2 text-sm text-mute">No file attached yet. Use “Replace file” to upload the PDF or photo.</p>}
+            <h2 className="flex items-center gap-2 font-display text-lg text-navy">
+              <UploadCloud size={16} className="text-gold-ink" /> Stored file
+            </h2>
+            {doc.file_name ? (
+              <>
+                <p className="mt-2 truncate text-sm text-navy" title={doc.file_name}>
+                  {doc.file_name}
+                </p>
+                <p className="text-xs text-mute">
+                  {formatFileSize(doc.file_size_bytes)} · private · signed links expire in 5 minutes
+                </p>
+                <button
+                  type="button"
+                  disabled={opening}
+                  onClick={async () => {
+                    setOpening(true);
+                    try {
+                      const { url } = await fileUrlFn({ data: { id: doc.id } });
+                      window.open(url, "_blank", "noopener,noreferrer");
+                      await queryClient.invalidateQueries({
+                        queryKey: ["license-wallet", "document", doc.id],
+                      });
+                    } catch (e: any) {
+                      toast.error(e?.message ?? "We couldn't open that file.");
+                    } finally {
+                      setOpening(false);
+                    }
+                  }}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-navy px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+                >
+                  {opening ? <Loader2 size={14} className="animate-spin" /> : <ExternalLink size={14} />}
+                  View file
+                </button>
+              </>
+            ) : (
+              <p className="mt-2 text-sm text-mute">
+                No file attached yet. Use “Replace file” to upload the PDF or photo.
+              </p>
+            )}
           </div>
 
           <div className="rounded-2xl border border-ink/10 bg-white p-5">
-            <h2 className="flex items-center gap-2 font-display text-lg text-navy"><History size={16} className="text-gold-ink" /> Activity</h2>
-            {data.activity.length === 0 ? <p className="mt-2 text-sm text-mute">No activity recorded yet.</p> : <ul className="mt-3 space-y-2">{data.activity.map((a) => <li key={a.id} className="flex items-center justify-between gap-2 text-xs"><span className="text-navy">{activityLabel(a.action)}</span><span className="text-mute">{new Date(a.created_at).toLocaleString()}</span></li>)}</ul>}
+            <h2 className="flex items-center gap-2 font-display text-lg text-navy">
+              <History size={16} className="text-gold-ink" /> Activity
+            </h2>
+            {data.activity.length === 0 ? (
+              <p className="mt-2 text-sm text-mute">No activity recorded yet.</p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {data.activity.map((a) => (
+                  <li key={a.id} className="flex items-center justify-between gap-2 text-xs">
+                    <span className="text-navy">{activityLabel(a.action)}</span>
+                    <span className="text-mute">{new Date(a.created_at).toLocaleString()}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </div>
