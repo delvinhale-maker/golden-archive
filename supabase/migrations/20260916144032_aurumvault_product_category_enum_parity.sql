@@ -1,0 +1,12 @@
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'financial_planners' AFTER 'business';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'ai_prompt_packs' AFTER 'financial_planners';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'business_templates' AFTER 'ai_prompt_packs';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'budget_spreadsheets' AFTER 'business_templates';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'printable_journals' AFTER 'budget_spreadsheets';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'childrens_educational' AFTER 'printable_journals';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'bible_studies' AFTER 'childrens_educational';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'digital_toolkits' AFTER 'bible_studies';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'business_operating_systems' AFTER 'digital_toolkits';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'caption_templates' AFTER 'business_operating_systems';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'film_tv_creator_production' AFTER 'caption_templates';
+ALTER TYPE public.product_category ADD VALUE IF NOT EXISTS 'creator_business_tools' AFTER 'film_tv_creator_production';
