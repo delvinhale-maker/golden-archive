@@ -3,25 +3,23 @@ import { render } from 'react-email'
 import { createFileRoute } from '@tanstack/react-router'
 import { TEMPLATES } from '@/lib/email-templates/registry'
 
-// Renders all registered templates with their previewData.
-// Gated by LOVABLE_API_KEY — only the Go API calls this.
-
+// Compatibility route retained during migration. Template previews are now
+// protected by an independent server-only token instead of LOVABLE_API_KEY.
 export const Route = createFileRoute("/lovable/email/transactional/preview")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apiKey = process.env.LOVABLE_API_KEY
-        if (!apiKey) {
+        const previewToken = process.env.EMAIL_PREVIEW_TOKEN
+        if (!previewToken) {
           return Response.json(
             { error: 'Server configuration error' },
             { status: 500 }
           )
         }
 
-        // Verify the caller is authorized with LOVABLE_API_KEY
         const authHeader = request.headers.get('Authorization')
         const token = authHeader?.replace(/^Bearer\s+/i, '')
-        if (token !== apiKey) {
+        if (token !== previewToken) {
           return Response.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
