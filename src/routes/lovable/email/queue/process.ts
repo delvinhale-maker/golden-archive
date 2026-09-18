@@ -1,4 +1,4 @@
-import { sendLovableEmail } from '@lovable.dev/email-js'
+import { sendIndependentEmail } from '@/lib/email-provider.server'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 
@@ -64,11 +64,11 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apiKey = process.env.LOVABLE_API_KEY
+        const emailApiKey = process.env.RESEND_API_KEY
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
         const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-        if (!apiKey || !supabaseUrl || !supabaseServiceKey) {
+        if (!emailApiKey || !supabaseUrl || !supabaseServiceKey) {
           console.error('Missing required environment variables')
           return Response.json(
             { error: 'Server configuration error' },
@@ -221,31 +221,21 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
             }
 
             try {
-              await sendLovableEmail(
-                {
-                  run_id: payload.run_id,
-                  to: payload.to,
-                  from: payload.from,
-                  sender_domain: payload.sender_domain,
-                  subject: payload.subject,
-                  html: payload.html,
-                  text: payload.text,
-                  purpose: payload.purpose,
-                  label: payload.label,
-                  // Retries need a fresh idempotency key: once a send has failed
-                  // upstream, replaying the same key returns 409 forever
-                  // ("Send again with a new idempotency key") and the message
-                  // burns all its retries without ever being delivered.
-                  idempotency_key: payload.idempotency_key
-                    ? failedAttempts > 0
-                      ? `${payload.idempotency_key}:r${failedAttempts}`
-                      : payload.idempotency_key
-                    : payload.idempotency_key,
-                  unsubscribe_token: payload.unsubscribe_token,
-                  message_id: payload.message_id,
-                },
-                { apiKey, sendUrl: process.env.LOVABLE_SEND_URL }
-              )
+              await sendIndependentEmail({
+                to: payload.to as string,
+                from: payload.from as string,
+                subject: payload.subject as string,
+                html: payload.html as string | undefined,
+                text: payload.text as string | undefined,
+                // Retries need a fresh idempotency key after a provider-side
+                // failure so an earlier rejected request is not replayed forever.
+                idempotencyKey: payload.idempotency_key
+                  ? failedAttempts > 0
+                    ? `${payload.idempotency_key}:r${failedAttempts}`
+                    : (payload.idempotency_key as string)
+                  : undefined,
+                unsubscribeToken: payload.unsubscribe_token as string | undefined,
+              })
 
               // Log success
               await supabase.from('email_send_log').insert({
