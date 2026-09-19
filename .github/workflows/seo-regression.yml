@@ -20,7 +20,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: TypeScript check
-        run: bunx tsgo --noEmit
+        run: bunx tsc --noEmit
 
       - name: Phase 2 product SEO regression (vitest)
         run: bunx vitest run tests/integration/product-seo-phase2.test.ts
