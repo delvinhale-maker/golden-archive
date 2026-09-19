@@ -1,7 +1,11 @@
-function decodeBase64(value: string): Uint8Array {
+function decodeBase64(value: string): Uint8Array<ArrayBuffer> {
   const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
   const binary = atob(normalized);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes;
 }
 
 function encodeBase64(bytes: Uint8Array): string {

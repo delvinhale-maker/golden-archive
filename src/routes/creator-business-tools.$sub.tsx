@@ -137,7 +137,7 @@ function CreatorToolSubPage() {
               What you get
             </h2>
             <ul className="mt-5 grid gap-2.5 sm:grid-cols-2">
-              {sub.points.map((p) => (
+              {sub.points.map((p: string) => (
                 <li
                   key={p}
                   className="flex items-start gap-2 text-[14px] leading-relaxed text-white/75"

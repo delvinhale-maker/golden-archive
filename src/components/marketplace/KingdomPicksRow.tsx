@@ -84,7 +84,7 @@ export function KingdomPicksRow() {
           {picks.slice(0, 8).map((p) => (
             <article
               key={p.id}
-              className="flex flex-col overflow-hidden rounded-xl border border-navy/10 bg-white shadow-card"
+              className={"flex flex-col overflow-hidden rounded-xl border border-navy/10 bg-white shadow-card" /* allow-light-bg */}
             >
               <div className="aspect-[4/5] w-full overflow-hidden bg-[#0F1E35]">
                 {isPlaceholderImage(p.imageUrl) ? (

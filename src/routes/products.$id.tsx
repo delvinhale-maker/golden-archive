@@ -419,6 +419,12 @@ function ProductPage() {
     );
   }
 
+  if (result.kind === "redirect") {
+    // The route loader performs the canonical 301 before this component renders.
+    // Keep an explicit guard so query state remains correctly narrowed here too.
+    return null;
+  }
+
   const product = result.product;
   // Demo/fallback listings use synthetic creator ids (`c_3`); only real seller
   // uuids get storefront attribution and the "more from" rack.
@@ -870,7 +876,7 @@ function ProductPage() {
                   What's included
                 </div>
                 <ul className="space-y-2 text-sm text-ink">
-                  {product.included.map((f) => (
+                  {product.included.map((f: string) => (
                     <li key={f} className="flex items-start gap-2">
                       <Check size={16} className="mt-0.5 text-gold-ink" />
                       <span>{f}</span>
