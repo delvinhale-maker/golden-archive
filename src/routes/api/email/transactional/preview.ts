@@ -4,7 +4,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { TEMPLATES } from '@/lib/email-templates/registry'
 
 // Compatibility route retained during migration. Template previews are now
-// protected by an independent server-only token instead of LOVABLE_API_KEY.
+// protected by an independent server-only preview token.
 export const Route = createFileRoute("/api/email/transactional/preview")({
   server: {
     handlers: {
