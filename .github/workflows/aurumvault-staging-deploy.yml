@@ -1,0 +1,113 @@
+name: AurumVault Independent Staging Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: "Exact migration-branch SHA approved for staging"
+        required: true
+        type: string
+
+concurrency:
+  group: aurumvault-independent-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: aurumvault-staging
+    env:
+      APP_ENV: staging
+      SUPABASE_PROJECT_REF: ypelutaddlibqvpaekyq
+      SUPABASE_URL: https://ypelutaddlibqvpaekyq.supabase.co
+      VITE_SUPABASE_URL: https://ypelutaddlibqvpaekyq.supabase.co
+      VITE_SUPABASE_PROJECT_ID: ypelutaddlibqvpaekyq
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.AURUMVAULT_STAGING_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.AURUMVAULT_STAGING_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.AURUMVAULT_STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+      STRIPE_SANDBOX_SECRET_KEY: ${{ secrets.AURUMVAULT_STAGING_STRIPE_SECRET_KEY }}
+      PAYMENTS_SANDBOX_WEBHOOK_SECRET: ${{ secrets.AURUMVAULT_STAGING_STRIPE_WEBHOOK_SECRET }}
+      RESEND_API_KEY: ${{ secrets.AURUMVAULT_STAGING_RESEND_API_KEY }}
+      RESEND_WEBHOOK_SECRET: ${{ secrets.AURUMVAULT_STAGING_RESEND_WEBHOOK_SECRET }}
+      EMAIL_PREVIEW_TOKEN: ${{ secrets.AURUMVAULT_STAGING_EMAIL_PREVIEW_TOKEN }}
+      OPENAI_API_KEY: ${{ secrets.AURUMVAULT_STAGING_OPENAI_API_KEY }}
+      INTEGRATION_TOKEN_ENCRYPTION_KEY: ${{ secrets.AURUMVAULT_STAGING_INTEGRATION_TOKEN_ENCRYPTION_KEY }}
+      VERCEL_TOKEN: ${{ secrets.AURUMVAULT_STAGING_VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.AURUMVAULT_STAGING_VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.AURUMVAULT_STAGING_VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: Checkout approved SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_sha }}
+          fetch-depth: 0
+
+      - name: Verify exact SHA and migration ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACTUAL_SHA="$(git rev-parse HEAD)"
+          test "$ACTUAL_SHA" = "${{ inputs.expected_sha }}"
+          git fetch origin migration/aurumvault-lovable-exit
+          git merge-base --is-ancestor "$ACTUAL_SHA" origin/migration/aurumvault-lovable-exit
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Independent runtime audit
+        run: bun run audit:lovable-exit
+
+      - name: Redirect regression
+        run: bun run test:redirects
+
+      - name: Production build
+        run: bun run build
+
+      - name: Require staging provider bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(SUPABASE_PUBLISHABLE_KEY SUPABASE_SERVICE_ROLE_KEY STRIPE_SANDBOX_SECRET_KEY PAYMENTS_SANDBOX_WEBHOOK_SECRET RESEND_API_KEY RESEND_WEBHOOK_SECRET EMAIL_PREVIEW_TOKEN OPENAI_API_KEY INTEGRATION_TOKEN_ENCRYPTION_KEY VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID)
+          for name in "${required[@]}"; do
+            if [ -z "${!name:-}" ]; then echo "Missing staging binding: $name"; exit 1; fi
+          done
+
+      - name: Install Vercel CLI
+        run: bun add --global vercel@latest
+
+      - name: Pull dedicated staging project
+        run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+
+      - name: Build Vercel output
+        run: vercel build --token="$VERCEL_TOKEN"
+
+      - name: Deploy exact candidate
+        id: deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOYMENT_URL="$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")"
+          echo "url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
+          echo "Deployment URL: $DEPLOYMENT_URL" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Prove exact SHA and staging backend
+        shell: bash
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          set -euo pipefail
+          for i in {1..60}; do
+            if curl -fsS "$DEPLOYMENT_URL/api/health" > /tmp/health.json; then break; fi
+            sleep 2
+          done
+          cat /tmp/health.json
+          test "$(jq -r '.git_sha' /tmp/health.json)" = "${{ inputs.expected_sha }}"
+          test "$(jq -r '.supabase_project_ref' /tmp/health.json)" = "ypelutaddlibqvpaekyq"
+          test "$(jq -r '.project_match' /tmp/health.json)" = "true"
+          test "$(jq -r '.backend' /tmp/health.json)" = "ok"
+          test "$(jq -r '.ok' /tmp/health.json)" = "true"
