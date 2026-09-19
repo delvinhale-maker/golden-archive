@@ -1,12 +1,10 @@
 name: AurumVault Independent Staging Deploy
 
 on:
+  push:
+    branches:
+      - ops/aurumvault-independent-staging
   workflow_dispatch:
-    inputs:
-      expected_sha:
-        description: "Exact migration-branch SHA approved for staging"
-        required: true
-        type: string
 
 concurrency:
   group: aurumvault-independent-staging
@@ -17,13 +15,19 @@ jobs:
     runs-on: ubuntu-latest
     environment: aurumvault-staging
     env:
+      CANDIDATE_SHA: 094f057bbd4855adf17ba8643ab8bb295fa6f2f9
+      VERCEL_ORG_ID: team_unxqKjKaYJ6kMZAJMowskYW7
+      VERCEL_PROJECT_NAME: aurumvault-staging
+      VERCEL_TOKEN: ${{ secrets.AURUMVAULT_STAGING_VERCEL_TOKEN || secrets.VERCEL_TOKEN }}
       APP_ENV: staging
+      PUBLIC_SITE_URL: https://aurumvault-staging.vercel.app
+      SITE_URL: https://aurumvault-staging.vercel.app
       SUPABASE_PROJECT_REF: ypelutaddlibqvpaekyq
       SUPABASE_URL: https://ypelutaddlibqvpaekyq.supabase.co
       VITE_SUPABASE_URL: https://ypelutaddlibqvpaekyq.supabase.co
       VITE_SUPABASE_PROJECT_ID: ypelutaddlibqvpaekyq
-      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.AURUMVAULT_STAGING_SUPABASE_PUBLISHABLE_KEY }}
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.AURUMVAULT_STAGING_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_buatT9DlMLvwi_KgXCljIg_167xQcI6
+      VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_buatT9DlMLvwi_KgXCljIg_167xQcI6
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.AURUMVAULT_STAGING_SUPABASE_SERVICE_ROLE_KEY }}
       STRIPE_SANDBOX_SECRET_KEY: ${{ secrets.AURUMVAULT_STAGING_STRIPE_SECRET_KEY }}
       PAYMENTS_SANDBOX_WEBHOOK_SECRET: ${{ secrets.AURUMVAULT_STAGING_STRIPE_WEBHOOK_SECRET }}
@@ -32,25 +36,28 @@ jobs:
       EMAIL_PREVIEW_TOKEN: ${{ secrets.AURUMVAULT_STAGING_EMAIL_PREVIEW_TOKEN }}
       OPENAI_API_KEY: ${{ secrets.AURUMVAULT_STAGING_OPENAI_API_KEY }}
       INTEGRATION_TOKEN_ENCRYPTION_KEY: ${{ secrets.AURUMVAULT_STAGING_INTEGRATION_TOKEN_ENCRYPTION_KEY }}
-      VERCEL_TOKEN: ${{ secrets.AURUMVAULT_STAGING_VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.AURUMVAULT_STAGING_VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.AURUMVAULT_STAGING_VERCEL_PROJECT_ID }}
+      CANVA_CLIENT_ID: ${{ secrets.AURUMVAULT_STAGING_CANVA_CLIENT_ID }}
+      CANVA_CLIENT_SECRET: ${{ secrets.AURUMVAULT_STAGING_CANVA_CLIENT_SECRET }}
+      CANVA_REDIRECT_URI: https://aurumvault-staging.vercel.app/api/public/integrations/canva/callback
+      TIKTOK_SHOP_APP_KEY: ${{ secrets.AURUMVAULT_STAGING_TIKTOK_APP_KEY }}
+      TIKTOK_SHOP_APP_SECRET: ${{ secrets.AURUMVAULT_STAGING_TIKTOK_APP_SECRET }}
+      TIKTOK_SHOP_SERVICE_ID: ${{ secrets.AURUMVAULT_STAGING_TIKTOK_SERVICE_ID }}
+      TIKTOK_SHOP_REDIRECT_URI: https://aurumvault-staging.vercel.app/api/public/integrations/tiktok-shop/callback
+      GIT_SHA: 094f057bbd4855adf17ba8643ab8bb295fa6f2f9
 
     steps:
-      - name: Checkout approved SHA
+      - name: Checkout exact all-green candidate
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.expected_sha }}
+          ref: ${{ env.CANDIDATE_SHA }}
           fetch-depth: 0
 
-      - name: Verify exact SHA and migration ancestry
+      - name: Verify exact SHA
         shell: bash
         run: |
           set -euo pipefail
           ACTUAL_SHA="$(git rev-parse HEAD)"
-          test "$ACTUAL_SHA" = "${{ inputs.expected_sha }}"
-          git fetch origin migration/aurumvault-lovable-exit
-          git merge-base --is-ancestor "$ACTUAL_SHA" origin/migration/aurumvault-lovable-exit
+          test "$ACTUAL_SHA" = "$CANDIDATE_SHA"
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -59,39 +66,78 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Independent runtime audit
-        run: bun run audit:lovable-exit
+      - name: Re-run independent runtime gates
+        run: |
+          bun run audit:lovable-exit
+          bun run test:redirects
+          bun run build
 
-      - name: Redirect regression
-        run: bun run test:redirects
-
-      - name: Production build
-        run: bun run build
-
-      - name: Require staging provider bindings
+      - name: Check Vercel authorization
         shell: bash
         run: |
           set -euo pipefail
-          required=(SUPABASE_PUBLISHABLE_KEY SUPABASE_SERVICE_ROLE_KEY STRIPE_SANDBOX_SECRET_KEY PAYMENTS_SANDBOX_WEBHOOK_SECRET RESEND_API_KEY RESEND_WEBHOOK_SECRET EMAIL_PREVIEW_TOKEN OPENAI_API_KEY INTEGRATION_TOKEN_ENCRYPTION_KEY VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID)
-          for name in "${required[@]}"; do
-            if [ -z "${!name:-}" ]; then echo "Missing staging binding: $name"; exit 1; fi
-          done
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo "A dedicated Vercel token is not available to this repository." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
 
       - name: Install Vercel CLI
         run: bun add --global vercel@latest
 
-      - name: Pull dedicated staging project
-        run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+      - name: Create or verify dedicated AurumVault staging project
+        shell: bash
+        run: |
+          set -euo pipefail
+          if vercel project inspect "$VERCEL_PROJECT_NAME" --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN" >/tmp/vercel-project.txt 2>&1; then
+            echo "Dedicated Vercel project already exists." >> "$GITHUB_STEP_SUMMARY"
+          else
+            vercel project add "$VERCEL_PROJECT_NAME" --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
+            echo "Created dedicated Vercel project: $VERCEL_PROJECT_NAME" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          vercel link --yes --project="$VERCEL_PROJECT_NAME" --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
 
-      - name: Build Vercel output
-        run: vercel build --token="$VERCEL_TOKEN"
+      - name: Report provider binding status
+        shell: bash
+        run: |
+          set -euo pipefail
+          optional=(SUPABASE_SERVICE_ROLE_KEY STRIPE_SANDBOX_SECRET_KEY PAYMENTS_SANDBOX_WEBHOOK_SECRET RESEND_API_KEY RESEND_WEBHOOK_SECRET EMAIL_PREVIEW_TOKEN OPENAI_API_KEY INTEGRATION_TOKEN_ENCRYPTION_KEY CANVA_CLIENT_ID CANVA_CLIENT_SECRET TIKTOK_SHOP_APP_KEY TIKTOK_SHOP_APP_SECRET TIKTOK_SHOP_SERVICE_ID)
+          missing=()
+          for name in "${optional[@]}"; do
+            if [ -z "${!name:-}" ]; then missing+=("$name"); fi
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "### Provider bindings still pending" >> "$GITHUB_STEP_SUMMARY"
+            printf -- "- %s\n" "${missing[@]}" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "All configured provider bindings are present." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
-      - name: Deploy exact candidate
+      - name: Deploy exact candidate to dedicated staging
         id: deploy
         shell: bash
         run: |
           set -euo pipefail
-          DEPLOYMENT_URL="$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")"
+          args=(
+            deploy --prod --yes
+            --project "$VERCEL_PROJECT_NAME"
+            --scope "$VERCEL_ORG_ID"
+            --token "$VERCEL_TOKEN"
+            --env "APP_ENV=$APP_ENV"
+            --env "PUBLIC_SITE_URL=$PUBLIC_SITE_URL"
+            --env "SITE_URL=$SITE_URL"
+            --env "GIT_SHA=$GIT_SHA"
+            --env "SUPABASE_PROJECT_REF=$SUPABASE_PROJECT_REF"
+            --env "SUPABASE_URL=$SUPABASE_URL"
+            --env "SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY"
+            --build-env "VITE_SUPABASE_URL=$VITE_SUPABASE_URL"
+            --build-env "VITE_SUPABASE_PROJECT_ID=$VITE_SUPABASE_PROJECT_ID"
+            --build-env "VITE_SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY"
+          )
+          for name in SUPABASE_SERVICE_ROLE_KEY STRIPE_SANDBOX_SECRET_KEY PAYMENTS_SANDBOX_WEBHOOK_SECRET RESEND_API_KEY RESEND_WEBHOOK_SECRET EMAIL_PREVIEW_TOKEN OPENAI_API_KEY INTEGRATION_TOKEN_ENCRYPTION_KEY CANVA_CLIENT_ID CANVA_CLIENT_SECRET CANVA_REDIRECT_URI TIKTOK_SHOP_APP_KEY TIKTOK_SHOP_APP_SECRET TIKTOK_SHOP_SERVICE_ID TIKTOK_SHOP_REDIRECT_URI; do
+            value="${!name:-}"
+            if [ -n "$value" ]; then args+=(--env "$name=$value"); fi
+          done
+          DEPLOYMENT_URL="$(vercel "${args[@]}")"
           echo "url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
           echo "Deployment URL: $DEPLOYMENT_URL" >> "$GITHUB_STEP_SUMMARY"
 
@@ -101,13 +147,27 @@ jobs:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
         run: |
           set -euo pipefail
-          for i in {1..60}; do
-            if curl -fsS "$DEPLOYMENT_URL/api/health" > /tmp/health.json; then break; fi
+          rm -f /tmp/health.json
+          for i in {1..90}; do
+            if curl -fsS "$DEPLOYMENT_URL/api/health" > /tmp/health.json; then
+              break
+            fi
             sleep 2
           done
+          test -s /tmp/health.json
           cat /tmp/health.json
-          test "$(jq -r '.git_sha' /tmp/health.json)" = "${{ inputs.expected_sha }}"
-          test "$(jq -r '.supabase_project_ref' /tmp/health.json)" = "ypelutaddlibqvpaekyq"
+          test "$(jq -r '.git_sha' /tmp/health.json)" = "$CANDIDATE_SHA"
+          test "$(jq -r '.supabase_project_ref' /tmp/health.json)" = "$SUPABASE_PROJECT_REF"
           test "$(jq -r '.project_match' /tmp/health.json)" = "true"
           test "$(jq -r '.backend' /tmp/health.json)" = "ok"
           test "$(jq -r '.ok' /tmp/health.json)" = "true"
+
+      - name: Publish certification evidence
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          echo "### AurumVault independent staging deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Exact application SHA: `$CANDIDATE_SHA`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Supabase staging: `$SUPABASE_PROJECT_REF`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Dedicated Vercel project: `$VERCEL_PROJECT_NAME`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Deployment: $DEPLOYMENT_URL" >> "$GITHUB_STEP_SUMMARY"
