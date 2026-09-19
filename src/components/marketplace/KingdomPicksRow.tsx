@@ -16,7 +16,7 @@ export const kingdomPicksRowQ = queryOptions({
 
 /** Fire-and-forget outbound affiliate click tracking. Never blocks navigation. */
 function trackAmazonClick(p: AffiliatePick, placement: string) {
-  // 1) Persist to Lovable Cloud (affiliate_clicks — anon INSERT allowed)
+  // 1) Persist through Supabase (affiliate_clicks — anon INSERT allowed)
   try {
     supabase
       .from("affiliate_clicks")
@@ -84,7 +84,7 @@ export function KingdomPicksRow() {
           {picks.slice(0, 8).map((p) => (
             <article
               key={p.id}
-              className="flex flex-col overflow-hidden rounded-xl border border-navy/10 bg-white shadow-card"
+              className={"flex flex-col overflow-hidden rounded-xl border border-navy/10 bg-white shadow-card" /* allow-light-bg */}
             >
               <div className="aspect-[4/5] w-full overflow-hidden bg-[#0F1E35]">
                 {isPlaceholderImage(p.imageUrl) ? (

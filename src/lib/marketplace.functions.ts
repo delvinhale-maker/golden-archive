@@ -3,13 +3,8 @@ import { queryOptions } from "@tanstack/react-query";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import {
-  slugToLabel,
-  labelToSlug,
-  getCategoryDef,
-  getQueryableSlugsFor,
-  CATEGORIES as CATEGORY_DEFS,
-} from "@/lib/categories";
+import { slugToLabel, labelToSlug, getCategoryDef, getQueryableSlugsFor, CATEGORIES as CATEGORY_DEFS } from "@/lib/categories";
+import { canonicalProductSegment, shouldRedirectProductRequest } from "@/lib/product-slug-redirect";
 import { MARKETPLACE_PAGE_SIZE, FEATURED_PRODUCTS_LIMIT } from "@/lib/marketplace-config";
 import { rotateHalfDay } from "@/lib/affiliate-rotation";
 
@@ -36,6 +31,8 @@ type DbProductRow = {
   description: string | null;
   seller_id: string;
   created_at: string;
+  status?: string;
+  published?: boolean;
   ai_review_status?: string | null;
   ai_review_score?: number | null;
   is_preorder?: boolean | null;
@@ -47,6 +44,9 @@ type DbProductRow = {
   preview_pages?: number[] | null;
   product_type?: string | null;
   delivery_contents?: string[] | null;
+  /* SEO Phase 2 — only selected by the product-detail query (list payloads
+     stay lean). Focus/secondary keywords are internal planning fields and
+     are never mapped into the runtime product model or rendered markup. */
   seo_title?: string | null;
   seo_description?: string | null;
   seo_image_alt?: string | null;
@@ -115,17 +115,13 @@ function dbRowToProduct(r: DbProductRow): Product {
     fileExt: (r.file_path ?? "").split(".").pop()?.toLowerCase() ?? null,
     productType: r.product_type ?? null,
     deliveryContents: Array.isArray(r.delivery_contents) ? r.delivery_contents : [],
-    ...(Object.prototype.hasOwnProperty.call(r, "seo_title")
-      ? {
-          seoTitle: r.seo_title?.trim() || null,
-          seoDescription: r.seo_description?.trim() || null,
-          seoImageAlt: r.seo_image_alt?.trim() || null,
-          seoOgTitle: r.seo_og_title?.trim() || null,
-          seoOgDescription: r.seo_og_description?.trim() || null,
-          seoRobotsIndex: r.seo_robots_index ?? true,
-          seoRobotsFollow: r.seo_robots_follow ?? true,
-        }
-      : {}),
+    seoTitle: r.seo_title?.trim() || null,
+    seoDescription: r.seo_description?.trim() || null,
+    seoImageAlt: r.seo_image_alt?.trim() || null,
+    seoOgTitle: r.seo_og_title?.trim() || null,
+    seoOgDescription: r.seo_og_description?.trim() || null,
+    seoRobotsIndex: r.seo_robots_index ?? true,
+    seoRobotsFollow: r.seo_robots_follow ?? true,
   };
 }
 
@@ -261,20 +257,14 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
       // The DB enum stores prompt packs under `ai_prompt_packs`; the UI
       // exposes a friendlier `prompt_packs` slug — map it back for the query.
       if (slug === "prompt_packs") slug = "ai_prompt_packs";
-      // Alias-aware: a product can still be stored under a deprecated
-      // legacy enum value (e.g. `business`) that only ever got aliased for
-      // *display* (slugToLabel), never for filtering — which is exactly
-      // why department pages like Business Systems could show zero results
-      // even though matching products exist. Matching every legacy slug
-      // that aliases to this canonical one closes that gap without any
-      // data migration.
-      const queryableSlugs = getQueryableSlugsFor(
-        slug,
-      ) as Database["public"]["Enums"]["product_category"][];
-      query =
-        queryableSlugs.length > 1
-          ? query.in("category", queryableSlugs)
-          : query.eq("category", queryableSlugs[0]);
+      // Match the canonical slug AND any legacy slug that maps onto it, so
+      // older rows stored as e.g. `business` still appear on the canonical
+      // department page (/business-systems).
+      const slugs = getQueryableSlugsFor(slug);
+      query = query.in(
+        "category",
+        (slugs.length ? slugs : [slug]) as Database["public"]["Enums"]["product_category"][],
+      );
     }
     if (opts.q) {
       // Search across title, description, category and both lower taxonomy
@@ -376,7 +366,7 @@ export type Product = {
   productType?: string | null;
   /** What the buyer receives (formats/assets) — descriptive, not taxonomy. */
   deliveryContents?: string[];
-  /** SEO Phase 2 overrides populated on product-detail reads only. */
+  /* SEO Phase 2 overrides. Only populated on the product-detail read. */
   seoTitle?: string | null;
   seoDescription?: string | null;
   seoImageAlt?: string | null;
@@ -384,7 +374,10 @@ export type Product = {
   seoOgDescription?: string | null;
   seoRobotsIndex?: boolean;
   seoRobotsFollow?: boolean;
-  /** Internal planning-only fields; never selected into public product reads. */
+  /**
+   * Internal SEO planning fields. Intentionally NEVER populated by any read
+   * and NEVER rendered — they must not be emitted as meta keywords.
+   */
   seoFocusKeyword?: never;
   seoSecondaryKeywords?: never;
 };
@@ -414,6 +407,12 @@ export type ProductDetailResult =
       ratingBreakdown: ProductRatingBreakdown;
     }
   | { kind: "unpublished"; title: string | null }
+  /**
+   * The requested identifier is not the product's canonical slug (a legacy
+   * UUID, or an old slug recorded in product_slug_redirects). `slug` is always
+   * read live from marketplace_products.slug, never stored as a second mutable
+   * target, so renames can never create a redirect chain.
+   */
   | { kind: "redirect"; slug: string }
   | { kind: "notFound" };
 
@@ -750,44 +749,58 @@ export const getProduct = createServerFn({ method: "GET" })
     // Use service-role client so we can distinguish "does not exist" from
     // "exists but is not yet published/approved" despite RLS policies.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const detailSelect =
-      "id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages,seo_title,seo_description,seo_image_alt,seo_og_title,seo_og_description,seo_robots_index,seo_robots_follow" as const;
-
-    const direct = await supabaseAdmin
+    const PRODUCT_COLUMNS: string =
+      "id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages,seo_title,seo_description,seo_image_alt,seo_og_title,seo_og_description,seo_robots_index,seo_robots_follow";
+    let { data: row } = await supabaseAdmin
       .from("marketplace_products")
-      .select(detailSelect)
+      .select(PRODUCT_COLUMNS)
       .eq(isUuid ? "id" : "slug", identifier)
-      .maybeSingle();
-
-    let row = direct.data as any;
+      .maybeSingle()
+      .overrideTypes<DbProductRow, { merge: false }>();
 
     if (!row && !isUuid) {
-      const redirectLookup = await (supabaseAdmin.rpc as any)(
-        "resolve_product_slug_redirect",
-        { _old_slug: identifier },
-      );
-      const redirectProductId =
-        typeof redirectLookup.data === "string" ? redirectLookup.data : null;
-
-      if (redirectProductId) {
-        const redirected = await supabaseAdmin
+      // Case C: an old historical slug that no longer exists on any product.
+      // product_slug_redirects only stores old_slug -> product_id; the target
+      // URL is resolved from the product's CURRENT slug below.
+      let productId: string | null = null;
+      try {
+        const { data: resolved } = await (
+          supabaseAdmin as unknown as {
+            rpc: (
+              fn: string,
+              args: Record<string, string>,
+            ) => Promise<{ data: string | null }>;
+          }
+        ).rpc("resolve_product_slug_redirect", { _old_slug: identifier });
+        productId = typeof resolved === "string" && resolved ? resolved : null;
+      } catch {
+        productId = null;
+      }
+      if (productId) {
+        const { data: target } = await supabaseAdmin
           .from("marketplace_products")
-          .select(detailSelect)
-          .eq("id", redirectProductId)
-          .maybeSingle();
-        row = redirected.data as any;
+          .select(PRODUCT_COLUMNS)
+          .eq("id", productId)
+          .maybeSingle()
+          .overrideTypes<DbProductRow, { merge: false }>();
+        row = target ?? null;
       }
     }
 
     if (!row) return { kind: "notFound" } as ProductDetailResult;
     if (row.status !== "approved" || !row.published) {
+      // Unpublished/unapproved products keep their existing non-indexable
+      // behaviour — they are never the target of a public 301.
       return { kind: "unpublished", title: row.title } as ProductDetailResult;
     }
-    const canonical = row.slug?.trim() || row.id;
-    if (canonical !== identifier) {
-      return { kind: "redirect", slug: canonical } as ProductDetailResult;
+    // Cases B and C: send legacy identifiers to the canonical URL segment. The
+    // canonical segment is always read live from the row, and only differs from
+    // the requested identifier, so redirect chains and loops are impossible.
+    const canonicalSegment = canonicalProductSegment(row);
+    if (shouldRedirectProductRequest(identifier, canonicalSegment)) {
+      return { kind: "redirect", slug: canonicalSegment } as ProductDetailResult;
     }
-    const product = dbRowToProduct(row as DbProductRow);
+    const product = dbRowToProduct(row);
     const [agg, creators] = await Promise.all([
       fetchReviewAggregates(supabaseAdmin, [product.id]),
       fetchCreatorInfoMap(supabaseAdmin, [product.creator.id]),
@@ -980,5 +993,3 @@ export const getKingdomPicksRowFn = createServerFn({ method: "GET" }).handler(
     }
   },
 );
-
-

@@ -30,7 +30,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
 
       - name: Cache Bun global store
         uses: actions/cache@v4
@@ -90,7 +89,7 @@ jobs:
 
       - name: Start dev server
         run: |
-          bun run dev > /tmp/dev-server.log 2>&1 &
+          bun run dev -- --host 127.0.0.1 --port 8080 > /tmp/dev-server.log 2>&1 &
           echo $! > /tmp/dev-server.pid
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}

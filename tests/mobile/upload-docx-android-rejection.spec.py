@@ -19,7 +19,7 @@ Run:
     python3 tests/mobile/upload-docx-android-rejection.spec.py
 
 Requires the dev server on http://localhost:8080 and the injected
-LOVABLE_BROWSER_SUPABASE_* env vars.
+AURUMVAULT_STAGING_SUPABASE_* env vars.
 """
 
 import asyncio
@@ -55,9 +55,9 @@ def ok(msg: str) -> None:
 
 
 async def restore_supabase_session(page) -> None:
-    storage_key = os.environ.get("LOVABLE_BROWSER_SUPABASE_STORAGE_KEY")
-    session_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_SESSION_JSON")
-    cookies_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_COOKIES_JSON")
+    storage_key = os.environ.get("AURUMVAULT_STAGING_SUPABASE_STORAGE_KEY")
+    session_json = os.environ.get("AURUMVAULT_STAGING_SUPABASE_SESSION_JSON")
+    cookies_json = os.environ.get("AURUMVAULT_STAGING_SUPABASE_COOKIES_JSON")
 
     if cookies_json:
         cookies = json.loads(cookies_json)
@@ -73,7 +73,7 @@ async def restore_supabase_session(page) -> None:
         )
     else:
         print(
-            "WARN: no managed Supabase session injected — "
+            "WARN: no independent staging Supabase session injected — "
             "authenticated route will redirect to /auth."
         )
 

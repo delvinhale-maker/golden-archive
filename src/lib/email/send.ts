@@ -12,7 +12,7 @@ export async function sendTransactionalEmail(input: SendTransactionalEmailInput)
   const token = session?.access_token;
   if (!token) throw new Error("Not signed in");
 
-  const res = await fetch("/lovable/email/transactional/send", {
+  const res = await fetch("/api/email/transactional/send", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify(input),

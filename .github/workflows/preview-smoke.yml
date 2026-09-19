@@ -90,7 +90,7 @@ jobs:
       - name: Start dev server
         if: inputs.base_url == ''
         run: |
-          bun run dev > /tmp/dev-server.log 2>&1 &
+          bun run dev -- --host 127.0.0.1 --port 8080 > /tmp/dev-server.log 2>&1 &
           echo $! > /tmp/dev-server.pid
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}

@@ -7,8 +7,8 @@ on:
     branches: ["**"]
 
 # Runs the mobile .docx upload regression suite against a fresh
-# preview build with a real managed-Supabase session injected via
-# LOVABLE_BROWSER_SUPABASE_* secrets, so the authenticated
+# preview build with a short-lived session generated at runtime against
+# the independent aurumvault-staging Supabase project, so the authenticated
 # /dashboard/new?type=ai_prompt_pack flow is reachable end-to-end.
 #
 # Cross-browser coverage:
@@ -22,10 +22,10 @@ on:
 #   VITE_SUPABASE_URL
 #   VITE_SUPABASE_PUBLISHABLE_KEY
 #   VITE_SUPABASE_PROJECT_ID
-#   LOVABLE_BROWSER_SUPABASE_STORAGE_KEY
-#   LOVABLE_BROWSER_SUPABASE_SESSION_JSON
-#   LOVABLE_BROWSER_SUPABASE_COOKIES_JSON   (optional; SSR-cookie path)
-#   LOVABLE_BROWSER_SUPABASE_ACCESS_TOKEN   (optional)
+#   SUPABASE_SERVICE_ROLE_KEY
+#
+# The workflow fails closed unless VITE_SUPABASE_URL is exactly the
+# independent aurumvault-staging project (ypelutaddlibqvpaekyq).
 
 jobs:
   docx-upload:
@@ -66,7 +66,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
 
       - name: Cache Bun global store
         uses: actions/cache@v4
@@ -124,21 +123,70 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
 
-      - name: Verify browser-auth secrets are present
+      - name: Generate independent staging browser-auth fixture
+        shell: bash
         env:
-          STORAGE_KEY: ${{ secrets.LOVABLE_BROWSER_SUPABASE_STORAGE_KEY }}
-          SESSION_JSON: ${{ secrets.LOVABLE_BROWSER_SUPABASE_SESSION_JSON }}
+          STAGING_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          STAGING_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          if [ -z "$STORAGE_KEY" ] || [ -z "$SESSION_JSON" ]; then
-            echo "Missing LOVABLE_BROWSER_SUPABASE_STORAGE_KEY / _SESSION_JSON."
-            echo "Configure them in repo Settings → Secrets → Actions."
+          set -euo pipefail
+
+          EXPECTED_REF="ypelutaddlibqvpaekyq"
+          EXPECTED_URL="https://${EXPECTED_REF}.supabase.co"
+          if [ "$STAGING_SUPABASE_URL" != "$EXPECTED_URL" ]; then
+            echo "Refusing to create an E2E Auth fixture: VITE_SUPABASE_URL is not aurumvault-staging (${EXPECTED_REF})."
             exit 1
           fi
-          echo "Browser-auth secrets present."
+          if [ -z "$STAGING_SUPABASE_PUBLISHABLE_KEY" ] || [ -z "$STAGING_SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "Missing independent staging Supabase credentials."
+            exit 1
+          fi
+
+          EMAIL="aurumvault-mobile-e2e-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.label }}@example.invalid"
+          PASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$PASSWORD"
+
+          CREATE_BODY="$(jq -nc --arg email "$EMAIL" --arg password "$PASSWORD" '{email:$email,password:$password,email_confirm:true}')"
+          CREATE_RESPONSE="$(curl --fail-with-body -sS -X POST "$STAGING_SUPABASE_URL/auth/v1/admin/users" \
+            -H "apikey: $STAGING_SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Authorization: Bearer $STAGING_SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            --data "$CREATE_BODY")"
+          USER_ID="$(jq -r '.id // empty' <<<"$CREATE_RESPONSE")"
+          if [ -z "$USER_ID" ]; then
+            echo "Supabase did not return a staging E2E user id."
+            exit 1
+          fi
+
+          LOGIN_BODY="$(jq -nc --arg email "$EMAIL" --arg password "$PASSWORD" '{email:$email,password:$password}')"
+          SESSION_JSON="$(curl --fail-with-body -sS -X POST "$STAGING_SUPABASE_URL/auth/v1/token?grant_type=password" \
+            -H "apikey: $STAGING_SUPABASE_PUBLISHABLE_KEY" \
+            -H "Content-Type: application/json" \
+            --data "$LOGIN_BODY")"
+          ACCESS_TOKEN="$(jq -r '.access_token // empty' <<<"$SESSION_JSON")"
+          REFRESH_TOKEN="$(jq -r '.refresh_token // empty' <<<"$SESSION_JSON")"
+          if [ -z "$ACCESS_TOKEN" ] || [ -z "$REFRESH_TOKEN" ]; then
+            echo "Supabase did not return a valid staging browser session."
+            exit 1
+          fi
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "::add-mask::$REFRESH_TOKEN"
+
+          echo "AURUMVAULT_STAGING_E2E_USER_ID=$USER_ID" >> "$GITHUB_ENV"
+          echo "AURUMVAULT_STAGING_SUPABASE_STORAGE_KEY=sb-${EXPECTED_REF}-auth-token" >> "$GITHUB_ENV"
+          echo "AURUMVAULT_STAGING_SUPABASE_ACCESS_TOKEN=$ACCESS_TOKEN" >> "$GITHUB_ENV"
+          {
+            echo "AURUMVAULT_STAGING_SUPABASE_SESSION_JSON<<__AURUMVAULT_SESSION__"
+            echo "$SESSION_JSON"
+            echo "__AURUMVAULT_SESSION__"
+          } >> "$GITHUB_ENV"
+
+          echo "Independent staging browser-auth fixture created."
 
       - name: Start dev server
         run: |
-          bun run dev > /tmp/dev-server.log 2>&1 &
+          bun run dev -- --host 127.0.0.1 --port 8080 > /tmp/dev-server.log 2>&1 &
           echo $! > /tmp/dev-server.pid
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
@@ -160,12 +208,21 @@ jobs:
 
       - name: Run ${{ matrix.spec }}
         env:
-          LOVABLE_BROWSER_SUPABASE_STORAGE_KEY: ${{ secrets.LOVABLE_BROWSER_SUPABASE_STORAGE_KEY }}
-          LOVABLE_BROWSER_SUPABASE_SESSION_JSON: ${{ secrets.LOVABLE_BROWSER_SUPABASE_SESSION_JSON }}
-          LOVABLE_BROWSER_SUPABASE_COOKIES_JSON: ${{ secrets.LOVABLE_BROWSER_SUPABASE_COOKIES_JSON }}
-          LOVABLE_BROWSER_SUPABASE_ACCESS_TOKEN: ${{ secrets.LOVABLE_BROWSER_SUPABASE_ACCESS_TOKEN }}
-          LOVABLE_BROWSER_AUTH_STATUS: injected
+          AURUMVAULT_STAGING_AUTH_STATUS: injected
         run: python ${{ matrix.spec }}
+
+      - name: Remove independent staging browser-auth fixture
+        if: always()
+        shell: bash
+        env:
+          STAGING_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -n "${AURUMVAULT_STAGING_E2E_USER_ID:-}" ] && [ "$STAGING_SUPABASE_URL" = "https://ypelutaddlibqvpaekyq.supabase.co" ]; then
+            curl -sS -X DELETE "$STAGING_SUPABASE_URL/auth/v1/admin/users/$AURUMVAULT_STAGING_E2E_USER_ID" \
+              -H "apikey: $STAGING_SUPABASE_SERVICE_ROLE_KEY" \
+              -H "Authorization: Bearer $STAGING_SUPABASE_SERVICE_ROLE_KEY" > /dev/null || true
+          fi
 
       - name: Upload artifacts on failure
         if: failure()

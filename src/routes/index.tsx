@@ -764,7 +764,7 @@ function CategoriesSection() {
               <Link
                 to="/products"
                 search={{ category: c.slug } as never}
-                className="group flex h-[120px] flex-col items-center justify-center gap-2 rounded-lg border border-line bg-white transition-all duration-200 ease-out hover:-translate-y-1 hover:border-gold hover:shadow-card-hover"
+                className={"group flex h-[120px] flex-col items-center justify-center gap-2 rounded-lg border border-line bg-white transition-all duration-200 ease-out hover:-translate-y-1 hover:border-gold hover:shadow-card-hover" /* allow-light-bg */}
               >
                 <c.icon className="text-gold-ink transition-transform duration-200 group-hover:scale-110" size={32} strokeWidth={1.6} />
                 <span className="text-sm font-bold text-navy">{c.label}</span>

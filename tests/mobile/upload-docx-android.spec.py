@@ -3,7 +3,7 @@ Android Chrome regression: uploading a .docx to the AI Prompt Pack publish
 flow must succeed even when the browser reports a generic MIME type.
 
 Repro path:
-  1. Sign-in as the managed test user.
+  1. Sign-in as the independent staging test user.
   2. Open /dashboard/new?type=ai_prompt_pack on an Android Chrome-class
      mobile viewport + UA.
   3. Complete Step 1 (title + description).
@@ -17,7 +17,7 @@ Run:
     python3 tests/mobile/upload-docx-android.spec.py
 
 Requires the dev server on http://localhost:8080 and the injected
-LOVABLE_BROWSER_SUPABASE_* env vars.
+AURUMVAULT_STAGING_SUPABASE_* env vars.
 """
 
 import asyncio
@@ -88,9 +88,9 @@ def build_minimal_docx() -> bytes:
 
 
 async def restore_supabase_session(page) -> None:
-    storage_key = os.environ.get("LOVABLE_BROWSER_SUPABASE_STORAGE_KEY")
-    session_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_SESSION_JSON")
-    cookies_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_COOKIES_JSON")
+    storage_key = os.environ.get("AURUMVAULT_STAGING_SUPABASE_STORAGE_KEY")
+    session_json = os.environ.get("AURUMVAULT_STAGING_SUPABASE_SESSION_JSON")
+    cookies_json = os.environ.get("AURUMVAULT_STAGING_SUPABASE_COOKIES_JSON")
 
     if cookies_json:
         cookies = json.loads(cookies_json)
@@ -106,7 +106,7 @@ async def restore_supabase_session(page) -> None:
         )
     else:
         print(
-            "WARN: no managed Supabase session injected — "
+            "WARN: no independent staging Supabase session injected — "
             "authenticated route will redirect to /auth."
         )
 

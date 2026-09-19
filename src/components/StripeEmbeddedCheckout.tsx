@@ -194,3 +194,36 @@ export function StripeEmbeddedBundleCheckout({ bundleId, returnUrl }: BundleProp
 
   return <CheckoutFrame fetchClientSecret={fetchClientSecret} />;
 }
+
+
+/**
+ * License Wallet recurring subscription checkout.
+ * The browser supplies a plan name only; the server resolves that plan through
+ * the canonical allowlist to a Stripe price lookup key.
+ */
+export function StripeEmbeddedWalletPlanCheckout({
+  plan,
+  returnUrl,
+}: {
+  plan: "SOLO" | "BUSINESS" | "MULTI_LOCATION";
+  returnUrl?: string;
+}) {
+  const fetchClientSecret = async (): Promise<string> => {
+    const { createWalletPlanCheckout } = await import(
+      "@/lib/license-wallet-billing.functions"
+    );
+    const result = await createWalletPlanCheckout({
+      data: {
+        plan,
+        returnUrl:
+          returnUrl ??
+          `${window.location.origin}/dashboard/license-wallet?billing=complete`,
+        environment: getStripeEnvironment(),
+      },
+    });
+    if ("error" in result) throw new Error(result.error);
+    if (!result.clientSecret) throw new Error("Stripe did not return a client secret");
+    return result.clientSecret;
+  };
+  return <CheckoutFrame fetchClientSecret={fetchClientSecret} />;
+}

@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { AVLogo } from "@/components/marketplace/AVLogo";
 import { toast } from "sonner";
 import {
@@ -324,9 +323,18 @@ function AuthPage() {
     }
 
     try {
-      const res = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      const { data: oauthData, error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+          skipBrowserRedirect: true,
+        },
       });
+      const res = {
+        error: oauthError,
+        redirected: Boolean(oauthData?.url),
+        url: oauthData?.url ?? null,
+      };
       if (res.error) {
         const raw =
           (res.error as { message?: string } | null)?.message?.toLowerCase() ?? "";
@@ -393,6 +401,17 @@ function AuthPage() {
         finish();
         return;
       }
+      if (res.redirected && res.url) {
+        logOAuthEvent({
+          level: "info",
+          provider: "google",
+          correlationId,
+          event: "oauth.redirected",
+        });
+        window.location.assign(res.url);
+        return;
+      }
+
       if (!res.redirected) {
         // Confirm a session actually landed before navigating.
         const { data: sess } = await supabase.auth.getSession();
@@ -417,13 +436,6 @@ function AuthPage() {
         sessionStorage.removeItem("av_oauth_redirect");
         clearOAuthCorrelationId();
         await finishAuthRedirect(saved);
-      } else {
-        logOAuthEvent({
-          level: "info",
-          provider: "google",
-          correlationId,
-          event: "oauth.redirected",
-        });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message.toLowerCase() : "";
