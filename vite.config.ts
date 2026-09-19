@@ -3,7 +3,6 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { nitro } from "nitro/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import tsConfigPaths from "vite-tsconfig-paths";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
@@ -14,12 +13,12 @@ const tslibEsm = require.resolve("tslib/tslib.es6.mjs");
 
 export default defineConfig({
   resolve: {
+    tsconfigPaths: true,
     alias: {
       tslib: tslibEsm,
     },
   },
   plugins: [
-    tsConfigPaths(),
     tanstackStart(),
     nitro(),
     viteReact(),
