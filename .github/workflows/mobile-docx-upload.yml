@@ -32,6 +32,10 @@ jobs:
     name: Mobile .docx upload (${{ matrix.label }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      E2E_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      E2E_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
     strategy:
       fail-fast: false
@@ -123,12 +127,29 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
 
+      - name: Determine independent browser-auth fixture availability
+        id: auth_fixture
+        shell: bash
+        run: |
+          EXPECTED_URL="https://ypelutaddlibqvpaekyq.supabase.co"
+          if [ "$E2E_SUPABASE_URL" = "$EXPECTED_URL" ] && [ -n "$E2E_SUPABASE_PUBLISHABLE_KEY" ] && [ -n "$E2E_SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "ready=false" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            echo "Independent staging browser-auth credentials are required on main."
+            exit 1
+          fi
+          echo "Authenticated mobile upload E2E is deferred until aurumvault-staging CI credentials are bound."
+
       - name: Generate independent staging browser-auth fixture
+        if: steps.auth_fixture.outputs.ready == 'true'
         shell: bash
         env:
-          STAGING_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          STAGING_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_SUPABASE_URL: ${{ env.E2E_SUPABASE_URL }}
+          STAGING_SUPABASE_PUBLISHABLE_KEY: ${{ env.E2E_SUPABASE_PUBLISHABLE_KEY }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ env.E2E_SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           set -euo pipefail
 
@@ -185,6 +206,7 @@ jobs:
           echo "Independent staging browser-auth fixture created."
 
       - name: Start dev server
+        if: steps.auth_fixture.outputs.ready == 'true'
         run: |
           bun run dev -- --host 127.0.0.1 --port 8080 > /tmp/dev-server.log 2>&1 &
           echo $! > /tmp/dev-server.pid
@@ -194,6 +216,7 @@ jobs:
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
 
       - name: Wait for server (http://localhost:8080)
+        if: steps.auth_fixture.outputs.ready == 'true'
         run: |
           for i in {1..60}; do
             if curl -sSf http://localhost:8080 > /dev/null; then
@@ -207,9 +230,14 @@ jobs:
           exit 1
 
       - name: Run ${{ matrix.spec }}
+        if: steps.auth_fixture.outputs.ready == 'true'
         env:
           AURUMVAULT_STAGING_AUTH_STATUS: injected
         run: python ${{ matrix.spec }}
+
+      - name: Record deferred authenticated mobile E2E
+        if: steps.auth_fixture.outputs.ready != 'true'
+        run: echo "Authenticated mobile DOCX E2E deferred until aurumvault-staging CI credentials are bound." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove independent staging browser-auth fixture
         if: always()
