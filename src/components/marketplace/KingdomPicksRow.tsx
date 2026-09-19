@@ -16,7 +16,7 @@ export const kingdomPicksRowQ = queryOptions({
 
 /** Fire-and-forget outbound affiliate click tracking. Never blocks navigation. */
 function trackAmazonClick(p: AffiliatePick, placement: string) {
-  // 1) Persist to Lovable Cloud (affiliate_clicks — anon INSERT allowed)
+  // 1) Persist through Supabase (affiliate_clicks — anon INSERT allowed)
   try {
     supabase
       .from("affiliate_clicks")
