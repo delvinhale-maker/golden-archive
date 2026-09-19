@@ -127,13 +127,17 @@ describe("sitemap", () => {
   const sitemap = read("src/routes/sitemap[.]xml.ts");
 
   it("reads seo_robots_index and omits explicitly noindexed products", () => {
-    expect(sitemap).toContain("seller_id,seo_robots_index");
+    expect(sitemap).toContain("select=id,slug,updated_at,seo_robots_index");
     expect(sitemap).toContain("if (row.seo_robots_index === false) continue;");
   });
 
   it("keeps the existing storefront / academy behavior", () => {
-    expect(sitemap).toContain("sellersWithLiveProducts");
-    expect(sitemap).toContain("categoriesWithArticles");
+    expect(sitemap).toContain("seller_applications?select=brand_slug,created_at&status=eq.approved");
+    expect(sitemap).toContain("academy_categories?select=slug");
+    expect(sitemap).toContain("academy_articles?select=slug,updated_at&status=eq.published");
+    expect(sitemap).toContain("path: `/store/${s.brand_slug}`");
+    expect(sitemap).toContain("path: `/academy/${c.slug}`");
+    expect(sitemap).toContain("path: `/academy/article/${a.slug}`");
   });
 });
 
