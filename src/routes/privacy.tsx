@@ -36,7 +36,7 @@ function PrivacyPage() {
           Privacy Policy
         </h1>
         <p className="mt-4 text-sm text-mute">
-          Last updated: June 28, 2026. This page is maintained by AurumVault to
+          Last updated: September 18, 2026. This page is maintained by AurumVault to
           answer common questions about how we handle personal information.
         </p>
 
@@ -58,7 +58,7 @@ function PrivacyPage() {
           <Section title="3. Sharing & Subprocessors">
             We share data only with service providers needed to operate the
             Platform, such as payment processors (Stripe), cloud hosting and
-            database services (Lovable Cloud), email delivery providers, and
+            database and authentication services (Supabase), cloud hosting providers, email delivery providers, and
             advertising and analytics providers (Google, including Google AdSense
             and Google Analytics). We do not sell personal information.
           </Section>
@@ -87,7 +87,7 @@ function PrivacyPage() {
               enables it and its partners to serve ads to you based on your visits to
               this site and/or other sites on the internet. This use of Google is
               covered by the "Sharing &amp; Subprocessors" disclosure above, where
-              Google is named alongside Stripe and Lovable Cloud.
+              Google is named alongside Stripe and our infrastructure service providers.
             </p>
             <p className="mt-3">
               You may opt out of personalized advertising by visiting{" "}
