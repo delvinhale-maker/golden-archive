@@ -13,7 +13,6 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: aurumvault-staging
     env:
       CANDIDATE_SHA: 094f057bbd4855adf17ba8643ab8bb295fa6f2f9
       VERCEL_ORG_ID: team_unxqKjKaYJ6kMZAJMowskYW7
