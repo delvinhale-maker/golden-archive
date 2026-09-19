@@ -37,6 +37,9 @@ jobs:
       # Scheduled runs target production; everything else builds locally
       # unless a base_url was supplied by hand.
       TARGET_URL: ${{ inputs.base_url != '' && inputs.base_url || (github.event_name == 'schedule' && 'https://www.aurumvault.store' || '') }}
+      QR_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      QR_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      QR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
     steps:
       - name: Checkout
@@ -98,6 +101,21 @@ jobs:
             ${{ runner.os }}-vite-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json', 'vite.config.*') }}-
             ${{ runner.os }}-vite-
 
+      - name: Determine QR runtime credential availability
+        id: qr_runtime
+        shell: bash
+        run: |
+          if [ -n "$QR_SUPABASE_URL" ] && [ -n "$QR_SUPABASE_PUBLISHABLE_KEY" ] && [ -n "$QR_SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "ready=false" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ] || [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            echo "QR live-smoke credentials are required on main/scheduled certification runs."
+            exit 1
+          fi
+          echo "Independent QR live-smoke credentials are not configured for this PR; unit/build gates remain required and live QR certification is deferred to external staging."
+
       - name: Build app
         if: env.TARGET_URL == ''
         run: bun run build
@@ -115,9 +133,9 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
-          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_URL: ${{ env.QR_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ env.QR_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ env.QR_SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Wait for server (http://localhost:8080)
         if: env.TARGET_URL == ''
@@ -134,6 +152,7 @@ jobs:
           exit 1
 
       - name: Run QR Phase 1 smoke
+        if: steps.qr_runtime.outputs.ready == 'true'
         run: bun run smoke:qr
         env:
           BASE_URL: ${{ env.TARGET_URL != '' && env.TARGET_URL || 'http://localhost:8080' }}
@@ -141,6 +160,10 @@ jobs:
           SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Record deferred QR live-smoke gate
+        if: steps.qr_runtime.outputs.ready != 'true'
+        run: echo "QR live-smoke deferred until independent staging Supabase CI credentials are bound." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish evidence report to the run summary
         if: always()
