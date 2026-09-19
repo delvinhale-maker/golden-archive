@@ -111,11 +111,11 @@ jobs:
       - name: Install Pillow (pixel diff)
         run: pip install Pillow
 
-      - name: Run homepage row tests
-        run: |
-          python tests/integration/home-rows.spec.py
-          python tests/integration/home-rows-empty.spec.py
-          python tests/integration/home-pixel-darkness.spec.py
+      - name: Current homepage source contract
+        run: bunx vitest run tests/integration/homepage-current-layout.test.ts
+
+      - name: Rendered homepage darkness regression
+        run: python tests/integration/home-pixel-darkness.spec.py
 
       - name: Upload artifacts on failure
         if: failure()
