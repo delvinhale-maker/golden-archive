@@ -19,7 +19,8 @@
     "check:hero-contrast": "node scripts/check-hero-cta-contrast.mjs",
     "format": "prettier --write .",
     "test:redirects": "vitest run tests/integration/product-slug-redirect.test.ts tests/integration/seo-redirect-release-source-contract.test.ts",
-    "audit:lovable-exit": "node scripts/audit-lovable-exit.mjs"
+    "audit:lovable-exit": "node scripts/audit-lovable-exit.mjs",
+    "check:staging-env": "node scripts/validate-staging-env.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.51",
