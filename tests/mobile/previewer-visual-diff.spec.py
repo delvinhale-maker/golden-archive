@@ -71,7 +71,7 @@ async def open_previewer(browser):
     # The visual baseline isolates the previewer itself. CookieConsent is a
     # separate fixed overlay and must not contaminate an element screenshot.
     await ctx.add_init_script(
-        "() => window.localStorage.setItem('av_cookie_consent', 'rejected')"
+        "window.localStorage.setItem('av_cookie_consent', 'rejected')"
     )
     page = await ctx.new_page()
     await page.goto(BASE, wait_until="networkidle")

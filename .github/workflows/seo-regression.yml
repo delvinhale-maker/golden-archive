@@ -25,6 +25,24 @@ jobs:
       - name: Phase 2 product SEO regression (vitest)
         run: bunx vitest run tests/integration/product-seo-phase2.test.ts
 
+      - name: Start SEO dev server
+        run: |
+          bun run dev -- --host 127.0.0.1 --port 8080 > /tmp/seo-dev-server.log 2>&1 &
+          echo $! > /tmp/seo-dev-server.pid
+
+      - name: Wait for SEO dev server
+        run: |
+          for i in {1..60}; do
+            if curl -sSf http://localhost:8080 > /dev/null; then
+              echo "SEO dev server up after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "SEO dev server did not start in time"
+          tail -n 200 /tmp/seo-dev-server.log
+          exit 1
+
       - name: Existing SEO / redirect / canonical regressions (bun test)
         run: |
           bun test \
@@ -33,3 +51,10 @@ jobs:
             tests/integration/store-robots-meta.test.ts \
             tests/integration/product-fallback-description.test.ts \
             tests/unit/category-alias-regression.test.ts
+
+      - name: Stop SEO dev server
+        if: always()
+        run: |
+          if [ -f /tmp/seo-dev-server.pid ]; then
+            kill "$(cat /tmp/seo-dev-server.pid)" || true
+          fi
