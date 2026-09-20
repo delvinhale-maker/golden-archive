@@ -1,12 +1,9 @@
 name: AurumVault Independent Staging Deploy
 
 on:
-  workflow_dispatch:
-    inputs:
-      expected_sha:
-        description: "Exact migration-branch SHA approved for staging"
-        required: true
-        type: string
+  push:
+    branches:
+      - ops/aurumvault-staging-b5e353b
 
 concurrency:
   group: aurumvault-independent-staging
@@ -17,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: aurumvault-staging
     env:
+      APPROVED_SHA: b5e353bf2f01bfb9813873a529f551626a967968
       APP_ENV: staging
       STAGING_ORIGIN: https://aurumvault-staging.vercel.app
       VERCEL_PROJECT_NAME: aurumvault-staging
@@ -47,7 +45,7 @@ jobs:
       - name: Checkout approved SHA
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.expected_sha }}
+          ref: ${{ env.APPROVED_SHA }}
           fetch-depth: 0
 
       - name: Verify exact SHA and migration ancestry
@@ -55,7 +53,7 @@ jobs:
         run: |
           set -euo pipefail
           ACTUAL_SHA="$(git rev-parse HEAD)"
-          test "$ACTUAL_SHA" = "${{ inputs.expected_sha }}"
+          test "$ACTUAL_SHA" = "${{ env.APPROVED_SHA }}"
           git fetch origin migration/aurumvault-lovable-exit
           git merge-base --is-ancestor "$ACTUAL_SHA" origin/migration/aurumvault-lovable-exit
 
@@ -145,7 +143,7 @@ jobs:
           BODY="$(jq -nc \
             --arg app_env "$APP_ENV" \
             --arg public_site "$STAGING_ORIGIN" \
-            --arg git_sha "${{ inputs.expected_sha }}" \
+            --arg git_sha "${{ env.APPROVED_SHA }}" \
             --arg supabase_ref "$SUPABASE_PROJECT_REF" \
             --arg supabase_url "$SUPABASE_URL" \
             --arg supabase_publishable "$SUPABASE_PUBLISHABLE_KEY" \
@@ -234,7 +232,7 @@ jobs:
             sleep 2
           done
           cat /tmp/health.json
-          test "$(jq -r '.git_sha' /tmp/health.json)" = "${{ inputs.expected_sha }}"
+          test "$(jq -r '.git_sha' /tmp/health.json)" = "${{ env.APPROVED_SHA }}"
           test "$(jq -r '.supabase_project_ref' /tmp/health.json)" = "ypelutaddlibqvpaekyq"
           test "$(jq -r '.project_match' /tmp/health.json)" = "true"
           test "$(jq -r '.backend' /tmp/health.json)" = "ok"
@@ -249,5 +247,5 @@ jobs:
             sleep 2
           done
           cat /tmp/stable-health.json
-          test "$(jq -r '.git_sha' /tmp/stable-health.json)" = "${{ inputs.expected_sha }}"
+          test "$(jq -r '.git_sha' /tmp/stable-health.json)" = "${{ env.APPROVED_SHA }}"
           test "$(jq -r '.supabase_project_ref' /tmp/stable-health.json)" = "ypelutaddlibqvpaekyq"
