@@ -18,6 +18,10 @@ jobs:
     environment: aurumvault-staging
     env:
       APP_ENV: staging
+      STAGING_ORIGIN: https://aurumvault-staging.vercel.app
+      VERCEL_PROJECT_NAME: aurumvault-staging
+      VERCEL_TEAM_ID: team_unxqKjKaYJ6kMZAJMowskYW7
+      VERCEL_SCOPE: delvinhale-6597
       SUPABASE_PROJECT_REF: ypelutaddlibqvpaekyq
       SUPABASE_URL: https://ypelutaddlibqvpaekyq.supabase.co
       VITE_SUPABASE_URL: https://ypelutaddlibqvpaekyq.supabase.co
@@ -32,9 +36,12 @@ jobs:
       EMAIL_PREVIEW_TOKEN: ${{ secrets.AURUMVAULT_STAGING_EMAIL_PREVIEW_TOKEN }}
       OPENAI_API_KEY: ${{ secrets.AURUMVAULT_STAGING_OPENAI_API_KEY }}
       INTEGRATION_TOKEN_ENCRYPTION_KEY: ${{ secrets.AURUMVAULT_STAGING_INTEGRATION_TOKEN_ENCRYPTION_KEY }}
+      CANVA_CLIENT_ID: ${{ secrets.AURUMVAULT_STAGING_CANVA_CLIENT_ID }}
+      CANVA_CLIENT_SECRET: ${{ secrets.AURUMVAULT_STAGING_CANVA_CLIENT_SECRET }}
+      TIKTOK_SHOP_APP_KEY: ${{ secrets.AURUMVAULT_STAGING_TIKTOK_APP_KEY }}
+      TIKTOK_SHOP_APP_SECRET: ${{ secrets.AURUMVAULT_STAGING_TIKTOK_APP_SECRET }}
+      TIKTOK_SHOP_SERVICE_ID: ${{ secrets.AURUMVAULT_STAGING_TIKTOK_SERVICE_ID }}
       VERCEL_TOKEN: ${{ secrets.AURUMVAULT_STAGING_VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.AURUMVAULT_STAGING_VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.AURUMVAULT_STAGING_VERCEL_PROJECT_ID }}
 
     steps:
       - name: Checkout approved SHA
@@ -68,30 +75,151 @@ jobs:
       - name: Production build
         run: bun run build
 
-      - name: Require staging provider bindings
+      - name: Require independent staging bindings
         shell: bash
         run: |
           set -euo pipefail
-          required=(SUPABASE_PUBLISHABLE_KEY SUPABASE_SERVICE_ROLE_KEY STRIPE_SANDBOX_SECRET_KEY PAYMENTS_SANDBOX_WEBHOOK_SECRET RESEND_API_KEY RESEND_WEBHOOK_SECRET EMAIL_PREVIEW_TOKEN OPENAI_API_KEY INTEGRATION_TOKEN_ENCRYPTION_KEY VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID)
+          required=(
+            SUPABASE_PUBLISHABLE_KEY
+            SUPABASE_SERVICE_ROLE_KEY
+            STRIPE_SANDBOX_SECRET_KEY
+            PAYMENTS_SANDBOX_WEBHOOK_SECRET
+            RESEND_API_KEY
+            RESEND_WEBHOOK_SECRET
+            EMAIL_PREVIEW_TOKEN
+            OPENAI_API_KEY
+            INTEGRATION_TOKEN_ENCRYPTION_KEY
+            CANVA_CLIENT_ID
+            CANVA_CLIENT_SECRET
+            TIKTOK_SHOP_APP_KEY
+            TIKTOK_SHOP_APP_SECRET
+            TIKTOK_SHOP_SERVICE_ID
+            VERCEL_TOKEN
+          )
+          missing=()
           for name in "${required[@]}"; do
-            if [ -z "${!name:-}" ]; then echo "Missing staging binding: $name"; exit 1; fi
+            if [ -z "${!name:-}" ]; then missing+=("$name"); fi
           done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            printf 'Missing staging binding: %s\n' "${missing[@]}"
+            exit 1
+          fi
 
       - name: Install Vercel CLI
         run: bun add --global vercel@latest
 
-      - name: Pull dedicated staging project
-        run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+      - name: Create or verify dedicated AurumVault staging project
+        shell: bash
+        run: |
+          set -euo pipefail
+          AUTH="Authorization: Bearer $VERCEL_TOKEN"
+          PROJECT_URL="https://api.vercel.com/v9/projects/$VERCEL_PROJECT_NAME?teamId=$VERCEL_TEAM_ID"
 
-      - name: Build Vercel output
-        run: vercel build --token="$VERCEL_TOKEN"
+          status="$(curl -sS -o /tmp/vercel-project.json -w '%{http_code}' -H "$AUTH" "$PROJECT_URL")"
+          if [ "$status" = "404" ]; then
+            create_status="$(curl -sS -o /tmp/vercel-project.json -w '%{http_code}' \
+              -X POST "https://api.vercel.com/v11/projects?teamId=$VERCEL_TEAM_ID" \
+              -H "$AUTH" \
+              -H "Content-Type: application/json" \
+              --data "$(jq -nc --arg name "$VERCEL_PROJECT_NAME" '{name:$name,skipGitConnectDuringLink:true,enablePreviewFeedback:false,enableProductionFeedback:false}')")"
+            if [ "$create_status" != "200" ] && [ "$create_status" != "201" ]; then
+              cat /tmp/vercel-project.json
+              exit 1
+            fi
+          elif [ "$status" != "200" ]; then
+            cat /tmp/vercel-project.json
+            exit 1
+          fi
 
-      - name: Deploy exact candidate
+          test "$(jq -r '.name' /tmp/vercel-project.json)" = "$VERCEL_PROJECT_NAME"
+          test "$(jq -r '.accountId' /tmp/vercel-project.json)" = "$VERCEL_TEAM_ID"
+          PROJECT_ID="$(jq -r '.id' /tmp/vercel-project.json)"
+          test -n "$PROJECT_ID"
+          echo "VERCEL_PROJECT_ID=$PROJECT_ID" >> "$GITHUB_ENV"
+          echo "VERCEL_ORG_ID=$VERCEL_TEAM_ID" >> "$GITHUB_ENV"
+
+      - name: Upsert independent staging runtime environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          BODY="$(jq -nc \
+            --arg app_env "$APP_ENV" \
+            --arg public_site "$STAGING_ORIGIN" \
+            --arg git_sha "${{ inputs.expected_sha }}" \
+            --arg supabase_ref "$SUPABASE_PROJECT_REF" \
+            --arg supabase_url "$SUPABASE_URL" \
+            --arg supabase_publishable "$SUPABASE_PUBLISHABLE_KEY" \
+            --arg supabase_service "$SUPABASE_SERVICE_ROLE_KEY" \
+            --arg stripe_secret "$STRIPE_SANDBOX_SECRET_KEY" \
+            --arg stripe_webhook "$PAYMENTS_SANDBOX_WEBHOOK_SECRET" \
+            --arg resend_api "$RESEND_API_KEY" \
+            --arg resend_webhook "$RESEND_WEBHOOK_SECRET" \
+            --arg email_preview "$EMAIL_PREVIEW_TOKEN" \
+            --arg openai "$OPENAI_API_KEY" \
+            --arg integration_key "$INTEGRATION_TOKEN_ENCRYPTION_KEY" \
+            --arg canva_id "$CANVA_CLIENT_ID" \
+            --arg canva_secret "$CANVA_CLIENT_SECRET" \
+            --arg canva_redirect "$STAGING_ORIGIN/api/public/integrations/canva/callback" \
+            --arg tiktok_key "$TIKTOK_SHOP_APP_KEY" \
+            --arg tiktok_secret "$TIKTOK_SHOP_APP_SECRET" \
+            --arg tiktok_service "$TIKTOK_SHOP_SERVICE_ID" \
+            --arg tiktok_redirect "$STAGING_ORIGIN/api/public/integrations/tiktok-shop/callback" \
+            '[
+              {key:"APP_ENV",value:$app_env,type:"plain",target:["production"]},
+              {key:"PUBLIC_SITE_URL",value:$public_site,type:"plain",target:["production"]},
+              {key:"SITE_URL",value:$public_site,type:"plain",target:["production"]},
+              {key:"GIT_SHA",value:$git_sha,type:"plain",target:["production"]},
+              {key:"SUPABASE_PROJECT_REF",value:$supabase_ref,type:"plain",target:["production"]},
+              {key:"SUPABASE_URL",value:$supabase_url,type:"plain",target:["production"]},
+              {key:"VITE_SUPABASE_URL",value:$supabase_url,type:"plain",target:["production"]},
+              {key:"VITE_SUPABASE_PROJECT_ID",value:$supabase_ref,type:"plain",target:["production"]},
+              {key:"SUPABASE_PUBLISHABLE_KEY",value:$supabase_publishable,type:"encrypted",target:["production"]},
+              {key:"VITE_SUPABASE_PUBLISHABLE_KEY",value:$supabase_publishable,type:"encrypted",target:["production"]},
+              {key:"SUPABASE_SERVICE_ROLE_KEY",value:$supabase_service,type:"encrypted",target:["production"]},
+              {key:"STRIPE_SANDBOX_SECRET_KEY",value:$stripe_secret,type:"encrypted",target:["production"]},
+              {key:"PAYMENTS_SANDBOX_WEBHOOK_SECRET",value:$stripe_webhook,type:"encrypted",target:["production"]},
+              {key:"RESEND_API_KEY",value:$resend_api,type:"encrypted",target:["production"]},
+              {key:"RESEND_WEBHOOK_SECRET",value:$resend_webhook,type:"encrypted",target:["production"]},
+              {key:"EMAIL_PREVIEW_TOKEN",value:$email_preview,type:"encrypted",target:["production"]},
+              {key:"OPENAI_API_KEY",value:$openai,type:"encrypted",target:["production"]},
+              {key:"AI_REVIEW_MODEL",value:"gpt-4.1-mini",type:"plain",target:["production"]},
+              {key:"INTEGRATION_TOKEN_ENCRYPTION_KEY",value:$integration_key,type:"encrypted",target:["production"]},
+              {key:"CANVA_CLIENT_ID",value:$canva_id,type:"encrypted",target:["production"]},
+              {key:"CANVA_CLIENT_SECRET",value:$canva_secret,type:"encrypted",target:["production"]},
+              {key:"CANVA_REDIRECT_URI",value:$canva_redirect,type:"plain",target:["production"]},
+              {key:"TIKTOK_SHOP_APP_KEY",value:$tiktok_key,type:"encrypted",target:["production"]},
+              {key:"TIKTOK_SHOP_APP_SECRET",value:$tiktok_secret,type:"encrypted",target:["production"]},
+              {key:"TIKTOK_SHOP_SERVICE_ID",value:$tiktok_service,type:"encrypted",target:["production"]},
+              {key:"TIKTOK_SHOP_REDIRECT_URI",value:$tiktok_redirect,type:"plain",target:["production"]},
+              {key:"VITE_AUDIOBOOK_STUDIO_ENABLED",value:"true",type:"plain",target:["production"]}
+            ]')"
+
+          code="$(curl -sS -o /tmp/vercel-env.json -w '%{http_code}' \
+            -X POST "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env?upsert=true&teamId=$VERCEL_TEAM_ID" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data "$BODY")"
+          if [ "$code" != "200" ] && [ "$code" != "201" ]; then
+            cat /tmp/vercel-env.json
+            exit 1
+          fi
+          if [ "$(jq '.failed // [] | length' /tmp/vercel-env.json)" != "0" ]; then
+            jq '.failed' /tmp/vercel-env.json
+            exit 1
+          fi
+
+      - name: Pull dedicated staging project settings
+        run: vercel pull --yes --environment=production --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
+
+      - name: Build exact candidate for dedicated staging project
+        run: vercel build --prod --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
+
+      - name: Deploy exact candidate to dedicated staging project
         id: deploy
         shell: bash
         run: |
           set -euo pipefail
-          DEPLOYMENT_URL="$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")"
+          DEPLOYMENT_URL="$(vercel deploy --prebuilt --prod --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN")"
           echo "url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
           echo "Deployment URL: $DEPLOYMENT_URL" >> "$GITHUB_STEP_SUMMARY"
 
@@ -111,3 +239,15 @@ jobs:
           test "$(jq -r '.project_match' /tmp/health.json)" = "true"
           test "$(jq -r '.backend' /tmp/health.json)" = "ok"
           test "$(jq -r '.ok' /tmp/health.json)" = "true"
+
+      - name: Prove stable staging alias
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in {1..30}; do
+            if curl -fsS "$STAGING_ORIGIN/api/health" > /tmp/stable-health.json; then break; fi
+            sleep 2
+          done
+          cat /tmp/stable-health.json
+          test "$(jq -r '.git_sha' /tmp/stable-health.json)" = "${{ inputs.expected_sha }}"
+          test "$(jq -r '.supabase_project_ref' /tmp/stable-health.json)" = "ypelutaddlibqvpaekyq"
