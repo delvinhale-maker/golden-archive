@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
   TIKTOK_SHOP_AUTHORIZE_URL,
   TIKTOK_SHOP_CANONICAL_REDIRECT_URI,
+  TIKTOK_SHOP_CALLBACK_PATH,
   TIKTOK_SHOP_PROVIDER,
   TIKTOK_SHOP_TOKEN_URL,
   STATE_MAX_LENGTH,
@@ -145,6 +146,39 @@ describe("TikTok Shop redirect URI", () => {
       expect(() => assertCanonicalRedirectUri(bad)).toThrow();
     }
     expect(() => assertCanonicalRedirectUri(CANONICAL)).not.toThrow();
+    expect(TIKTOK_SHOP_CALLBACK_PATH).toBe("/api/public/integrations/tiktok-shop/callback");
+  });
+
+  it("allows only the exact callback path on HTTPS Vercel staging hosts", () => {
+    const staging =
+      "https://aurumvault-staging-git-migration-example.vercel.app/api/public/integrations/tiktok-shop/callback";
+    expect(() => assertCanonicalRedirectUri(staging)).not.toThrow();
+    expect(() =>
+      assertCanonicalRedirectUri(
+        "https://aurumvault-staging-git-migration-example.vercel.app/api/public/integrations/tiktok-shop/wrong",
+      ),
+    ).toThrow();
+    expect(() =>
+      assertCanonicalRedirectUri(
+        "https://sunstone-safe-haven.lovable.app/api/public/integrations/tiktok-shop/callback",
+      ),
+    ).toThrow();
+  });
+
+  it("pins production to the canonical AurumVault callback", () => {
+    const previous = process.env["APP_ENV"];
+    process.env["APP_ENV"] = "production";
+    try {
+      expect(() => assertCanonicalRedirectUri(CANONICAL)).not.toThrow();
+      expect(() =>
+        assertCanonicalRedirectUri(
+          "https://aurumvault-staging.vercel.app/api/public/integrations/tiktok-shop/callback",
+        ),
+      ).toThrow();
+    } finally {
+      if (previous === undefined) delete process.env["APP_ENV"];
+      else process.env["APP_ENV"] = previous;
+    }
   });
 });
 

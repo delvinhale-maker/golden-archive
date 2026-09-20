@@ -6,13 +6,15 @@ const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 const marketplace = read("src/lib/marketplace.functions.ts");
 const productRoute = read("src/routes/products.$id.tsx");
 const productCard = read("src/components/marketplace/ProductCard.tsx");
+const redirectHelper = read("src/lib/product-slug-redirect.ts");
 const migration = read("supabase/migrations/20260909062000_product_slug_redirects.sql");
 
 describe("production redirect foundation source contract", () => {
   it("resolves historical slugs server-side and returns a canonical redirect result", () => {
     expect(marketplace).toContain('"resolve_product_slug_redirect"');
     expect(marketplace).toContain('kind: "redirect"');
-    expect(marketplace).toContain("canonical !== identifier");
+    expect(marketplace).toContain("shouldRedirectProductRequest(identifier, canonicalSegment)");
+    expect(redirectHelper).toContain("return from !== to;");
   });
 
   it("emits a permanent 301 from the product route", () => {

@@ -1,11 +1,11 @@
 // Structured client-side logging for OAuth (Google) failures.
 // Emits PII-safe events with correlation IDs so we can trace a single attempt
-// across console logs and the Lovable error reporter.
+// across console logs and the independent application error reporter.
 //
 // SAFETY: never log email, password, tokens, full URLs with query params,
 // or raw error objects that may contain bearer tokens.
 
-import { reportLovableError } from "./lovable-error-reporting";
+import { reportClientError } from "./client-error-reporter";
 
 export type OAuthFailureReason =
   | "popupBlocked"
@@ -18,7 +18,7 @@ export type OAuthFailureReason =
   | "unknown";
 
 
-export type OAuthProvider = "google" | "apple" | "microsoft" | "lovable";
+export type OAuthProvider = "google" | "apple" | "microsoft";
 
 const CORRELATION_KEY = "av_oauth_correlation_id";
 
@@ -140,7 +140,7 @@ export function logOAuthEvent(evt: OAuthEvent): void {
   else console.info(line, payload);
 }
 
-/** Convenience for failures — also forwards to Lovable's error reporter. */
+/** Convenience for failures — also forwards to the application error reporter. */
 export function logOAuthFailure(args: {
   provider: OAuthProvider;
   reason: OAuthFailureReason;
@@ -159,13 +159,17 @@ export function logOAuthFailure(args: {
   });
   // Cancellations are user-driven; don't pollute error reporting with them.
   if (args.reason !== "cancelled") {
-    reportLovableError(new Error(`oauth.${args.reason}`), {
-      source: "oauth",
-      provider: args.provider,
-      reason: args.reason,
-      code: REASON_TO_CODE[args.reason],
-      correlation_id: correlationId,
-      message: safeMessage,
+    reportClientError(new Error(`oauth.${args.reason}`), {
+      source: "client",
+      severity: "error",
+      context: {
+        source: "oauth",
+        provider: args.provider,
+        reason: args.reason,
+        code: REASON_TO_CODE[args.reason],
+        correlation_id: correlationId,
+        message: safeMessage,
+      },
     });
   }
   return correlationId;

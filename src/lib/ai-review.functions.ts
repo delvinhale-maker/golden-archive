@@ -3,7 +3,7 @@ import { getRequestHeader, getRequestUrl } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, Output } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "./ai-gateway.server";
+import { createIndependentAiProvider, getAiReviewModelId } from "./ai-gateway.server";
 
 // Keep schema minimal — Gemini constrained decoding rejects schemas with
 // numeric bounds, enum-heavy nesting, or array max items ("too many states").
@@ -45,10 +45,8 @@ export const reviewProduct = createServerFn({ method: "POST" })
     if (!isAdmin && product.seller_id !== userId) throw new Error("Forbidden");
     const prevStatus = product.ai_review_status;
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
-    const gateway = createLovableAiGatewayProvider(apiKey);
-    const model = gateway("google/gemini-3-flash-preview");
+    const gateway = createIndependentAiProvider();
+    const model = gateway(getAiReviewModelId());
 
     const userParts: Array<
       { type: "text"; text: string } | { type: "image"; image: URL }
@@ -208,7 +206,7 @@ async function notifySellerOfReview(params: {
 
   // Internal call to the email send route, forwarding the caller's auth.
   if (!params.callerAuthHeader || !params.origin) return;
-  const url = `${params.origin}/lovable/email/transactional/send`;
+  const url = `${params.origin}/api/email/transactional/send`;
   await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: params.callerAuthHeader },

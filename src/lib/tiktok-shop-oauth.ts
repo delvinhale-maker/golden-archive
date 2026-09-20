@@ -27,13 +27,9 @@
  *   TikTok Shop's seller authorization URL takes `service_id` (+ optional
  *   `state`). The redirect/callback URL is registered in Partner Center against
  *   the app and is NOT passed as a query parameter, and there is no PKCE. The
- *   exact registered callback must therefore equal TIKTOK_SHOP_REDIRECT_URI:
- *   https://www.aurumvault.store/api/public/integrations/tiktok-shop/callback
- *
- * DATABASE NOTE: `integration_connections.provider` currently has a CHECK
- *   constraint allowing only 'canva'. Until the additive widening migration in
- *   docs/proposed-migrations/ is authorized and applied, every write here fails
- *   closed with a readable error. Nothing else about the table changes.
+ *   exact registered callback must therefore equal TIKTOK_SHOP_REDIRECT_URI.
+ *   Production is pinned to the canonical AurumVault callback. Staging accepts
+ *   only an HTTPS *.vercel.app callback at the same callback path.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -116,10 +112,57 @@ export function buildTikTokShopAuthorizeUrl(args: {
 export const TIKTOK_SHOP_CANONICAL_REDIRECT_URI =
   "https://www.aurumvault.store/api/public/integrations/tiktok-shop/callback";
 
-/** Guard against typos, trailing slashes, wrong hosts and preview domains. */
+export const TIKTOK_SHOP_CALLBACK_PATH =
+  "/api/public/integrations/tiktok-shop/callback";
+
+function runtimeEnvironment(): string {
+  return (
+    process.env["APP_ENV"] ??
+    process.env["VERCEL_ENV"] ??
+    process.env["NODE_ENV"] ??
+    "development"
+  ).toLowerCase();
+}
+
+/**
+ * Fail closed on callback drift. Production is pinned to the public AurumVault
+ * origin. Non-production permits only HTTPS Vercel preview/staging hostnames at
+ * the identical callback path, plus the canonical production URI for tests and
+ * controlled production-shaped rehearsals.
+ */
 export function assertCanonicalRedirectUri(value: string): void {
-  if (value !== TIKTOK_SHOP_CANONICAL_REDIRECT_URI) {
-    throw new Error("TikTok Shop redirect URI is not the approved production callback");
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error("TikTok Shop redirect URI is invalid");
+  }
+
+  if (
+    parsed.protocol !== "https:" ||
+    parsed.pathname !== TIKTOK_SHOP_CALLBACK_PATH ||
+    parsed.search ||
+    parsed.hash ||
+    value.endsWith("/")
+  ) {
+    throw new Error("TikTok Shop redirect URI is not an approved callback");
+  }
+
+  const environment = runtimeEnvironment();
+  if (environment === "production") {
+    if (value !== TIKTOK_SHOP_CANONICAL_REDIRECT_URI) {
+      throw new Error("TikTok Shop production redirect URI is not canonical");
+    }
+    return;
+  }
+
+  const stagingHost =
+    parsed.hostname.endsWith(".vercel.app") &&
+    !parsed.hostname.includes("lovable") &&
+    !parsed.hostname.includes("gptengineer");
+
+  if (value !== TIKTOK_SHOP_CANONICAL_REDIRECT_URI && !stagingHost) {
+    throw new Error("TikTok Shop staging redirect URI is not approved");
   }
 }
 
