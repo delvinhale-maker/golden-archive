@@ -11,7 +11,7 @@ export const Route=createFileRoute("/api/public/intelligence/merchant-signals")(
   if(error) return Response.json({error:"Signal query failed"},{status:500});
   const signals=(data??[]).map((r:any)=>toMerchantSignal({
    objectiveKey:r.objective_key,categoryHint:r.category_hint,requestCount:Number(r.request_count),
-   resultCount:0,noResultCount:Number(r.no_result_count),lowConfidenceCount:Number(r.low_confidence_count),
+   resultCount:Number(r.result_count),noResultCount:Number(r.no_result_count),lowConfidenceCount:Number(r.low_confidence_count),
    conversionCount:Number(r.conversion_count),firstSeenAt:r.first_seen_at,lastSeenAt:r.last_seen_at
   })).sort((a:any,b:any)=>b.demandScore-a.demandScore);
   return Response.json({schema:"aurum.merchant-intelligence.v1",store:"aurumvault",generatedAt:new Date().toISOString(),signals});
