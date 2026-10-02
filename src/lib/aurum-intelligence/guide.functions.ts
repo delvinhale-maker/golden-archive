@@ -56,7 +56,7 @@ export const askAurumGuide = createServerFn({ method: "POST" })
     const confidence = recommendations[0]?.score ?? 0;
 
     if (data.analyticsConsent) {
-      await (supabaseAdmin.from("aurum_intent_events") as any).insert({
+      await ((supabaseAdmin as any).from("aurum_intent_events")).insert({
         session_id: data.sessionId,
         channel: data.channel,
         objective_key: objectiveKey(intent.objective),
@@ -84,7 +84,7 @@ export const getAurumProof = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: product }, { data: proof }] = await Promise.all([
       supabaseAdmin.from("marketplace_products").select("id,seller_id,ai_review_status,ai_review_score,status,published,created_at").eq("id", data.productId).maybeSingle(),
-      (supabaseAdmin.from("aurum_product_proof") as any).select("version,product_reviewed,evidence,updated_at").eq("product_id", data.productId).maybeSingle(),
+      ((supabaseAdmin as any).from("aurum_product_proof")).select("version,product_reviewed,evidence,updated_at").eq("product_id", data.productId).maybeSingle(),
     ]);
     if (!product || product.status !== "approved" || !product.published) return null;
     const { data: creator } = await supabaseAdmin.from("seller_applications").select("status,brand_slug").eq("user_id", product.seller_id).maybeSingle();
