@@ -1,0 +1,25 @@
+name: Aurum Intelligence Phase I
+on:
+  pull_request:
+    paths:
+      - "src/lib/aurum-intelligence/**"
+      - "src/components/marketplace/AurumGuide.tsx"
+      - "src/routes/index.tsx"
+      - "supabase/migrations/20261002110000_aurum_intelligence_phase1.sql"
+  push:
+    branches: ["feature/aurum-intelligence-phase-1"]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vitest run src/lib/aurum-intelligence/intent.test.ts src/lib/aurum-intelligence/gaps.test.ts
+      - run: pnpm build
