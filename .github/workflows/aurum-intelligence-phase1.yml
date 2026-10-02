@@ -9,6 +9,12 @@ on:
       - "supabase/migrations/20261002110000_aurum_intelligence_phase1.sql"
   push:
     branches: ["feature/aurum-intelligence-phase-1"]
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: "Exact SHA to certify"
+        required: false
+        type: string
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -21,3 +27,8 @@ jobs:
       - run: npm ci
       - run: npx vitest run tests/unit/aurum-intelligence.test.ts
       - run: npm run build
+      - name: Dispatch-independent staging handoff
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_sha != '' }}
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ inputs.expected_sha }}"
+          echo "Exact SHA certified for independent staging: ${{ inputs.expected_sha }}" >> "$GITHUB_STEP_SUMMARY"
