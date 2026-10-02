@@ -32,3 +32,13 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "${{ inputs.expected_sha }}"
           echo "Exact SHA certified for independent staging: ${{ inputs.expected_sha }}" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-staging:
+    needs: verify
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/aurum-intelligence-phase-1' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/aurumvault-staging-deploy.yml
+    with:
+      expected_sha: ${{ github.sha }}
+    secrets: inherit
