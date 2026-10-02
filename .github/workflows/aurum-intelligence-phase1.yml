@@ -19,5 +19,5 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx vitest run src/lib/aurum-intelligence/intent.test.ts src/lib/aurum-intelligence/gaps.test.ts
+      - run: npx vitest run tests/unit/aurum-intelligence.test.ts
       - run: npm run build
