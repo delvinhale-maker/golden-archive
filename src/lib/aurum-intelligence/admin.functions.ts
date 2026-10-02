@@ -14,7 +14,7 @@ export const getMerchantIntelligence = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await (supabaseAdmin.from("aurum_marketplace_gap_signals") as any)
+    const { data } = await ((supabaseAdmin as any).from("aurum_marketplace_gap_signals"))
       .select("objective_key,category_hint,request_count,no_result_count,low_confidence_count,conversion_count,first_seen_at,last_seen_at")
       .order("request_count", { ascending: false }).limit(50);
     const rows = (data ?? []).map((row: any) => ({
