@@ -57,7 +57,7 @@ jobs:
           ACTUAL_SHA="$(git rev-parse HEAD)"
           test "$ACTUAL_SHA" = "${{ inputs.expected_sha }}"
           git fetch origin migration/aurumvault-lovable-exit
-          git merge-base --is-ancestor "$ACTUAL_SHA" origin/migration/aurumvault-lovable-exit
+          git merge-base --is-ancestor origin/migration/aurumvault-lovable-exit "$ACTUAL_SHA"
 
       - uses: oven-sh/setup-bun@v2
         with:
