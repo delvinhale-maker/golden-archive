@@ -6,7 +6,8 @@ export function scoreGap(signal: MarketplaceGapSignal): number {
   const weakResultRate = signal.lowConfidenceCount / signal.requestCount;
   const conversionRate = signal.conversionCount / signal.requestCount;
   const scarcity = signal.resultCount === 0 ? 1 : 1 / (1 + signal.resultCount);
-  const weightedScore = noResultRate * 60 + weakResultRate * 20 + scarcity * 15 + (1 - conversionRate) * 5;\n  return Math.round(Math.min(100, weightedScore) * 100) / 100;
+  const weightedScore = noResultRate * 60 + weakResultRate * 20 + scarcity * 15 + (1 - conversionRate) * 5;
+  return Math.round(Math.min(100, weightedScore) * 100) / 100;
 }
 
 export function toMerchantSignal(signal: MarketplaceGapSignal): MerchantSignal {
