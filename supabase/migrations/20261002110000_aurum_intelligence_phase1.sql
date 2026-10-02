@@ -23,7 +23,7 @@ create index if not exists aurum_intent_events_user_created_idx on public.aurum_
 
 drop policy if exists "users read own aurum intents" on public.aurum_intent_events;
 create policy "users read own aurum intents" on public.aurum_intent_events
-for select to authenticated using (auth.uid() = user_id);
+for select to authenticated using ((select auth.uid()) = user_id);
 
 create table if not exists public.aurum_product_proof (
   product_id uuid primary key references public.marketplace_products(id) on delete cascade,
