@@ -42,6 +42,7 @@ jobs:
       TIKTOK_SHOP_APP_SECRET: ${{ secrets.AURUMVAULT_STAGING_TIKTOK_APP_SECRET }}
       TIKTOK_SHOP_SERVICE_ID: ${{ secrets.AURUMVAULT_STAGING_TIKTOK_SERVICE_ID }}
       VERCEL_TOKEN: ${{ secrets.AURUMVAULT_STAGING_VERCEL_TOKEN }}
+      AURUMVAULT_MERCHANT_INTELLIGENCE_KEY: ${{ secrets.AURUMVAULT_STAGING_MERCHANT_INTELLIGENCE_KEY }}
 
     steps:
       - name: Checkout approved SHA
@@ -95,6 +96,7 @@ jobs:
             TIKTOK_SHOP_APP_SECRET
             TIKTOK_SHOP_SERVICE_ID
             VERCEL_TOKEN
+            AURUMVAULT_MERCHANT_INTELLIGENCE_KEY
           )
           missing=()
           for name in "${required[@]}"; do
@@ -163,6 +165,7 @@ jobs:
             --arg tiktok_key "$TIKTOK_SHOP_APP_KEY" \
             --arg tiktok_secret "$TIKTOK_SHOP_APP_SECRET" \
             --arg tiktok_service "$TIKTOK_SHOP_SERVICE_ID" \
+            --arg merchant_intelligence "$AURUMVAULT_MERCHANT_INTELLIGENCE_KEY" \
             --arg tiktok_redirect "$STAGING_ORIGIN/api/public/integrations/tiktok-shop/callback" \
             '[
               {key:"APP_ENV",value:$app_env,type:"plain",target:["production"]},
@@ -191,7 +194,8 @@ jobs:
               {key:"TIKTOK_SHOP_APP_SECRET",value:$tiktok_secret,type:"encrypted",target:["production"]},
               {key:"TIKTOK_SHOP_SERVICE_ID",value:$tiktok_service,type:"encrypted",target:["production"]},
               {key:"TIKTOK_SHOP_REDIRECT_URI",value:$tiktok_redirect,type:"plain",target:["production"]},
-              {key:"VITE_AUDIOBOOK_STUDIO_ENABLED",value:"true",type:"plain",target:["production"]}
+              {key:"VITE_AUDIOBOOK_STUDIO_ENABLED",value:"true",type:"plain",target:["production"]},
+              {key:"AURUMVAULT_MERCHANT_INTELLIGENCE_KEY",value:$merchant_intelligence,type:"encrypted",target:["production"]}
             ]')"
 
           code="$(curl -sS -o /tmp/vercel-env.json -w '%{http_code}' \
