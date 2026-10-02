@@ -54,7 +54,8 @@ select
   sum(case when recommendation_confidence is not null and recommendation_confidence < 0.55 then 1 else 0 end)::bigint as low_confidence_count,
   sum(case when converted then 1 else 0 end)::bigint as conversion_count,
   min(created_at) as first_seen_at,
-  max(created_at) as last_seen_at
+  max(created_at) as last_seen_at,
+  sum(result_count)::bigint as result_count
 from public.aurum_intent_events
 where analytics_consent = true
 group by objective_key, coalesce(category_hints[1], null);
