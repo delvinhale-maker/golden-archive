@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BrandIntro } from "@/components/marketplace/BrandIntro";
+import { AurumGuide } from "@/components/marketplace/AurumGuide";
 
 import { motion } from "framer-motion";
 import { useSuspenseQuery, queryOptions, useQueryClient, useQueryErrorResetBoundary, useIsFetching } from "@tanstack/react-query";
@@ -275,6 +276,7 @@ function Home() {
         <FeaturedCollections />
       </Suspense>
       <BrandIntro />
+      <AurumGuide />
       <TrustBar />
 
       <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
