@@ -122,38 +122,57 @@ export function DeliveryContentsField({
   value: string[];
   onChange: (v: string[]) => void;
 }) {
+  const isSaas = value.includes("Live Operating System / SaaS");
+  const isInteractive = !isSaas && value.includes("Live Tool Included");
+  const model: ProductDeliveryModel = isSaas ? "saas_os" : isInteractive ? "interactive_tool" : "digital_download";
+
+  const chooseModel = (next: ProductDeliveryModel) => {
+    const cleared = value.filter((v) => ![
+      "Live Operating System / SaaS",
+      "Secure Cloud Dashboard",
+      "Authenticated Workspace",
+      "Live Tool Included",
+    ].includes(v));
+    if (next === "saas_os") {
+      onChange([...new Set([...cleared, "Live Operating System / SaaS", "Secure Cloud Dashboard", "Authenticated Workspace"])]);
+    } else if (next === "interactive_tool") {
+      onChange([...cleared, "Live Tool Included"]);
+    } else {
+      onChange(cleared);
+    }
+  };
+
   const toggle = (opt: string) =>
     onChange(value.includes(opt) ? value.filter((v) => v !== opt) : [...value, opt]);
+
   return (
-    <div>
-      <span className="block text-[13px] font-medium text-navy">Delivery Contents</span>
-      <span className="mb-2 block text-[12px] text-mute">
-        What files or tools does the buyer receive? This is not a category.
-      </span>
-      <div className="flex flex-wrap gap-2">
-        {DELIVERY_CONTENT_OPTIONS.map((opt) => {
-          const on = value.includes(opt);
-          return (
-            <button
-              key={opt}
-              type="button"
-              aria-pressed={on}
-              onClick={() => toggle(opt)}
-              className={
-                on
-                  ? "min-h-11 rounded-full border border-gold bg-navy px-4 text-[13px] font-semibold text-gold"
-                  : "min-h-11 rounded-full border border-ink/15 bg-white px-4 text-[13px] font-medium text-navy hover:border-navy/40"
-              }
-            >
-              {opt}
-            </button>
-          );
-        })}
+    <div className="space-y-5">
+      <ProductDeliveryModelField value={model} onChange={chooseModel} />
+      <div>
+        <span className="block text-[13px] font-medium text-navy">Delivery Contents</span>
+        <span className="mb-2 block text-[12px] text-mute">
+          What files, tools or software access does the buyer receive? This is not a category.
+        </span>
+        <div className="flex flex-wrap gap-2">
+          {DELIVERY_CONTENT_OPTIONS.map((opt) => {
+            const on = value.includes(opt);
+            return (
+              <button key={opt} type="button" aria-pressed={on} onClick={() => toggle(opt)}
+                className={on ? "min-h-11 rounded-full border border-gold bg-navy px-4 text-[13px] font-semibold text-gold" : "min-h-11 rounded-full border border-ink/15 bg-white px-4 text-[13px] font-medium text-navy hover:border-navy/40"}>
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+        {model === "saas_os" && (
+          <p className="mt-3 rounded-lg border border-gold/40 bg-paper p-3 text-xs text-navy">
+            SaaS product selected. The primary customer entitlement is authenticated recurring software access; downloads may be included as supporting resources.
+          </p>
+        )}
       </div>
     </div>
   );
 }
-
 
 export function ProductDeliveryModelField({ value, onChange }: { value: ProductDeliveryModel; onChange: (v: ProductDeliveryModel) => void }) {
   return (
