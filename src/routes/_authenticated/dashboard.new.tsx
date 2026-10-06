@@ -27,7 +27,9 @@ import {
   SubcategoryField,
   ProductTypeField,
   DeliveryContentsField,
+  ProductDeliveryModelField,
 } from "@/components/dashboard/TaxonomyFields";
+import type { ProductDeliveryModel } from "@/lib/taxonomy";
 
 const PUBLISH_STEP_ACCENTS: Record<1 | 2 | 3 | 4, string> = {
   1: "#1A6B3A", // Emerald
@@ -167,6 +169,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
   // LEVEL 3 taxonomy + delivery descriptor (src/lib/taxonomy.ts)
   const [productTypeSlug, setProductTypeSlug] = useState<string | null>(null);
   const [deliveryContents, setDeliveryContents] = useState<string[]>([]);
+  const [deliveryModel, setDeliveryModel] = useState<ProductDeliveryModel>("digital_download");
   // Fall back to the category mapping so every saved row carries a product type.
   const effectiveProductType =
     productTypeSlug ?? resolveProductType({ category, subcategory })?.slug ?? null;
@@ -327,7 +330,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       const notes = JSON.stringify({
         seriesName: seriesName || null, edition: edition || null,
         whatsIncluded: whatsIncluded || null,
-        keywords, ageRange, ownsRights, drm, premium, territory: "Worldwide",
+        keywords, ageRange, ownsRights, drm, premium, territory: "Worldwide", deliveryModel,
       });
       const payload = {
         title: title.trim(),
@@ -406,7 +409,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     user, title, subtitle, author, seriesName, edition, whatsIncluded, description,
-    language, category, subcategory, productTypeSlug, deliveryContents,
+    language, category, subcategory, productTypeSlug, deliveryContents, deliveryModel,
     keywords, ageRange, ownsRights, drm, premium, price, previewPages,
   ]);
 
@@ -492,6 +495,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
           if (Array.isArray(o.keywords)) setKeywords(o.keywords.filter((k): k is string => typeof k === "string"));
           if (typeof o.ageRange === "string") setAgeRange(o.ageRange);
           if (typeof o.ownsRights === "boolean") setOwnsRights(o.ownsRights);
+          if (o.deliveryModel === "digital_download" || o.deliveryModel === "interactive_tool" || o.deliveryModel === "saas_os") setDeliveryModel(o.deliveryModel);
           if (typeof o.drm === "boolean") setDrm(o.drm);
           if (typeof o.premium === "boolean") setPremium(o.premium);
         }
@@ -865,7 +869,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     descLen <= DESC_MAX;
   const hasCover = (!!cover && !coverError && !!coverDims) || (!cover && !!existingCoverUrl);
   const hasFile = (!!file && !fileError) || (!file && !!existingFilePath);
-  const step2Valid = ownsRights && hasCover && hasFile;
+  const step2Valid = ownsRights && hasCover && (deliveryModel === "saas_os" || hasFile);
   const step3Valid = isListPriceValid(price);
 
   const priceNum = parseFloat(price || "0");
@@ -1062,7 +1066,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
         whatsIncluded: whatsIncluded || null,
         keywords,
         ageRange,
-        ownsRights, drm, premium, territory,
+        ownsRights, drm, premium, territory, deliveryModel,
       });
 
       const existingRowId = editingId ?? draftProductIdRef.current;
@@ -1335,6 +1339,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
               subcategory={subcategory} setSubcategory={setSubcategory}
               productTypeSlug={productTypeSlug} setProductTypeSlug={setProductTypeSlug}
               deliveryContents={deliveryContents} setDeliveryContents={setDeliveryContents}
+              deliveryModel={deliveryModel} setDeliveryModel={setDeliveryModel}
               keywords={keywords} setKeywords={setKeywords}
               kwInput={kwInput} setKwInput={setKwInput} addKeyword={addKeyword}
               ageRange={ageRange} setAgeRange={setAgeRange}
@@ -1555,6 +1560,7 @@ function StepDetails(p: {
   subcategory: string | null; setSubcategory: (v: string | null) => void;
   productTypeSlug: string | null; setProductTypeSlug: (v: string | null) => void;
   deliveryContents: string[]; setDeliveryContents: (v: string[]) => void;
+  deliveryModel: ProductDeliveryModel; setDeliveryModel: (v: ProductDeliveryModel) => void;
   keywords: string[]; setKeywords: (v: string[]) => void;
   kwInput: string; setKwInput: (v: string) => void; addKeyword: () => void;
   ageRange: string; setAgeRange: (v: string) => void;
@@ -1631,6 +1637,7 @@ function StepDetails(p: {
             </select>
           </Field>
         </div>
+        <ProductDeliveryModelField value={p.deliveryModel} onChange={(next) => { p.setDeliveryModel(next); if (next === "saas_os") p.setDeliveryContents([...new Set([...p.deliveryContents, "Live Operating System / SaaS", "Secure Cloud Dashboard", "Authenticated Workspace"])]); }} />
         <DeliveryContentsField value={p.deliveryContents} onChange={p.setDeliveryContents} />
       </div>
       <Field label={`Keywords (${p.keywords.length}/7)`}>
