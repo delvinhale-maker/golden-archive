@@ -37,6 +37,8 @@ RECOMMENDED_COUNT = 3
 
 async def section_titles(page, heading: str) -> list[str]:
     sec = page.locator(f"section:has(h2:has-text('{heading}'))").first
+    if await sec.count() == 0:
+        return []
     await sec.scroll_into_view_if_needed()
     await sec.wait_for(state="visible", timeout=5000)
     # Each card renders two /products/$id links: the cover (which also
@@ -48,6 +50,8 @@ async def section_titles(page, heading: str) -> list[str]:
 
 async def section_badges(page, heading: str) -> list[str]:
     sec = page.locator(f"section:has(h2:has-text('{heading}'))").first
+    if await sec.count() == 0:
+        return []
     # Use text_content so we get raw DOM text (not the CSS-uppercased render).
     raw = await sec.locator("span.bg-gold").all_text_contents()
     return [b.strip() for b in raw if b.strip()]
