@@ -884,7 +884,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     }
     if (step === 2 && !step2Valid) {
       if (!ownsRights) return toast.error("You must confirm you own the rights to this content.");
-      return toast.error(isEditing ? "Cover or manuscript is invalid." : "Upload a valid cover and manuscript.");
+      return toast.error(deliveryModel === "saas_os" ? "Upload a valid cover." : (isEditing ? "Cover or manuscript is invalid." : "Upload a valid cover and manuscript."));
     }
     if (step === 3 && !step3Valid) {
       toast.error("Enter a price greater than $0.00.");
@@ -909,8 +909,8 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       },
       {
         id: "manuscript",
-        label: "Manuscript uploaded",
-        ok: hasFile && !fileError,
+        label: deliveryModel === "saas_os" ? "Live SaaS access (no manuscript required)" : "Manuscript uploaded",
+        ok: deliveryModel === "saas_os" || (hasFile && !fileError),
         gotoStep: 2 as StepNum,
       },
       { id: "title", label: "Title not empty", ok: !!title.trim(), gotoStep: 1 as StepNum },
@@ -928,7 +928,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
       },
     ];
     return items;
-  }, [hasCover, coverError, hasFile, fileError, title, descTrimLen, descLen, price, effectiveDescMin]);
+  }, [hasCover, coverError, hasFile, fileError, title, descTrimLen, descLen, price, effectiveDescMin, deliveryModel]);
   const checklistPass = checklist.every((c) => c.ok);
 
 
@@ -980,7 +980,7 @@ function PublishFlowImpl({ editingId: editingIdProp, productTypeKey, invalidType
     if (!user) return;
     // For publish we require everything. For drafts (publish=false) allow
     // partial data — the bookshelf can resume the title later.
-    if (publish && !isEditing && (!cover || !file)) return;
+    if (publish && !isEditing && (!cover || (deliveryModel !== "saas_os" && !file))) return;
 
     setLastPublishAttempt(publish);
     // Only reset the per-asset error for assets we're actually about to
