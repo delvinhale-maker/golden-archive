@@ -55,7 +55,8 @@ async def section_badges(page, heading: str) -> list[str]:
 
 async def section_kicker(page, heading: str) -> str:
     sec = page.locator(f"section:has(h2:has-text('{heading}'))").first
-    await sec.wait_for(state="visible", timeout=5000)
+    if await sec.count() == 0:
+        return ""
     kicker = sec.locator("div.tracking-caps").first
     if await kicker.count() == 0:
         return ""
