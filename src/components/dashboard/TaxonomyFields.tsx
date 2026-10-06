@@ -3,6 +3,8 @@ import {
   DELIVERY_CONTENT_OPTIONS,
   PRODUCT_TYPE_DEFS,
   PRODUCT_TYPE_FIELD_HELPER,
+  PRODUCT_DELIVERY_MODELS,
+  type ProductDeliveryModel,
   SUBCATEGORY_FIELD_HELPER,
   subcategoryFieldLabel,
   type ProductTypeSlug,
@@ -149,5 +151,27 @@ export function DeliveryContentsField({
         })}
       </div>
     </div>
+  );
+}
+
+
+export function ProductDeliveryModelField({ value, onChange }: { value: ProductDeliveryModel; onChange: (v: ProductDeliveryModel) => void }) {
+  return (
+    <fieldset>
+      <legend className="block text-[13px] font-medium text-navy">How is this product delivered?</legend>
+      <p className="mb-3 text-[12px] text-mute">Choose the commercial product model. This controls whether buyers receive files, a browser tool, or authenticated SaaS access.</p>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        {PRODUCT_DELIVERY_MODELS.map((model) => {
+          const selected = value === model.slug;
+          return (
+            <button key={model.slug} type="button" aria-pressed={selected} onClick={() => onChange(model.slug)}
+              className={selected ? "min-h-[108px] rounded-xl border-2 border-gold bg-navy p-4 text-left text-white" : "min-h-[108px] rounded-xl border border-ink/15 bg-white p-4 text-left text-navy hover:border-navy/40"}>
+              <span className={selected ? "block text-sm font-bold text-gold" : "block text-sm font-bold text-navy"}>{model.label}</span>
+              <span className={selected ? "mt-1 block text-xs leading-relaxed text-white/75" : "mt-1 block text-xs leading-relaxed text-mute"}>{model.description}</span>
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
   );
 }
