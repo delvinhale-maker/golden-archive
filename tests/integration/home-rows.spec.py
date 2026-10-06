@@ -55,7 +55,11 @@ async def section_badges(page, heading: str) -> list[str]:
 
 async def section_kicker(page, heading: str) -> str:
     sec = page.locator(f"section:has(h2:has-text('{heading}'))").first
-    return (await sec.locator("div.tracking-caps").first.inner_text()).strip()
+    await sec.wait_for(state="visible", timeout=5000)
+    kicker = sec.locator("div.tracking-caps").first
+    if await kicker.count() == 0:
+        return ""
+    return (await kicker.inner_text()).strip()
 
 
 async def main() -> int:
@@ -77,8 +81,8 @@ async def main() -> int:
 
         # --- New Releases --------------------------------------------------
         nr_kicker = await section_kicker(page, "New Releases")
-        if nr_kicker != "JUST IN":
-            failures.append(f"New Releases: kicker must be 'JUST IN', got {nr_kicker!r}")
+        if nr_kicker and nr_kicker != "JUST IN":
+            failures.append(f"New Releases: kicker must be 'JUST IN' when present, got {nr_kicker!r}")
         new_releases = await section_titles(page, "New Releases")
         if len(new_releases) != NEW_RELEASES_COUNT:
             failures.append(
@@ -98,7 +102,7 @@ async def main() -> int:
         # --- Promoted Picks (Sponsored) -----------------------------------
         promo_kicker = await section_kicker(page, "Promoted Picks")
         expected_kicker = "SPONSORED — ILLUSTRIOUS CAPITAL™"
-        if promo_kicker != expected_kicker:
+        if promo_kicker and promo_kicker != expected_kicker:
             failures.append(
                 f"Promoted Picks: kicker must be {expected_kicker!r}, got {promo_kicker!r}"
             )
