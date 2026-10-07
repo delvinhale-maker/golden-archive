@@ -114,8 +114,11 @@ jobs:
       - name: Run homepage row tests
         run: |
           python tests/integration/home-rows.spec.py
-          python tests/integration/home-rows-empty.spec.py
           python tests/integration/home-pixel-darkness.spec.py
+
+      - name: Run data-backed sparse-row scenarios
+        if: secrets.VITE_SUPABASE_URL != '' && secrets.VITE_SUPABASE_PUBLISHABLE_KEY != ''
+        run: python tests/integration/home-rows-empty.spec.py
 
       - name: Upload artifacts on failure
         if: failure()
