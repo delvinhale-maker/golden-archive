@@ -1,11 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { requireCreatorStudioRenderingEnabled } from "@/lib/creator-studio-feature-flags.middleware";
+import { requireCreatorStudioProviderEnabled } from "@/lib/creator-studio-feature-flags.middleware";
 import { refreshCreatorStudioRender, submitCreatorStudioRender } from "./creator-studio-rendering.server";
 
 export const startCreatorStudioRender = createServerFn({ method: "POST" })
-  .middleware([requireCreatorStudioRenderingEnabled, requireSupabaseAuth])
+  .middleware([requireCreatorStudioProviderEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z.object({
       projectId: z.string().uuid(),
@@ -21,7 +21,7 @@ export const startCreatorStudioRender = createServerFn({ method: "POST" })
   });
 
 export const refreshCreatorStudioRenderStatus = createServerFn({ method: "POST" })
-  .middleware([requireCreatorStudioRenderingEnabled, requireSupabaseAuth])
+  .middleware([requireCreatorStudioProviderEnabled, requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ jobId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     return refreshCreatorStudioRender({ ownerUserId: context.userId, jobId: data.jobId });
