@@ -16,7 +16,6 @@ const require = createRequire(import.meta.url);
 // '__extends' of ...default". Pointing the alias at tslib.es6.mjs makes
 // the named helpers resolve directly.
 const tslibEsm = require.resolve("tslib/tslib.es6.mjs");
-const tslibModules = require.resolve("tslib/tslib.es6.mjs");
 
 export default defineConfig({
   tanstackStart: {
@@ -25,10 +24,12 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    ssr: {
+      noExternal: ["@supabase/supabase-js", "@supabase/functions-js", "@supabase/auth-js", "@supabase/postgrest-js", "@supabase/realtime-js", "@supabase/storage-js", "tslib"],
+    },
     resolve: {
       alias: {
         tslib: tslibEsm,
-        "tslib/modules/index.js": tslibModules,
       },
     },
   },
