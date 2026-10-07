@@ -134,6 +134,7 @@ jobs:
           exit 1
 
       - name: Run QR Phase 1 smoke
+        if: github.event_name != 'pull_request' || secrets.SUPABASE_SERVICE_ROLE_KEY != ''
         run: bun run smoke:qr
         env:
           BASE_URL: ${{ env.TARGET_URL != '' && env.TARGET_URL || 'http://localhost:8080' }}
@@ -141,6 +142,10 @@ jobs:
           SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Note credential-gated PR smoke
+        if: github.event_name == 'pull_request' && secrets.SUPABASE_SERVICE_ROLE_KEY == ''
+        run: echo "QR unit/guard tests and build passed; credentialed live smoke runs on protected main/schedule." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish evidence report to the run summary
         if: always()

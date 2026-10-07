@@ -29,6 +29,7 @@ on:
 
 jobs:
   docx-upload:
+    if: github.event_name != 'pull_request' || secrets.LOVABLE_BROWSER_SUPABASE_STORAGE_KEY != ''
     name: Mobile .docx upload (${{ matrix.label }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -66,7 +67,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
 
       - name: Cache Bun global store
         uses: actions/cache@v4
