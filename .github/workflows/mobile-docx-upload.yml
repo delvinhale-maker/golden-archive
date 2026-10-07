@@ -29,6 +29,7 @@ on:
 
 jobs:
   docx-upload:
+    if: github.event_name != 'pull_request' || secrets.LOVABLE_BROWSER_SUPABASE_STORAGE_KEY != ''
     name: Mobile .docx upload (${{ matrix.label }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
