@@ -16,6 +16,7 @@ const require = createRequire(import.meta.url);
 // '__extends' of ...default". Pointing the alias at tslib.es6.mjs makes
 // the named helpers resolve directly.
 const tslibEsm = require.resolve("tslib/tslib.es6.mjs");
+const tslibModules = require.resolve("tslib/tslib.es6.mjs");
 
 export default defineConfig({
   tanstackStart: {
@@ -27,6 +28,7 @@ export default defineConfig({
     resolve: {
       alias: {
         tslib: tslibEsm,
+        "tslib/modules/index.js": tslibModules,
       },
     },
   },
