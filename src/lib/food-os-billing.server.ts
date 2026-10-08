@@ -40,8 +40,17 @@ async function sync(subscription:Stripe.Subscription) {
   const plan=subscription.metadata.plan;
   if(!organizationId || !["professional","business","enterprise"].includes(plan)) throw new Error("Invalid Food OS subscription metadata");
   const item=subscription.items.data[0];
+  if (!item || item.price.id !== plans[plan as FoodPlan]) throw new Error("Subscription price does not match Food OS plan");
+  const database=db();
+  const {data:existing,error:lookupError}=await database.from("food_os_entitlements").select("stripe_subscription_id").eq("organization_id",organizationId).maybeSingle();
+  if(lookupError) throw lookupError;
+  if(existing?.stripe_subscription_id && existing.stripe_subscription_id!==subscription.id) {
+    // Never allow a late webhook from an old subscription to overwrite a replacement.
+    const previous=await stripe().subscriptions.retrieve(existing.stripe_subscription_id);
+    if(previous.created>subscription.created) return false;
+  }
   const active=subscription.status==="active"||subscription.status==="trialing";
-  const {error}=await db().from("food_os_entitlements").upsert({
+  const {error}=await database.from("food_os_entitlements").upsert({
     organization_id:organizationId,plan_key:plan,
     status:subscription.status==="trialing"?"trialing":active?"active":subscription.status==="past_due"?"past_due":subscription.status==="canceled"?"canceled":"expired",
     stripe_customer_id:typeof subscription.customer==="string"?subscription.customer:subscription.customer.id,
@@ -60,7 +69,10 @@ export async function handleFoodOsStripeWebhook(body:string,signature:string) {
   const event=stripe().webhooks.constructEvent(body,signature,secret);
   if(event.type==="checkout.session.completed" && event.data.object.metadata?.kind==="FOOD_OS" && typeof event.data.object.subscription==="string")
     return sync(await stripe().subscriptions.retrieve(event.data.object.subscription));
-  if(["customer.subscription.created","customer.subscription.updated","customer.subscription.deleted"].includes(event.type))
-    return sync(event.data.object as Stripe.Subscription);
+  if(["customer.subscription.created","customer.subscription.updated","customer.subscription.deleted"].includes(event.type)) {
+    const subscription=event.data.object as Stripe.Subscription;
+    if(subscription.metadata.kind!=="FOOD_OS") return false;
+    return sync(await stripe().subscriptions.retrieve(subscription.id));
+  }
   return false;
 }
