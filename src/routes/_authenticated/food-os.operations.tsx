@@ -37,6 +37,14 @@ function Operations(){
  useEffect(()=>{if(!user)return;void supabase.from("assurance_organizations").select("id,name").order("name").then(({data,error})=>{if(error)toast.error(error.message);else{setOrganizations(data??[]);setOrganizationId(current=>current||data?.[0]?.id||"");}})},[user]);
  useEffect(()=>{if(!organizationId)return;let live=true;void Promise.all(Object.entries(referenceTables).map(async ([field,config])=>{const {data}=await supabase.from(config.table as "food_items").select(`id,${config.label}`).eq("organization_id",organizationId).limit(200);return [field,(data??[]).map((row:Record<string,unknown>)=>({id:String(row.id),label:String(row[config.label]??row.id)}))] as const;})).then(entries=>{if(live)setLookups(Object.fromEntries(entries));});return()=>{live=false}},[organizationId]);
  useEffect(()=>{setForm({});if(!organizationId)return;let active=true;void (async()=>{const {data,error}=await supabase.from(definitions[section].table).select("*").eq("organization_id",organizationId).order("created_at",{ascending:false}).limit(100);if(active){if(error)toast.error(error.message);else setRecords((data??[]) as RecordRow[]);}})();return()=>{active=false}},[organizationId,section]);
+ async function decideReview(reviewId:string,status:"approved"|"rejected"){
+  if(!user||!organizationId||saving)return;
+  if(!window.confirm(`Mark this assurance review ${status}? The database enforces independent verification.`))return;
+  setSaving(true);
+  const {error}=await supabase.from("food_assurance_reviews").update({status,reviewer_id:user.id,reviewed_at:new Date().toISOString()}).eq("id",reviewId).eq("organization_id",organizationId).eq("status","pending");
+  if(error)toast.error(error.message);else{toast.success(`Review ${status}`);const {data}=await supabase.from("food_assurance_reviews").select("*").eq("organization_id",organizationId).order("created_at",{ascending:false}).limit(100);setRecords((data??[]) as RecordRow[]);}
+  setSaving(false);
+ }
  async function save(){
   if(!user||!organizationId||saving)return;
   const definition=definitions[section];
