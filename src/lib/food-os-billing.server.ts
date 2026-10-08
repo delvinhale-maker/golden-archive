@@ -33,7 +33,7 @@ export async function createFoodOsCheckout(organizationId:string, ownerId:string
     client_reference_id:organizationId,
     metadata:{kind:"FOOD_OS",organizationId,ownerId,plan},
     subscription_data:{metadata:{kind:"FOOD_OS",organizationId,ownerId,plan}},
-  });
+  },{idempotencyKey:`food-os-checkout:${organizationId}:${ownerId}:${plan}:${new Date().toISOString().slice(0,13)}`});
   if(!session.url) throw new Error("Stripe checkout URL unavailable");
   return {url:session.url};
 }
