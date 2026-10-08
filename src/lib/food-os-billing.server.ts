@@ -19,6 +19,9 @@ export async function createFoodOsCheckout(organizationId:string, ownerId:string
   const database=db();
   const {data: membership,error}=await database.from("assurance_memberships").select("role").eq("organization_id",organizationId).eq("user_id",ownerId).in("role",["owner","compliance_admin"]).maybeSingle();
   if(error||!membership) throw new Error("Organization billing access denied");
+  const {data: entitlement,error: entitlementError}=await database.from("food_os_entitlements").select("status,stripe_subscription_id").eq("organization_id",organizationId).maybeSingle();
+  if(entitlementError) throw entitlementError;
+  if(entitlement?.stripe_subscription_id && ["active","trialing","past_due"].includes(entitlement.status)) throw new Error("Organization already has a subscription; manage the existing subscription before starting another checkout");
   const price=plans[plan];
   if(!price) throw new Error("Food OS plan price not configured");
   const origin=process.env.FOOD_OS_APP_URL;
@@ -46,8 +49,13 @@ async function sync(subscription:Stripe.Subscription) {
   if(lookupError) throw lookupError;
   if(existing?.stripe_subscription_id && existing.stripe_subscription_id!==subscription.id) {
     // Never allow a late webhook from an old subscription to overwrite a replacement.
-    const previous=await stripe().subscriptions.retrieve(existing.stripe_subscription_id);
-    if(previous.created>subscription.created) return false;
+    try {
+      const previous=await stripe().subscriptions.retrieve(existing.stripe_subscription_id);
+      if(previous.created>subscription.created) return false;
+    } catch (error) {
+      // An inaccessible previous subscription is not evidence that an incoming event is newer.
+      throw new Error("Unable to verify existing Food OS subscription ordering", {cause:error});
+    }
   }
   const active=subscription.status==="active"||subscription.status==="trialing";
   const {error}=await database.from("food_os_entitlements").upsert({
