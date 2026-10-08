@@ -44,8 +44,8 @@ function Operations(){
   if(!user||!organizationId||saving)return;
   if(!window.confirm(`Mark this assurance review ${status}? The database enforces independent verification.`))return;
   setSaving(true);
-  const {error}=await supabase.from("food_assurance_reviews").update({status,reviewer_id:user.id,reviewed_at:new Date().toISOString()}).eq("id",reviewId).eq("organization_id",organizationId).eq("status","pending");
-  if(error)toast.error(error.message);else{toast.success(`Review ${status}`);const {data}=await supabase.from("food_assurance_reviews").select("*").eq("organization_id",organizationId).order("created_at",{ascending:false}).limit(100);setRecords((data??[]) as RecordRow[]);}
+  const {data:updated,error}=await supabase.from("food_assurance_reviews").update({status,reviewer_id:user.id}).eq("id",reviewId).eq("organization_id",organizationId).eq("status","pending").select("id").maybeSingle();
+  if(error)toast.error(error.message);else if(!updated)toast.error("Review is no longer pending");else{toast.success(`Review ${status}`);const {data}=await supabase.from("food_assurance_reviews").select("*").eq("organization_id",organizationId).order("created_at",{ascending:false}).limit(100);setRecords((data??[]) as RecordRow[]);}
   setSaving(false);
  }
  async function save(){
