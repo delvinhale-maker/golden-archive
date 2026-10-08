@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -70,6 +70,7 @@ function FoodAssuranceOS(){
   </header>
   <section className="grid gap-4 md:grid-cols-3"><div className="rounded-2xl border border-ink/10 bg-white p-5 md:col-span-2"><p className="text-xs font-semibold uppercase tracking-wider text-mute">Operational command</p><div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">{cards.map(([label,value,Icon])=><div key={label} className="rounded-xl bg-paper p-4"><Icon className="h-5 w-5 text-gold"/><p className="mt-3 text-2xl font-bold text-navy">{value}</p><p className="text-xs text-mute">{label}</p></div>)}</div></div><div className="rounded-2xl border border-ink/10 bg-white p-5"><p className="text-xs font-semibold uppercase tracking-wider text-mute">Assurance readiness</p><p className="mt-4 text-5xl font-bold text-navy">{readiness}%</p><div className="mt-4 h-2 overflow-hidden rounded-full bg-ink/10"><div className="h-full bg-gold" style={{width:`${readiness}%`}}/></div><p className="mt-4 text-xs leading-relaxed text-mute">Calculated from KDE completeness, open exceptions, corrective actions and unverified closures. It is not FDA certification.</p></div></section>
   <section className="rounded-2xl border border-ink/10 bg-white p-5"><h2 className="font-bold text-navy">Readiness evidence</h2><p className="mt-2 text-sm text-mute">Incomplete tracking events: {readinessData?.incomplete_events??"—"} · Open corrective actions: {readinessData?.open_corrective_actions??"—"} · Unverified closures: {readinessData?.unverified_closures??"—"}</p></section>
+  <section className="rounded-2xl border border-ink/10 bg-white p-5"><Link to="/food-os/operations" className="inline-flex rounded-lg bg-navy px-5 py-3 font-semibold text-white">Open operations workspace →</Link></section>
   <section className="rounded-2xl border border-ink/10 bg-white p-5"><h2 className="font-bold text-navy">Operating workspaces</h2><div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{["Products & FTL Applicability","Suppliers & Facilities","Traceability Lots","Critical Tracking Events","Lot Genealogy","Shipments","Traceability Exceptions","Recall Command Center","Corrective Actions","Evidence Vault","24-Hour Challenge","Reports & Sortable Export","Immutable Activity","Users & Roles"].map(x=><div key={x} className="rounded-xl border border-ink/10 p-4 text-sm font-medium text-navy">{x}</div>)}</div></section>
  </main>
 }
