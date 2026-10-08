@@ -49,12 +49,13 @@ function Operations(){
   for(const field of definition.fields)if(form[field]?.trim())payload[field]=form[field].trim();
   if(section==="recalls" || section==="events" || section==="challenges")payload.created_by=user.id;
   if(section==="evidence")payload.uploaded_by=user.id;
-  if(section==="reviews")payload.reviewer_id=user.id;
+  if(section==="reviews")delete payload.reviewer_id; // Only a verified independent review action may set reviewer identity.
   if(section==="lots" || section==="shipmentItems"){if(!Number.isFinite(Number(form.quantity))||Number(form.quantity)<=0){toast.error("Quantity must be greater than zero");setSaving(false);return;}payload.quantity=Number(form.quantity);}
   if(section==="genealogy" && form.parent_lot_id===form.child_lot_id){toast.error("Parent and child lots must differ");setSaving(false);return;}
   if(section==="items")payload.ftl_applicable=false;
+  if(section==="reviews")payload.status="pending"; // Creation is a request, never a self-approved assurance review.
   for(const field of ["event_time","shipped_at","due_at","deadline_at"]){if(typeof payload[field]==="string"){const date=new Date(payload[field] as string);if(Number.isNaN(date.getTime())){toast.error(`Invalid ${field}`);setSaving(false);return;}payload[field]=date.toISOString();}}
-  if(section==="reviews" && !["pending","approved","rejected","needs_changes"].includes(String(payload.status))){toast.error("Review status must be pending, approved, rejected, or needs_changes");setSaving(false);return;}
+
   const {error}=await supabase.from(definition.table).insert(payload as never);
   if(error)toast.error(error.message);
   else{toast.success("Record created");setForm({});const result=await supabase.from(definition.table).select("*").eq("organization_id",organizationId).order("created_at",{ascending:false}).limit(100);setRecords((result.data??[]) as RecordRow[]);}
