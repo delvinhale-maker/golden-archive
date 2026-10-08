@@ -17,7 +17,7 @@ const definitions={
  shipmentItems:{table:"food_shipment_items",fields:["shipment_id","lot_id","quantity","unit"]},
  correctiveActions:{table:"food_corrective_actions",fields:["exception_id","action","owner_id","due_at"]},
  evidence:{table:"food_evidence",fields:["corrective_action_id","evidence_type","external_reference","sha256"]},
- reviews:{table:"food_assurance_reviews",fields:["entity_type","entity_id","review_type","status","notes"]},
+ reviews:{table:"food_assurance_reviews",fields:["entity_type","entity_id","review_type","notes"]},
  challenges:{table:"food_mock_record_requests",fields:["lot_id","deadline_at"]},
  exceptions:{table:"food_traceability_exceptions",fields:["title","details","severity"]},
  recalls:{table:"food_recall_cases",fields:["title","reason"]},
@@ -40,7 +40,7 @@ function Operations(){
  async function save(){
   if(!user||!organizationId||saving)return;
   const definition=definitions[section];
-  const requiredBySection:Partial<Record<Section,string[]>>={lots:["item_id","lot_code","quantity","unit"],events:["lot_id","event_type","event_time"],kdes:["event_id","kde_key","kde_value"],genealogy:["parent_lot_id","child_lot_id","relationship_type"],shipments:["shipment_code","destination_name"],shipmentItems:["shipment_id","lot_id","quantity","unit"],correctiveActions:["action","owner_id"],evidence:["corrective_action_id","evidence_type"],reviews:["entity_type","entity_id","review_type","status"],challenges:["lot_id","deadline_at"],exceptions:["title","severity"],recalls:["title","reason"]};
+  const requiredBySection:Partial<Record<Section,string[]>>={lots:["item_id","lot_code","quantity","unit"],events:["lot_id","event_type","event_time"],kdes:["event_id","kde_key","kde_value"],genealogy:["parent_lot_id","child_lot_id","relationship_type"],shipments:["shipment_code","destination_name"],shipmentItems:["shipment_id","lot_id","quantity","unit"],correctiveActions:["action","owner_id"],evidence:["corrective_action_id","evidence_type"],reviews:["entity_type","entity_id","review_type"],challenges:["lot_id","deadline_at"],exceptions:["title","severity"],recalls:["title","reason"]};
   const required=requiredBySection[section]??[definition.fields[0]];
   const missing=required.filter(field=>!form[field]?.trim());
   if(missing.length){toast.error(`Complete required fields: ${missing.join(", ")}`);return;}
