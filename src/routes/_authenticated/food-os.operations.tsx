@@ -31,6 +31,7 @@ function Operations(){
  const [section,setSection]=useState<Section>("facilities");
  const [form,setForm]=useState<Record<string,string>>({});
  const [records,setRecords]=useState<RecordRow[]>([]);
+ const [loadingRecords,setLoadingRecords]=useState(false);
  const [saving,setSaving]=useState(false);
  const [lookups,setLookups]=useState<Record<string,{id:string;label:string}[]>>({});
  const [members,setMembers]=useState<{id:string;label:string}[]>([]);
@@ -38,7 +39,7 @@ function Operations(){
  useEffect(()=>{if(!user)return;void supabase.from("assurance_organizations").select("id,name").order("name").then(({data,error})=>{if(error)toast.error(error.message);else{setOrganizations(data??[]);setOrganizationId(current=>current||data?.[0]?.id||"");}})},[user]);
  useEffect(()=>{if(!organizationId)return;let live=true;void Promise.all(Object.entries(referenceTables).map(async ([field,config])=>{const {data}=await supabase.from(config.table as "food_items").select(`id,${config.label}`).eq("organization_id",organizationId).limit(200);return [field,(data??[]).map((row:Record<string,unknown>)=>({id:String(row.id),label:String(row[config.label]??row.id)}))] as const;})).then(entries=>{if(live)setLookups(Object.fromEntries(entries));});return()=>{live=false}},[organizationId]);
  useEffect(()=>{if(!organizationId)return;let live=true;void supabase.from("assurance_memberships").select("user_id,role").eq("organization_id",organizationId).then(({data})=>{if(live)setMembers((data??[]).map(row=>({id:row.user_id,label:`${row.user_id.slice(0,8)} · ${row.role}`})));});return()=>{live=false}},[organizationId]);
- useEffect(()=>{setForm({});if(!organizationId)return;let active=true;void (async()=>{const {data,error}=await supabase.from(definitions[section].table).select("*").eq("organization_id",organizationId).order("created_at",{ascending:false}).limit(100);if(active){if(error)toast.error(error.message);else setRecords((data??[]) as RecordRow[]);}})();return()=>{active=false}},[organizationId,section]);
+ useEffect(()=>{setForm({});setRecords([]);setLoadingRecords(Boolean(organizationId));if(!organizationId)return;let active=true;void (async()=>{const {data,error}=await supabase.from(definitions[section].table).select("*").eq("organization_id",organizationId).order("created_at",{ascending:false}).limit(100);if(active){setLoadingRecords(false);if(error)toast.error(error.message);else setRecords((data??[]) as RecordRow[]);}})();return()=>{active=false}},[organizationId,section]);
  async function decideReview(reviewId:string,status:"approved"|"rejected"){
   if(!user||!organizationId||saving)return;
   if(!window.confirm(`Mark this assurance review ${status}? The database enforces independent verification.`))return;
