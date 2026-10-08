@@ -18,6 +18,7 @@ function FoodAssuranceOS(){
  const [counts,setCounts]=useState<Counts>(empty);
  const [loading,setLoading]=useState(true);
  const [name,setName]=useState("");
+ const [readinessData,setReadinessData]=useState<Record<string,number>|null>(null);
 
  async function loadOrganizations(){
    if(!user) return;
@@ -39,6 +40,7 @@ function FoodAssuranceOS(){
     supabase.from("food_mock_record_requests").select("id",{count:"exact",head:true}).eq("organization_id",orgId),
    ];
    const r=await Promise.all(queries);
+   const {data:readinessResult}=await supabase.rpc("food_readiness_score" as never,{p_org:orgId} as never); setReadinessData((readinessResult as Record<string,number>|null)??null);
    setCounts({facilities:r[0].count??0,partners:r[1].count??0,items:r[2].count??0,lots:r[3].count??0,events:r[4].count??0,exceptions:r[5].count??0,recalls:r[6].count??0,challenges:r[7].count??0});
  })()},[orgId]);
 
@@ -52,7 +54,7 @@ function FoodAssuranceOS(){
    setName(""); toast.success("Food Assurance workspace created"); await loadOrganizations(); setOrgId(data.id);
  }
 
- const readiness=useMemo(()=>counts.lots===0?0:Math.max(0,Math.min(100,Math.round(100-(counts.exceptions*12)-(counts.recalls*18)))),[counts]);
+ const readiness=readinessData?.score??0;
  const cards=[
   ["Facilities",counts.facilities,Factory],["Trading Partners",counts.partners,Truck],["Food Items",counts.items,Boxes],["Traceability Lots",counts.lots,Boxes],
   ["Critical Tracking Events",counts.events,Activity],["Open Exceptions",counts.exceptions,AlertTriangle],["Active Recalls",counts.recalls,Siren],["24-Hour Challenges",counts.challenges,FileCheck2],
@@ -66,7 +68,8 @@ function FoodAssuranceOS(){
    <div><p className="text-xs font-semibold uppercase tracking-[.2em] text-gold">AurumVault Assurance Cloud™</p><h1 className="mt-1 text-2xl font-bold">Food Traceability & Recall Assurance OS™</h1><p className="mt-2 max-w-2xl text-sm text-white/70">Evidence-backed traceability, exception management, recall command and readiness operations.</p></div>
    <select value={orgId} onChange={e=>setOrgId(e.target.value)} className="min-h-11 rounded-lg border border-white/20 bg-white px-3 text-navy">{orgs.map(o=><option key={o.id} value={o.id}>{o.name}</option>)}</select>
   </header>
-  <section className="grid gap-4 md:grid-cols-3"><div className="rounded-2xl border border-ink/10 bg-white p-5 md:col-span-2"><p className="text-xs font-semibold uppercase tracking-wider text-mute">Operational command</p><div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">{cards.map(([label,value,Icon])=><div key={label} className="rounded-xl bg-paper p-4"><Icon className="h-5 w-5 text-gold"/><p className="mt-3 text-2xl font-bold text-navy">{value}</p><p className="text-xs text-mute">{label}</p></div>)}</div></div><div className="rounded-2xl border border-ink/10 bg-white p-5"><p className="text-xs font-semibold uppercase tracking-wider text-mute">Assurance readiness</p><p className="mt-4 text-5xl font-bold text-navy">{readiness}%</p><div className="mt-4 h-2 overflow-hidden rounded-full bg-ink/10"><div className="h-full bg-gold" style={{width:`${readiness}%`}}/></div><p className="mt-4 text-xs leading-relaxed text-mute">Readiness is evidence-based and reflects recorded exceptions and active recalls. It is not FDA certification.</p></div></section>
+  <section className="grid gap-4 md:grid-cols-3"><div className="rounded-2xl border border-ink/10 bg-white p-5 md:col-span-2"><p className="text-xs font-semibold uppercase tracking-wider text-mute">Operational command</p><div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">{cards.map(([label,value,Icon])=><div key={label} className="rounded-xl bg-paper p-4"><Icon className="h-5 w-5 text-gold"/><p className="mt-3 text-2xl font-bold text-navy">{value}</p><p className="text-xs text-mute">{label}</p></div>)}</div></div><div className="rounded-2xl border border-ink/10 bg-white p-5"><p className="text-xs font-semibold uppercase tracking-wider text-mute">Assurance readiness</p><p className="mt-4 text-5xl font-bold text-navy">{readiness}%</p><div className="mt-4 h-2 overflow-hidden rounded-full bg-ink/10"><div className="h-full bg-gold" style={{width:`${readiness}%`}}/></div><p className="mt-4 text-xs leading-relaxed text-mute">Calculated from KDE completeness, open exceptions, corrective actions and unverified closures. It is not FDA certification.</p></div></section>
+  <section className="rounded-2xl border border-ink/10 bg-white p-5"><h2 className="font-bold text-navy">Readiness evidence</h2><p className="mt-2 text-sm text-mute">Incomplete tracking events: {readinessData?.incomplete_events??"—"} · Open corrective actions: {readinessData?.open_corrective_actions??"—"} · Unverified closures: {readinessData?.unverified_closures??"—"}</p></section>
   <section className="rounded-2xl border border-ink/10 bg-white p-5"><h2 className="font-bold text-navy">Operating workspaces</h2><div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{["Products & FTL Applicability","Suppliers & Facilities","Traceability Lots","Critical Tracking Events","Lot Genealogy","Shipments","Traceability Exceptions","Recall Command Center","Corrective Actions","Evidence Vault","24-Hour Challenge","Reports & Sortable Export","Immutable Activity","Users & Roles"].map(x=><div key={x} className="rounded-xl border border-ink/10 p-4 text-sm font-medium text-navy">{x}</div>)}</div></section>
  </main>
 }
