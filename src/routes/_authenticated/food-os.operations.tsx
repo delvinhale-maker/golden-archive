@@ -40,7 +40,10 @@ function Operations(){
  async function save(){
   if(!user||!organizationId||saving)return;
   const definition=definitions[section];
-  if(!form[definition.fields[0]]?.trim()){toast.error("Complete the first required field");return;}
+  const requiredBySection:Partial<Record<Section,string[]>>={lots:["item_id","lot_code","quantity","unit"],events:["lot_id","event_type","event_time"],kdes:["event_id","kde_key","kde_value"],genealogy:["parent_lot_id","child_lot_id","relationship_type"],shipments:["shipment_code","destination_name"],shipmentItems:["shipment_id","lot_id","quantity","unit"],correctiveActions:["action","owner_id"],evidence:["corrective_action_id","evidence_type"],reviews:["entity_type","entity_id","review_type","status"],challenges:["lot_id","deadline_at"],exceptions:["title","severity"],recalls:["title","reason"]};
+  const required=requiredBySection[section]??[definition.fields[0]];
+  const missing=required.filter(field=>!form[field]?.trim());
+  if(missing.length){toast.error(`Complete required fields: ${missing.join(", ")}`);return;}
   setSaving(true);
   const payload:Record<string,unknown>={organization_id:organizationId};
   for(const field of definition.fields)if(form[field]?.trim())payload[field]=form[field].trim();
@@ -50,6 +53,8 @@ function Operations(){
   if(section==="lots" || section==="shipmentItems"){if(!Number.isFinite(Number(form.quantity))||Number(form.quantity)<=0){toast.error("Quantity must be greater than zero");setSaving(false);return;}payload.quantity=Number(form.quantity);}
   if(section==="genealogy" && form.parent_lot_id===form.child_lot_id){toast.error("Parent and child lots must differ");setSaving(false);return;}
   if(section==="items")payload.ftl_applicable=false;
+  for(const field of ["event_time","shipped_at","due_at","deadline_at"]){if(typeof payload[field]==="string"){const date=new Date(payload[field] as string);if(Number.isNaN(date.getTime())){toast.error(`Invalid ${field}`);setSaving(false);return;}payload[field]=date.toISOString();}}
+  if(section==="reviews" && !["pending","approved","rejected","needs_changes"].includes(String(payload.status))){toast.error("Review status must be pending, approved, rejected, or needs_changes");setSaving(false);return;}
   const {error}=await supabase.from(definition.table).insert(payload as never);
   if(error)toast.error(error.message);
   else{toast.success("Record created");setForm({});const result=await supabase.from(definition.table).select("*").eq("organization_id",organizationId).order("created_at",{ascending:false}).limit(100);setRecords((result.data??[]) as RecordRow[]);}
