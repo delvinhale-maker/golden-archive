@@ -30,8 +30,8 @@ export async function createFoodOsCheckout(organizationId:string, ownerId:string
   if(appUrl.protocol!=="https:" || appUrl.username || appUrl.password || appUrl.search || appUrl.hash || appUrl.pathname!=="/") throw new Error("Food OS application URL must be an HTTPS origin");
   const session=await stripe().checkout.sessions.create({
     mode:"subscription",line_items:[{price,quantity:1}],
-    success_url:`${origin}/food-os?billing=success`,
-    cancel_url:`${origin}/food-os?billing=cancelled`,
+    success_url:`${appUrl.origin}/food-os?billing=success`,
+    cancel_url:`${appUrl.origin}/food-os?billing=cancelled`,
     client_reference_id:organizationId,
     metadata:{kind:"FOOD_OS",organizationId,ownerId,plan},
     subscription_data:{metadata:{kind:"FOOD_OS",organizationId,ownerId,plan}},
