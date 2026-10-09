@@ -44,3 +44,10 @@ test("Food OS rejects malformed subscription identifiers and timestamps", () => 
   assert.match(source, /stripe_customer_id:customerId/);
   assert.match(source, /!plans\[plan as FoodPlan\]/);
 });
+
+test("Food OS rejects customer reassignment for the same subscription", () => {
+  assert.match(source, /stripe_subscription_created_at,stripe_customer_id/);
+  assert.match(source, /existing\.stripe_subscription_id===subscription\.id && existing\.stripe_customer_id/);
+  assert.match(source, /existing\.stripe_customer_id!==customerId/);
+  assert.match(source, /Subscription customer identity mismatch/);
+});
