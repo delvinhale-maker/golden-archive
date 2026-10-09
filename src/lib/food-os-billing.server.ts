@@ -64,6 +64,7 @@ async function sync(subscription:Stripe.Subscription) {
     status:subscription.status==="trialing"?"trialing":active?"active":subscription.status==="past_due"?"past_due":subscription.status==="canceled"?"canceled":"expired",
     stripe_customer_id:typeof subscription.customer==="string"?subscription.customer:subscription.customer.id,
     stripe_subscription_id:subscription.id,
+    stripe_subscription_created_at:new Date(subscription.created*1000).toISOString(),
     period_start:item?.current_period_start?new Date(item.current_period_start*1000).toISOString():null,
     period_end:item?.current_period_end?new Date(item.current_period_end*1000).toISOString():null,
     trial_end:subscription.trial_end?new Date(subscription.trial_end*1000).toISOString():null,
