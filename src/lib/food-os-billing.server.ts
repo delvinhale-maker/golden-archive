@@ -61,6 +61,7 @@ async function sync(subscription:Stripe.Subscription) {
     try {
       const previous=await stripe().subscriptions.retrieve(existing.stripe_subscription_id);
       if(previous.created>subscription.created) return false;
+      if(previous.created===subscription.created) throw new Error("Ambiguous legacy subscription replacement ordering");
     } catch (error) {
       // An inaccessible previous subscription is not evidence that an incoming event is newer.
       throw new Error("Unable to verify existing Food OS subscription ordering", {cause:error});
