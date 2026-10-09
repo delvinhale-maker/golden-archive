@@ -49,7 +49,8 @@ async function sync(subscription:Stripe.Subscription) {
   if(subscription.items.data.length!==1 || item.quantity!==1) throw new Error("Food OS subscription must contain exactly one licensed plan item");
   if(!Number.isSafeInteger(subscription.created) || subscription.created<=0) throw new Error("Invalid Stripe subscription creation timestamp");
   if(!subscription.id || !subscription.id.startsWith("sub_")) throw new Error("Invalid Stripe subscription identifier");
-  if(!subscription.customer || (typeof subscription.customer!=="string" && !subscription.customer.id)) throw new Error("Invalid Stripe customer identifier");
+  const customerId=typeof subscription.customer==="string"?subscription.customer:subscription.customer?.id;
+  if(!customerId || !customerId.startsWith("cus_")) throw new Error("Invalid Stripe customer identifier");
   const database=db();
   const {data:existing,error:lookupError}=await database.from("food_os_entitlements").select("stripe_subscription_id,stripe_subscription_created_at").eq("organization_id",organizationId).maybeSingle();
   if(lookupError) throw lookupError;
@@ -79,7 +80,7 @@ async function sync(subscription:Stripe.Subscription) {
   const {error}=await database.from("food_os_entitlements").upsert({
     organization_id:organizationId,plan_key:plan,
     status:subscription.status==="trialing"?"trialing":active?"active":subscription.status==="past_due"?"past_due":subscription.status==="canceled"?"canceled":"expired",
-    stripe_customer_id:typeof subscription.customer==="string"?subscription.customer:subscription.customer.id,
+    stripe_customer_id:customerId,
     stripe_subscription_id:subscription.id,
     stripe_subscription_created_at:new Date(subscription.created*1000).toISOString(),
     period_start:item?.current_period_start?new Date(item.current_period_start*1000).toISOString():null,
