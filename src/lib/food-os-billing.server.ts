@@ -68,6 +68,10 @@ async function sync(subscription:Stripe.Subscription) {
     }
     }
   }
+  if(existing?.stripe_subscription_id===subscription.id && existing.stripe_subscription_created_at) {
+    const recordedCreated=Date.parse(existing.stripe_subscription_created_at)/1000;
+    if(!Number.isFinite(recordedCreated) || recordedCreated!==subscription.created) throw new Error("Subscription identity creation timestamp mismatch");
+  }
   const active=subscription.status==="active"||subscription.status==="trialing";
   const {error}=await database.from("food_os_entitlements").upsert({
     organization_id:organizationId,plan_key:plan,
