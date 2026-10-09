@@ -35,3 +35,10 @@ test("Food OS refuses unconfigured Stripe prices and invalid creation times", ()
   assert.match(source, /Number\.isSafeInteger\(subscription\.created\)/);
   assert.match(source, /subscription\.created<=0/);
 });
+
+test("Food OS rejects malformed subscription identifiers and timestamps", () => {
+  assert.match(source, /Number\.isSafeInteger\(subscription\.created\)/);
+  assert.match(source, /subscription\.id\.startsWith\("sub_"\)/);
+  assert.match(source, /Invalid Stripe customer identifier/);
+  assert.match(source, /!plans\[plan as FoodPlan\]/);
+});
