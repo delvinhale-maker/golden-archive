@@ -84,7 +84,7 @@ export const Route = createFileRoute("/sitemap.xml")({
 
             const [prodRes, storeRes, catRes, articleRes] = await Promise.all([
               fetch(
-                `${url}/rest/v1/marketplace_products?select=id,slug,updated_at&status=eq.approved&published=eq.true`,
+                `${url}/rest/v1/marketplace_products?select=id,slug,updated_at,seo_robots_index&status=eq.approved&published=eq.true`,
                 { headers },
               ),
               fetch(
@@ -102,8 +102,10 @@ export const Route = createFileRoute("/sitemap.xml")({
                 id: string;
                 slug?: string | null;
                 updated_at?: string | null;
+                seo_robots_index?: boolean | null;
               }>;
               for (const row of rows) {
+                if (row.seo_robots_index === false) continue;
                 // Prefer the clean, canonical slug URL; fall back to the UUID
                 // path for products that have no slug yet.
                 const segment = row.slug?.trim() ? row.slug.trim() : row.id;

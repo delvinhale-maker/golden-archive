@@ -24,6 +24,9 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    ssr: {
+      noExternal: ["@supabase/supabase-js", "@supabase/functions-js", "@supabase/auth-js", "@supabase/postgrest-js", "@supabase/realtime-js", "@supabase/storage-js", "tslib"],
+    },
     resolve: {
       alias: {
         tslib: tslibEsm,

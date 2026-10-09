@@ -298,6 +298,14 @@ export function orderedFilterCategories(available: string[]): string[] {
 
 export const ALL_CATEGORY_LABELS = CATEGORIES.map((c) => c.label);
 
+export type ProductDeliveryModel = "digital_download" | "interactive_tool" | "saas_os";
+
+export const PRODUCT_DELIVERY_MODELS: Array<{ slug: ProductDeliveryModel; label: string; description: string }> = [
+  { slug: "digital_download", label: "Digital Download", description: "Files, templates, guides and other downloadable resources delivered after purchase." },
+  { slug: "interactive_tool", label: "Interactive Tool", description: "An existing browser-based AurumVault tool or decision experience." },
+  { slug: "saas_os", label: "Live Operating System / SaaS", description: "Authenticated recurring software access with a live workspace, users and cloud data." },
+];
+
 /* ------------------------------------------------------------------ *
  * Delivery Contents (not taxonomy — what the buyer receives)
  * ------------------------------------------------------------------ */
@@ -311,6 +319,9 @@ export const DELIVERY_CONTENT_OPTIONS = [
   "Templates",
   "Sample Data",
   "Live Tool Included",
+  "Live Operating System / SaaS",
+  "Secure Cloud Dashboard",
+  "Authenticated Workspace",
   "Interactive PDF",
   "Decision Engine",
   "Quick Start Guide",

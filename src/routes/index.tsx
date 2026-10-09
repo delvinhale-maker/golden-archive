@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { MarketShell } from "@/components/marketplace/MarketShell";
 import { CanvaHomeBanner } from "@/components/marketplace/CanvaHomeBanner";
+import { QrCodeHomeBanner } from "@/components/marketplace/QrCodeHomeBanner";
 import {
   ProductCard,
   ProductCardSkeleton,
@@ -278,6 +279,10 @@ function Home() {
 
       <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
         <CanvaHomeBanner />
+      </div>
+
+      <div className="mx-auto w-full max-w-7xl px-6 pt-6 lg:px-8">
+        <QrCodeHomeBanner />
       </div>
 
       <RefreshHighlightsBar />
@@ -759,7 +764,7 @@ function CategoriesSection() {
               <Link
                 to="/products"
                 search={{ category: c.slug } as never}
-                className="group flex h-[120px] flex-col items-center justify-center gap-2 rounded-lg border border-line bg-white transition-all duration-200 ease-out hover:-translate-y-1 hover:border-gold hover:shadow-card-hover"
+                className="group flex h-[120px] flex-col items-center justify-center gap-2 rounded-lg border border-line bg-white transition-all duration-200 ease-out hover:-translate-y-1 hover:border-gold hover:shadow-card-hover" // allow-light-bg
               >
                 <c.icon className="text-gold-ink transition-transform duration-200 group-hover:scale-110" size={32} strokeWidth={1.6} />
                 <span className="text-sm font-bold text-navy">{c.label}</span>

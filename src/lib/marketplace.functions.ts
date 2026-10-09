@@ -3,7 +3,13 @@ import { queryOptions } from "@tanstack/react-query";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { slugToLabel, labelToSlug, getCategoryDef, CATEGORIES as CATEGORY_DEFS } from "@/lib/categories";
+import {
+  slugToLabel,
+  labelToSlug,
+  getCategoryDef,
+  getQueryableSlugsFor,
+  CATEGORIES as CATEGORY_DEFS,
+} from "@/lib/categories";
 import { MARKETPLACE_PAGE_SIZE, FEATURED_PRODUCTS_LIMIT } from "@/lib/marketplace-config";
 import { rotateHalfDay } from "@/lib/affiliate-rotation";
 
@@ -41,6 +47,13 @@ type DbProductRow = {
   preview_pages?: number[] | null;
   product_type?: string | null;
   delivery_contents?: string[] | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_image_alt?: string | null;
+  seo_og_title?: string | null;
+  seo_og_description?: string | null;
+  seo_robots_index?: boolean | null;
+  seo_robots_follow?: boolean | null;
 };
 
 export function parseWhatsIncluded(adminNotes?: string | null): string[] | undefined {
@@ -102,6 +115,17 @@ function dbRowToProduct(r: DbProductRow): Product {
     fileExt: (r.file_path ?? "").split(".").pop()?.toLowerCase() ?? null,
     productType: r.product_type ?? null,
     deliveryContents: Array.isArray(r.delivery_contents) ? r.delivery_contents : [],
+    ...(Object.prototype.hasOwnProperty.call(r, "seo_title")
+      ? {
+          seoTitle: r.seo_title?.trim() || null,
+          seoDescription: r.seo_description?.trim() || null,
+          seoImageAlt: r.seo_image_alt?.trim() || null,
+          seoOgTitle: r.seo_og_title?.trim() || null,
+          seoOgDescription: r.seo_og_description?.trim() || null,
+          seoRobotsIndex: r.seo_robots_index ?? true,
+          seoRobotsFollow: r.seo_robots_follow ?? true,
+        }
+      : {}),
   };
 }
 
@@ -224,7 +248,7 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
     let query = supa
       .from("marketplace_products")
       .select(
-        "id,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at",
+        "id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at",
       )
       .eq("status", "approved")
       .eq("published", true)
@@ -237,10 +261,20 @@ async function fetchDbProducts(opts: { category?: string; q?: string } = {}): Pr
       // The DB enum stores prompt packs under `ai_prompt_packs`; the UI
       // exposes a friendlier `prompt_packs` slug — map it back for the query.
       if (slug === "prompt_packs") slug = "ai_prompt_packs";
-      query = query.eq(
-        "category",
-        slug as Database["public"]["Enums"]["product_category"],
-      );
+      // Alias-aware: a product can still be stored under a deprecated
+      // legacy enum value (e.g. `business`) that only ever got aliased for
+      // *display* (slugToLabel), never for filtering — which is exactly
+      // why department pages like Business Systems could show zero results
+      // even though matching products exist. Matching every legacy slug
+      // that aliases to this canonical one closes that gap without any
+      // data migration.
+      const queryableSlugs = getQueryableSlugsFor(
+        slug,
+      ) as Database["public"]["Enums"]["product_category"][];
+      query =
+        queryableSlugs.length > 1
+          ? query.in("category", queryableSlugs)
+          : query.eq("category", queryableSlugs[0]);
     }
     if (opts.q) {
       // Search across title, description, category and both lower taxonomy
@@ -342,6 +376,17 @@ export type Product = {
   productType?: string | null;
   /** What the buyer receives (formats/assets) — descriptive, not taxonomy. */
   deliveryContents?: string[];
+  /** SEO Phase 2 overrides populated on product-detail reads only. */
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  seoImageAlt?: string | null;
+  seoOgTitle?: string | null;
+  seoOgDescription?: string | null;
+  seoRobotsIndex?: boolean;
+  seoRobotsFollow?: boolean;
+  /** Internal planning-only fields; never selected into public product reads. */
+  seoFocusKeyword?: never;
+  seoSecondaryKeywords?: never;
 };
 
 export type ProductReviewSnippet = {
@@ -369,6 +414,7 @@ export type ProductDetailResult =
       ratingBreakdown: ProductRatingBreakdown;
     }
   | { kind: "unpublished"; title: string | null }
+  | { kind: "redirect"; slug: string }
   | { kind: "notFound" };
 
 
@@ -704,17 +750,42 @@ export const getProduct = createServerFn({ method: "GET" })
     // Use service-role client so we can distinguish "does not exist" from
     // "exists but is not yet published/approved" despite RLS policies.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row } = await supabaseAdmin
+    const detailSelect =
+      "id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages,seo_title,seo_description,seo_image_alt,seo_og_title,seo_og_description,seo_robots_index,seo_robots_follow" as const;
+
+    const direct = await supabaseAdmin
       .from("marketplace_products")
-      .select(
-        "id,slug,title,category,subcategory,product_type,delivery_contents,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at,ai_review_status,ai_review_score,status,published,is_preorder,release_date,released_at,preorder_note,admin_notes,file_path,preview_pages",
-      )
+      .select(detailSelect)
       .eq(isUuid ? "id" : "slug", identifier)
       .maybeSingle();
+
+    let row = direct.data as any;
+
+    if (!row && !isUuid) {
+      const redirectLookup = await (supabaseAdmin.rpc as any)(
+        "resolve_product_slug_redirect",
+        { _old_slug: identifier },
+      );
+      const redirectProductId =
+        typeof redirectLookup.data === "string" ? redirectLookup.data : null;
+
+      if (redirectProductId) {
+        const redirected = await supabaseAdmin
+          .from("marketplace_products")
+          .select(detailSelect)
+          .eq("id", redirectProductId)
+          .maybeSingle();
+        row = redirected.data as any;
+      }
+    }
 
     if (!row) return { kind: "notFound" } as ProductDetailResult;
     if (row.status !== "approved" || !row.published) {
       return { kind: "unpublished", title: row.title } as ProductDetailResult;
+    }
+    const canonical = row.slug?.trim() || row.id;
+    if (canonical !== identifier) {
+      return { kind: "redirect", slug: canonical } as ProductDetailResult;
     }
     const product = dbRowToProduct(row as DbProductRow);
     const [agg, creators] = await Promise.all([
@@ -785,7 +856,7 @@ export const getHomeHighlights = createServerFn({ method: "GET" }).handler(
         supa
           .from("marketplace_products")
           .select(
-            "id,title,category,price_cents,cover_url,description,seller_id,created_at",
+            "id,slug,title,category,price_cents,cover_url,description,seller_id,created_at",
           )
           .eq("status", "approved")
           .eq("published", true)
@@ -842,7 +913,7 @@ export const getPromotedPicksRowFn = createServerFn({ method: "GET" }).handler(
       const { data } = await supa
         .from("marketplace_products")
         .select(
-          "id,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at",
+          "id,slug,title,category,price_cents,compare_at_price_cents,cover_url,description,seller_id,created_at",
         )
         .eq("status", "approved")
         .eq("published", true)

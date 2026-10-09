@@ -278,6 +278,30 @@ const LEGACY_ALIAS: Record<string, string> = {
   business: "business_operating_systems",
 };
 
+// Reverse of LEGACY_ALIAS: canonical slug -> every legacy slug that still
+// aliases to it. Used to make department/category queries alias-aware — a
+// product stored under the old `business` enum value still needs to
+// surface on the Business Systems department page, not just display with
+// the right label wherever slugToLabel() is used. See
+// getQueryableSlugsFor() below.
+const CANONICAL_TO_LEGACY: Record<string, string[]> = Object.entries(LEGACY_ALIAS).reduce(
+  (acc, [legacy, canonical]) => {
+    (acc[canonical] ??= []).push(legacy);
+    return acc;
+  },
+  {} as Record<string, string[]>,
+);
+
+/**
+ * Every DB enum value a department/category query should match to surface
+ * all products that belong there — the canonical slug plus any deprecated
+ * legacy slug that aliases to it (see LEGACY_ALIAS). Always includes the
+ * canonical slug itself, even if it has no legacy aliases.
+ */
+export function getQueryableSlugsFor(canonicalSlug: string): string[] {
+  return [canonicalSlug, ...(CANONICAL_TO_LEGACY[canonicalSlug] ?? [])];
+}
+
 export function slugToLabel(slug?: string | null): string {
   if (!slug) return "eBooks";
   const key = slug.toLowerCase();

@@ -528,6 +528,1032 @@ export type Database = {
           },
         ]
       }
+      assurance_audit_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          entity_id: string
+          entity_type: string
+          id: number
+          occurred_at: string
+          organization_id: string
+          payload: Json
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          entity_id: string
+          entity_type: string
+          id?: never
+          occurred_at?: string
+          organization_id: string
+          payload?: Json
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: never
+          occurred_at?: string
+          organization_id?: string
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assurance_audit_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assurance_memberships: {
+        Row: {
+          created_at: string
+          organization_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          organization_id: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          organization_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assurance_memberships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assurance_organizations: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      audiobook_activity_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          job_id: string | null
+          owner_id: string
+          payload: Json
+          project_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          job_id?: string | null
+          owner_id: string
+          payload?: Json
+          project_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          job_id?: string | null
+          owner_id?: string
+          payload?: Json
+          project_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_activity_events_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_generation_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiobook_activity_events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_audio_assets: {
+        Row: {
+          chapter_id: string | null
+          checksum_sha256: string | null
+          created_at: string
+          duration_seconds: number | null
+          file_size_bytes: number
+          id: string
+          is_current: boolean
+          job_id: string | null
+          mime_type: string
+          owner_id: string
+          project_id: string
+          sample_rate: number | null
+          storage_bucket: string
+          storage_path: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          chapter_id?: string | null
+          checksum_sha256?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          file_size_bytes?: number
+          id?: string
+          is_current?: boolean
+          job_id?: string | null
+          mime_type?: string
+          owner_id: string
+          project_id: string
+          sample_rate?: number | null
+          storage_bucket?: string
+          storage_path: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          chapter_id?: string | null
+          checksum_sha256?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          file_size_bytes?: number
+          id?: string
+          is_current?: boolean
+          job_id?: string | null
+          mime_type?: string
+          owner_id?: string
+          project_id?: string
+          sample_rate?: number | null
+          storage_bucket?: string
+          storage_path?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_audio_assets_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiobook_audio_assets_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_generation_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiobook_audio_assets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_chapter_versions: {
+        Row: {
+          change_note: string | null
+          chapter_id: string
+          created_at: string
+          edited_text: string
+          id: string
+          is_current: boolean
+          owner_id: string
+          project_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          change_note?: string | null
+          chapter_id: string
+          created_at?: string
+          edited_text: string
+          id?: string
+          is_current?: boolean
+          owner_id: string
+          project_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          change_note?: string | null
+          chapter_id?: string
+          created_at?: string
+          edited_text?: string
+          id?: string
+          is_current?: boolean
+          owner_id?: string
+          project_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_chapter_versions_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiobook_chapter_versions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_chapters: {
+        Row: {
+          chapter_index: number
+          char_count: number
+          created_at: string
+          id: string
+          original_text: string
+          owner_id: string
+          project_id: string
+          source_id: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          chapter_index: number
+          char_count?: number
+          created_at?: string
+          id?: string
+          original_text: string
+          owner_id: string
+          project_id: string
+          source_id?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          chapter_index?: number
+          char_count?: number
+          created_at?: string
+          id?: string
+          original_text?: string
+          owner_id?: string
+          project_id?: string
+          source_id?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_chapters_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiobook_chapters_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_generation_jobs: {
+        Row: {
+          attempt: number
+          cancelled_at: string | null
+          chapter_id: string | null
+          chapter_version_id: string | null
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          idempotency_key: string
+          max_attempts: number
+          model: string | null
+          owner_id: string
+          project_id: string
+          provider: string
+          queued_at: string
+          requested_characters: number
+          started_at: string | null
+          status: Database["public"]["Enums"]["audiobook_job_status"]
+          updated_at: string
+          voice_config_id: string | null
+        }
+        Insert: {
+          attempt?: number
+          cancelled_at?: string | null
+          chapter_id?: string | null
+          chapter_version_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          idempotency_key: string
+          max_attempts?: number
+          model?: string | null
+          owner_id: string
+          project_id: string
+          provider?: string
+          queued_at?: string
+          requested_characters?: number
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["audiobook_job_status"]
+          updated_at?: string
+          voice_config_id?: string | null
+        }
+        Update: {
+          attempt?: number
+          cancelled_at?: string | null
+          chapter_id?: string | null
+          chapter_version_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          idempotency_key?: string
+          max_attempts?: number
+          model?: string | null
+          owner_id?: string
+          project_id?: string
+          provider?: string
+          queued_at?: string
+          requested_characters?: number
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["audiobook_job_status"]
+          updated_at?: string
+          voice_config_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_generation_jobs_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiobook_generation_jobs_chapter_version_id_fkey"
+            columns: ["chapter_version_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_chapter_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiobook_generation_jobs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiobook_generation_jobs_voice_config_id_fkey"
+            columns: ["voice_config_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_voice_configs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_metadata: {
+        Row: {
+          author_name: string | null
+          completeness_score: number
+          copyright_year: number | null
+          cover_bucket: string
+          cover_path: string | null
+          created_at: string
+          description: string | null
+          genre: string | null
+          id: string
+          is_complete: boolean
+          isbn: string | null
+          keywords: string[]
+          language: string
+          narrator_name: string | null
+          owner_id: string
+          project_id: string
+          publisher: string | null
+          subtitle: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_name?: string | null
+          completeness_score?: number
+          copyright_year?: number | null
+          cover_bucket?: string
+          cover_path?: string | null
+          created_at?: string
+          description?: string | null
+          genre?: string | null
+          id?: string
+          is_complete?: boolean
+          isbn?: string | null
+          keywords?: string[]
+          language?: string
+          narrator_name?: string | null
+          owner_id: string
+          project_id: string
+          publisher?: string | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string | null
+          completeness_score?: number
+          copyright_year?: number | null
+          cover_bucket?: string
+          cover_path?: string | null
+          created_at?: string
+          description?: string | null
+          genre?: string | null
+          id?: string
+          is_complete?: boolean
+          isbn?: string | null
+          keywords?: string[]
+          language?: string
+          narrator_name?: string | null
+          owner_id?: string
+          project_id?: string
+          publisher?: string | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_metadata_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "audiobook_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_projects: {
+        Row: {
+          author_name: string | null
+          created_at: string
+          description: string | null
+          id: string
+          language: string
+          metadata_imported_at: string | null
+          owner_id: string
+          source_product_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_name?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          language?: string
+          metadata_imported_at?: string | null
+          owner_id: string
+          source_product_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          language?: string
+          metadata_imported_at?: string | null
+          owner_id?: string
+          source_product_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_projects_source_product_id_fkey"
+            columns: ["source_product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_pronunciations: {
+        Row: {
+          created_at: string
+          id: string
+          ipa: string | null
+          notes: string | null
+          owner_id: string
+          project_id: string
+          replacement: string | null
+          term: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ipa?: string | null
+          notes?: string | null
+          owner_id: string
+          project_id: string
+          replacement?: string | null
+          term: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ipa?: string | null
+          notes?: string | null
+          owner_id?: string
+          project_id?: string
+          replacement?: string | null
+          term?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_pronunciations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_qc_results: {
+        Row: {
+          check_code: string
+          created_at: string
+          detail: string | null
+          id: string
+          metrics: Json
+          owner_id: string
+          passed: boolean
+          qc_run_id: string
+          severity: string
+        }
+        Insert: {
+          check_code: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          metrics?: Json
+          owner_id: string
+          passed?: boolean
+          qc_run_id: string
+          severity?: string
+        }
+        Update: {
+          check_code?: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          metrics?: Json
+          owner_id?: string
+          passed?: boolean
+          qc_run_id?: string
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_qc_results_qc_run_id_fkey"
+            columns: ["qc_run_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_qc_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_qc_runs: {
+        Row: {
+          chapter_id: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          overall_result: string | null
+          owner_id: string
+          project_id: string
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          chapter_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          overall_result?: string | null
+          owner_id: string
+          project_id: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          chapter_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          overall_result?: string | null
+          owner_id?: string
+          project_id?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_qc_runs_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiobook_qc_runs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_rights_attestations: {
+        Row: {
+          attested_at: string | null
+          created_at: string
+          id: string
+          owner_id: string
+          project_id: string
+          revoked_at: string | null
+          statement_text: string | null
+          status: Database["public"]["Enums"]["audiobook_attestation_status"]
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          attested_at?: string | null
+          created_at?: string
+          id?: string
+          owner_id: string
+          project_id: string
+          revoked_at?: string | null
+          statement_text?: string | null
+          status?: Database["public"]["Enums"]["audiobook_attestation_status"]
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          attested_at?: string | null
+          created_at?: string
+          id?: string
+          owner_id?: string
+          project_id?: string
+          revoked_at?: string | null
+          statement_text?: string | null
+          status?: Database["public"]["Enums"]["audiobook_attestation_status"]
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_rights_attestations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_sources: {
+        Row: {
+          checksum_sha256: string | null
+          created_at: string
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string | null
+          owner_id: string
+          page_count: number | null
+          project_id: string
+          storage_bucket: string
+          storage_path: string
+          updated_at: string
+          validation_notes: string | null
+          validation_status: string
+          word_count: number | null
+        }
+        Insert: {
+          checksum_sha256?: string | null
+          created_at?: string
+          file_name: string
+          file_size_bytes?: number
+          id?: string
+          mime_type?: string | null
+          owner_id: string
+          page_count?: number | null
+          project_id: string
+          storage_bucket?: string
+          storage_path: string
+          updated_at?: string
+          validation_notes?: string | null
+          validation_status?: string
+          word_count?: number | null
+        }
+        Update: {
+          checksum_sha256?: string | null
+          created_at?: string
+          file_name?: string
+          file_size_bytes?: number
+          id?: string
+          mime_type?: string | null
+          owner_id?: string
+          page_count?: number | null
+          project_id?: string
+          storage_bucket?: string
+          storage_path?: string
+          updated_at?: string
+          validation_notes?: string | null
+          validation_status?: string
+          word_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_sources_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_usage: {
+        Row: {
+          chapter_id: string | null
+          characters: number
+          cost_cents: number
+          created_at: string
+          currency: string
+          duration_seconds: number | null
+          id: string
+          job_id: string | null
+          kind: Database["public"]["Enums"]["audiobook_usage_kind"]
+          metadata: Json
+          model: string | null
+          owner_id: string
+          project_id: string | null
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          chapter_id?: string | null
+          characters?: number
+          cost_cents?: number
+          created_at?: string
+          currency?: string
+          duration_seconds?: number | null
+          id?: string
+          job_id?: string | null
+          kind: Database["public"]["Enums"]["audiobook_usage_kind"]
+          metadata?: Json
+          model?: string | null
+          owner_id: string
+          project_id?: string | null
+          provider?: string
+          updated_at?: string
+        }
+        Update: {
+          chapter_id?: string | null
+          characters?: number
+          cost_cents?: number
+          created_at?: string
+          currency?: string
+          duration_seconds?: number | null
+          id?: string
+          job_id?: string | null
+          kind?: Database["public"]["Enums"]["audiobook_usage_kind"]
+          metadata?: Json
+          model?: string | null
+          owner_id?: string
+          project_id?: string | null
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_usage_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiobook_usage_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_generation_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiobook_usage_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_voice_configs: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean
+          model: string | null
+          name: string
+          owner_id: string
+          project_id: string
+          provider: string
+          settings: Json
+          speed: number
+          style: string | null
+          updated_at: string
+          voice_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          model?: string | null
+          name?: string
+          owner_id: string
+          project_id: string
+          provider?: string
+          settings?: Json
+          speed?: number
+          style?: string | null
+          updated_at?: string
+          voice_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          model?: string | null
+          name?: string
+          owner_id?: string
+          project_id?: string
+          provider?: string
+          settings?: Json
+          speed?: number
+          style?: string | null
+          updated_at?: string
+          voice_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_voice_configs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aurum_intent_events: {
+        Row: {
+          analytics_consent: boolean
+          category_hints: string[]
+          channel: string
+          converted: boolean
+          created_at: string
+          id: string
+          objective_key: string
+          personalization_consent: boolean
+          recommendation_confidence: number | null
+          result_count: number
+          session_id: string
+          stage: string
+          user_id: string | null
+        }
+        Insert: {
+          analytics_consent?: boolean
+          category_hints?: string[]
+          channel: string
+          converted?: boolean
+          created_at?: string
+          id?: string
+          objective_key: string
+          personalization_consent?: boolean
+          recommendation_confidence?: number | null
+          result_count?: number
+          session_id: string
+          stage: string
+          user_id?: string | null
+        }
+        Update: {
+          analytics_consent?: boolean
+          category_hints?: string[]
+          channel?: string
+          converted?: boolean
+          created_at?: string
+          id?: string
+          objective_key?: string
+          personalization_consent?: boolean
+          recommendation_confidence?: number | null
+          result_count?: number
+          session_id?: string
+          stage?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      aurum_product_proof: {
+        Row: {
+          ai_involvement: string | null
+          claims_reviewed: boolean
+          evidence: Json
+          product_id: string
+          product_reviewed: boolean
+          updated_at: string
+          version: string | null
+        }
+        Insert: {
+          ai_involvement?: string | null
+          claims_reviewed?: boolean
+          evidence?: Json
+          product_id: string
+          product_reviewed?: boolean
+          updated_at?: string
+          version?: string | null
+        }
+        Update: {
+          ai_involvement?: string | null
+          claims_reviewed?: boolean
+          evidence?: Json
+          product_id?: string
+          product_reviewed?: boolean
+          updated_at?: string
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aurum_product_proof_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auto_release_runs: {
         Row: {
           candidate_count: number
@@ -563,6 +1589,53 @@ export type Database = {
           triggered_by?: string
         }
         Relationships: []
+      }
+      canva_design_products: {
+        Row: {
+          canva_design_id: string
+          canva_updated_at: string | null
+          created_at: string
+          id: string
+          imported_at: string
+          product_id: string
+          source_title: string | null
+          sync_state: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          canva_design_id: string
+          canva_updated_at?: string | null
+          created_at?: string
+          id?: string
+          imported_at?: string
+          product_id: string
+          source_title?: string | null
+          sync_state?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          canva_design_id?: string
+          canva_updated_at?: string | null
+          created_at?: string
+          id?: string
+          imported_at?: string
+          product_id?: string
+          source_title?: string | null
+          sync_state?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "canva_design_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contact_messages: {
         Row: {
@@ -1355,6 +2428,548 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_studio_assets: {
+        Row: {
+          byte_size: number
+          category: string
+          created_at: string
+          height: number | null
+          id: string
+          metadata: Json
+          mime_type: string
+          original_filename: string
+          owner_user_id: string
+          state: string
+          storage_path: string
+          updated_at: string
+          width: number | null
+        }
+        Insert: {
+          byte_size: number
+          category: string
+          created_at?: string
+          height?: number | null
+          id: string
+          metadata?: Json
+          mime_type: string
+          original_filename: string
+          owner_user_id: string
+          state?: string
+          storage_path: string
+          updated_at?: string
+          width?: number | null
+        }
+        Update: {
+          byte_size?: number
+          category?: string
+          created_at?: string
+          height?: number | null
+          id?: string
+          metadata?: Json
+          mime_type?: string
+          original_filename?: string
+          owner_user_id?: string
+          state?: string
+          storage_path?: string
+          updated_at?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
+      creator_studio_billing_state: {
+        Row: {
+          created_at: string
+          last_event_created: string | null
+          owner_user_id: string
+          stripe_customer_id: string | null
+          stripe_environment: string
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          last_event_created?: string | null
+          owner_user_id: string
+          stripe_customer_id?: string | null
+          stripe_environment: string
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          last_event_created?: string | null
+          owner_user_id?: string
+          stripe_customer_id?: string | null
+          stripe_environment?: string
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      creator_studio_entitlements: {
+        Row: {
+          billing_status: string
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          owner_user_id: string
+          plan_key: string
+          updated_at: string
+        }
+        Insert: {
+          billing_status?: string
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          owner_user_id: string
+          plan_key?: string
+          updated_at?: string
+        }
+        Update: {
+          billing_status?: string
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          owner_user_id?: string
+          plan_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      creator_studio_events: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          event_type: string
+          id: string
+          metadata: Json
+          owner_user_id: string
+          project_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json
+          owner_user_id: string
+          project_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json
+          owner_user_id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_studio_events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "creator_studio_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_studio_extra_video_credits: {
+        Row: {
+          created_at: string
+          id: string
+          owner_user_id: string
+          quantity_purchased: number
+          quantity_remaining: number
+          stripe_checkout_session_id: string
+          stripe_environment: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_user_id: string
+          quantity_purchased: number
+          quantity_remaining: number
+          stripe_checkout_session_id: string
+          stripe_environment: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_user_id?: string
+          quantity_purchased?: number
+          quantity_remaining?: number
+          stripe_checkout_session_id?: string
+          stripe_environment?: string
+        }
+        Relationships: []
+      }
+      creator_studio_project_assets: {
+        Row: {
+          asset_id: string
+          created_at: string
+          owner_user_id: string
+          project_id: string
+          sort_order: number
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          owner_user_id: string
+          project_id: string
+          sort_order?: number
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          owner_user_id?: string
+          project_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_studio_project_assets_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "creator_studio_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_studio_project_assets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "creator_studio_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_studio_projects: {
+        Row: {
+          aspect_ratio: string
+          created_at: string
+          cta: string | null
+          currency: string
+          destination_url: string | null
+          duration_seconds: number
+          hook: string | null
+          id: string
+          metadata: Json
+          owner_user_id: string
+          price_cents: number | null
+          product_title: string | null
+          project_type: string
+          source_product_id: string | null
+          status: string
+          style_key: string
+          title: string
+          updated_at: string
+          wizard_step: number
+        }
+        Insert: {
+          aspect_ratio?: string
+          created_at?: string
+          cta?: string | null
+          currency?: string
+          destination_url?: string | null
+          duration_seconds?: number
+          hook?: string | null
+          id?: string
+          metadata?: Json
+          owner_user_id: string
+          price_cents?: number | null
+          product_title?: string | null
+          project_type: string
+          source_product_id?: string | null
+          status?: string
+          style_key?: string
+          title?: string
+          updated_at?: string
+          wizard_step?: number
+        }
+        Update: {
+          aspect_ratio?: string
+          created_at?: string
+          cta?: string | null
+          currency?: string
+          destination_url?: string | null
+          duration_seconds?: number
+          hook?: string | null
+          id?: string
+          metadata?: Json
+          owner_user_id?: string
+          price_cents?: number | null
+          product_title?: string | null
+          project_type?: string
+          source_product_id?: string | null
+          status?: string
+          style_key?: string
+          title?: string
+          updated_at?: string
+          wizard_step?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_studio_projects_source_product_id_fkey"
+            columns: ["source_product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_studio_provider_state: {
+        Row: {
+          callback_secret_hash: string
+          last_checked_at: string | null
+          provider_metadata: Json
+          provider_output_url: string | null
+          provider_status: string | null
+          render_job_id: string
+          updated_at: string
+        }
+        Insert: {
+          callback_secret_hash: string
+          last_checked_at?: string | null
+          provider_metadata?: Json
+          provider_output_url?: string | null
+          provider_status?: string | null
+          render_job_id: string
+          updated_at?: string
+        }
+        Update: {
+          callback_secret_hash?: string
+          last_checked_at?: string | null
+          provider_metadata?: Json
+          provider_output_url?: string | null
+          provider_status?: string | null
+          render_job_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_studio_provider_state_render_job_id_fkey"
+            columns: ["render_job_id"]
+            isOneToOne: true
+            referencedRelation: "creator_studio_render_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_studio_render_jobs: {
+        Row: {
+          actual_cost_cents: number | null
+          attempt_count: number
+          completed_at: string | null
+          created_at: string
+          error_code: string | null
+          estimated_cost_cents: number
+          id: string
+          idempotency_key: string
+          output_storage_path: string | null
+          owner_user_id: string
+          project_id: string
+          provider: string
+          provider_job_id: string | null
+          quality: string
+          requested_duration_seconds: number
+          safe_error_message: string | null
+          started_at: string | null
+          status: string
+          template_version: string
+          timeout_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_cost_cents?: number | null
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          error_code?: string | null
+          estimated_cost_cents?: number
+          id?: string
+          idempotency_key: string
+          output_storage_path?: string | null
+          owner_user_id: string
+          project_id: string
+          provider?: string
+          provider_job_id?: string | null
+          quality: string
+          requested_duration_seconds: number
+          safe_error_message?: string | null
+          started_at?: string | null
+          status?: string
+          template_version: string
+          timeout_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_cost_cents?: number | null
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          error_code?: string | null
+          estimated_cost_cents?: number
+          id?: string
+          idempotency_key?: string
+          output_storage_path?: string | null
+          owner_user_id?: string
+          project_id?: string
+          provider?: string
+          provider_job_id?: string | null
+          quality?: string
+          requested_duration_seconds?: number
+          safe_error_message?: string | null
+          started_at?: string | null
+          status?: string
+          template_version?: string
+          timeout_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_studio_render_jobs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "creator_studio_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_studio_runtime_control: {
+        Row: {
+          circuit_open_until: string | null
+          consecutive_provider_failures: number
+          estimated_cost_cents_per_minute: number
+          failure_window_started_at: string | null
+          max_attempts: number
+          max_concurrent_per_user: number
+          max_output_bytes: number
+          rendering_enabled: boolean
+          singleton: boolean
+          timeout_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          circuit_open_until?: string | null
+          consecutive_provider_failures?: number
+          estimated_cost_cents_per_minute?: number
+          failure_window_started_at?: string | null
+          max_attempts?: number
+          max_concurrent_per_user?: number
+          max_output_bytes?: number
+          rendering_enabled?: boolean
+          singleton?: boolean
+          timeout_seconds?: number
+          updated_at?: string
+        }
+        Update: {
+          circuit_open_until?: string | null
+          consecutive_provider_failures?: number
+          estimated_cost_cents_per_minute?: number
+          failure_window_started_at?: string | null
+          max_attempts?: number
+          max_concurrent_per_user?: number
+          max_output_bytes?: number
+          rendering_enabled?: boolean
+          singleton?: boolean
+          timeout_seconds?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      creator_studio_stripe_events: {
+        Row: {
+          event_created: string
+          event_type: string
+          owner_user_id: string | null
+          processed_at: string
+          stripe_environment: string
+          stripe_event_id: string
+        }
+        Insert: {
+          event_created: string
+          event_type: string
+          owner_user_id?: string | null
+          processed_at?: string
+          stripe_environment: string
+          stripe_event_id: string
+        }
+        Update: {
+          event_created?: string
+          event_type?: string
+          owner_user_id?: string | null
+          processed_at?: string
+          stripe_environment?: string
+          stripe_event_id?: string
+        }
+        Relationships: []
+      }
+      creator_studio_usage_reservations: {
+        Row: {
+          consumed_at: string | null
+          extra_credit_id: string | null
+          id: string
+          owner_user_id: string
+          period_end: string | null
+          period_start: string | null
+          plan_key: string
+          released_at: string | null
+          render_job_id: string
+          reserved_at: string
+          source: string
+          state: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          extra_credit_id?: string | null
+          id?: string
+          owner_user_id: string
+          period_end?: string | null
+          period_start?: string | null
+          plan_key: string
+          released_at?: string | null
+          render_job_id: string
+          reserved_at?: string
+          source: string
+          state?: string
+        }
+        Update: {
+          consumed_at?: string | null
+          extra_credit_id?: string | null
+          id?: string
+          owner_user_id?: string
+          period_end?: string | null
+          period_start?: string | null
+          plan_key?: string
+          released_at?: string | null
+          render_job_id?: string
+          reserved_at?: string
+          source?: string
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_studio_usage_reservations_extra_credit_id_fkey"
+            columns: ["extra_credit_id"]
+            isOneToOne: false
+            referencedRelation: "creator_studio_extra_video_credits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_studio_usage_reservations_render_job_id_fkey"
+            columns: ["render_job_id"]
+            isOneToOne: true
+            referencedRelation: "creator_studio_render_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creator_tax_forms: {
         Row: {
           admin_note: string | null
@@ -1556,6 +3171,652 @@ export type Database = {
         }
         Relationships: []
       }
+      food_corrective_actions: {
+        Row: {
+          action: string
+          created_at: string
+          due_at: string | null
+          exception_id: string | null
+          id: string
+          organization_id: string
+          owner_id: string | null
+          recall_id: string | null
+          status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          due_at?: string | null
+          exception_id?: string | null
+          id?: string
+          organization_id: string
+          owner_id?: string | null
+          recall_id?: string | null
+          status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          due_at?: string | null
+          exception_id?: string | null
+          id?: string
+          organization_id?: string
+          owner_id?: string | null
+          recall_id?: string | null
+          status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_corrective_actions_exception_id_fkey"
+            columns: ["exception_id"]
+            isOneToOne: false
+            referencedRelation: "food_traceability_exceptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_corrective_actions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_corrective_actions_recall_id_fkey"
+            columns: ["recall_id"]
+            isOneToOne: false
+            referencedRelation: "food_recall_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_event_kdes: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          kde_key: string
+          kde_value: string | null
+          organization_id: string
+          required: boolean
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          kde_key: string
+          kde_value?: string | null
+          organization_id: string
+          required?: boolean
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          kde_key?: string
+          kde_value?: string | null
+          organization_id?: string
+          required?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_event_kdes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "food_traceability_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_event_kdes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_evidence: {
+        Row: {
+          corrective_action_id: string | null
+          created_at: string
+          evidence_type: string
+          external_reference: string | null
+          id: string
+          organization_id: string
+          sha256: string | null
+          storage_path: string | null
+          uploaded_by: string
+          version: number
+        }
+        Insert: {
+          corrective_action_id?: string | null
+          created_at?: string
+          evidence_type: string
+          external_reference?: string | null
+          id?: string
+          organization_id: string
+          sha256?: string | null
+          storage_path?: string | null
+          uploaded_by: string
+          version?: number
+        }
+        Update: {
+          corrective_action_id?: string | null
+          created_at?: string
+          evidence_type?: string
+          external_reference?: string | null
+          id?: string
+          organization_id?: string
+          sha256?: string | null
+          storage_path?: string | null
+          uploaded_by?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_evidence_corrective_action_id_fkey"
+            columns: ["corrective_action_id"]
+            isOneToOne: false
+            referencedRelation: "food_corrective_actions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_evidence_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_facilities: {
+        Row: {
+          active: boolean
+          address: Json
+          created_at: string
+          facility_type: string | null
+          id: string
+          name: string
+          organization_id: string
+        }
+        Insert: {
+          active?: boolean
+          address?: Json
+          created_at?: string
+          facility_type?: string | null
+          id?: string
+          name: string
+          organization_id: string
+        }
+        Update: {
+          active?: boolean
+          address?: Json
+          created_at?: string
+          facility_type?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_facilities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          ftl_applicable: boolean | null
+          ftl_basis: string | null
+          id: string
+          name: string
+          organization_id: string
+          sku: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          ftl_applicable?: boolean | null
+          ftl_basis?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          sku?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          ftl_applicable?: boolean | null
+          ftl_basis?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          sku?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_lot_relationships: {
+        Row: {
+          child_lot_id: string
+          created_at: string
+          id: string
+          organization_id: string
+          parent_lot_id: string
+          relationship_type: string
+        }
+        Insert: {
+          child_lot_id: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          parent_lot_id: string
+          relationship_type?: string
+        }
+        Update: {
+          child_lot_id?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          parent_lot_id?: string
+          relationship_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_lot_relationships_child_lot_id_fkey"
+            columns: ["child_lot_id"]
+            isOneToOne: false
+            referencedRelation: "food_traceability_lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_lot_relationships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_lot_relationships_parent_lot_id_fkey"
+            columns: ["parent_lot_id"]
+            isOneToOne: false
+            referencedRelation: "food_traceability_lots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_mock_record_requests: {
+        Row: {
+          completed_at: string | null
+          completeness_percent: number | null
+          created_by: string
+          deadline_at: string
+          id: string
+          lot_id: string | null
+          missing_requirements: Json
+          organization_id: string
+          requested_at: string
+          result: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          completeness_percent?: number | null
+          created_by: string
+          deadline_at: string
+          id?: string
+          lot_id?: string | null
+          missing_requirements?: Json
+          organization_id: string
+          requested_at?: string
+          result?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          completeness_percent?: number | null
+          created_by?: string
+          deadline_at?: string
+          id?: string
+          lot_id?: string | null
+          missing_requirements?: Json
+          organization_id?: string
+          requested_at?: string
+          result?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_mock_record_requests_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "food_traceability_lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_mock_record_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_recall_cases: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          created_by: string
+          id: string
+          initiated_at: string | null
+          organization_id: string
+          reason: string
+          status: string
+          title: string
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          initiated_at?: string | null
+          organization_id: string
+          reason: string
+          status?: string
+          title: string
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          initiated_at?: string | null
+          organization_id?: string
+          reason?: string
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_recall_cases_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_recall_scope_items: {
+        Row: {
+          lot_id: string
+          recall_id: string
+          scope_reason: string | null
+        }
+        Insert: {
+          lot_id: string
+          recall_id: string
+          scope_reason?: string | null
+        }
+        Update: {
+          lot_id?: string
+          recall_id?: string
+          scope_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_recall_scope_items_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "food_traceability_lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_recall_scope_items_recall_id_fkey"
+            columns: ["recall_id"]
+            isOneToOne: false
+            referencedRelation: "food_recall_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_traceability_events: {
+        Row: {
+          created_at: string
+          created_by: string
+          event_time: string
+          event_type: string
+          facility_id: string | null
+          id: string
+          lot_id: string
+          organization_id: string
+          reference_document: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          event_time: string
+          event_type: string
+          facility_id?: string | null
+          id?: string
+          lot_id: string
+          organization_id: string
+          reference_document?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          event_time?: string
+          event_type?: string
+          facility_id?: string | null
+          id?: string
+          lot_id?: string
+          organization_id?: string
+          reference_document?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_traceability_events_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "food_facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_traceability_events_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "food_traceability_lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_traceability_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_traceability_exceptions: {
+        Row: {
+          created_at: string
+          details: string | null
+          due_at: string | null
+          event_id: string | null
+          id: string
+          lot_id: string | null
+          organization_id: string
+          owner_id: string | null
+          severity: string
+          status: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          due_at?: string | null
+          event_id?: string | null
+          id?: string
+          lot_id?: string | null
+          organization_id: string
+          owner_id?: string | null
+          severity?: string
+          status?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          due_at?: string | null
+          event_id?: string | null
+          id?: string
+          lot_id?: string | null
+          organization_id?: string
+          owner_id?: string | null
+          severity?: string
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_traceability_exceptions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "food_traceability_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_traceability_exceptions_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "food_traceability_lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_traceability_exceptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_traceability_lots: {
+        Row: {
+          created_at: string
+          expiration_date: string | null
+          facility_id: string | null
+          id: string
+          item_id: string
+          lot_code: string
+          organization_id: string
+          production_date: string | null
+          quantity: number | null
+          status: string
+          unit: string | null
+        }
+        Insert: {
+          created_at?: string
+          expiration_date?: string | null
+          facility_id?: string | null
+          id?: string
+          item_id: string
+          lot_code: string
+          organization_id: string
+          production_date?: string | null
+          quantity?: number | null
+          status?: string
+          unit?: string | null
+        }
+        Update: {
+          created_at?: string
+          expiration_date?: string | null
+          facility_id?: string | null
+          id?: string
+          item_id?: string
+          lot_code?: string
+          organization_id?: string
+          production_date?: string | null
+          quantity?: number | null
+          status?: string
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_traceability_lots_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "food_facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_traceability_lots_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "food_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_traceability_lots_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_trading_partners: {
+        Row: {
+          active: boolean
+          contact: Json
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          partner_type: string
+        }
+        Insert: {
+          active?: boolean
+          contact?: Json
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          partner_type?: string
+        }
+        Update: {
+          active?: boolean
+          contact?: Json
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          partner_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_trading_partners_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "assurance_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       founding_creators: {
         Row: {
           accepted_at: string
@@ -1709,6 +3970,7 @@ export type Database = {
           oauth_state: string | null
           provider: string
           refresh_token_enc: Json | null
+          refresh_version: number
           scopes: string[]
           state_expires_at: string | null
           status: string
@@ -1729,6 +3991,7 @@ export type Database = {
           oauth_state?: string | null
           provider: string
           refresh_token_enc?: Json | null
+          refresh_version?: number
           scopes?: string[]
           state_expires_at?: string | null
           status?: string
@@ -1749,11 +4012,273 @@ export type Database = {
           oauth_state?: string | null
           provider?: string
           refresh_token_enc?: Json | null
+          refresh_version?: number
           scopes?: string[]
           state_expires_at?: string | null
           status?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      license_wallet_activity: {
+        Row: {
+          action: string
+          created_at: string
+          detail: Json
+          document_id: string | null
+          id: string
+          owner_user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          detail?: Json
+          document_id?: string | null
+          id?: string
+          owner_user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          detail?: Json
+          document_id?: string | null
+          id?: string
+          owner_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "license_wallet_activity_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "license_wallet_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      license_wallet_billing_events: {
+        Row: {
+          environment: string
+          event_id: string
+          event_type: string
+          processed_at: string
+        }
+        Insert: {
+          environment?: string
+          event_id: string
+          event_type: string
+          processed_at?: string
+        }
+        Update: {
+          environment?: string
+          event_id?: string
+          event_type?: string
+          processed_at?: string
+        }
+        Relationships: []
+      }
+      license_wallet_documents: {
+        Row: {
+          category: string
+          created_at: string
+          doc_number: string | null
+          expiration_date: string | null
+          file_mime: string | null
+          file_name: string | null
+          file_path: string | null
+          file_size_bytes: number | null
+          id: string
+          issue_date: string | null
+          issuer: string | null
+          location_id: string | null
+          no_expiration: boolean
+          notes: string | null
+          owner_user_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          doc_number?: string | null
+          expiration_date?: string | null
+          file_mime?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          issue_date?: string | null
+          issuer?: string | null
+          location_id?: string | null
+          no_expiration?: boolean
+          notes?: string | null
+          owner_user_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          doc_number?: string | null
+          expiration_date?: string | null
+          file_mime?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          issue_date?: string | null
+          issuer?: string | null
+          location_id?: string | null
+          no_expiration?: boolean
+          notes?: string | null
+          owner_user_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "license_wallet_documents_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "license_wallet_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      license_wallet_entitlements: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          environment: string
+          plan: string
+          price_lookup_key: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          environment?: string
+          plan?: string
+          price_lookup_key?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          environment?: string
+          plan?: string
+          price_lookup_key?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      license_wallet_locations: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          owner_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          owner_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      license_wallet_reminder_log: {
+        Row: {
+          created_at: string
+          document_id: string
+          id: string
+          offset_days: number
+          owner_user_id: string
+          recipient_email: string | null
+          reminder_for_date: string
+          sent_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          id?: string
+          offset_days: number
+          owner_user_id: string
+          recipient_email?: string | null
+          reminder_for_date: string
+          sent_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          id?: string
+          offset_days?: number
+          owner_user_id?: string
+          recipient_email?: string | null
+          reminder_for_date?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "license_wallet_reminder_log_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "license_wallet_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      license_wallet_reminder_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          offsets: number[]
+          owner_user_id: string
+          recipient_email: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          offsets?: number[]
+          owner_user_id: string
+          recipient_email?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          offsets?: number[]
+          owner_user_id?: string
+          recipient_email?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1881,6 +4406,16 @@ export type Database = {
           release_date: string | null
           released_at: string | null
           seller_id: string
+          seo_description: string | null
+          seo_focus_keyword: string | null
+          seo_image_alt: string | null
+          seo_og_description: string | null
+          seo_og_title: string | null
+          seo_robots_follow: boolean
+          seo_robots_index: boolean
+          seo_secondary_keywords: string[]
+          seo_title: string | null
+          seo_updated_at: string | null
           slug: string
           status: Database["public"]["Enums"]["product_status"]
           subcategory: string | null
@@ -1924,6 +4459,16 @@ export type Database = {
           release_date?: string | null
           released_at?: string | null
           seller_id: string
+          seo_description?: string | null
+          seo_focus_keyword?: string | null
+          seo_image_alt?: string | null
+          seo_og_description?: string | null
+          seo_og_title?: string | null
+          seo_robots_follow?: boolean
+          seo_robots_index?: boolean
+          seo_secondary_keywords?: string[]
+          seo_title?: string | null
+          seo_updated_at?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["product_status"]
           subcategory?: string | null
@@ -1967,6 +4512,16 @@ export type Database = {
           release_date?: string | null
           released_at?: string | null
           seller_id?: string
+          seo_description?: string | null
+          seo_focus_keyword?: string | null
+          seo_image_alt?: string | null
+          seo_og_description?: string | null
+          seo_og_title?: string | null
+          seo_robots_follow?: boolean
+          seo_robots_index?: boolean
+          seo_secondary_keywords?: string[]
+          seo_title?: string | null
+          seo_updated_at?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["product_status"]
           subcategory?: string | null
@@ -2697,6 +5252,38 @@ export type Database = {
           },
         ]
       }
+      product_slug_redirects: {
+        Row: {
+          created_at: string
+          old_slug: string
+          old_slug_key: string
+          product_id: string
+          reason: string | null
+        }
+        Insert: {
+          created_at?: string
+          old_slug: string
+          old_slug_key?: string
+          product_id: string
+          reason?: string | null
+        }
+        Update: {
+          created_at?: string
+          old_slug?: string
+          old_slug_key?: string
+          product_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_slug_redirects_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_subcategories: {
         Row: {
           category_slug: string
@@ -3055,6 +5642,821 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rights_ai_consents: {
+        Row: {
+          asset_id: string | null
+          attribution_required: boolean
+          compensation_rule: string | null
+          created_at: string
+          derived_model_allowed: boolean
+          evidence_reference: string | null
+          human_output_approval_required: boolean
+          id: string
+          license_contact: string | null
+          model_retention_allowed: boolean
+          notes: string | null
+          owner_user_id: string
+          passport_key: string
+          permission: Database["public"]["Enums"]["rights_permission"]
+          revocation_rule: string | null
+          separate_written_consent_required: boolean
+          term: string | null
+          territory: string | null
+          updated_at: string
+          use_case: Database["public"]["Enums"]["rights_ai_use_case"]
+        }
+        Insert: {
+          asset_id?: string | null
+          attribution_required?: boolean
+          compensation_rule?: string | null
+          created_at?: string
+          derived_model_allowed?: boolean
+          evidence_reference?: string | null
+          human_output_approval_required?: boolean
+          id?: string
+          license_contact?: string | null
+          model_retention_allowed?: boolean
+          notes?: string | null
+          owner_user_id: string
+          passport_key: string
+          permission: Database["public"]["Enums"]["rights_permission"]
+          revocation_rule?: string | null
+          separate_written_consent_required?: boolean
+          term?: string | null
+          territory?: string | null
+          updated_at?: string
+          use_case: Database["public"]["Enums"]["rights_ai_use_case"]
+        }
+        Update: {
+          asset_id?: string | null
+          attribution_required?: boolean
+          compensation_rule?: string | null
+          created_at?: string
+          derived_model_allowed?: boolean
+          evidence_reference?: string | null
+          human_output_approval_required?: boolean
+          id?: string
+          license_contact?: string | null
+          model_retention_allowed?: boolean
+          notes?: string | null
+          owner_user_id?: string
+          passport_key?: string
+          permission?: Database["public"]["Enums"]["rights_permission"]
+          revocation_rule?: string | null
+          separate_written_consent_required?: boolean
+          term?: string | null
+          territory?: string | null
+          updated_at?: string
+          use_case?: Database["public"]["Enums"]["rights_ai_use_case"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rights_ai_consents_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "rights_passport_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rights_analysis_findings: {
+        Row: {
+          analysis_run_id: string
+          applied_entity_id: string | null
+          applied_entity_type: string | null
+          confidence: number
+          created_at: string
+          document_id: string
+          edited_value: Json | null
+          field: string
+          finding_key: string
+          id: string
+          normalized_value: Json | null
+          owner_user_id: string
+          pass_type: Database["public"]["Enums"]["rights_analysis_pass_type"]
+          passport_key: string
+          raw_value: string | null
+          review_reason: string | null
+          review_required: boolean
+          review_status: Database["public"]["Enums"]["rights_finding_review_status"]
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: Json | null
+          suggested_target: Json | null
+          updated_at: string
+        }
+        Insert: {
+          analysis_run_id: string
+          applied_entity_id?: string | null
+          applied_entity_type?: string | null
+          confidence?: number
+          created_at?: string
+          document_id: string
+          edited_value?: Json | null
+          field: string
+          finding_key: string
+          id?: string
+          normalized_value?: Json | null
+          owner_user_id: string
+          pass_type: Database["public"]["Enums"]["rights_analysis_pass_type"]
+          passport_key: string
+          raw_value?: string | null
+          review_reason?: string | null
+          review_required?: boolean
+          review_status?: Database["public"]["Enums"]["rights_finding_review_status"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: Json | null
+          suggested_target?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          analysis_run_id?: string
+          applied_entity_id?: string | null
+          applied_entity_type?: string | null
+          confidence?: number
+          created_at?: string
+          document_id?: string
+          edited_value?: Json | null
+          field?: string
+          finding_key?: string
+          id?: string
+          normalized_value?: Json | null
+          owner_user_id?: string
+          pass_type?: Database["public"]["Enums"]["rights_analysis_pass_type"]
+          passport_key?: string
+          raw_value?: string | null
+          review_reason?: string | null
+          review_required?: boolean
+          review_status?: Database["public"]["Enums"]["rights_finding_review_status"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: Json | null
+          suggested_target?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rights_analysis_findings_analysis_run_id_fkey"
+            columns: ["analysis_run_id"]
+            isOneToOne: false
+            referencedRelation: "rights_analysis_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rights_analysis_findings_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "rights_passport_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rights_analysis_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          document_id: string
+          error_code: string | null
+          id: string
+          model: string | null
+          owner_user_id: string
+          pass_status: Json
+          passport_key: string
+          provider: string
+          schema_version: string
+          started_at: string | null
+          status: Database["public"]["Enums"]["rights_analysis_run_status"]
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          document_id: string
+          error_code?: string | null
+          id?: string
+          model?: string | null
+          owner_user_id: string
+          pass_status?: Json
+          passport_key: string
+          provider?: string
+          schema_version?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["rights_analysis_run_status"]
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          document_id?: string
+          error_code?: string | null
+          id?: string
+          model?: string | null
+          owner_user_id?: string
+          pass_status?: Json
+          passport_key?: string
+          provider?: string
+          schema_version?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["rights_analysis_run_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rights_analysis_runs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "rights_passport_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rights_evidence: {
+        Row: {
+          asset_id: string
+          copyright_trademark_reference: string | null
+          created_at: string
+          credential_manifest_reference: string | null
+          evidence_type: Database["public"]["Enums"]["rights_evidence_type"]
+          file_url: string | null
+          has_content_credential: boolean
+          hash_fingerprint: string | null
+          id: string
+          identity_evidence_reference: string | null
+          issued_date: string | null
+          notes: string | null
+          owner_user_id: string
+          passport_key: string
+          source_creator: string | null
+          status: Database["public"]["Enums"]["rights_evidence_status"]
+          updated_at: string
+          verification_date: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          asset_id: string
+          copyright_trademark_reference?: string | null
+          created_at?: string
+          credential_manifest_reference?: string | null
+          evidence_type: Database["public"]["Enums"]["rights_evidence_type"]
+          file_url?: string | null
+          has_content_credential?: boolean
+          hash_fingerprint?: string | null
+          id?: string
+          identity_evidence_reference?: string | null
+          issued_date?: string | null
+          notes?: string | null
+          owner_user_id: string
+          passport_key: string
+          source_creator?: string | null
+          status?: Database["public"]["Enums"]["rights_evidence_status"]
+          updated_at?: string
+          verification_date?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          asset_id?: string
+          copyright_trademark_reference?: string | null
+          created_at?: string
+          credential_manifest_reference?: string | null
+          evidence_type?: Database["public"]["Enums"]["rights_evidence_type"]
+          file_url?: string | null
+          has_content_credential?: boolean
+          hash_fingerprint?: string | null
+          id?: string
+          identity_evidence_reference?: string | null
+          issued_date?: string | null
+          notes?: string | null
+          owner_user_id?: string
+          passport_key?: string
+          source_creator?: string | null
+          status?: Database["public"]["Enums"]["rights_evidence_status"]
+          updated_at?: string
+          verification_date?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rights_evidence_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "rights_passport_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rights_licenses: {
+        Row: {
+          ai_synthetic_rights_included: boolean | null
+          asset_id: string
+          compensation: string | null
+          controlling_document_reference: string | null
+          created_at: string
+          end_date: string | null
+          exact_use: string | null
+          id: string
+          is_exclusive: boolean
+          licensee: string
+          notes: string | null
+          owner_user_id: string
+          passport_key: string
+          permission_type: Database["public"]["Enums"]["rights_license_permission_type"]
+          start_date: string | null
+          status: Database["public"]["Enums"]["rights_license_status"]
+          territory: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_synthetic_rights_included?: boolean | null
+          asset_id: string
+          compensation?: string | null
+          controlling_document_reference?: string | null
+          created_at?: string
+          end_date?: string | null
+          exact_use?: string | null
+          id?: string
+          is_exclusive?: boolean
+          licensee: string
+          notes?: string | null
+          owner_user_id: string
+          passport_key: string
+          permission_type?: Database["public"]["Enums"]["rights_license_permission_type"]
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["rights_license_status"]
+          territory?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_synthetic_rights_included?: boolean | null
+          asset_id?: string
+          compensation?: string | null
+          controlling_document_reference?: string | null
+          created_at?: string
+          end_date?: string | null
+          exact_use?: string | null
+          id?: string
+          is_exclusive?: boolean
+          licensee?: string
+          notes?: string | null
+          owner_user_id?: string
+          passport_key?: string
+          permission_type?: Database["public"]["Enums"]["rights_license_permission_type"]
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["rights_license_status"]
+          territory?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rights_licenses_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "rights_passport_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rights_passport_assets: {
+        Row: {
+          asset_type: Database["public"]["Enums"]["rights_asset_type"]
+          claimed_owner_controller: string | null
+          control_basis: Database["public"]["Enums"]["rights_control_basis"]
+          created_at: string
+          default_ai_policy: Database["public"]["Enums"]["rights_ai_policy"]
+          default_license_policy: string | null
+          description: string | null
+          evidence_location: string | null
+          expiry_date: string | null
+          id: string
+          is_public: boolean
+          name: string
+          notes: string | null
+          owner_user_id: string
+          passport_key: string
+          registration_identifier: string | null
+          representative: string | null
+          status: Database["public"]["Enums"]["rights_asset_status"]
+          territory: string | null
+          updated_at: string
+        }
+        Insert: {
+          asset_type: Database["public"]["Enums"]["rights_asset_type"]
+          claimed_owner_controller?: string | null
+          control_basis?: Database["public"]["Enums"]["rights_control_basis"]
+          created_at?: string
+          default_ai_policy?: Database["public"]["Enums"]["rights_ai_policy"]
+          default_license_policy?: string | null
+          description?: string | null
+          evidence_location?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_public?: boolean
+          name: string
+          notes?: string | null
+          owner_user_id: string
+          passport_key: string
+          registration_identifier?: string | null
+          representative?: string | null
+          status?: Database["public"]["Enums"]["rights_asset_status"]
+          territory?: string | null
+          updated_at?: string
+        }
+        Update: {
+          asset_type?: Database["public"]["Enums"]["rights_asset_type"]
+          claimed_owner_controller?: string | null
+          control_basis?: Database["public"]["Enums"]["rights_control_basis"]
+          created_at?: string
+          default_ai_policy?: Database["public"]["Enums"]["rights_ai_policy"]
+          default_license_policy?: string | null
+          description?: string | null
+          evidence_location?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_public?: boolean
+          name?: string
+          notes?: string | null
+          owner_user_id?: string
+          passport_key?: string
+          registration_identifier?: string | null
+          representative?: string | null
+          status?: Database["public"]["Enums"]["rights_asset_status"]
+          territory?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rights_passport_documents: {
+        Row: {
+          analysis_status: Database["public"]["Enums"]["rights_analysis_status"]
+          analyzed_at: string | null
+          created_at: string
+          document_type: Database["public"]["Enums"]["rights_document_type"]
+          error_code: string | null
+          error_message_safe: string | null
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          original_file_name: string
+          owner_user_id: string
+          page_count: number | null
+          parse_status: Database["public"]["Enums"]["rights_parse_status"]
+          parsed_at: string | null
+          parsed_content: Json | null
+          passport_key: string
+          status: Database["public"]["Enums"]["rights_document_status"]
+          storage_path: string
+          updated_at: string
+          uploaded_at: string
+        }
+        Insert: {
+          analysis_status?: Database["public"]["Enums"]["rights_analysis_status"]
+          analyzed_at?: string | null
+          created_at?: string
+          document_type?: Database["public"]["Enums"]["rights_document_type"]
+          error_code?: string | null
+          error_message_safe?: string | null
+          file_name: string
+          file_size_bytes: number
+          id?: string
+          mime_type: string
+          original_file_name: string
+          owner_user_id: string
+          page_count?: number | null
+          parse_status?: Database["public"]["Enums"]["rights_parse_status"]
+          parsed_at?: string | null
+          parsed_content?: Json | null
+          passport_key: string
+          status?: Database["public"]["Enums"]["rights_document_status"]
+          storage_path: string
+          updated_at?: string
+          uploaded_at?: string
+        }
+        Update: {
+          analysis_status?: Database["public"]["Enums"]["rights_analysis_status"]
+          analyzed_at?: string | null
+          created_at?: string
+          document_type?: Database["public"]["Enums"]["rights_document_type"]
+          error_code?: string | null
+          error_message_safe?: string | null
+          file_name?: string
+          file_size_bytes?: number
+          id?: string
+          mime_type?: string
+          original_file_name?: string
+          owner_user_id?: string
+          page_count?: number | null
+          parse_status?: Database["public"]["Enums"]["rights_parse_status"]
+          parsed_at?: string | null
+          parsed_content?: Json | null
+          passport_key?: string
+          status?: Database["public"]["Enums"]["rights_document_status"]
+          storage_path?: string
+          updated_at?: string
+          uploaded_at?: string
+        }
+        Relationships: []
+      }
+      rights_passport_entitlements: {
+        Row: {
+          created_at: string
+          plan: Database["public"]["Enums"]["rights_passport_plan"]
+          source_reference: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          plan?: Database["public"]["Enums"]["rights_passport_plan"]
+          source_reference?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          plan?: Database["public"]["Enums"]["rights_passport_plan"]
+          source_reference?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rights_passport_events: {
+        Row: {
+          created_at: string
+          detail: Json | null
+          id: string
+          kind: string
+          owner_user_id: string
+          passport_key: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json | null
+          id?: string
+          kind: string
+          owner_user_id: string
+          passport_key?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: Json | null
+          id?: string
+          kind?: string
+          owner_user_id?: string
+          passport_key?: string | null
+        }
+        Relationships: []
+      }
+      rights_passport_public_identities: {
+        Row: {
+          created_at: string
+          owner_user_id: string
+          passport_key: string
+          public_id: string
+        }
+        Insert: {
+          created_at?: string
+          owner_user_id: string
+          passport_key: string
+          public_id: string
+        }
+        Update: {
+          created_at?: string
+          owner_user_id?: string
+          passport_key?: string
+          public_id?: string
+        }
+        Relationships: []
+      }
+      rights_passport_snapshots: {
+        Row: {
+          content_hash: string
+          created_at: string
+          effective_at: string | null
+          id: string
+          owner_user_id: string
+          passport_key: string
+          passport_version: number
+          private_snapshot_metadata: Json | null
+          public_id: string
+          public_payload: Json
+          published_at: string
+          revoked_at: string | null
+          schema_version: string
+          source_passport_id: string
+          status: Database["public"]["Enums"]["rights_snapshot_status"]
+          supersedes_snapshot_id: string | null
+        }
+        Insert: {
+          content_hash: string
+          created_at?: string
+          effective_at?: string | null
+          id?: string
+          owner_user_id: string
+          passport_key: string
+          passport_version: number
+          private_snapshot_metadata?: Json | null
+          public_id: string
+          public_payload: Json
+          published_at?: string
+          revoked_at?: string | null
+          schema_version?: string
+          source_passport_id: string
+          status?: Database["public"]["Enums"]["rights_snapshot_status"]
+          supersedes_snapshot_id?: string | null
+        }
+        Update: {
+          content_hash?: string
+          created_at?: string
+          effective_at?: string | null
+          id?: string
+          owner_user_id?: string
+          passport_key?: string
+          passport_version?: number
+          private_snapshot_metadata?: Json | null
+          public_id?: string
+          public_payload?: Json
+          published_at?: string
+          revoked_at?: string | null
+          schema_version?: string
+          source_passport_id?: string
+          status?: Database["public"]["Enums"]["rights_snapshot_status"]
+          supersedes_snapshot_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rights_passport_snapshots_public_id_fkey"
+            columns: ["public_id"]
+            isOneToOne: false
+            referencedRelation: "rights_passport_public_identities"
+            referencedColumns: ["public_id"]
+          },
+          {
+            foreignKeyName: "rights_passport_snapshots_source_passport_id_fkey"
+            columns: ["source_passport_id"]
+            isOneToOne: false
+            referencedRelation: "rights_passports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rights_passport_snapshots_supersedes_snapshot_id_fkey"
+            columns: ["supersedes_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "rights_passport_snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rights_passports: {
+        Row: {
+          agent_manager_contact: string | null
+          agent_manager_name: string | null
+          created_at: string
+          effective_date: string | null
+          id: string
+          jurisdiction: string | null
+          legal_name: string | null
+          owner_user_id: string
+          passport_key: string
+          previous_version_id: string | null
+          primary_role: string | null
+          private_notes: string | null
+          public_notes: string | null
+          public_professional_name: string | null
+          public_rights_url: string | null
+          representative_contact: string | null
+          representative_name: string | null
+          review_frequency: string | null
+          rights_contact_email: string | null
+          rights_entity: string | null
+          stage_brand_name: string | null
+          status: Database["public"]["Enums"]["rights_passport_status"]
+          successor_estate_contact: string | null
+          updated_at: string
+          verification_level: Database["public"]["Enums"]["rights_verification_level"]
+          version: number
+        }
+        Insert: {
+          agent_manager_contact?: string | null
+          agent_manager_name?: string | null
+          created_at?: string
+          effective_date?: string | null
+          id?: string
+          jurisdiction?: string | null
+          legal_name?: string | null
+          owner_user_id: string
+          passport_key?: string
+          previous_version_id?: string | null
+          primary_role?: string | null
+          private_notes?: string | null
+          public_notes?: string | null
+          public_professional_name?: string | null
+          public_rights_url?: string | null
+          representative_contact?: string | null
+          representative_name?: string | null
+          review_frequency?: string | null
+          rights_contact_email?: string | null
+          rights_entity?: string | null
+          stage_brand_name?: string | null
+          status?: Database["public"]["Enums"]["rights_passport_status"]
+          successor_estate_contact?: string | null
+          updated_at?: string
+          verification_level?: Database["public"]["Enums"]["rights_verification_level"]
+          version?: number
+        }
+        Update: {
+          agent_manager_contact?: string | null
+          agent_manager_name?: string | null
+          created_at?: string
+          effective_date?: string | null
+          id?: string
+          jurisdiction?: string | null
+          legal_name?: string | null
+          owner_user_id?: string
+          passport_key?: string
+          previous_version_id?: string | null
+          primary_role?: string | null
+          private_notes?: string | null
+          public_notes?: string | null
+          public_professional_name?: string | null
+          public_rights_url?: string | null
+          representative_contact?: string | null
+          representative_name?: string | null
+          review_frequency?: string | null
+          rights_contact_email?: string | null
+          rights_entity?: string | null
+          stage_brand_name?: string | null
+          status?: Database["public"]["Enums"]["rights_passport_status"]
+          successor_estate_contact?: string | null
+          updated_at?: string
+          verification_level?: Database["public"]["Enums"]["rights_verification_level"]
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rights_passports_previous_version_id_fkey"
+            columns: ["previous_version_id"]
+            isOneToOne: false
+            referencedRelation: "rights_passports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rights_review_flags: {
+        Row: {
+          affected_entity_id: string | null
+          affected_entity_type: string
+          created_at: string
+          description: string
+          evidence_context: string | null
+          id: string
+          owner_user_id: string
+          passport_key: string
+          recommended_action: string | null
+          resolved_at: string | null
+          rule_code: string
+          severity: Database["public"]["Enums"]["rights_flag_severity"]
+          status: Database["public"]["Enums"]["rights_flag_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          affected_entity_id?: string | null
+          affected_entity_type: string
+          created_at?: string
+          description: string
+          evidence_context?: string | null
+          id?: string
+          owner_user_id: string
+          passport_key: string
+          recommended_action?: string | null
+          resolved_at?: string | null
+          rule_code: string
+          severity: Database["public"]["Enums"]["rights_flag_severity"]
+          status?: Database["public"]["Enums"]["rights_flag_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          affected_entity_id?: string | null
+          affected_entity_type?: string
+          created_at?: string
+          description?: string
+          evidence_context?: string | null
+          id?: string
+          owner_user_id?: string
+          passport_key?: string
+          recommended_action?: string | null
+          resolved_at?: string | null
+          rule_code?: string
+          severity?: Database["public"]["Enums"]["rights_flag_severity"]
+          status?: Database["public"]["Enums"]["rights_flag_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       seller_applications: {
         Row: {
@@ -3434,7 +6836,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      aurum_marketplace_gap_signals: {
+        Row: {
+          category_hint: string | null
+          conversion_count: number | null
+          first_seen_at: string | null
+          last_seen_at: string | null
+          low_confidence_count: number | null
+          no_result_count: number | null
+          objective_key: string | null
+          request_count: number | null
+          result_count: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_decide_payout_request: {
@@ -3477,11 +6892,139 @@ export type Database = {
         Returns: boolean
       }
       confirm_subscriber: { Args: { _token: string }; Returns: Json }
+      creator_studio_server_apply_provider_status: {
+        Args: {
+          _actual_cost_cents?: number
+          _error_code?: string
+          _job_status: string
+          _output_storage_path?: string
+          _provider_metadata?: Json
+          _provider_output_url?: string
+          _provider_status: string
+          _render_job_id: string
+          _safe_error_message?: string
+        }
+        Returns: boolean
+      }
+      creator_studio_server_apply_subscription_event: {
+        Args: {
+          _billing_status: string
+          _cancel_at_period_end: boolean
+          _event_created: string
+          _event_type: string
+          _owner_user_id: string
+          _period_end: string
+          _period_start: string
+          _plan_key: string
+          _stripe_customer_id: string
+          _stripe_environment: string
+          _stripe_event_id: string
+          _stripe_price_id: string
+          _stripe_subscription_id: string
+        }
+        Returns: boolean
+      }
+      creator_studio_server_cancel_render: {
+        Args: { _actor_user_id: string; _render_job_id: string }
+        Returns: boolean
+      }
+      creator_studio_server_claim_render_submission: {
+        Args: { _callback_secret_hash: string; _render_job_id: string }
+        Returns: boolean
+      }
+      creator_studio_server_complete_asset: {
+        Args: {
+          _actor_user_id: string
+          _asset_id: string
+          _height?: number
+          _width?: number
+        }
+        Returns: boolean
+      }
+      creator_studio_server_expire_stuck_renders: {
+        Args: { _limit?: number }
+        Returns: number
+      }
+      creator_studio_server_grant_extra_video_event: {
+        Args: {
+          _event_created: string
+          _event_type: string
+          _owner_user_id: string
+          _quantity: number
+          _stripe_checkout_session_id: string
+          _stripe_environment: string
+          _stripe_event_id: string
+        }
+        Returns: boolean
+      }
+      creator_studio_server_mark_render_submitted: {
+        Args: {
+          _callback_secret_hash: string
+          _provider_job_id: string
+          _render_job_id: string
+        }
+        Returns: boolean
+      }
+      creator_studio_server_mark_submission_failed: {
+        Args: {
+          _error_code: string
+          _render_job_id: string
+          _safe_error_message: string
+        }
+        Returns: boolean
+      }
+      creator_studio_server_release_reserved_asset: {
+        Args: { _actor_user_id: string; _asset_id: string }
+        Returns: boolean
+      }
+      creator_studio_server_remove_asset: {
+        Args: { _actor_user_id: string; _asset_id: string }
+        Returns: string
+      }
+      creator_studio_server_reserve_asset: {
+        Args: {
+          _actor_user_id: string
+          _asset_id: string
+          _byte_size: number
+          _category: string
+          _mime_type: string
+          _original_filename: string
+          _project_id: string
+          _storage_path: string
+        }
+        Returns: string
+      }
+      creator_studio_server_reserve_entitled_render_job: {
+        Args: {
+          _actor_user_id: string
+          _idempotency_key: string
+          _project_id: string
+          _template_version: string
+        }
+        Returns: {
+          quality: string
+          render_job_id: string
+          usage_source: string
+        }[]
+      }
+      creator_studio_server_reserve_render_job: {
+        Args: {
+          _actor_user_id: string
+          _idempotency_key: string
+          _project_id: string
+          _quality: string
+          _template_version: string
+        }
+        Returns: string
+      }
+      creator_studio_valid_transition: {
+        Args: { _from: string; _to: string }
+        Returns: boolean
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
-      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
@@ -3498,6 +7041,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_assurance_member: { Args: { org_id: string }; Returns: boolean }
       list_product_qa: {
         Args: { _product_id: string }
         Returns: {
@@ -3542,6 +7086,10 @@ export type Database = {
         Args: { _amount_cents: number; _note?: string }
         Returns: string
       }
+      resolve_product_slug_redirect: {
+        Args: { _old_slug: string }
+        Returns: string
+      }
       run_slug_integrity_check: {
         Args: never
         Returns: {
@@ -3580,6 +7128,15 @@ export type Database = {
         | "rejected"
         | "under_review"
         | "info_requested"
+      audiobook_attestation_status: "PENDING" | "ATTESTED" | "REVOKED"
+      audiobook_job_status:
+        | "QUEUED"
+        | "GENERATING"
+        | "COMPLETED"
+        | "FAILED"
+        | "CANCELLED"
+        | "RETRYING"
+      audiobook_usage_kind: "ESTIMATE" | "ACTUAL"
       creator_forum_category: "question" | "win" | "feedback"
       creator_forum_status: "pending" | "approved" | "hidden"
       product_category:
@@ -3605,6 +7162,189 @@ export type Database = {
         | "creator_business_tools"
       product_license_type: "personal" | "commercial" | "extended"
       product_status: "draft" | "pending" | "approved" | "rejected"
+      rights_ai_policy:
+        | "ALLOW"
+        | "ALLOW_WITH_TERMS"
+        | "PROHIBIT"
+        | "CASE_BY_CASE"
+        | "CONTACT_FOR_LICENSE"
+        | "REVIEW_REQUIRED"
+      rights_ai_use_case:
+        | "GENERAL_AI_TRAINING"
+        | "FINE_TUNING_CUSTOM_MODEL"
+        | "EMBEDDING_RETRIEVAL"
+        | "VOICE_CLONE"
+        | "SYNTHETIC_VOICE"
+        | "DIGITAL_REPLICA"
+        | "FACE_LIKENESS_GENERATION"
+        | "SYNTHETIC_VIDEO"
+        | "MOTION_PERFORMANCE_SIMULATION"
+        | "AVATAR_VIRTUAL_HUMAN"
+        | "GAME_CHARACTER"
+        | "GENERATED_ADVERTISEMENT"
+        | "PERSONALIZED_CONTENT"
+        | "STYLE_PERSONA_SIMULATION"
+        | "TRANSLATION_DUBBING"
+        | "AI_REMIX_DERIVATIVE"
+        | "PROMPT_DATASET_EXAMPLE"
+        | "BENCHMARK_EVALUATION"
+        | "SEARCH_DISCOVERY_INDEXING"
+        | "COMMERCIAL_MODEL_OUTPUT"
+        | "NONCOMMERCIAL_RESEARCH"
+        | "POSTHUMOUS_ESTATE_USE"
+      rights_analysis_pass_type:
+        | "DOCUMENT_STRUCTURE"
+        | "RIGHTS_GRANT"
+        | "AI_SYNTHETIC_RIGHTS"
+        | "COMMERCIAL_TERMS"
+        | "RISK_CONFLICT_SIGNALS"
+      rights_analysis_run_status:
+        | "PENDING"
+        | "RUNNING"
+        | "COMPLETE"
+        | "PARTIAL"
+        | "FAILED"
+      rights_analysis_status:
+        | "PENDING"
+        | "ANALYZING"
+        | "COMPLETE"
+        | "PARTIAL"
+        | "FAILED"
+      rights_asset_status:
+        | "ACTIVE"
+        | "DISPUTED"
+        | "REVIEW_REQUIRED"
+        | "ARCHIVED"
+      rights_asset_type:
+        | "NAME"
+        | "STAGE_NAME"
+        | "LIKENESS_IMAGE"
+        | "VOICE"
+        | "SIGNATURE"
+        | "MOVEMENT_MANNERISM"
+        | "BIOGRAPHY"
+        | "SOCIAL_HANDLE"
+        | "CREATIVE_WORK"
+        | "MUSIC"
+        | "BOOK_WRITING"
+        | "VIDEO_FILM"
+        | "PHOTOGRAPH"
+        | "ARTWORK_DESIGN"
+        | "CHARACTER"
+        | "TRADEMARK_MARK"
+        | "LOGO"
+        | "COURSE_TRAINING"
+        | "PODCAST_MEDIA"
+        | "DIGITAL_PRODUCT"
+        | "DATASET_ARCHIVE"
+        | "OTHER"
+      rights_control_basis:
+        | "CREATORSHIP"
+        | "CONTRACT"
+        | "ASSIGNMENT"
+        | "LICENSE"
+        | "TRADEMARK"
+        | "PUBLICITY_PERSONALITY_RIGHT"
+        | "ENTITY_OWNERSHIP"
+        | "REPRESENTATIVE_AUTHORITY"
+        | "OTHER"
+        | "REVIEW_REQUIRED"
+      rights_document_status:
+        | "UPLOADED"
+        | "PARSING"
+        | "PARSED"
+        | "ANALYZING"
+        | "REVIEW_REQUIRED"
+        | "READY_FOR_REVIEW"
+        | "ACCEPTED"
+        | "PARTIALLY_ACCEPTED"
+        | "REJECTED"
+        | "FAILED"
+      rights_document_type:
+        | "LICENSING_AGREEMENT"
+        | "ENDORSEMENT_AGREEMENT"
+        | "MUSIC_AGREEMENT"
+        | "CREATOR_AGREEMENT"
+        | "TALENT_RELEASE"
+        | "ASSIGNMENT"
+        | "BRAND_AGREEMENT"
+        | "REGISTRATION"
+        | "EVIDENCE_DOCUMENT"
+        | "PLATFORM_TERMS"
+        | "OTHER"
+      rights_evidence_status:
+        | "VERIFIED"
+        | "SELF_DECLARED"
+        | "PENDING"
+        | "DISPUTED"
+        | "EXPIRED"
+        | "REVIEW_REQUIRED"
+      rights_evidence_type:
+        | "SOURCE_FILE"
+        | "CONTRACT"
+        | "COPYRIGHT_REGISTRATION"
+        | "TRADEMARK_REGISTRATION"
+        | "MODEL_TALENT_RELEASE"
+        | "SPLIT_OWNERSHIP_RECORD"
+        | "IDENTITY_DOCUMENT"
+        | "CONTENT_CREDENTIAL"
+        | "HASH"
+        | "PUBLICATION_RECORD"
+        | "TIMESTAMP"
+        | "OTHER"
+      rights_finding_review_status:
+        | "PENDING"
+        | "ACCEPTED"
+        | "EDITED"
+        | "REJECTED"
+        | "DEFERRED"
+      rights_flag_severity: "CRITICAL" | "HIGH" | "MODERATE" | "LOW"
+      rights_flag_status: "OPEN" | "ACKNOWLEDGED" | "RESOLVED" | "ACCEPTED_RISK"
+      rights_license_permission_type:
+        | "LICENSE"
+        | "CONSENT"
+        | "WAIVER"
+        | "ASSIGNMENT"
+        | "SERVICE_AGREEMENT"
+        | "PLATFORM_TERMS"
+        | "OTHER"
+      rights_license_status:
+        | "ACTIVE"
+        | "PENDING"
+        | "EXPIRED"
+        | "REVOKED"
+        | "SUPERSEDED"
+        | "REVIEW_REQUIRED"
+      rights_parse_status:
+        | "PENDING"
+        | "PARSING"
+        | "PARSED"
+        | "OCR_REQUIRED"
+        | "FAILED"
+      rights_passport_plan:
+        | "FREE_PREVIEW"
+        | "PERSONAL"
+        | "PROFESSIONAL"
+        | "BUSINESS"
+      rights_passport_status:
+        | "DRAFT"
+        | "ACTIVE"
+        | "SUPERSEDED"
+        | "REVOKED"
+        | "ARCHIVED"
+      rights_permission:
+        | "ALLOW"
+        | "ALLOW_WITH_TERMS"
+        | "PROHIBIT"
+        | "CASE_BY_CASE"
+        | "CONTACT_FOR_LICENSE"
+        | "REVIEW_REQUIRED"
+      rights_snapshot_status: "ACTIVE" | "SUPERSEDED" | "REVOKED" | "ARCHIVED"
+      rights_verification_level:
+        | "SELF_DECLARED"
+        | "DOCUMENT_SUPPORTED"
+        | "REPRESENTATIVE_VERIFIED"
+        | "THIRD_PARTY_VERIFIED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3620,12 +7360,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3649,11 +7389,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3674,11 +7414,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3699,11 +7439,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3716,11 +7456,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3741,6 +7481,16 @@ export const Constants = {
         "under_review",
         "info_requested",
       ],
+      audiobook_attestation_status: ["PENDING", "ATTESTED", "REVOKED"],
+      audiobook_job_status: [
+        "QUEUED",
+        "GENERATING",
+        "COMPLETED",
+        "FAILED",
+        "CANCELLED",
+        "RETRYING",
+      ],
+      audiobook_usage_kind: ["ESTIMATE", "ACTUAL"],
       creator_forum_category: ["question", "win", "feedback"],
       creator_forum_status: ["pending", "approved", "hidden"],
       product_category: [
@@ -3767,6 +7517,209 @@ export const Constants = {
       ],
       product_license_type: ["personal", "commercial", "extended"],
       product_status: ["draft", "pending", "approved", "rejected"],
+      rights_ai_policy: [
+        "ALLOW",
+        "ALLOW_WITH_TERMS",
+        "PROHIBIT",
+        "CASE_BY_CASE",
+        "CONTACT_FOR_LICENSE",
+        "REVIEW_REQUIRED",
+      ],
+      rights_ai_use_case: [
+        "GENERAL_AI_TRAINING",
+        "FINE_TUNING_CUSTOM_MODEL",
+        "EMBEDDING_RETRIEVAL",
+        "VOICE_CLONE",
+        "SYNTHETIC_VOICE",
+        "DIGITAL_REPLICA",
+        "FACE_LIKENESS_GENERATION",
+        "SYNTHETIC_VIDEO",
+        "MOTION_PERFORMANCE_SIMULATION",
+        "AVATAR_VIRTUAL_HUMAN",
+        "GAME_CHARACTER",
+        "GENERATED_ADVERTISEMENT",
+        "PERSONALIZED_CONTENT",
+        "STYLE_PERSONA_SIMULATION",
+        "TRANSLATION_DUBBING",
+        "AI_REMIX_DERIVATIVE",
+        "PROMPT_DATASET_EXAMPLE",
+        "BENCHMARK_EVALUATION",
+        "SEARCH_DISCOVERY_INDEXING",
+        "COMMERCIAL_MODEL_OUTPUT",
+        "NONCOMMERCIAL_RESEARCH",
+        "POSTHUMOUS_ESTATE_USE",
+      ],
+      rights_analysis_pass_type: [
+        "DOCUMENT_STRUCTURE",
+        "RIGHTS_GRANT",
+        "AI_SYNTHETIC_RIGHTS",
+        "COMMERCIAL_TERMS",
+        "RISK_CONFLICT_SIGNALS",
+      ],
+      rights_analysis_run_status: [
+        "PENDING",
+        "RUNNING",
+        "COMPLETE",
+        "PARTIAL",
+        "FAILED",
+      ],
+      rights_analysis_status: [
+        "PENDING",
+        "ANALYZING",
+        "COMPLETE",
+        "PARTIAL",
+        "FAILED",
+      ],
+      rights_asset_status: [
+        "ACTIVE",
+        "DISPUTED",
+        "REVIEW_REQUIRED",
+        "ARCHIVED",
+      ],
+      rights_asset_type: [
+        "NAME",
+        "STAGE_NAME",
+        "LIKENESS_IMAGE",
+        "VOICE",
+        "SIGNATURE",
+        "MOVEMENT_MANNERISM",
+        "BIOGRAPHY",
+        "SOCIAL_HANDLE",
+        "CREATIVE_WORK",
+        "MUSIC",
+        "BOOK_WRITING",
+        "VIDEO_FILM",
+        "PHOTOGRAPH",
+        "ARTWORK_DESIGN",
+        "CHARACTER",
+        "TRADEMARK_MARK",
+        "LOGO",
+        "COURSE_TRAINING",
+        "PODCAST_MEDIA",
+        "DIGITAL_PRODUCT",
+        "DATASET_ARCHIVE",
+        "OTHER",
+      ],
+      rights_control_basis: [
+        "CREATORSHIP",
+        "CONTRACT",
+        "ASSIGNMENT",
+        "LICENSE",
+        "TRADEMARK",
+        "PUBLICITY_PERSONALITY_RIGHT",
+        "ENTITY_OWNERSHIP",
+        "REPRESENTATIVE_AUTHORITY",
+        "OTHER",
+        "REVIEW_REQUIRED",
+      ],
+      rights_document_status: [
+        "UPLOADED",
+        "PARSING",
+        "PARSED",
+        "ANALYZING",
+        "REVIEW_REQUIRED",
+        "READY_FOR_REVIEW",
+        "ACCEPTED",
+        "PARTIALLY_ACCEPTED",
+        "REJECTED",
+        "FAILED",
+      ],
+      rights_document_type: [
+        "LICENSING_AGREEMENT",
+        "ENDORSEMENT_AGREEMENT",
+        "MUSIC_AGREEMENT",
+        "CREATOR_AGREEMENT",
+        "TALENT_RELEASE",
+        "ASSIGNMENT",
+        "BRAND_AGREEMENT",
+        "REGISTRATION",
+        "EVIDENCE_DOCUMENT",
+        "PLATFORM_TERMS",
+        "OTHER",
+      ],
+      rights_evidence_status: [
+        "VERIFIED",
+        "SELF_DECLARED",
+        "PENDING",
+        "DISPUTED",
+        "EXPIRED",
+        "REVIEW_REQUIRED",
+      ],
+      rights_evidence_type: [
+        "SOURCE_FILE",
+        "CONTRACT",
+        "COPYRIGHT_REGISTRATION",
+        "TRADEMARK_REGISTRATION",
+        "MODEL_TALENT_RELEASE",
+        "SPLIT_OWNERSHIP_RECORD",
+        "IDENTITY_DOCUMENT",
+        "CONTENT_CREDENTIAL",
+        "HASH",
+        "PUBLICATION_RECORD",
+        "TIMESTAMP",
+        "OTHER",
+      ],
+      rights_finding_review_status: [
+        "PENDING",
+        "ACCEPTED",
+        "EDITED",
+        "REJECTED",
+        "DEFERRED",
+      ],
+      rights_flag_severity: ["CRITICAL", "HIGH", "MODERATE", "LOW"],
+      rights_flag_status: ["OPEN", "ACKNOWLEDGED", "RESOLVED", "ACCEPTED_RISK"],
+      rights_license_permission_type: [
+        "LICENSE",
+        "CONSENT",
+        "WAIVER",
+        "ASSIGNMENT",
+        "SERVICE_AGREEMENT",
+        "PLATFORM_TERMS",
+        "OTHER",
+      ],
+      rights_license_status: [
+        "ACTIVE",
+        "PENDING",
+        "EXPIRED",
+        "REVOKED",
+        "SUPERSEDED",
+        "REVIEW_REQUIRED",
+      ],
+      rights_parse_status: [
+        "PENDING",
+        "PARSING",
+        "PARSED",
+        "OCR_REQUIRED",
+        "FAILED",
+      ],
+      rights_passport_plan: [
+        "FREE_PREVIEW",
+        "PERSONAL",
+        "PROFESSIONAL",
+        "BUSINESS",
+      ],
+      rights_passport_status: [
+        "DRAFT",
+        "ACTIVE",
+        "SUPERSEDED",
+        "REVOKED",
+        "ARCHIVED",
+      ],
+      rights_permission: [
+        "ALLOW",
+        "ALLOW_WITH_TERMS",
+        "PROHIBIT",
+        "CASE_BY_CASE",
+        "CONTACT_FOR_LICENSE",
+        "REVIEW_REQUIRED",
+      ],
+      rights_snapshot_status: ["ACTIVE", "SUPERSEDED", "REVOKED", "ARCHIVED"],
+      rights_verification_level: [
+        "SELF_DECLARED",
+        "DOCUMENT_SUPPORTED",
+        "REPRESENTATIVE_VERIFIED",
+        "THIRD_PARTY_VERIFIED",
+      ],
     },
   },
 } as const

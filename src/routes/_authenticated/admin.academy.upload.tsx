@@ -546,6 +546,18 @@ function ImportTool() {
         or publish. Nothing goes live from the upload step.
       </p>
 
+      <div className="mt-4 flex flex-col gap-2 rounded-xl border border-ink/10 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-ink/70">
+          Editing search metadata for an existing product instead of an article?
+        </p>
+        <Link
+          to="/admin/academy/product-seo"
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-[#B8860B] bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-[#B8860B]/10"
+        >
+          <FileJson className="h-4 w-4" /> Open the Product SEO editor
+        </Link>
+      </div>
+
       {/* Steps */}
       <ol className="mt-6 flex flex-wrap items-center gap-2 text-xs">
         {(["upload", "edit", "review"] as const).map((s, i) => (

@@ -115,6 +115,7 @@ import { Route as ApiPublicContactRouteImport } from './routes/api/public/contac
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedAdminAcademyIndexRouteImport } from './routes/_authenticated/admin.academy.index'
 import { Route as AuthenticatedAdminAcademyIdRouteImport } from './routes/_authenticated/admin.academy.$id'
+import { Route as AuthenticatedAdminAcademyProductSeoRouteImport } from './routes/_authenticated/admin.academy.product-seo'
 import { Route as AuthenticatedAdminAcademyUploadRouteImport } from './routes/_authenticated/admin.academy.upload'
 import { Route as AuthenticatedAdminHealthCoversRouteImport } from './routes/_authenticated/admin.health.covers'
 import { Route as AuthenticatedDashboardBumpsIdRouteImport } from './routes/_authenticated/dashboard.bumps.$id'
@@ -722,6 +723,12 @@ const AuthenticatedAdminAcademyIdRoute =
     path: '/admin/academy/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminAcademyProductSeoRoute =
+  AuthenticatedAdminAcademyProductSeoRouteImport.update({
+    id: '/admin/academy/product-seo',
+    path: '/admin/academy/product-seo',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminAcademyUploadRoute =
   AuthenticatedAdminAcademyUploadRouteImport.update({
     id: '/admin/academy/upload',
@@ -1062,6 +1069,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/admin/academy/$id': typeof AuthenticatedAdminAcademyIdRoute
+  '/admin/academy/product-seo': typeof AuthenticatedAdminAcademyProductSeoRoute
   '/admin/academy/upload': typeof AuthenticatedAdminAcademyUploadRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
@@ -1205,6 +1213,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/admin/academy/$id': typeof AuthenticatedAdminAcademyIdRoute
+  '/admin/academy/product-seo': typeof AuthenticatedAdminAcademyProductSeoRoute
   '/admin/academy/upload': typeof AuthenticatedAdminAcademyUploadRoute
   '/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
@@ -1353,6 +1362,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/admin/academy/$id': typeof AuthenticatedAdminAcademyIdRoute
+  '/_authenticated/admin/academy/product-seo': typeof AuthenticatedAdminAcademyProductSeoRoute
   '/_authenticated/admin/academy/upload': typeof AuthenticatedAdminAcademyUploadRoute
   '/_authenticated/admin/health/covers': typeof AuthenticatedAdminHealthCoversRouteWithChildren
   '/_authenticated/dashboard/bumps/$id': typeof AuthenticatedDashboardBumpsIdRoute
@@ -1501,6 +1511,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/dashboard/'
     | '/admin/academy/$id'
+    | '/admin/academy/product-seo'
     | '/admin/academy/upload'
     | '/admin/health/covers'
     | '/dashboard/bumps/$id'
@@ -1644,6 +1655,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/admin/academy/$id'
+    | '/admin/academy/product-seo'
     | '/admin/academy/upload'
     | '/admin/health/covers'
     | '/dashboard/bumps/$id'
@@ -1791,6 +1803,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/admin/academy/$id'
+    | '/_authenticated/admin/academy/product-seo'
     | '/_authenticated/admin/academy/upload'
     | '/_authenticated/admin/health/covers'
     | '/_authenticated/dashboard/bumps/$id'
@@ -2658,6 +2671,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAcademyIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/academy/product-seo': {
+      id: '/_authenticated/admin/academy/product-seo'
+      path: '/admin/academy/product-seo'
+      fullPath: '/admin/academy/product-seo'
+      preLoaderRoute: typeof AuthenticatedAdminAcademyProductSeoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/academy/upload': {
       id: '/_authenticated/admin/academy/upload'
       path: '/admin/academy/upload'
@@ -3022,6 +3042,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedAdminAcademyIdRoute: typeof AuthenticatedAdminAcademyIdRoute
+  AuthenticatedAdminAcademyProductSeoRoute: typeof AuthenticatedAdminAcademyProductSeoRoute
   AuthenticatedAdminAcademyUploadRoute: typeof AuthenticatedAdminAcademyUploadRoute
   AuthenticatedAdminHealthCoversRoute: typeof AuthenticatedAdminHealthCoversRouteWithChildren
   AuthenticatedDashboardBumpsIdRoute: typeof AuthenticatedDashboardBumpsIdRoute
@@ -3080,6 +3101,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   AuthenticatedAdminAcademyIdRoute: AuthenticatedAdminAcademyIdRoute,
+  AuthenticatedAdminAcademyProductSeoRoute:
+    AuthenticatedAdminAcademyProductSeoRoute,
   AuthenticatedAdminAcademyUploadRoute: AuthenticatedAdminAcademyUploadRoute,
   AuthenticatedAdminHealthCoversRoute:
     AuthenticatedAdminHealthCoversRouteWithChildren,

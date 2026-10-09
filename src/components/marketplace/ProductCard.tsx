@@ -42,7 +42,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
     >
       <Link
         to="/products/$id"
-        params={{ id: product.id }}
+        params={{ id: product.slug ?? product.id }}
         className="relative block"
       >
         <div className="relative aspect-[2/3] w-full min-h-[280px] md:min-h-[320px] overflow-hidden rounded-md bg-[#F5F0E8] shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
@@ -119,7 +119,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
 
         <Link
           to="/products/$id"
-          params={{ id: product.id }}
+          params={{ id: product.slug ?? product.id }}
           className="mt-1 line-clamp-2 min-h-[2.6em] break-words font-display text-[15px] font-bold leading-snug text-ink hover:text-navy"
         >
           {product.title}

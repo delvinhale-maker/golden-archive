@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, useRouter } from "@tanstack/react-router";
 import { ProductTaxonomyMeta } from "@/components/marketplace/ProductTaxonomyMeta";
 import { isCompleteSystemType, resolveProductType } from "@/lib/taxonomy";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
@@ -46,7 +46,7 @@ import { useCart, useWishlist } from "@/hooks/use-av-store";
 import { useOwnsProduct } from "@/hooks/use-owned-products";
 import { getProduct, relatedProductsQuery, type Product, type ProductDetailResult } from "@/lib/marketplace.functions";
 import { getCreatorPublicCard, getMoreFromCreator } from "@/lib/storefront.functions";
-import { buildFallbackProductDescription } from "@/lib/product-seo";
+import { buildFallbackProductDescription, resolveProductBrandName } from "@/lib/product-seo";
 import { listPublicVariants, type ProductVariant } from "@/lib/product-variants.functions";
 import { VariantPicker, type SelectedVariant } from "@/components/marketplace/VariantPicker";
 import { OrderBumps } from "@/components/marketplace/OrderBumps";
@@ -72,6 +72,14 @@ const SELLER_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f
 export const Route = createFileRoute("/products/$id")({
   loader: async ({ context, params }) => {
     const result = await context.queryClient.ensureQueryData(productQ(params.id));
+    if (result.kind === "redirect") {
+      throw redirect({
+        to: "/products/$id",
+        params: { id: result.slug },
+        replace: true,
+        statusCode: 301,
+      });
+    }
     // Prefetch related-product data server-side so ProductCreatorPanel,
     // MoreFromCreator, and FrequentlyBoughtTogether render from cache in the
     // initial SSR HTML instead of only after client hydration. Skipped for
@@ -132,7 +140,21 @@ export const Route = createFileRoute("/products/$id")({
       baseTitle = "Digital Product | AurumVault";
       rawDesc = buildFallbackProductDescription({ title: "" });
     }
-    const desc = rawDesc.length > 160 ? `${rawDesc.slice(0, 157)}…` : rawDesc;
+    // SEO Phase 2 overrides affect search/social metadata only. The visible
+    // product description remains the source for Product JSON-LD.
+    const seoTitle = p?.seoTitle?.trim();
+    if (seoTitle) baseTitle = seoTitle;
+    const seoDescription = p?.seoDescription?.trim();
+    const metaSource = seoDescription || rawDesc;
+    const desc = metaSource.length > 160 ? `${metaSource.slice(0, 157)}…` : metaSource;
+    const ogTitle = p?.seoOgTitle?.trim() || baseTitle;
+    const ogDescRaw = p?.seoOgDescription?.trim() || metaSource;
+    const ogDesc = ogDescRaw.length > 200 ? `${ogDescRaw.slice(0, 197)}…` : ogDescRaw;
+    const robots = isUnpublished
+      ? "noindex, follow"
+      : `${p?.seoRobotsIndex === false ? "noindex" : "index"}, ${
+          p?.seoRobotsFollow === false ? "nofollow" : "follow"
+        }`;
 
     // Build an absolute preview image URL for social platforms.
     const FALLBACK_IMAGE = `${SITE_URL}/og-image.png`;
@@ -146,23 +168,25 @@ export const Route = createFileRoute("/products/$id")({
       }
     }
     const previewImage = image ?? FALLBACK_IMAGE;
-    const imageAlt = p?.title
-      ? `Cover for ${p.title} on AurumVault`
-      : "AurumVault | Digital Product Marketplace for Creators";
+    const imageAlt =
+      p?.seoImageAlt?.trim() ||
+      (p?.title
+        ? `Cover for ${p.title} on AurumVault`
+        : "AurumVault | Digital Product Marketplace for Creators");
 
     const meta: Array<Record<string, string>> = [
       { title: baseTitle },
       { name: "description", content: desc },
-      { name: "robots", content: isUnpublished ? "noindex, follow" : "index, follow" },
+      { name: "robots", content: robots },
       { property: "og:type", content: isUnpublished ? "website" : "product" },
-      { property: "og:title", content: baseTitle },
-      { property: "og:description", content: desc },
+      { property: "og:title", content: ogTitle },
+      { property: "og:description", content: ogDesc },
       { property: "og:url", content: url },
       { property: "og:image", content: previewImage },
       { property: "og:image:alt", content: imageAlt },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: baseTitle },
-      { name: "twitter:description", content: desc },
+      { name: "twitter:title", content: ogTitle },
+      { name: "twitter:description", content: ogDesc },
       { name: "twitter:image", content: previewImage },
       { name: "twitter:image:alt", content: imageAlt },
     ];
@@ -182,13 +206,19 @@ export const Route = createFileRoute("/products/$id")({
           : { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
       const totalReviews = p.reviewCount ?? reviews.length;
 
+      const productBrandName = resolveProductBrandName({
+        creatorName: p.creator.name,
+        creatorVerified: p.creator.verified,
+        isAurumVaultOwned: p.creator.isAurumVaultOwned,
+      });
+
       const productLd: Record<string, unknown> = {
         "@context": "https://schema.org",
         "@type": "Product",
         name: p.title,
         description: rawDesc,
         image: [previewImage],
-        brand: { "@type": "Brand", name: "AurumVault" },
+        ...(productBrandName ? { brand: { "@type": "Brand", name: productBrandName } } : {}),
         offers: {
           "@type": "Offer",
           url,
@@ -568,7 +598,7 @@ function ProductPage() {
                       src={optimizedCoverUrl(product.image, { width: 1200, quality: 82 }) ?? product.image}
                       srcSet={coverSrcSet(product.image, [800, 1200, 1600], 82)}
                       sizes="90vw"
-                      alt={product.title}
+                      alt={product.seoImageAlt?.trim() || product.title}
                       decoding="async"
                       className="h-full w-full object-contain"
                     />
@@ -588,7 +618,7 @@ function ProductPage() {
                   src={optimizedCoverUrl(product.image, { width: 700 }) ?? product.image}
                   srcSet={coverSrcSet(product.image, [500, 800, 1200])}
                   sizes="(min-width: 768px) 45vw, 90vw"
-                  alt={product.title}
+                  alt={product.seoImageAlt?.trim() || product.title}
                   decoding="async"
                   fetchPriority="high"
                   className="h-full w-full object-contain"
@@ -885,7 +915,7 @@ function ProductPage() {
 
         <ShareButtons
           title={product.title}
-          url={`${SITE_URL}/products/${product.id}`}
+          url={`${SITE_URL}/products/${product.slug ?? product.id}`}
         />
 
         {isRealSeller ? (

@@ -1,0 +1,53 @@
+import { readFileSync } from "node:fs";
+import assert from "node:assert/strict";
+import { test } from "node:test";
+
+const source = readFileSync(new URL("../src/lib/food-os-billing.server.ts", import.meta.url), "utf8");
+const migration = readFileSync(new URL("../supabase/migrations/20261008202000_food_entitlement_subscription_order.sql", import.meta.url), "utf8");
+
+test("Food OS checkout return URLs use validated canonical HTTPS origin", () => {
+  assert.match(source, /appUrl\.protocol!=="https:"/);
+  assert.match(source, /appUrl\.username \|\| appUrl\.password/);
+  assert.match(source, /success_url:`\$\{appUrl\.origin\}\/food-os\?billing=success`/);
+  assert.match(source, /cancel_url:`\$\{appUrl\.origin\}\/food-os\?billing=cancelled`/);
+});
+test("Food OS billing rejects ambiguous subscription replacements", () => {
+  assert.match(source, /recordedCreated>subscription\.created/);
+  assert.match(source, /recordedCreated===subscription\.created/);
+  assert.match(source, /previous\.created===subscription\.created/);
+  assert.match(source, /stripe_subscription_created_at:new Date\(subscription\.created\*1000\)/);
+  assert.match(migration, /add column if not exists stripe_subscription_created_at timestamptz/);
+});
+test("Food OS billing validates one item and preserves organization authorization", () => {
+  assert.match(source, /subscription\.items\.data\.length!==1 \|\| item\.quantity!==1/);
+  assert.match(source, /"owner","compliance_admin"/);
+  assert.match(source, /Organization billing access denied/);
+});
+
+test("Food OS rejects conflicting timestamps for the same subscription", () => {
+  assert.match(source, /existing\.stripe_subscription_id===subscription\.id/);
+  assert.match(source, /recordedCreated!==subscription\.created/);
+  assert.match(source, /Subscription identity creation timestamp mismatch/);
+});
+
+test("Food OS refuses unconfigured Stripe prices and invalid creation times", () => {
+  assert.match(source, /!plans\[plan as FoodPlan\]/);
+  assert.match(source, /Number\.isSafeInteger\(subscription\.created\)/);
+  assert.match(source, /subscription\.created<=0/);
+});
+
+test("Food OS rejects malformed subscription identifiers and timestamps", () => {
+  assert.match(source, /Number\.isSafeInteger\(subscription\.created\)/);
+  assert.match(source, /subscription\.id\.startsWith\("sub_"\)/);
+  assert.match(source, /Invalid Stripe customer identifier/);
+  assert.match(source, /customerId\.startsWith\("cus_"\)/);
+  assert.match(source, /stripe_customer_id:customerId/);
+  assert.match(source, /!plans\[plan as FoodPlan\]/);
+});
+
+test("Food OS rejects customer reassignment for the same subscription", () => {
+  assert.match(source, /stripe_subscription_created_at,stripe_customer_id/);
+  assert.match(source, /existing\.stripe_subscription_id===subscription\.id && existing\.stripe_customer_id/);
+  assert.match(source, /existing\.stripe_customer_id!==customerId/);
+  assert.match(source, /Subscription customer identity mismatch/);
+});
