@@ -46,7 +46,7 @@ async function sync(subscription:Stripe.Subscription) {
   if (!item || item.price.id !== plans[plan as FoodPlan]) throw new Error("Subscription price does not match Food OS plan");
   if(subscription.items.data.length!==1 || item.quantity!==1) throw new Error("Food OS subscription must contain exactly one licensed plan item");
   const database=db();
-  const {data:existing,error:lookupError}=await database.from("food_os_entitlements").select("stripe_subscription_id").eq("organization_id",organizationId).maybeSingle();
+  const {data:existing,error:lookupError}=await database.from("food_os_entitlements").select("stripe_subscription_id,stripe_subscription_created_at").eq("organization_id",organizationId).maybeSingle();
   if(lookupError) throw lookupError;
   if(existing?.stripe_subscription_id && existing.stripe_subscription_id!==subscription.id) {
     // Never allow a late webhook from an old subscription to overwrite a replacement.
