@@ -49,6 +49,11 @@ async function sync(subscription:Stripe.Subscription) {
   const {data:existing,error:lookupError}=await database.from("food_os_entitlements").select("stripe_subscription_id,stripe_subscription_created_at").eq("organization_id",organizationId).maybeSingle();
   if(lookupError) throw lookupError;
   if(existing?.stripe_subscription_id && existing.stripe_subscription_id!==subscription.id) {
+    const recordedCreated=existing.stripe_subscription_created_at?Date.parse(existing.stripe_subscription_created_at)/1000:null;
+    if(recordedCreated!==null && Number.isFinite(recordedCreated)) {
+      if(recordedCreated>subscription.created) return false;
+      if(recordedCreated===subscription.created) throw new Error("Ambiguous subscription replacement ordering");
+    }
     // Never allow a late webhook from an old subscription to overwrite a replacement.
     try {
       const previous=await stripe().subscriptions.retrieve(existing.stripe_subscription_id);
