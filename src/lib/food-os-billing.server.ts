@@ -58,15 +58,15 @@ async function sync(subscription:Stripe.Subscription) {
       if(recordedCreated===subscription.created) throw new Error("Ambiguous subscription replacement ordering");
     }
     if(recordedCreated===null || !Number.isFinite(recordedCreated)) {
-    // For legacy rows without a timestamp, verify the previous subscription via Stripe.
-    try {
+      // Legacy records require Stripe verification before replacement.
+      try {
       const previous=await stripe().subscriptions.retrieve(existing.stripe_subscription_id);
       if(previous.created>subscription.created) return false;
       if(previous.created===subscription.created) throw new Error("Ambiguous legacy subscription replacement ordering");
-    } catch (error) {
+      } catch (error) {
       // An inaccessible previous subscription is not evidence that an incoming event is newer.
-      throw new Error("Unable to verify existing Food OS subscription ordering", {cause:error});
-    }
+        throw new Error("Unable to verify existing Food OS subscription ordering", {cause:error});
+      }
     }
   }
   if(existing?.stripe_subscription_id===subscription.id && existing.stripe_subscription_created_at) {
