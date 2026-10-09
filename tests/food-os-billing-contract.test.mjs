@@ -29,3 +29,9 @@ test("Food OS rejects conflicting timestamps for the same subscription", () => {
   assert.match(source, /recordedCreated!==subscription\.created/);
   assert.match(source, /Subscription identity creation timestamp mismatch/);
 });
+
+test("Food OS refuses unconfigured Stripe prices and invalid creation times", () => {
+  assert.match(source, /!plans\[plan as FoodPlan\]/);
+  assert.match(source, /Number\.isSafeInteger\(subscription\.created\)/);
+  assert.match(source, /subscription\.created<=0/);
+});
