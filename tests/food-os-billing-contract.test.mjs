@@ -23,3 +23,9 @@ test("Food OS billing validates one item and preserves organization authorizatio
   assert.match(source, /"owner","compliance_admin"/);
   assert.match(source, /Organization billing access denied/);
 });
+
+test("Food OS rejects conflicting timestamps for the same subscription", () => {
+  assert.match(source, /existing\.stripe_subscription_id===subscription\.id/);
+  assert.match(source, /recordedCreated!==subscription\.created/);
+  assert.match(source, /Subscription identity creation timestamp mismatch/);
+});
