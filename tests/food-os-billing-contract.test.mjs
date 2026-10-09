@@ -40,5 +40,7 @@ test("Food OS rejects malformed subscription identifiers and timestamps", () => 
   assert.match(source, /Number\.isSafeInteger\(subscription\.created\)/);
   assert.match(source, /subscription\.id\.startsWith\("sub_"\)/);
   assert.match(source, /Invalid Stripe customer identifier/);
+  assert.match(source, /customerId\.startsWith\("cus_"\)/);
+  assert.match(source, /stripe_customer_id:customerId/);
   assert.match(source, /!plans\[plan as FoodPlan\]/);
 });
