@@ -52,7 +52,7 @@ async function sync(subscription:Stripe.Subscription) {
   const customerId=typeof subscription.customer==="string"?subscription.customer:subscription.customer?.id;
   if(!customerId || !customerId.startsWith("cus_")) throw new Error("Invalid Stripe customer identifier");
   const database=db();
-  const {data:existing,error:lookupError}=await database.from("food_os_entitlements").select("stripe_subscription_id,stripe_subscription_created_at").eq("organization_id",organizationId).maybeSingle();
+  const {data:existing,error:lookupError}=await database.from("food_os_entitlements").select("stripe_subscription_id,stripe_subscription_created_at,stripe_customer_id").eq("organization_id",organizationId).maybeSingle();
   if(lookupError) throw lookupError;
   if(existing?.stripe_subscription_id && existing.stripe_subscription_id!==subscription.id) {
     const recordedCreated=existing.stripe_subscription_created_at?Date.parse(existing.stripe_subscription_created_at)/1000:null;
