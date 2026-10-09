@@ -48,6 +48,8 @@ async function sync(subscription:Stripe.Subscription) {
   if (!plans[plan as FoodPlan] || !item || item.price.id !== plans[plan as FoodPlan]) throw new Error("Subscription price does not match Food OS plan");
   if(subscription.items.data.length!==1 || item.quantity!==1) throw new Error("Food OS subscription must contain exactly one licensed plan item");
   if(!Number.isSafeInteger(subscription.created) || subscription.created<=0) throw new Error("Invalid Stripe subscription creation timestamp");
+  if(!subscription.id || !subscription.id.startsWith("sub_")) throw new Error("Invalid Stripe subscription identifier");
+  if(!subscription.customer || (typeof subscription.customer!=="string" && !subscription.customer.id)) throw new Error("Invalid Stripe customer identifier");
   const database=db();
   const {data:existing,error:lookupError}=await database.from("food_os_entitlements").select("stripe_subscription_id,stripe_subscription_created_at").eq("organization_id",organizationId).maybeSingle();
   if(lookupError) throw lookupError;
